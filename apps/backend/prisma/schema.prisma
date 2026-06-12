@@ -1,0 +1,152 @@
+// ============================================================
+// Pocket Mint — Personal Finance Tracker
+// Prisma Schema for PostgreSQL
+// ============================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// USER
+// ─────────────────────────────────────────────
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  accounts     Account[]
+  categories   Category[]
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// ACCOUNT  (rekening / wallet / e-wallet)
+// ─────────────────────────────────────────────
+enum AccountType {
+  CASH
+  BANK
+  E_WALLET
+  CREDIT_CARD
+  INVESTMENT
+  OTHER
+}
+
+model Account {
+  id             String      @id @default(cuid())
+  userId         String      @map("user_id")
+  name           String      // "BCA", "GoPay", "Cash", dll.
+  type           AccountType @default(CASH)
+  balance        Decimal     @default(0) @db.Decimal(15, 2)
+  currency       String      @default("IDR") @db.VarChar(3)
+  icon           String?     // emoji / icon key
+  color          String?     // hex color for UI
+  isArchived     Boolean     @default(false) @map("is_archived")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@map("accounts")
+}
+
+// ─────────────────────────────────────────────
+// CATEGORY  (kategori transaksi)
+// ─────────────────────────────────────────────
+enum CategoryType {
+  INCOME
+  EXPENSE
+}
+
+model Category {
+  id        String       @id @default(cuid())
+  userId    String       @map("user_id")
+  name      String       // "Makan", "Transport", "Gaji"
+  type      CategoryType // INCOME or EXPENSE
+  icon      String?      // emoji / icon key
+  color     String?      // hex color for UI
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  budgets      Budget[]
+
+  // User can't have duplicate category names per type
+  @@unique([userId, name, type])
+  @@map("categories")
+}
+
+// ─────────────────────────────────────────────
+// TRANSACTION  (transaksi income / expense)
+// ─────────────────────────────────────────────
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  userId      String          @map("user_id")
+  accountId   String          @map("account_id")
+  categoryId  String?         @map("category_id")
+  type        TransactionType
+  amount      Decimal         @db.Decimal(15, 2)
+  description String?
+  note        String?
+  date        DateTime        @db.Date
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account  Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  // Indexes for common queries
+  @@index([userId, date])
+  @@index([userId, type])
+  @@index([accountId])
+  @@index([categoryId])
+  @@map("transactions")
+}
+
+// ─────────────────────────────────────────────
+// BUDGET  (budget per kategori per bulan)
+// ─────────────────────────────────────────────
+model Budget {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  categoryId String   @map("category_id")
+  amount     Decimal  @db.Decimal(15, 2)
+  month      Int      @db.SmallInt // 1-12
+  year       Int      @db.SmallInt // e.g. 2026
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  // One budget per category per month
+  @@unique([userId, categoryId, month, year])
+  @@map("budgets")
+}
