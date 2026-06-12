@@ -4,7 +4,7 @@
 // ============================================================
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
@@ -51,8 +51,8 @@ model Account {
   userId         String      @map("user_id")
   name           String      // "BCA", "GoPay", "Cash", dll.
   type           AccountType @default(CASH)
-  balance        Decimal     @default(0) @db.Decimal(15, 2)
-  currency       String      @default("IDR") @db.VarChar(3)
+  balance        Float     @default(0)
+  currency       String      @default("IDR")
   icon           String?     // emoji / icon key
   color          String?     // hex color for UI
   isArchived     Boolean     @default(false) @map("is_archived")
@@ -109,10 +109,10 @@ model Transaction {
   accountId   String          @map("account_id")
   categoryId  String?         @map("category_id")
   type        TransactionType
-  amount      Decimal         @db.Decimal(15, 2)
+  amount      Float
   description String?
   note        String?
-  date        DateTime        @db.Date
+  date        DateTime
   createdAt   DateTime        @default(now()) @map("created_at")
   updatedAt   DateTime        @updatedAt @map("updated_at")
 
@@ -136,9 +136,9 @@ model Budget {
   id         String   @id @default(cuid())
   userId     String   @map("user_id")
   categoryId String   @map("category_id")
-  amount     Decimal  @db.Decimal(15, 2)
-  month      Int      @db.SmallInt // 1-12
-  year       Int      @db.SmallInt // e.g. 2026
+  amount     Float
+  month      Int // 1-12
+  year       Int // e.g. 2026
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
