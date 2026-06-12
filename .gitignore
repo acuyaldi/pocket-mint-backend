@@ -22,3 +22,7 @@
 # Mengabaikan file bawaan OS yang tidak penting
 .DS_Store
 Thumbs.db
+
+# IDE‑generated cache files
+*.sst
+*.meta
