@@ -2,22 +2,221 @@ import { Request, Response, NextFunction } from 'express';
 import prisma from '../lib/prisma';
 import { sendSuccess, sendError } from '../utils/response';
 
+const VALID_WALLET_TYPES = ['CASH', 'BANK', 'E_WALLET', 'CREDIT_CARD', 'LOAN_PAYLATER'];
+const DEBT_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
+
 /**
- * GET /api/v1/accounts
- * Returns list of accounts for a given user (optional userId query).
+ * GET /api/v1/wallets
+ * Returns list of wallets for the authenticated user,
+ * with computed fields: sisa_limit & outstanding_debt for DEBT wallets.
  */
-export const getAllAccounts = async (req: Request, res: Response, next: NextFunction) => {
+export const getAllWallets = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId } = req.query as { userId?: string };
-    const accounts = await prisma.account.findMany({
-      where: userId ? { userId } : undefined,
-      include: {
-        user: { select: { id: true, name: true, email: true } },
-        transactions: { select: { id: true } },
+    // TODO: ganti dengan session auth
+    const userId = 'cmqcce9360000dfs48tkbmv4r';
+
+    // Verify user exists
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const wallets = await prisma.wallet.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const serialized = wallets.map((w) => {
+      const balance = parseFloat(w.balance.toString());
+      const creditLimit = parseFloat(w.creditLimit.toString());
+      const isDebt = DEBT_TYPES.includes(w.type);
+
+      return {
+        ...w,
+        balance,
+        creditLimit,
+        initialBalance: parseFloat(w.initialBalance.toString()),
+        interestRate: parseFloat(w.interestRate.toString()),
+        // Computed fields for DEBT wallets
+        sisa_limit: isDebt ? creditLimit + balance : null,
+        outstanding_debt: isDebt ? Math.abs(balance) : null,
+      };
+    });
+
+    sendSuccess(res, serialized, 'Fetched wallets');
+  } catch (err) {
+    console.error('getAllWallets error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/**
+ * POST /api/v1/wallets
+ * Create a new wallet for the user.
+ */
+export const createWallet = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = (req as any).userId || req.body.userId || (req.query.userId as string | undefined);
+    if (!userId) {
+      return sendError(res, 'userId is required', 400);
+    }
+
+    const { name, type, balance, creditLimit, interestRate, icon, color } = req.body;
+
+    if (!name || typeof name !== 'string') {
+      return sendError(res, 'name is required and must be a string', 400);
+    }
+    if (type && !VALID_WALLET_TYPES.includes(type)) {
+      return sendError(res, `type must be one of: ${VALID_WALLET_TYPES.join(', ')}`, 400);
+    }
+
+    const wallet = await prisma.wallet.create({
+      data: {
+        userId,
+        name,
+        type: type ?? 'CASH',
+        balance: balance !== undefined ? Number(balance) : 0,
+        creditLimit: creditLimit !== undefined ? Number(creditLimit) : 0,
+        interestRate: interestRate !== undefined ? Number(interestRate) : 0,
+        icon: icon ?? null,
+        color: color ?? null,
       },
     });
-    sendSuccess(res, accounts, 'Fetched accounts');
+
+    sendSuccess(res, wallet, 'Wallet created successfully', 201);
   } catch (err) {
+    if ((err as { code?: string }).code === 'P2003') {
+      return sendError(res, 'Invalid userId (user not found)', 400);
+    }
     next(err);
+  }
+};
+
+/**
+ * PUT /api/v1/wallets/:id
+ * Update wallet details.
+ */
+export const updateWallet = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { name, type, balance, creditLimit, interestRate, icon, color, isArchived } = req.body;
+
+    if (type && !VALID_WALLET_TYPES.includes(type)) {
+      return sendError(res, `type must be one of: ${VALID_WALLET_TYPES.join(', ')}`, 400);
+    }
+
+    const wallet = await prisma.wallet.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(type !== undefined && { type }),
+        ...(balance !== undefined && { balance: Number(balance) }),
+        ...(creditLimit !== undefined && { creditLimit: Number(creditLimit) }),
+        ...(interestRate !== undefined && { interestRate: Number(interestRate) }),
+        ...(icon !== undefined && { icon }),
+        ...(color !== undefined && { color }),
+        ...(isArchived !== undefined && { isArchived }),
+      },
+    });
+
+    sendSuccess(res, wallet, 'Wallet updated successfully');
+  } catch (err) {
+    if ((err as { code?: string }).code === 'P2025') {
+      return sendError(res, `Wallet with id ${req.params.id} not found`, 404);
+    }
+    next(err);
+  }
+};
+
+/**
+ * DELETE /api/v1/wallets/:id
+ * Delete a wallet (cascades related transactions' walletId to null).
+ */
+export const deleteWallet = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.wallet.delete({ where: { id } });
+
+    sendSuccess(res, { id }, `Wallet ${id} deleted successfully`);
+  } catch (err) {
+    if ((err as { code?: string }).code === 'P2025') {
+      return sendError(res, `Wallet with id ${req.params.id} not found`, 404);
+    }
+    next(err);
+  }
+};
+
+/**
+ * GET /api/v1/wallets/:id/sparkline
+ * Returns up to 7 historical balance data points for a wallet.
+ * Used to render mini sparkline charts on dashboard wallet cards.
+ */
+export const getWalletSparkline = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+    const userId = (req as any).userId;
+
+    // Verify wallet belongs to user
+    const wallet = await prisma.wallet.findFirst({
+      where: { id, userId },
+      select: { id: true, balance: true },
+    });
+    if (!wallet) {
+      return sendError(res, 'Wallet not found', 404);
+    }
+
+    // Last 7 transactions (newest first)
+    const recentTx = await prisma.transaction.findMany({
+      where: { walletId: id },
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+      take: 7,
+      select: { id: true, type: true, amount: true, date: true },
+    });
+
+    if (recentTx.length < 2) {
+      return sendSuccess(res, [], 'Not enough data for sparkline');
+    }
+
+    // Reverse to oldest-first
+    const txChronological = [...recentTx].reverse();
+
+    // Replay balances from current balance backwards
+    let runningBalance = parseFloat(wallet.balance.toString());
+    const points: { date: string; balance: number }[] = [];
+
+    // Final point = current balance
+    points.push({
+      date: txChronological[txChronological.length - 1].date.toISOString().slice(0, 10),
+      balance: Math.round(runningBalance),
+    });
+
+    // Walk backwards from newest to second-oldest, undoing each tx
+    for (let i = recentTx.length - 1; i >= 1; i--) {
+      const tx = recentTx[i];
+      const amt = parseFloat(tx.amount.toString());
+      if (tx.type === 'INCOME') {
+        runningBalance -= amt;
+      } else if (tx.type === 'EXPENSE') {
+        runningBalance += amt;
+      }
+      // TRANSFER: no net change for single-wallet sparkline
+      points.push({
+        date: tx.date.toISOString().slice(0, 10),
+        balance: Math.round(runningBalance),
+      });
+    }
+
+    // Reverse to get oldest-first order
+    points.reverse();
+
+    sendSuccess(res, points, 'Sparkline data');
+  } catch (err) {
+    console.error('getWalletSparkline error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };

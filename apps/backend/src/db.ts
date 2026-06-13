@@ -15,17 +15,16 @@ export async function ensureDefaultData() {
     },
   });
 
-  // 2. Buat Account Default (Dompet)
-  const defaultAccount = await prisma.account.upsert({
-    where: { id: 'default-account-id' },
+  // 2. Buat Wallet Default (Dompet)
+  const defaultWallet = await prisma.wallet.upsert({
+    where: { id: 'default-wallet-id' },
     update: {},
     create: {
-      id: 'default-account-id',
+      id: 'default-wallet-id',
       userId: defaultUser.id,
       name: 'Dompet Utama',
       type: 'CASH',
       balance: 1000000, // Saldo awal 1 juta Rupiah
-      currency: 'IDR',
     },
   });
 
@@ -42,5 +41,5 @@ export async function ensureDefaultData() {
     },
   });
 
-  return { userId: defaultUser.id, accountId: defaultAccount.id, categoryId: defaultCategory.id };
+  return { userId: defaultUser.id, walletId: defaultWallet.id, categoryId: defaultCategory.id };
 }

@@ -1,6 +1,6 @@
 // ============================================================
 // Pocket Mint — Personal Finance Tracker
-// Prisma Schema for PostgreSQL
+// Prisma Schema for PostgreSQL (Supabase)
 // ============================================================
 
 generator client {
@@ -26,44 +26,52 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  accounts     Account[]
+  wallets      Wallet[]
   categories   Category[]
   transactions Transaction[]
-  budgets      Budget[]
+  installments Installment[]
+  transfers    Transfer[]
 
   @@map("users")
 }
 
 // ─────────────────────────────────────────────
-// ACCOUNT  (rekening / wallet / e-wallet)
+// WALLET  (rekening / e-wallet / paylater)
 // ─────────────────────────────────────────────
-enum AccountType {
+enum WalletType {
   CASH
   BANK
   E_WALLET
   CREDIT_CARD
-  INVESTMENT
-  OTHER
+  LOAN_PAYLATER
 }
 
-model Account {
-  id             String      @id @default(cuid())
-  userId         String      @map("user_id")
-  name           String      // "BCA", "GoPay", "Cash", dll.
-  type           AccountType @default(CASH)
-  balance        Float     @default(0)
-  currency       String      @default("IDR")
-  icon           String?     // emoji / icon key
-  color          String?     // hex color for UI
-  isArchived     Boolean     @default(false) @map("is_archived")
-  createdAt      DateTime    @default(now()) @map("created_at")
-  updatedAt      DateTime    @updatedAt @map("updated_at")
+model Wallet {
+  id             String     @id @default(cuid())
+  userId         String     @map("user_id")
+  name           String
+  type           WalletType @default(CASH)
+  balance        Decimal    @default(0) @db.Decimal(15, 2)
+  creditLimit    Decimal    @default(0) @map("credit_limit") @db.Decimal(15, 2)
+  initialBalance Decimal    @default(0) @map("initial_balance") @db.Decimal(15, 2)
+  icon           String?
+  color          String?
+  interestRate   Decimal    @default(0) @map("interest_rate") @db.Decimal(5, 2)
+  // Bunga flat per bulan dalam persen (contoh: 2.95 = 2.95%)
+  // Default 0 untuk wallet tipe ASSET
+  isArchived     Boolean    @default(false) @map("is_archived")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
 
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  installments Installment[]
+  fromTransfers Transfer[]   @relation("FromWallet")
+  toTransfers   Transfer[]   @relation("ToWallet")
 
-  @@map("accounts")
+  @@index([userId])
+  @@map("wallets")
 }
 
 // ─────────────────────────────────────────────
@@ -77,25 +85,24 @@ enum CategoryType {
 model Category {
   id        String       @id @default(cuid())
   userId    String       @map("user_id")
-  name      String       // "Makan", "Transport", "Gaji"
-  type      CategoryType // INCOME or EXPENSE
-  icon      String?      // emoji / icon key
-  color     String?      // hex color for UI
+  name      String
+  type      CategoryType
+  icon      String?
+  color     String?
   createdAt DateTime     @default(now()) @map("created_at")
   updatedAt DateTime     @updatedAt @map("updated_at")
 
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
-  budgets      Budget[]
 
-  // User can't have duplicate category names per type
   @@unique([userId, name, type])
+  @@index([userId, type])
   @@map("categories")
 }
 
 // ─────────────────────────────────────────────
-// TRANSACTION  (transaksi income / expense)
+// TRANSACTION  (income / expense / transfer)
 // ─────────────────────────────────────────────
 enum TransactionType {
   INCOME
@@ -104,49 +111,95 @@ enum TransactionType {
 }
 
 model Transaction {
-  id          String          @id @default(cuid())
-  userId      String          @map("user_id")
-  accountId   String          @map("account_id")
-  categoryId  String?         @map("category_id")
-  type        TransactionType
-  amount      Float
-  description String?
-  note        String?
-  date        DateTime
-  createdAt   DateTime        @default(now()) @map("created_at")
-  updatedAt   DateTime        @updatedAt @map("updated_at")
+  id            String          @id @default(cuid())
+  userId        String          @map("user_id")
+  walletId      String          @map("wallet_id")
+  categoryId    String?         @map("category_id")
+  type          TransactionType
+  amount        Decimal         @db.Decimal(15, 2)
+  description   String?
+  isInstallment Boolean         @default(false) @map("is_installment")
+  installmentId String?         @map("installment_id")
+  date          DateTime
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
 
   // Relations
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  account  Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet      Wallet       @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  installment Installment? @relation(fields: [installmentId], references: [id], onDelete: SetNull)
 
-  // Indexes for common queries
   @@index([userId, date])
   @@index([userId, type])
-  @@index([accountId])
+  @@index([walletId, date])
   @@index([categoryId])
+  @@index([installmentId])
   @@map("transactions")
 }
 
 // ─────────────────────────────────────────────
-// BUDGET  (budget per kategori per bulan)
+// INSTALLMENT  (cicilan)
 // ─────────────────────────────────────────────
-model Budget {
-  id         String   @id @default(cuid())
-  userId     String   @map("user_id")
-  categoryId String   @map("category_id")
-  amount     Float
-  month      Int // 1-12
-  year       Int // e.g. 2026
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+enum InstallmentStatus {
+  ACTIVE
+  SETTLED
+  CANCELLED
+}
+
+model Installment {
+  id               String            @id @default(cuid())
+  userId           String            @map("user_id")
+  walletId         String            @map("wallet_id")
+  totalAmount      Decimal           @map("total_amount") @db.Decimal(15, 2)
+  interestRate     Decimal           @default(0) @map("interest_rate") @db.Decimal(5, 2)
+  // Snapshot bunga saat transaksi cicilan dibuat
+  totalInterest    Decimal           @default(0) @map("total_interest") @db.Decimal(15, 2)
+  // Total bunga = amount × (interest_rate/100) × installmentMonths
+  grandTotal       Decimal           @default(0) @map("grand_total") @db.Decimal(15, 2)
+  // Total yang harus dibayar = amount + total_interest
+  installmentMonths Int              @map("installment_months")
+  currentTerm      Int               @default(1) @map("current_term")
+  monthlyAmount    Decimal           @map("monthly_amount") @db.Decimal(15, 2)
+  status           InstallmentStatus @default(ACTIVE)
+  startDate        DateTime          @map("start_date")
+  description      String?
+  balanceDeducted  Boolean           @default(false) @map("balance_deducted")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
 
   // Relations
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet       Wallet        @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
 
-  // One budget per category per month
-  @@unique([userId, categoryId, month, year])
-  @@map("budgets")
+  @@index([userId, status])
+  @@index([walletId])
+  @@map("installments")
 }
+
+// ─────────────────────────────────────────────
+// TRANSFER  (transfer antar wallet, atomik)
+// ─────────────────────────────────────────────
+model Transfer {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  fromWalletId String   @map("from_wallet_id")
+  toWalletId   String   @map("to_wallet_id")
+  amount       Decimal  @db.Decimal(15, 2)
+  note         String?
+  date         DateTime
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fromWallet Wallet @relation("FromWallet", fields: [fromWalletId], references: [id], onDelete: Cascade)
+  toWallet   Wallet @relation("ToWallet", fields: [toWalletId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([fromWalletId])
+  @@index([toWalletId])
+  @@map("transfers")
+}
+
+

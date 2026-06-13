@@ -1,52 +1,123 @@
-📑 RFC: Tech Stack, Design System & AI Workflow Selection
+📑 RFC v2.0: Pocket Mint — Personal Finance Tracker (Core System)
 
-1. Pemilihan Framework (The Stack)
+Overview & Product Positioning
 
-Mengingat kamu berlatar belakang Frontend yang mau ekspansi ke Backend, kita pilih stack yang modern, type-safe (meminimalisir bug), dan memiliki ekosistem AI-tooling yang sangat kuat.
-A. Frontend: Next.js (App Router) + TypeScript
+Pocket Mint adalah terminal manajemen keuangan pribadi (personal finance tracker) berbasis web yang bersifat 100% Private, Self-Hosted, dan Open-Source. Aplikasi ini dirancang khusus untuk mengonsolidasikan multi-wallet, melacak limit kredit/paylater secara real-time, serta mengelola amortisasi cicilan dengan kalkulator bunga dinamis.
+Aturan Autentikasi & Akses:
+    Tidak menyediakan pendaftaran akun publik (No Public Sign-Up).
+    Alur utama langsung diarahkan ke halaman /login atau inisialisasi Owner Setup pada instance lokal milik pengguna.
 
-    Kenapa? Next.js adalah standar industri saat ini. Karena kamu sudah biasa dengan frontend, Next.js memberikan struktur proyek yang opiniated (teratur) dan mendukung Server Components yang efisien.
+Definisi, Konsep Kunci & Rumus Finansial
 
-    Keuntungan AI: AI sangat pintar menulis komponen React + TypeScript karena pola kodenya yang terstruktur.
+    Tipe Wallet:
+        ASSET: Dompet bernilai positif (Cash, Bank, E-Wallet).
+        DEBT: Dompet berbasis limit kredit (Kartu Kredit, Loan/Paylater).
+    Net Worth:
+    Net Worth=∑Saldo Wallet ASSET−∑Outstanding Wallet DEBT
+    Arsitektur Balance Cicilan (Model A):
+        Ketika transaksi cicilan dibuat, wallet.balance langsung dipotong sebesar grand_total (Pokok + Total Bunga) di bulan pertama agar sisa limit kredit instan akurat.
+        Laporan pengeluaran bulanan hanya mencatat beban berjalan (monthly_amount) demi menjaga akurasi cash flow.
+        Scheduler di bulan ke-2 dan seterusnya hanya mencatat riwayat pengeluaran tanpa memotong wallet.balance lagi.
 
-B. Backend: Node.js + NestJS (atau Express + TypeScript)
+Skema Database (Prisma Schema)
+Tabel wallets
+Field	Type	Keterangan
+id	String (UUID)	Primary Key
+name	String	Nama dompet (e.g., Kredivo, GoPay)
+type	Enum (ASSET / DEBT)	Tipe dompet
+balance	Decimal	Saldo berjalan (negatif = utang)
+credit_limit	Decimal?	Limit Kredit (Hanya untuk tipe DEBT)
+interest_rate	Decimal	Default 0. Bunga flat bawaan wallet per bulan dalam %
+created_at	DateTime	Timestamp
+Tabel installments
+Field	Type	Keterangan
+id	String (UUID)	Primary Key
+wallet_id	String (UUID)	FK ke wallets
+total_amount	Decimal	Harga pokok barang asli
+interest_rate	Decimal	Snapshot % bunga saat transaksi dibuat (Default 0)
+total_interest	Decimal	Total bunga hasil kalkulasi
+grand_total	Decimal	Total hutang baru (total_amount + total_interest)
+installment_months	Int	Tenor/Durasi Cicilan (Bulan)
+current_term	Int	Pembayaran bulan ke-berapa saat ini
+monthly_amount	Decimal	Beban bulanan riil (grand_total / installment_months)
+balance_deducted	Boolean	Flag apakah wallet.balance sudah dipotong penuh (Default false)
+status	Enum	ACTIVE / SETTLED / CANCELLED
+start_date	DateTime	Bulan pertama cicilan dimulai
+description	String	Deskripsi transaksi cicilan
+Tabel transactions
+Field	Type	Keterangan
+id	String (UUID)	Primary Key
+wallet_id	String (UUID)	FK ke wallets
+type	Enum	INCOME / EXPENSE / TRANSFER
+amount	Decimal	Nominal transaksi (Beban bulan berjalan jika cicilan)
+description	String	Keterangan
+category_id	String (UUID)	FK ke categories
+is_installment	Boolean	Default false
+installment_id	String (UUID)?	Nullable, FK ke installments
+date	DateTime	Tanggal transaksi diakui
+Logika Bisnis Kritis & Komponen Presisi
+4.1. Operasi Finansial di Backend (Prisma Core)
 
-    Opsi A (Rekomendasi untuk Belajar Terstruktur): NestJS.
+Semua operasi matematika finansial wajib menggunakan pustaka Prisma.Decimal untuk menghindari floating-point error JavaScript.
+    Rumus Kalkulasi Cicilan Baru:
+    TypeScript
+    total_interest = amount.mul(interestRate.div(100)).mul(installmentMonths);
+    grand_total = amount.add(total_interest);
+    monthly_amount = grand_total.div(installmentMonths);
 
-        Kenapa? NestJS menggunakan TypeScript secara native dan punya arsitektur yang mirip dengan Angular/Spring Boot (ada Controller, Service, Module). Ini bakal bikin portofoliomu terlihat sangat mature dan paham arsitektur backend standar enterprise.
+**Validasi Mutlak:** API wajib menolak request jika interestRate < 0 atau interestRate > 100 (HTTP 400).
 
-    Opsi B (Rekomendasi untuk Cepat): Express.js + TypeScript.
+### 4.2. Layer Frontend Presentation (Anti-Angka Pecahan)
+Semua nilai pecahan desimal hasil pembagian yang tampil di UI (seperti Rp 116.666,67) wajib dibungkus menggunakan Math.round() di dalam fungsi pembentuk format (*formatter helper*), contoh:
+$   \text{Output UI} = \text{Math.round(monthly\_amount)} \rightarrow \text{Rp 116.667}   $
 
-        Kenapa? Jauh lebih minimalis dan tanpa aturan ketat.
+## 5. Spesifikasi Smart UX & Frontend Layout
+### 5.1. Preset Data Bunga (Wallet Creation)
+Konstanta statis di frontend untuk mempermudah pengisian bunga secara otomatis (*auto-fill*) tanpa disimpan di kolom database provider:
+JavaScriptCopyconst PAYLATER_PRESETS = [
+  { label: "Kredivo", rate: 2.60 },
+  { label: "Indodana", rate: 3.00 },
+  { label: "SPayLater", rate: 2.95 },
+  { label: "GoPayLater", rate: 2.00 },
+  { label: "Custom", rate: 0.00 }
+]
 
-    Keputusan: Kita pilih Express + TypeScript dulu agar kurva belajarnya tidak terlalu terjal, tapi tetap aman dengan TypeScript.
+5.2. Dua Mode Input Transaksi Cicilan (Smart Calculator)
 
-C. Database: PostgreSQL + Prisma ORM
+    Mode A (Default - Input via Cicilan/Bulan): User hanya menginput nominal tagihan bulanan yang tertera di aplikasi paylater mereka. Sistem melakukan reverse calculation untuk mencari rate bunga:
+    interestRate=(amount×installmentMonthsgrand_total−amount​)×100
 
-    Kenapa Prisma? Prisma adalah ORM (Object-Relational Mapping) yang sangat ramah frontend. Kamu mendefinisikan tabel database dalam bentuk skema file teks, dan Prisma akan otomatis menghasilkan fungsi auto-complete (IntelliSense) di kodemu. AI juga sangat jago membaca dan menulis skema Prisma.
+    Dibatasi maksimal 2 angka di belakang koma (.toFixed(2)).
 
-2. Perlukan Penambahan Design System?
+    Mode B (Input via Persentase Bunga): Diaktifkan lewat toggle manual. Sistem menggunakan angka interest_rate bawaan wallet untuk menghitung maju nominal cicilan bulanan.
 
-Ya, sangat perlu, tapi jangan bikin dari nol (Scratches).
-Sebagai proyek portofolio, recruiter ingin melihat efisiensi dan kemampuanmu beradaptasi dengan alat standar industri. Bikin design system dari nol akan memakan waktu terlalu lama.
-Strategi Design System (Hybrid Approach):
+6. API Endpoints
+Wallets
 
-    Fondasi: Tailwind CSS (Untuk utilitas styling yang cepat).
+    GET /api/v1/wallets — Menyertakan kolom interest_rate.
 
-    Komponen UI: Shadcn/ui atau Radix UI.
+    POST /api/v1/wallets — Menyimpan preset bunga awal.
 
-        Kenapa? Shadcn/ui sangat marak karena dia bukan library yang di-install sebagai dependency kaku, melainkan komponen yang langsung di-copy-paste ke dalam folder proyekmu.
+    GET /api/v1/wallets/:id/summary — Saldo berjalan, sisa limit, outstanding utang.
 
-        Keuntungan AI: Kamu bisa menyuruh Claude/Gemini: "Tolong modifikasi komponen Button dari Shadcn ini agar memiliki animasi loading khusus." Kamu punya kontrol penuh atas kodenya.
+Transactions (Sistem Cicilan Terintegrasi)
 
-    Design Tokens (Warna & Tipografi): Kita akan tentukan tema finansial yang bersih (misal: Slate untuk netral, Emerald untuk pemasukan, dan Rose untuk pengeluaran).
+    POST /api/v1/transactions — Menerima payload interestRate. Menangani penulisan ganda (dual-write) ke tabel installments dan transactions secara atomik di dalam blok $transaction.
 
-3. Strategi Kolaborasi dengan AI (Claude/Gemini)
+7. Status Tahapan Implementasi
 
-Untuk mempercepat pengerjaan proyek dan meningkatkan skill-mu, kita akan bagi tugas dengan AI menggunakan metode berikut:
+    [x] Tahap 1 — Database & Skema (Prisma Modifikasi + Push)
 
-    AI sebagai Arsitek & Reviewer: Sebelum kamu push code ke GitHub, kamu bisa paste kodemu ke AI dan tanya: "Saya baru bikin fungsi backend untuk tambah transaksi ini, apakah ada celah keamanan atau cara optimasi kodenya?" (Ini cara terbaik menaikkan skill backend-mu).
+    [x] Tahap 2 — Backend Core (CRUD + Arsitektur Transaksi Atomik)
 
-    AI sebagai Dokumentator (.md): File README.md, panduan instalasi, dan dokumentasi API (API.md) bisa kamu generate lewat AI dengan memberikan struktur kode yang sudah kamu buat.
+    [x] Tahap 3 — Logika Cicilan + Bunga (Smart Reverse Calculator & Formatter UI)
 
-    AI sebagai Generator Test Case: Menulis unit test di backend seringkali membosankan. Kamu bisa suruh AI untuk membuatkan test case pakai Jest atau Vitest.
+    [x] Tahap 3.5 — Pro-Fintech Dark Redesign (Landing Page & Login Vibe Alignment)
+
+    [ ] Tahap 4 — Integrasi Otomatisasi (CURRENT STEPS)
+
+        Pembuatan Webhook Secure Auth Token di backend Pocket Mint.
+
+        Penyusunan alur kerja (Workflow) n8n.
+
+        Ekstraksi teks pesan WhatsApp menggunakan LLM AI Node di n8n.

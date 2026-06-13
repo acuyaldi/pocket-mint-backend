@@ -1,7 +1,7 @@
 'use client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
-import { Transaction } from '@/types/transaction';
+import { Transaction } from '@/src/types/transaction';
 
 // Stale time: 5 minutes (in milliseconds)
 const STALE_TIME = 5 * 60 * 1000;
@@ -24,24 +24,59 @@ export const useTransactions = () => {
 };
 
 /**
- * Create a new transaction.
- * After a successful mutation we invalidate the `transactions` query
- * so the list refreshes automatically.
+ * Update an existing transaction by ID.
+ * Invalidates the transactions query on success so the list auto-refreshes.
  */
+export const useUpdateTransaction = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    Transaction, // response type
+    Error,       // error type
+    { id: string } & Partial<Omit<Transaction, 'id' | 'createdAt' | 'updatedAt' | 'userId'>>
+  >({
+    mutationFn: ({ id, ...updates }) =>
+      api.put<{ status: string; data: Transaction }>(`/transactions/${id}`, updates).then((res) => res.data.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['wallets'] });
+    },
+  });
+};
+
 export const useCreateTransaction = () => {
   const queryClient = useQueryClient();
 
   return useMutation<
     Transaction, // response type
     Error,       // error type
-    Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'> // payload (omit server‑generated fields)
-  >(
-    (newTx) => api.post<Transaction>('/transactions', newTx).then((res) => res.data),
-    {
-      onSuccess: () => {
-        // Refetch the transaction list after creating a new one
+    Omit<Transaction, 'id' | 'createdAt' | 'updatedAt' | 'userId'> & {
+      userId?: string;
+    }
+  >({
+    mutationFn: (newTx) => api.post<{ status: string; data: Transaction }>('/transactions', newTx).then((res) => res.data.data),
+    onSuccess: () => {
+        // Refetch the transaction list and wallets after creating a new one
         queryClient.invalidateQueries({ queryKey: ['transactions'] });
+        queryClient.invalidateQueries({ queryKey: ['wallets'] });
       },
     }
   );
+};
+
+export const useDeleteTransaction = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    { id: string },
+    Error,
+    string // transaction ID
+  >({
+    mutationFn: (id) =>
+      api.delete<{ status: string; data: { id: string } }>(`/transactions/${id}`).then((res) => res.data.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['wallets'] });
+    },
+  });
 };
