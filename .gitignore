@@ -1,38 +1,42 @@
-# === DEPENDENCIES ===
-# Mengabaikan node_modules di frontend, backend, maupun root
-**/node_modules/
-.pnpm-store/
+```
+# Dependencies
+node_modules/
 
-# === NEXT.JS PRODUCTION BUILD ===
-# Mengabaikan hasil build frontend Next.js
-**/ .next/
-**/out/
+# Build outputs
+dist/
+build/
+.next/
+out/
 
-# === ENV / SENSITIVE DATA ===
-# Mengabaikan file rahasia/token database agar tidak bocor ke GitHub
+# Environment variables
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
-**/.env
-**/.env*.local
+*.env.*
 
-# === SYSTEM FILES ===
-# Mengabaikan file bawaan OS yang tidak penting
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# OS generated files
 .DS_Store
 Thumbs.db
-
-# IDE‑generated cache files
-*.sst
-*.meta
-
-# Next.js build artefacts – never commit
-/apps/frontend/.next/
-/apps/frontend/.next/**
-
-# (optionally) ignore other generated caches
-/apps/frontend/.next/dev/**
-
-# You can also ignore the whole folder generically:
-# **/.next/
+```

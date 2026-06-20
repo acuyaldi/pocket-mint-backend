@@ -1,7 +1,5 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, PiggyBank } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface MonthlyPnLCardProps {
@@ -13,69 +11,67 @@ interface MonthlyPnLCardProps {
 export function MonthlyPnLCard({ income, expenses, isLoading }: MonthlyPnLCardProps) {
   // Net Savings = Income - Expenses (atomic, no double-counting)
   const netSavings = income - expenses;
-  const isPositive = netSavings >= 0;
 
   return (
-    <Card className="border border-[#1a1a1a] bg-[#0a0a0a] hover:-translate-y-1 hover:border-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/[0.02] transition-all duration-300">
-      <CardContent className="p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-            Monthly P&L
-          </span>
-        </div>
+    <div
+      style={{
+        backgroundColor: "#131313",
+        border: "0.5px solid #262626",
+        borderRadius: "10px",
+        padding: "14px 16px",
+      }}
+    >
+      {/* Title */}
+      <span className="text-[10px] font-medium uppercase tracking-wide" style={{ color: "#71717a" }}>
+        Monthly P&L
+      </span>
 
-        {isLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-8 bg-zinc-900 rounded animate-pulse" />
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {/* Income */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-emerald-500/10">
-                  <TrendingUp className="size-3.5 text-emerald-400" />
-                </div>
-                <span className="text-xs text-zinc-400">Income</span>
-              </div>
-              <span className="text-sm font-semibold text-zinc-50 tabular-nums">
+      {isLoading ? (
+        <div className="space-y-2 mt-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-8 bg-zinc-900 rounded animate-pulse" />
+          ))}
+        </div>
+      ) : (
+        <div className="mt-3">
+          {/* Income row */}
+          <div>
+            <div className="flex items-center gap-2" style={{ padding: "8px 0" }}>
+              <div className="size-[5px] rounded-full" style={{ backgroundColor: "#4ade80" }} />
+              <span className="text-[12px]" style={{ color: "#71717a" }}>Pemasukan</span>
+              <span className="text-[12px] font-[500] ml-auto" style={{ color: "#4ade80" }}>
                 {formatCurrency(income)}
               </span>
             </div>
+          </div>
+          
+          <div className="h-px" style={{ backgroundColor: "#262626" }} />
 
-            {/* Expenses */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-red-500/10">
-                  <TrendingDown className="size-3.5 text-red-400/70" />
-                </div>
-                <span className="text-xs text-zinc-400">Expenses</span>
-              </div>
-              <span className="text-sm font-semibold text-red-400/70 tabular-nums">
+          {/* Expenses row */}
+          <div>
+            <div className="flex items-center gap-2" style={{ padding: "8px 0" }}>
+              <div className="size-[5px] rounded-full" style={{ backgroundColor: "#f87171" }} />
+              <span className="text-[12px]" style={{ color: "#71717a" }}>Pengeluaran</span>
+              <span className="text-[12px] font-[500] ml-auto" style={{ color: "#f87171" }}>
                 {formatCurrency(expenses)}
               </span>
             </div>
+          </div>
+          
+          <div className="h-px" style={{ backgroundColor: "#262626" }} />
 
-            {/* Divider */}
-            <div className="h-px bg-zinc-800" />
-
-            {/* Net Savings */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className={`p-1.5 rounded-lg ${isPositive ? "bg-emerald-500/10" : "bg-red-500/10"}`}>
-                  <PiggyBank className={`size-3.5 ${isPositive ? "text-emerald-400" : "text-red-400"}`} />
-                </div>
-                <span className="text-xs text-zinc-400">Net Savings</span>
-              </div>
-              <span className={`text-sm font-bold tabular-nums ${isPositive ? "text-emerald-400" : "text-red-400"}`}>
-                {isPositive ? "+" : ""}{formatCurrency(netSavings)}
+          {/* Net Savings row */}
+          <div>
+            <div className="flex items-center gap-2" style={{ padding: "8px 0" }}>
+              <div className="size-[5px] rounded-full" style={{ backgroundColor: "#f87171" }} />
+              <span className="text-[12px]" style={{ color: "#71717a" }}>Net Savings</span>
+              <span className="text-[12px] font-[500] ml-auto" style={{ color: "#f87171" }}>
+                {formatCurrency(netSavings)}
               </span>
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </div>
   );
 }

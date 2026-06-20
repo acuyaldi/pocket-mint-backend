@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell } from "lucide-react";
+import { Bell, Plus } from "lucide-react";
 
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -37,28 +37,38 @@ export function TopBar({
 
   return (
     <header
-      className="sticky top-0 z-10 h-16 border-b border-divider flex items-center justify-between px-6"
-      style={{ backgroundColor: "#131313" }}
+      className="flex items-center justify-between"
+      style={{
+        padding: "14px 22px",
+        borderBottom: "0.5px solid #262626",
+        backgroundColor: "#131313",
+      }}
     >
-      {/* Left: Page Title */}
-      <h2
-        className="text-xl font-medium text-text-primary"
-        style={{ fontFamily: "var(--font-hanken)" }}
-      >
-        {title}
-      </h2>
+      {/* Left: Page Title + subtitle */}
+      <div>
+        <h2
+          className="text-[15px] font-[500]"
+          style={{ color: "#e4e4e7", fontFamily: "var(--font-hanken)" }}
+        >
+          {title}
+        </h2>
+        <p className="text-[11px]" style={{ color: "#71717a", fontFamily: "var(--font-inter)" }}>
+          Welcome back! Here&apos;s your financial summary.
+        </p>
+      </div>
 
-      {/* Right: Notification + Avatar */}
-      <div className="flex items-center gap-4">
-        {/* Notification bell */}
+      {/* Right: Export button + bell icon + FAB */}
+      <div className="flex items-center gap-3">
+        {/* Bell icon */}
         <button
-          className="relative text-text-secondary hover:text-text-primary transition-colors duration-150 ease-out"
+          className="relative flex items-center justify-center"
+          style={{ width: "32px", height: "32px" }}
           aria-label="Notifikasi"
         >
-          <Bell className="size-5" />
+          <Bell className="size-5" style={{ color: "#71717a" }} />
           {/* Badge */}
           <span
-            className="absolute -top-1 -right-1 size-4 rounded-full flex items-center justify-center text-[10px] font-medium"
+            className="absolute top-0 right-0 size-4 rounded-full flex items-center justify-center text-[10px] font-medium"
             style={{
               backgroundColor: "#4ade80",
               color: "#003919",
@@ -69,18 +79,18 @@ export function TopBar({
           </span>
         </button>
 
-        {/* User Avatar */}
-        <div
-          className="size-8 rounded-full flex items-center justify-center text-sm font-semibold"
+        {/* FAB (+) button */}
+        <button
+          className="flex items-center justify-center rounded-full"
           style={{
-            backgroundColor: "#1c1b1b",
-            color: "#4ade80",
-            fontFamily: "var(--font-hanken)",
+            width: "32px",
+            height: "32px",
+            backgroundColor: "#4ade80",
           }}
-          title={`${userName} — ${userEmail}`}
+          aria-label="Add Transaction"
         >
-          {initials}
-        </div>
+          <Plus className="size-5" style={{ color: "#003919" }} strokeWidth={2.5} />
+        </button>
       </div>
     </header>
   );

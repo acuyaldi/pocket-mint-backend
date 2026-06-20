@@ -1,80 +1,108 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Wallet, TrendingUp, TrendingDown } from "lucide-react";
-import { motion } from "framer-motion";
 import { formatCurrency } from "@/lib/utils";
+import { TrendingUp } from "lucide-react";
 
-interface NetWorthCardProps {
+interface NetWorthHeroProps {
   netWorth: number;
   totalAssets: number;
-  totalDebt: number;
+  totalDebts: number;
   trendPercent?: number;
   isLoading?: boolean;
 }
 
-export function NetWorthCard({
+export function NetWorthHero({
   netWorth,
   totalAssets,
-  totalDebt,
+  totalDebts,
   trendPercent,
   isLoading,
-}: NetWorthCardProps) {
-  const isPositiveTrend = trendPercent !== undefined && trendPercent >= 0;
-
+}: NetWorthHeroProps) {
   return (
-    <Card className="border border-[#1a1a1a] bg-[#0a0a0a] hover:-translate-y-1 hover:border-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/[0.02] transition-all duration-300">
-      <CardContent className="p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-              <Wallet className="size-4 text-emerald-400" />
-            </div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-              Net Worth
-            </span>
-          </div>
-          {trendPercent !== undefined && (
-            <div className="flex items-center gap-1 text-xs font-mono text-emerald-400">
-              {isPositiveTrend ? (
-                <TrendingUp className="size-3" />
-              ) : (
-                <TrendingDown className="size-3 text-red-400" />
-              )}
-              <span>{isPositiveTrend ? "+" : ""}{trendPercent.toFixed(1)}%</span>
-              <span className="text-zinc-500 ml-1">vs last month</span>
-            </div>
-          )}
-        </div>
+    <div
+      className="w-full"
+      style={{
+        paddingTop: "24px",
+        paddingLeft: "22px",
+        paddingRight: "22px",
+        paddingBottom: "20px",
+      }}
+    >
+      {/* Label */}
+      <span
+        className="block text-[10px] font-medium uppercase tracking-[0.08em]"
+        style={{ color: "#71717a" }}
+      >
+        Net Worth
+      </span>
 
-        {/* Main Value */}
-        {isLoading ? (
-          <div className="h-10 w-48 bg-zinc-800 rounded animate-pulse mb-4" />
-        ) : (
-          <p className="text-3xl lg:text-4xl font-bold tracking-tight text-zinc-50 tabular-nums mb-1">
-            {formatCurrency(netWorth)}
+      {/* Amount */}
+      {isLoading ? (
+        <div className="h-10 w-48 bg-zinc-800 rounded animate-pulse mt-2" />
+      ) : (
+        <p
+          className="text-[40px] font-[500] leading-none mt-2"
+          style={{ color: "#4ade80" }}
+        >
+          {formatCurrency(netWorth)}
+        </p>
+      )}
+
+      {/* Badge */}
+      {trendPercent !== undefined && (
+        <div
+          className="inline-flex items-center gap-1 mt-3 px-2.5 py-1 rounded-full"
+          style={{
+            backgroundColor: "rgba(74, 222, 128, 0.1)",
+            color: "#4ade80",
+          }}
+        >
+          <TrendingUp className="size-3" />
+          <span className="text-xs font-medium">+{trendPercent.toFixed(1)}% bulan ini</span>
+        </div>
+      )}
+
+      {/* Meta items row */}
+      <div className="flex items-center gap-7 mt-4">
+        {/* Total Aset */}
+        <div>
+          <p
+            className="text-[10px] font-medium uppercase tracking-wide"
+            style={{ color: "#71717a" }}
+          >
+            Total Aset
           </p>
-        )}
-
-        {/* Assets vs Debt */}
-        <div className="flex items-center gap-4 mt-3">
-          <div className="flex items-center gap-2">
-            <div className="size-2 rounded-full bg-emerald-400" />
-            <span className="text-xs text-zinc-400">Assets</span>
-            <span className="text-xs font-semibold text-zinc-200 tabular-nums">
-              {formatCurrency(totalAssets)}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="size-2 rounded-full bg-red-400" />
-            <span className="text-xs text-zinc-400">Debt</span>
-            <span className="text-xs font-semibold text-red-400/70 tabular-nums">
-              {formatCurrency(totalDebt)}
-            </span>
-          </div>
+          <p className="text-[13px] font-[500]" style={{ color: "#e4e4e7" }}>
+            {formatCurrency(totalAssets)}
+          </p>
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Total Utang */}
+        <div>
+          <p
+            className="text-[10px] font-medium uppercase tracking-wide"
+            style={{ color: "#71717a" }}
+          >
+            Total Utang
+          </p>
+          <p className="text-[13px] font-[500]" style={{ color: "#f87171" }}>
+            {formatCurrency(totalDebts)}
+          </p>
+        </div>
+
+        {/* Net Savings */}
+        <div>
+          <p
+            className="text-[10px] font-medium uppercase tracking-wide"
+            style={{ color: "#71717a" }}
+          >
+            Net Savings
+          </p>
+          <p className="text-[13px] font-[500]" style={{ color: "#f87171" }}>
+            {formatCurrency(totalAssets - totalDebts)}
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

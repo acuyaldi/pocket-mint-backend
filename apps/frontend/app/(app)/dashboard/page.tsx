@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, FormEvent } from "react";
 import { useTransactions, useCreateTransaction } from "@/src/features/transactions/hooks/useTransactions";
 import { useWallets, useCreateWallet } from "@/src/features/wallets/hooks/useWallets";
 import type { Wallet } from "@/src/types/wallet";
-import { NetWorthCard } from "@/components/dashboard/net-worth-card";
+import { NetWorthHero } from "@/components/dashboard/net-worth-card";
 import { WalletOverviewGrid } from "@/components/dashboard/wallet-overview-grid";
 import { MonthlyPnLCard } from "@/components/dashboard/monthly-pnl-card";
 import { ActiveInstallmentsWidget } from "@/components/dashboard/ActiveInstallmentsWidget";
@@ -255,50 +255,28 @@ export default function DashboardPage() {
 
   // ── RENDER ─────────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
+    <div className="w-full">
       <motion.main
-        className="space-y-6"
         initial="hidden"
         animate="visible"
         variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
       >
-        {/* Page Title */}
-        <motion.div variants={fadeUp} className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-zinc-50">
-              Financial Overview
-            </h2>
-            <p className="text-sm text-zinc-400 mt-1">
-              Welcome back! Here&apos;s your financial summary.
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportCSV}
-            className="gap-2 self-start sm:self-auto border-[#1a1a1a] bg-[#0a0a0a] text-zinc-300 hover:border-emerald-500/30 hover:text-emerald-400 transition-all duration-200"
-          >
-            <Download className="size-4" />
-            Export Report
-          </Button>
+        {/* Net Worth Hero - ABOVE the card grid, no card wrapper */}
+        <motion.div variants={fadeUp}>
+          <NetWorthHero
+            netWorth={netWorth}
+            totalAssets={totalAssets}
+            totalDebts={totalDebts}
+            trendPercent={4.2}
+            isLoading={isLoadingWallets}
+          />
         </motion.div>
 
-        {/* ── BENTO GRID LAYOUT ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* ═══ LEFT COLUMN (span 2) ═══ */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Net Worth Card */}
-            <motion.div variants={fadeUp}>
-              <NetWorthCard
-                netWorth={netWorth}
-                totalAssets={totalAssets}
-                totalDebt={totalDebts}
-                trendPercent={4.2}
-                isLoading={isLoadingWallets}
-              />
-            </motion.div>
-
-            {/* Wallets Overview Grid (2x2) */}
+        {/* Two-column layout */}
+        <div className="flex gap-3" style={{ paddingLeft: "22px", paddingRight: "22px", paddingBottom: "22px" }}>
+          {/* Left column: flex 1 */}
+          <div className="flex-1 flex flex-col gap-2.5">
+            {/* Wallets Overview Grid */}
             <motion.div variants={fadeUp}>
               <WalletOverviewGrid
                 wallets={wallets}
@@ -316,8 +294,8 @@ export default function DashboardPage() {
             </motion.div>
           </div>
 
-          {/* ═══ RIGHT COLUMN (span 1) ═══ */}
-          <div className="space-y-6">
+          {/* Right column: fixed 230px */}
+          <div className="flex flex-col gap-2.5" style={{ width: "230px", flexShrink: 0 }}>
             {/* Monthly P&L */}
             <motion.div variants={fadeUp}>
               <MonthlyPnLCard
@@ -331,7 +309,6 @@ export default function DashboardPage() {
             <motion.div variants={fadeUp}>
               <ActiveInstallmentsWidget />
             </motion.div>
-
           </div>
         </div>
       </motion.main>

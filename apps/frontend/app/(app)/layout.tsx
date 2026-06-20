@@ -9,12 +9,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AppSidebar />
 
       {/* Main content area */}
-      <div className="lg:ml-60 flex flex-col min-h-screen">
+      <div className="lg:ml-[172px] flex flex-col min-h-screen">
         {/* Top Bar */}
         <TopBar />
 
         {/* Page content */}
-        <main className="flex-1 p-6 lg:p-6 pb-20 lg:pb-6 max-w-[1280px] w-full mx-auto">
+        <main className="flex-1 w-full">
           {children}
         </main>
       </div>

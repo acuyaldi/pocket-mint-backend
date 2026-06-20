@@ -1,14 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  ArrowUpRight,
-  ArrowDownLeft,
-  RefreshCcw,
-  ShoppingBag,
-  ArrowRight,
-} from "lucide-react";
+import { ArrowRight, ShoppingBag, ArrowUpRight, RefreshCcw } from "lucide-react";
 import Link from "next/link";
 import type { Transaction } from "@/components/dashboard/transaction-table";
 import { formatCurrency } from "@/lib/utils";
@@ -29,24 +22,24 @@ function getTxConfig(type: string) {
   const t = type.toLowerCase();
   if (t === "income") {
     return {
-      iconBg: "bg-emerald-500/10",
-      iconColor: "text-emerald-400",
-      amountColor: "text-emerald-400",
+      iconBg: "rgba(16, 185, 129, 0.1)",
+      iconColor: "#10b981",
+      amountColor: "#10b981",
       prefix: "+",
     };
   }
   if (t === "expense") {
     return {
-      iconBg: "bg-red-500/10",
-      iconColor: "text-red-500",
-      amountColor: "text-red-500",
+      iconBg: "rgba(248, 113, 113, 0.1)",
+      iconColor: "#f87171",
+      amountColor: "#f87171",
       prefix: "-",
     };
   }
   return {
-    iconBg: "bg-blue-500/10",
-    iconColor: "text-blue-400",
-    amountColor: "text-blue-400",
+    iconBg: "rgba(59, 130, 246, 0.1)",
+    iconColor: "#3b82f6",
+    amountColor: "#3b82f6",
     prefix: "",
   };
 }
@@ -60,73 +53,94 @@ export function RecentTransactionsCard({
   const recent = transactions.slice(0, RECENT_LIMIT);
 
   return (
-    <Card className="border border-[#1a1a1a] bg-[#0a0a0a] hover:-translate-y-1 hover:border-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/[0.02] transition-all duration-300">
-      <CardContent className="p-5">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-            Recent Transactions
+    <div
+      style={{
+        backgroundColor: "#131313",
+        border: "0.5px solid #262626",
+        borderRadius: "10px",
+        padding: "14px 16px",
+        marginLeft: "22px",
+        marginRight: "22px",
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] font-medium uppercase tracking-wide" style={{ color: "#71717a" }}>
+          Transaksi Terbaru
+        </span>
+        <Link href="/transactions">
+          <span className="text-[11px] font-medium" style={{ color: "#4ade80" }}>
+            Lihat semua →
           </span>
-          <Link href="/transactions">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 gap-1 px-2"
-            >
-              Show All
-              <ArrowRight className="size-3" />
-            </Button>
-          </Link>
+        </Link>
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-10 bg-zinc-900 rounded animate-pulse" />
+          ))}
         </div>
+      ) : recent.length === 0 ? (
+        <p className="text-sm text-zinc-500 text-center py-6">No transactions yet.</p>
+      ) : (
+        <div>
+          {recent.map((tx, index) => {
+            const Icon = getTxIcon(tx.type);
+            const cfg = getTxConfig(tx.type);
+            const category =
+              typeof tx.category === "string"
+                ? tx.category
+                : tx.category?.name ?? "General";
+            const date = new Date(tx.date).toLocaleDateString("id-ID", {
+              day: "numeric",
+              month: "short",
+            });
 
-        {isLoading ? (
-          <div className="space-y-2">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-12 bg-zinc-900 rounded animate-pulse" />
-            ))}
-          </div>
-        ) : recent.length === 0 ? (
-          <p className="text-sm text-zinc-500 text-center py-6">No transactions yet.</p>
-        ) : (
-          <div className="space-y-1">
-            {recent.map((tx) => {
-              const Icon = getTxIcon(tx.type);
-              const cfg = getTxConfig(tx.type);
-              const category =
-                typeof tx.category === "string"
-                  ? tx.category
-                  : tx.category?.name ?? "General";
-
-              return (
-                <div
-                  key={tx.id}
-                  className="flex items-center justify-between py-2.5 px-2 rounded-lg hover:bg-zinc-900/40 transition-colors"
-                >
-                  {/* Left: icon + description */}
+            return (
+              <div key={tx.id}>
+                <div className="flex items-center justify-between" style={{ padding: "8px 0" }}>
+                  {/* Left: icon + name + meta */}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className={`p-2 rounded-lg ${cfg.iconBg} flex-shrink-0`}>
-                      <Icon className={`size-3.5 ${cfg.iconColor}`} />
+                    <div
+                      className="flex items-center justify-center flex-shrink-0"
+                      style={{
+                        width: "28px",
+                        height: "28px",
+                        borderRadius: "7px",
+                        backgroundColor: cfg.iconBg,
+                      }}
+                    >
+                      <Icon className="size-4" style={{ color: cfg.iconColor }} />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-zinc-50 truncate">
+                      <p className="text-[13px] font-[500]" style={{ color: "#e4e4e7" }}>
                         {tx.description ?? "Untitled"}
                       </p>
-                      <p className="text-[10px] text-zinc-500">{category}</p>
+                      <p className="text-[11px]" style={{ color: "#71717a" }}>
+                        {date} · {category}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Right: amount */}
-                  <span className={`text-sm font-semibold tabular-nums flex-shrink-0 ml-3 ${cfg.amountColor}`}>
-                    {cfg.prefix}
-                    {formatCurrency(tx.amount)}
-                  </span>
+                  {/* Right: amount + source wallet */}
+                  <div className="text-right flex-shrink-0 ml-3">
+                    <p className="text-[13px] font-[500]" style={{ color: cfg.amountColor }}>
+                      {cfg.prefix}{formatCurrency(tx.amount)}
+                    </p>
+                    <p className="text-[11px]" style={{ color: "#71717a" }}>
+                      {tx.wallet?.name ?? "Cash"}
+                    </p>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-
-      </CardContent>
-    </Card>
+                {index < recent.length - 1 && (
+                  <div className="h-px" style={{ backgroundColor: "#262626" }} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
