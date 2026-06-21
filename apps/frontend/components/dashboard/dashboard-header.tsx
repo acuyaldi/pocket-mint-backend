@@ -37,7 +37,6 @@ export function DashboardHeader({
     return () => clearInterval(interval);
   }, []);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -68,7 +67,7 @@ export function DashboardHeader({
     : "U";
 
   return (
-    <header className="bg-zinc-950/80 backdrop-blur-lg border-b border-zinc-800/60 sticky top-0 z-50">
+    <header className="backdrop-blur-lg sticky top-0 z-50" style={{ backgroundColor: "rgba(15,23,42,0.8)", borderBottom: "1px solid #334155" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
@@ -78,14 +77,14 @@ export function DashboardHeader({
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-              <Wallet className="size-5 text-emerald-500" />
+            <div className="p-2 rounded-xl" style={{ backgroundColor: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)" }}>
+              <Wallet className="size-5" style={{ color: "#38BDF8" }} />
             </div>
             <div>
-              <h1 className="text-base font-bold text-zinc-50 tracking-tight">
+              <h1 className="text-base font-bold tracking-tight" style={{ color: "#F8FAFC", fontFamily: "var(--font-hanken)" }}>
                 Pocket Mint
               </h1>
-              <p className="text-[10px] text-zinc-400 leading-none hidden sm:block">
+              <p className="text-[10px] leading-none hidden sm:block" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>
                 {currentTime}
               </p>
             </div>
@@ -102,34 +101,37 @@ export function DashboardHeader({
             <Button
               variant="ghost"
               size="icon"
-              className="relative size-9 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/60 transition-all duration-200"
+              className="relative size-9 transition-all duration-200"
+              style={{ color: "#94A3B8" }}
               aria-label="Notifikasi"
             >
               <Bell className="size-[18px]" />
-              <span className="absolute top-1.5 right-1.5 size-2 bg-rose-500 rounded-full ring-2 ring-zinc-950" />
+              <span className="absolute top-1.5 right-1.5 size-2 rounded-full" style={{ backgroundColor: "#EF4444" }} />
             </Button>
 
             <Separator
               orientation="vertical"
-              className="h-6 bg-zinc-800/80"
+              className="h-6"
+              style={{ backgroundColor: "#334155" }}
             />
 
             {/* User Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsOpen((prev) => !prev)}
-                className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-zinc-800/50 transition-all duration-200 focus:outline-none cursor-pointer"
+                className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-all duration-200 focus:outline-none cursor-pointer"
               >
-                <span className="hidden sm:block text-xs font-medium text-zinc-300">
+                <span className="hidden sm:block text-xs font-medium" style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}>
                   {userName || "User"}
                 </span>
-                <div className="size-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-emerald-500/20">
+                <div className="size-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ backgroundColor: "#38BDF8", color: "#0F172A", boxShadow: "0 4px 14px rgba(56,189,248,0.3)" }}>
                   {initials}
                 </div>
                 <ChevronDown
-                  className={`size-3.5 text-zinc-500 transition-transform duration-200 hidden sm:block ${
+                  className={`size-3.5 transition-transform duration-200 hidden sm:block ${
                     isOpen ? "rotate-180" : ""
                   }`}
+                  style={{ color: "#94A3B8" }}
                 />
               </button>
 
@@ -140,29 +142,31 @@ export function DashboardHeader({
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.95 }}
                     transition={{ duration: 0.15, ease: "easeOut" }}
-                    className="absolute right-0 mt-2 w-64 rounded-xl bg-zinc-900 border border-zinc-800 shadow-2xl shadow-black/40 overflow-hidden z-50"
+                    className="absolute right-0 mt-2 w-64 rounded-xl shadow-2xl overflow-hidden z-50"
+                    style={{ backgroundColor: "#1E293B", border: "1px solid #334155" }}
                   >
                     {/* User Info */}
                     <div className="px-4 py-3">
-                      <p className="text-sm font-semibold text-zinc-50">
+                      <p className="text-sm font-semibold" style={{ color: "#F8FAFC", fontFamily: "var(--font-hanken)" }}>
                         {userName || "User"}
                       </p>
                       <div className="flex items-center gap-1.5 mt-1">
-                        <Mail className="size-3 text-zinc-500" />
-                        <p className="text-xs text-zinc-400 truncate">
+                        <Mail className="size-3" style={{ color: "#64748B" }} />
+                        <p className="text-xs truncate" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>
                           {userEmail}
                         </p>
                       </div>
                     </div>
 
-                    <Separator className="bg-zinc-800" />
+                    <Separator style={{ backgroundColor: "#334155" }} />
 
                     {/* Logout Button */}
                     <div className="p-1.5">
                       <button
                         onClick={handleLogout}
                         disabled={loggingOut}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors duration-200 disabled:opacity-50 cursor-pointer"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors duration-200 disabled:opacity-50 cursor-pointer"
+                        style={{ color: "#EF4444" }}
                       >
                         {loggingOut ? (
                           <Loader2 className="size-4 animate-spin" />

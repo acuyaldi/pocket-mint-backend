@@ -13,122 +13,33 @@ import { Button } from "@/components/ui/button";
 
 // Import components
 import WalletSummaryCard from "./components/WalletSummaryCard";
-import WalletList from "./components/WalletList";
 import CreateWalletModal from "./components/CreateWalletModal";
-import { cn, formatCurrency } from "@/lib/utils";
+import { WalletCard } from "@/components/WalletCard";
 
-// Types
-export type WalletCategory = "asset" | "debt";
-export type WalletKind = "cash" | "bank" | "e_wallet" | "credit_card" | "paylater";
-
-// New type for asset sub-categories
-export type AssetSubType = "bank_account" | "e_wallet" | "cash_on_hand" | "piutang";
-
-// New type for debt sub-categories
-export type DebtSubType = "credit_card" | "paylater" | "utang_personal" | "line_of_credit";
-
-export interface WalletBase {
-  id: string;
-  name: string;
-  category: WalletCategory;
-  kind: WalletKind;
-  balance: number;
-  icon: "landmark" | "creditcard" | "coins" | "smartphone" | "bitcoin" | "wallet" | "banknote" | "handshake";
-  sparklineData?: number[];
-}
-
-export interface AssetWallet extends WalletBase {
-  category: "asset";
-}
-
-export interface DebtWallet extends WalletBase {
-  category: "debt";
-  creditLimit: number;
-  outstanding: number;
-}
-
-export type WalletItem = AssetWallet | DebtWallet;
+// Import hooks & types
+import { useWallets } from "@/src/features/wallets/hooks/useWallets";
+import type { Wallet } from "@/src/types/wallet";
+import { formatCurrency } from "@/lib/utils";
 
 // Helpers
 export function formatRp(amount: number): string {
   return formatCurrency(amount);
 }
 
-// Mock Data
-const MOCK_WALLETS: WalletItem[] = [
-  {
-    id: "w1",
-    name: "Main Savings",
-    category: "asset",
-    kind: "bank",
-    balance: 24_850_000,
-    icon: "landmark",
-    sparklineData: [18, 20, 19, 22, 21, 24, 24.85],
-  },
-  {
-    id: "w2",
-    name: "GoPay",
-    category: "asset",
-    kind: "e_wallet",
-    balance: 1_340_000,
-    icon: "wallet",
-    sparklineData: [2.1, 1.8, 1.5, 1.9, 1.2, 1.4, 1.34],
-  },
-  {
-    id: "w3",
-    name: "Cash on Hand",
-    category: "asset",
-    kind: "cash",
-    balance: 850_000,
-    icon: "banknote",
-    sparklineData: [1.2, 1.0, 0.9, 1.1, 0.8, 0.9, 0.85],
-  },
-  {
-    id: "w4",
-    name: "Bitcoin Wallet",
-    category: "asset",
-    kind: "e_wallet",
-    balance: 8_500_000,
-    icon: "wallet",
-    sparklineData: [6.2, 7.0, 6.8, 7.5, 8.0, 8.2, 8.5],
-  },
-  {
-    id: "w5",
-    name: "Kredivo",
-    category: "debt",
-    kind: "paylater",
-    balance: 3_200_000,
-    creditLimit: 10_000_000,
-    outstanding: 3_200_000,
-    icon: "creditcard",
-  },
-  {
-    id: "w6",
-    name: "Spaylater",
-    category: "debt",
-    kind: "paylater",
-    balance: 1_750_000,
-    creditLimit: 5_000_000,
-    outstanding: 1_750_000,
-    icon: "creditcard",
-  },
-];
+const DEBT_TYPES = ["CREDIT_CARD", "LOAN_PAYLATER"];
 
 // Derived financial aggregates
-function computeAggregates(wallets: WalletItem[]) {
-  const assets = wallets.filter((w) => w.category === "asset");
-  const debts = wallets.filter((w) => w.category === "debt") as DebtWallet[];
+function computeAggregates(wallets: Wallet[]) {
+  const assets = wallets.filter((w) => !DEBT_TYPES.includes(w.type));
+  const debts = wallets.filter((w) => DEBT_TYPES.includes(w.type));
 
   const totalAssets = assets.reduce((s, w) => s + w.balance, 0);
-  const totalDebts = debts.reduce((s, w) => s + w.outstanding, 0);
+  const totalDebts = debts.reduce((s, w) => s + Math.abs(w.balance), 0);
   const netWorth = totalAssets - totalDebts;
-  const totalCreditLimit = debts.reduce((s, w) => s + w.creditLimit, 0);
+  const totalCreditLimit = debts.reduce((s, w) => s + (w.creditLimit ?? 0), 0);
   const debtRatio = totalCreditLimit > 0 ? (totalDebts / totalCreditLimit) * 100 : 0;
 
-  const prevNetWorth = netWorth * 0.958;
-  const growthPct = ((netWorth - prevNetWorth) / Math.abs(prevNetWorth)) * 100;
-
-  return { totalAssets, totalDebts, netWorth, totalCreditLimit, debtRatio, growthPct };
+  return { totalAssets, totalDebts, netWorth, totalCreditLimit, debtRatio };
 }
 
 // Filter Pills
@@ -161,21 +72,28 @@ function ConnectAccountCard({ onClick }: { onClick: () => void }) {
     <motion.div
       variants={fadeUp}
       onClick={onClick}
-      className={cn(
-        "rounded-2xl border-2 border-dashed border-white/[0.08] bg-transparent p-4",
-        "flex flex-col items-center justify-center gap-3 min-h-[170px] cursor-pointer",
-        "hover:border-emerald-500/30 hover:bg-emerald-500/[0.02] transition-all duration-300",
-        "group",
-      )}
+      className="rounded-2xl p-4 flex flex-col items-center justify-center gap-3 min-h-[170px] cursor-pointer group transition-all duration-300"
+      style={{
+        border: "2px dashed #334155",
+        backgroundColor: "transparent",
+      }}
     >
-      <div className="size-10 rounded-full border border-white/10 flex items-center justify-center group-hover:border-emerald-500/30 transition-colors">
-        <Plus className="size-4 text-white/40 group-hover:text-emerald-400 transition-colors" />
+      <div
+        className="size-10 rounded-full flex items-center justify-center transition-colors"
+        style={{ border: "1px solid #334155" }}
+      >
+        <Plus className="size-4" style={{ color: "#94A3B8" }} />
       </div>
       <div className="text-center">
-        <p className="text-sm font-medium text-white/60 group-hover:text-white/80 transition-colors">
+        <p
+          className="text-sm font-medium transition-colors"
+          style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}
+        >
           Connect Account
         </p>
-        <p className="text-xs text-white/30 mt-1">Bank, Card, or Investment</p>
+        <p className="text-xs mt-1" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>
+          Bank, Card, or Investment
+        </p>
       </div>
     </motion.div>
   );
@@ -184,20 +102,28 @@ function ConnectAccountCard({ onClick }: { onClick: () => void }) {
 // Main Page
 export default function WalletsPage() {
   const [filter, setFilter] = useState<FilterKey>("all");
-  const agg = useMemo(() => computeAggregates(MOCK_WALLETS), []);
+  const { data: wallets } = useWallets();
+
+  const allWallets = useMemo(
+    () => (wallets ?? []).filter((w) => !w.isArchived),
+    [wallets],
+  );
+
+  const agg = useMemo(() => computeAggregates(allWallets), [allWallets]);
 
   // Modal state
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
 
   const filteredWallets = useMemo(
-    () => (filter === "all" ? MOCK_WALLETS : MOCK_WALLETS.filter((w) => w.category === filter)),
-    [filter],
+    () => {
+      if (filter === "all") return allWallets;
+      if (filter === "debt") return allWallets.filter((w) => DEBT_TYPES.includes(w.type));
+      return allWallets.filter((w) => !DEBT_TYPES.includes(w.type));
+    },
+    [filter, allWallets],
   );
 
-  const handleWalletClick = (wallet: WalletItem) => {
-    console.log("=== WALLET CLICKED ===", wallet);
-  };
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleWalletCreateSuccess = (formData: any) => {
     console.log("=== NEW WALLET CREATED SUCCESS ===", formData);
   };
@@ -214,37 +140,54 @@ export default function WalletsPage() {
         />
 
         {/* Total Debt Ratio Card */}
-        <motion.div variants={fadeUp} className="relative rounded-2xl border border-white/[0.06] bg-[#0a0a0a] p-6 overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-amber-500/[0.03] blur-3xl pointer-events-none" />
-          <p className="text-xs font-semibold text-white uppercase tracking-widest">Total Debt Ratio</p>
+        <motion.div variants={fadeUp} className="relative overflow-hidden" style={{ backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", padding: "16px" }}>
+          <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: "rgba(245,158,11,0.03)" }} />
+          <p className="uppercase tracking-widest" style={{ fontSize: "11px", fontWeight: 600, color: "#64748B", fontFamily: "var(--font-inter)" }}>Total Debt Ratio</p>
           <div className="flex items-center gap-3 mt-3">
-            <p className="text-4xl font-bold text-white tracking-tight">{agg.debtRatio.toFixed(1)}%</p>
+            <p style={{ fontSize: "20px", fontWeight: 600, color: "#F8FAFC", fontFamily: "var(--font-hanken)" }}>{agg.debtRatio.toFixed(1)}%</p>
             {agg.debtRatio < 30 && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold text-emerald-400">
+              <span
+                className="inline-flex items-center gap-1"
+                style={{
+                  padding: "3px 10px",
+                  borderRadius: "9999px",
+                  backgroundColor: "rgba(16,185,129,0.15)",
+                  border: "1px solid #10B981",
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  color: "#10B981",
+                  fontFamily: "var(--font-inter)",
+                }}
+              >
                 <ShieldCheck className="size-3" /> Status: Aman
               </span>
             )}
           </div>
-          <div className="mt-5 h-3.5 rounded-full bg-white/[0.06] overflow-hidden">
+          {/* Progress bar */}
+          <div className="mt-5 overflow-hidden" style={{ height: "4px", borderRadius: "9999px", backgroundColor: "#334155" }}>
             <motion.div
-              className={cn("h-full rounded-full", agg.debtRatio > 50 ? "bg-red-500/80" : agg.debtRatio > 30 ? "bg-amber-500/70" : "bg-emerald-500/70")}
+              className="h-full"
+              style={{
+                borderRadius: "9999px",
+                backgroundColor: agg.debtRatio > 50 ? "#EF4444" : agg.debtRatio > 30 ? "#F59E0B" : "#10B981",
+              }}
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(agg.debtRatio, 100)}%` }}
               transition={{ duration: 1, ease: "easeOut", delay: 0.4 }}
             />
           </div>
           <div className="flex items-center gap-1.5 mt-2.5">
-            <AlertTriangle className="size-3 text-white/30" />
-            <span className="text-[11px] text-white/35">Safe threshold: &lt;30%</span>
+            <AlertTriangle className="size-3" style={{ color: "#64748B" }} />
+            <span style={{ fontSize: "11px", color: "#64748B", fontFamily: "var(--font-inter)" }}>Safe threshold: &lt;30%</span>
           </div>
-          <div className="grid grid-cols-2 gap-4 mt-5 pt-5 border-t border-white/[0.04]">
+          <div className="grid grid-cols-2 gap-4 mt-5 pt-5" style={{ borderTop: "1px solid #334155" }}>
             <div>
-              <p className="text-[11px] text-white/35 uppercase tracking-wider">Total Outstanding</p>
-              <p className="text-sm font-semibold text-white/80 mt-1">{formatRp(agg.totalDebts)}</p>
+              <p className="uppercase tracking-wider" style={{ fontSize: "11px", color: "#64748B", fontFamily: "var(--font-inter)" }}>Total Outstanding</p>
+              <p className="font-semibold mt-1" style={{ fontSize: "14px", color: "#F8FAFC", fontFamily: "var(--font-inter)" }}>{formatRp(agg.totalDebts)}</p>
             </div>
             <div>
-              <p className="text-[11px] text-white/35 uppercase tracking-wider">Total Credit Limit</p>
-              <p className="text-sm font-semibold text-white/80 mt-1">{formatRp(agg.totalCreditLimit)}</p>
+              <p className="uppercase tracking-wider" style={{ fontSize: "11px", color: "#64748B", fontFamily: "var(--font-inter)" }}>Total Credit Limit</p>
+              <p className="font-semibold mt-1" style={{ fontSize: "14px", color: "#F8FAFC", fontFamily: "var(--font-inter)" }}>{formatRp(agg.totalCreditLimit)}</p>
             </div>
           </div>
         </motion.div>
@@ -252,29 +195,39 @@ export default function WalletsPage() {
 
       {/* Filter Bar */}
       <motion.div variants={fadeUp} className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex gap-1 p-1 rounded-lg bg-white/[0.03] border border-white/[0.04]">
+        <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: "#1E293B", border: "1px solid #334155" }}>
           {FILTERS.map((f) => (
-            <button key={f.key} onClick={() => setFilter(f.key)} className={cn("px-4 py-1.5 rounded-md text-xs font-medium transition-all duration-200", filter === f.key ? "bg-white/[0.08] text-white shadow-sm" : "text-white/40 hover:text-white/60 hover:bg-white/[0.03]")}>
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className="px-4 py-1.5 rounded-md text-xs font-medium transition-all duration-200"
+              style={{
+                backgroundColor: filter === f.key ? "#334155" : "transparent",
+                color: filter === f.key ? "#F8FAFC" : "#94A3B8",
+                fontFamily: "var(--font-inter)",
+              }}
+            >
               {f.label}
             </button>
           ))}
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium text-white/50 bg-white/[0.03] border border-white/[0.06] hover:text-white/70 hover:border-white/[0.1] transition-all">
-            <SlidersHorizontal className="size-3.5" /> Sort by Balance <ChevronDown className="size-3" />
-          </button>
-          <Button onClick={() => setIsCustomModalOpen(true)} className="bg-emerald-500 hover:bg-emerald-400 text-[#003919] font-semibold h-9 px-5 gap-2 rounded-lg shadow-lg shadow-emerald-500/10">
+       
+          <Button
+            onClick={() => setIsCustomModalOpen(true)}
+            className="font-semibold h-9 px-5 gap-2 rounded-lg"
+            style={{ backgroundColor: "#38BDF8", color: "#0F172A" }}
+          >
             <Plus className="size-4" /> Add New Wallet
           </Button>
         </div>
       </motion.div>
 
       {/* Wallet Cards Grid */}
-      <motion.div variants={pageVariants} key={filter} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <WalletList
-          wallets={filteredWallets}
-          onWalletClick={handleWalletClick}
-        />
+      <motion.div variants={pageVariants} key={filter} style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+        {filteredWallets.map((wallet) => (
+          <WalletCard key={wallet.id} wallet={wallet} variant="full" />
+        ))}
         <ConnectAccountCard onClick={() => setIsCustomModalOpen(true)} />
       </motion.div>
 

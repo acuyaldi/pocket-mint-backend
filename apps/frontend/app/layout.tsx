@@ -6,7 +6,7 @@ import "./globals.css";
 const hankenGrotesk = Hanken_Grotesk({
   variable: "--font-hanken",
   subsets: ["latin"],
-  weight: ["600", "700"],
+  weight: ["400", "600", "700"],
   display: "swap",
 });
 
@@ -40,7 +40,7 @@ export default function RootLayout({
       lang="en"
       className={`${hankenGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans antialiased bg-[#131313] text-[#e5e2e1]">
+      <body className="min-h-full flex flex-col font-sans antialiased bg-background text-foreground">
         <QueryProvider>{children}</QueryProvider>
       </body>
     </html>

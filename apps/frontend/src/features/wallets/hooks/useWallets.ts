@@ -39,3 +39,16 @@ export const useCreateWallet = () => {
     },
   });
 };
+
+export const useDeleteWallet = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<{ id: string }, Error, string>({
+    mutationFn: (walletId) =>
+      api.delete<{ status: string; data: { id: string } }>(`/wallets/${walletId}`).then((res) => res.data.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallets'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
+};

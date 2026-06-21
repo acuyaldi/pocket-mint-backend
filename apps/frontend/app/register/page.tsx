@@ -27,7 +27,7 @@ export default function RegisterPage() {
 
     const confirmPassword = formData.get("confirmPassword") as string;
     if (password !== confirmPassword) {
-      setError("Password dan konfirmasi password tidak cocok");
+      setError("Password dan confirmPassword tidak cocok");
       setLoading(false);
       return;
     }
@@ -48,61 +48,78 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Branding (Hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-zinc-900">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ backgroundColor: "#0F172A" }}>
         {/* Animated background shapes */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 size-96 rounded-full bg-teal-500/10 blur-3xl animate-pulse" />
-          <div className="absolute -bottom-40 -left-40 size-96 rounded-full bg-emerald-500/10 blur-3xl animate-pulse delay-1000" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[500px] rounded-full bg-teal-500/5 blur-3xl animate-pulse delay-2000" />
+          <div className="absolute -top-40 -right-40 size-96 rounded-full blur-3xl animate-pulse" style={{ backgroundColor: "rgba(56,189,248,0.1)" }} />
+          <div className="absolute -bottom-40 -left-40 size-96 rounded-full blur-3xl animate-pulse delay-1000" style={{ backgroundColor: "rgba(16,185,129,0.1)" }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[500px] rounded-full blur-3xl animate-pulse delay-2000" style={{ backgroundColor: "rgba(56,189,248,0.05)" }} />
         </div>
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16 text-zinc-50">
+        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16" style={{ color: "#F8FAFC" }}>
           <div className="mb-8">
-            <div className="inline-flex items-center gap-2 rounded-full bg-zinc-800/50 backdrop-blur-md border border-zinc-700 px-4 py-2 text-sm font-medium text-emerald-500 mb-6">
+            <div
+              className="inline-flex items-center gap-2 rounded-full backdrop-blur-md px-4 py-2 text-sm font-medium mb-6"
+              style={{
+                backgroundColor: "rgba(30,41,59,0.5)",
+                border: "1px solid #334155",
+                color: "#10B981",
+                fontFamily: "var(--font-inter)",
+              }}
+            >
               <Sparkles className="size-4" />
               <span>Mulai Perjalanan Finansial Anda</span>
             </div>
-            <h1 className="text-5xl xl:text-6xl font-bold tracking-tight mb-6 leading-tight">
+            <h1
+              className="text-5xl xl:text-6xl font-bold tracking-tight mb-6 leading-tight"
+              style={{ fontFamily: "var(--font-hanken)", color: "#F8FAFC" }}
+            >
               Kelola Keuangan
               <br />
-              <span className="text-zinc-400">Lebih Cerdas</span>
+              <span style={{ color: "#94A3B8" }}>Lebih Cerdas</span>
             </h1>
-            <p className="text-xl text-zinc-400 leading-relaxed max-w-md">
+            <p
+              className="text-xl leading-relaxed max-w-md"
+              style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}
+            >
               Bergabunglah dengan Pocket Mint dan mulai pantau transaksi, analisis pengeluaran, dan buat keputusan finansial yang lebih baik.
             </p>
           </div>
 
           {/* Feature highlights */}
           <div className="space-y-4 mt-8">
-            <div className="flex items-center gap-3 text-zinc-300">
-              <div className="size-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                <Check className="size-5 text-emerald-500" />
+            {[
+              "100% Gratis tanpa biaya tersembunyi",
+              "Setup cepat dalam 2 menit",
+              "Data terenkripsi dan aman",
+            ].map((text) => (
+              <div key={text} className="flex items-center gap-3" style={{ color: "#F8FAFC" }}>
+                <div
+                  className="size-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{
+                    backgroundColor: "rgba(16,185,129,0.1)",
+                    border: "1px solid rgba(16,185,129,0.2)",
+                  }}
+                >
+                  <Check className="size-5" style={{ color: "#10B981" }} />
+                </div>
+                <span className="text-base" style={{ fontFamily: "var(--font-inter)" }}>{text}</span>
               </div>
-              <span className="text-base">100% Gratis tanpa biaya tersembunyi</span>
-            </div>
-            <div className="flex items-center gap-3 text-zinc-300">
-              <div className="size-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                <Check className="size-5 text-emerald-500" />
-              </div>
-              <span className="text-base">Setup cepat dalam 2 menit</span>
-            </div>
-            <div className="flex items-center gap-3 text-zinc-300">
-              <div className="size-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                <Check className="size-5 text-emerald-500" />
-              </div>
-              <span className="text-base">Data terenkripsi dan aman</span>
-            </div>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Right Side - Register Form */}
-      <div className="flex-1 flex items-center justify-center bg-zinc-950 px-4 py-12 relative">
+      <div className="flex-1 flex items-center justify-center px-4 py-12 relative" style={{ backgroundColor: "#0F172A" }}>
         {/* Back to Home Button */}
         <Link
           href="/"
-          className="absolute top-6 left-6 flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-emerald-500 transition-all duration-300 group"
+          className="absolute top-6 left-6 flex items-center gap-2 text-sm font-medium transition-all duration-300 group"
+          style={{ color: "#94A3B8" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#38BDF8")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#94A3B8")}
         >
           <ArrowLeft className="size-4 transition-transform duration-300 group-hover:-translate-x-1" />
           <span>Kembali ke Beranda</span>
@@ -110,37 +127,56 @@ export default function RegisterPage() {
 
         {/* Background decoration */}
         <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 size-80 rounded-full bg-teal-500/5 blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 size-80 rounded-full bg-emerald-500/5 blur-3xl" />
+          <div className="absolute -top-40 -right-40 size-80 rounded-full blur-3xl" style={{ backgroundColor: "rgba(56,189,248,0.05)" }} />
+          <div className="absolute -bottom-40 -left-40 size-80 rounded-full blur-3xl" style={{ backgroundColor: "rgba(16,185,129,0.05)" }} />
         </div>
 
         <div className="w-full max-w-md space-y-8">
           {/* Logo (Mobile only) */}
           <div className="lg:hidden flex flex-col items-center gap-3 mb-8">
-            <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
-              <Wallet className="size-8 text-emerald-500" />
+            <div
+              className="p-3 rounded-2xl"
+              style={{
+                backgroundColor: "rgba(56,189,248,0.1)",
+                border: "1px solid rgba(56,189,248,0.2)",
+              }}
+            >
+              <Wallet className="size-8" style={{ color: "#38BDF8" }} />
             </div>
             <div className="text-center">
-              <h1 className="text-2xl font-bold tracking-tight text-zinc-50">
+              <h1
+                className="text-2xl font-bold tracking-tight"
+                style={{ fontFamily: "var(--font-hanken)", color: "#F8FAFC" }}
+              >
                 Pocket Mint
               </h1>
-              <p className="text-sm text-zinc-400 mt-1">
+              <p className="text-sm mt-1" style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}>
                 Mulai kelola keuangan Anda
               </p>
             </div>
           </div>
 
-          {/* Form Container with Glassmorphism */}
-          <div className="bg-zinc-900/50 backdrop-blur-md rounded-3xl border border-zinc-800 p-8 sm:p-10">
+          {/* Form Container */}
+          <div
+            className="backdrop-blur-md rounded-3xl p-8 sm:p-10"
+            style={{
+              backgroundColor: "rgba(30,41,59,0.5)",
+              border: "1px solid #334155",
+            }}
+          >
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold tracking-tight text-zinc-50 mb-2">
+              <h2
+                className="text-3xl font-bold tracking-tight mb-2"
+                style={{ fontFamily: "var(--font-hanken)", color: "#F8FAFC" }}
+              >
                 Buat Akun Baru
               </h2>
-              <p className="text-zinc-400">
+              <p style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}>
                 Sudah punya akun?{" "}
                 <Link
                   href="/login"
-                  className="text-emerald-500 font-semibold hover:text-emerald-400 hover:underline transition-all duration-300"
+                  className="font-semibold transition-all duration-300"
+                  style={{ color: "#38BDF8" }}
                 >
                   Masuk di sini
                 </Link>
@@ -149,51 +185,53 @@ export default function RegisterPage() {
 
             <form action={handleSubmit} className="space-y-5">
               {error && (
-                <div className="rounded-xl bg-red-950/50 backdrop-blur-md border border-red-900/50 p-4 text-sm text-red-400 text-center animate-shake">
+                <div
+                  className="rounded-xl backdrop-blur-md p-4 text-sm text-center animate-shake"
+                  style={{
+                    backgroundColor: "rgba(239,68,68,0.1)",
+                    border: "1px solid rgba(239,68,68,0.3)",
+                    color: "#EF4444",
+                  }}
+                >
                   {error}
                 </div>
               )}
 
-              <div className="space-y-2">
-                <label
-                  htmlFor="name"
-                  className="text-sm font-semibold text-zinc-50"
-                >
-                  Nama Lengkap
-                </label>
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  placeholder="John Doe"
-                  required
-                  autoComplete="name"
-                  className="h-12 bg-zinc-900/50 border-zinc-800 text-zinc-50 placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label
-                  htmlFor="email"
-                  className="text-sm font-semibold text-zinc-50"
-                >
-                  Email
-                </label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="nama@email.com"
-                  required
-                  autoComplete="email"
-                  className="h-12 bg-zinc-900/50 border-zinc-800 text-zinc-50 placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
-                />
-              </div>
+              {[
+                { id: "name", label: "Nama Lengkap", type: "text", placeholder: "John Doe", autoComplete: "name" },
+                { id: "email", label: "Email", type: "email", placeholder: "nama@email.com", autoComplete: "email" },
+              ].map((field) => (
+                <div key={field.id} className="space-y-2">
+                  <label
+                    htmlFor={field.id}
+                    className="text-sm font-medium"
+                    style={{ color: "#F8FAFC", fontFamily: "var(--font-inter)" }}
+                  >
+                    {field.label}
+                  </label>
+                  <Input
+                    id={field.id}
+                    name={field.id}
+                    type={field.type}
+                    placeholder={field.placeholder}
+                    required
+                    autoComplete={field.autoComplete}
+                    className="h-12"
+                    style={{
+                      backgroundColor: "#1E293B",
+                      border: "1px solid #334155",
+                      color: "#F8FAFC",
+                      fontFamily: "var(--font-inter)",
+                    }}
+                  />
+                </div>
+              ))}
 
               <div className="space-y-2">
                 <label
                   htmlFor="password"
-                  className="text-sm font-semibold text-zinc-50"
+                  className="text-sm font-medium"
+                  style={{ color: "#F8FAFC", fontFamily: "var(--font-inter)" }}
                 >
                   Password
                 </label>
@@ -205,21 +243,24 @@ export default function RegisterPage() {
                     placeholder="Buat password yang kuat"
                     required
                     autoComplete="new-password"
-                    className="h-12 pr-11 bg-zinc-900/50 border-zinc-800 text-zinc-50 placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
+                    className="h-12 pr-11"
+                    style={{
+                      backgroundColor: "#1E293B",
+                      border: "1px solid #334155",
+                      color: "#F8FAFC",
+                      fontFamily: "var(--font-inter)",
+                    }}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-emerald-500 transition-colors duration-300"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors duration-300"
+                    style={{ color: showPassword ? "#38BDF8" : "#64748B" }}
                     tabIndex={-1}
                   >
-                    {showPassword ? (
-                      <EyeOff className="size-5" />
-                    ) : (
-                      <Eye className="size-5" />
-                    )}
+                    {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
                   </button>
                 </div>
 
@@ -227,23 +268,17 @@ export default function RegisterPage() {
                 {password.length > 0 && (
                   <div className="space-y-1.5 pt-2">
                     {passwordChecks.map((check) => (
-                      <div
-                        key={check.label}
-                        className="flex items-center gap-2 text-xs"
-                      >
+                      <div key={check.label} className="flex items-center gap-2 text-xs">
                         <Check
-                          className={`size-3.5 transition-colors duration-300 ${
-                            check.met
-                              ? "text-emerald-500"
-                              : "text-zinc-600"
-                          }`}
+                          className="size-3.5 transition-colors duration-300"
+                          style={{ color: check.met ? "#10B981" : "#64748B" }}
                         />
                         <span
-                          className={`transition-colors duration-300 ${
-                            check.met
-                              ? "text-emerald-400 font-medium"
-                              : "text-zinc-500"
-                          }`}
+                          className="transition-colors duration-300"
+                          style={{
+                            color: check.met ? "#10B981" : "#64748B",
+                            fontWeight: check.met ? 500 : 400,
+                          }}
                         >
                           {check.label}
                         </span>
@@ -256,7 +291,8 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <label
                   htmlFor="confirmPassword"
-                  className="text-sm font-semibold text-zinc-50"
+                  className="text-sm font-medium"
+                  style={{ color: "#F8FAFC", fontFamily: "var(--font-inter)" }}
                 >
                   Konfirmasi Password
                 </label>
@@ -267,14 +303,25 @@ export default function RegisterPage() {
                   placeholder="Ulangi password"
                   required
                   autoComplete="new-password"
-                  className="h-12 bg-zinc-900/50 border-zinc-800 text-zinc-50 placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
+                  className="h-12"
+                  style={{
+                    backgroundColor: "#1E293B",
+                    border: "1px solid #334155",
+                    color: "#F8FAFC",
+                    fontFamily: "var(--font-inter)",
+                  }}
                 />
               </div>
 
               <Button
                 type="submit"
                 size="lg"
-                className="w-full h-12 text-base font-semibold bg-emerald-500 hover:bg-emerald-600 text-white hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all duration-300 hover:-translate-y-0.5"
+                className="w-full h-12 text-base font-semibold transition-all duration-300 hover:-translate-y-0.5"
+                style={{
+                  backgroundColor: loading ? "#334155" : "#38BDF8",
+                  color: "#0F172A",
+                  fontFamily: "var(--font-inter)",
+                }}
                 disabled={loading}
               >
                 {loading ? (
@@ -289,13 +336,13 @@ export default function RegisterPage() {
             </form>
           </div>
 
-          <p className="text-center text-xs text-zinc-500">
+          <p className="text-center text-xs" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>
             Dengan mendaftar, Anda menyetujui{" "}
-            <span className="underline cursor-pointer hover:text-emerald-500 transition-colors duration-300">
+            <span className="underline cursor-pointer" style={{ color: "#38BDF8" }}>
               Ketentuan Layanan
             </span>{" "}
             dan{" "}
-            <span className="underline cursor-pointer hover:text-emerald-500 transition-colors duration-300">
+            <span className="underline cursor-pointer" style={{ color: "#38BDF8" }}>
               Kebijakan Privasi
             </span>{" "}
             kami.

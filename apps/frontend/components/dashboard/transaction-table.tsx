@@ -8,10 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { cn, formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { Search, ArrowUpRight, ArrowDownLeft, RefreshCcw } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 
@@ -29,33 +28,42 @@ const typeConfig = {
   income: {
     icon: ArrowUpRight,
     label: "Pemasukan",
-    iconClass: "text-emerald-400",
-    amountClass: "text-emerald-400 font-semibold",
-    badgeClass: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+    iconClass: "",
+    iconStyle: { color: "#10B981" },
+    amountClass: "",
+    amountStyle: { color: "#10B981" },
+    badgeStyle: { backgroundColor: "rgba(16, 185, 129, 0.15)", border: "1px solid #10B981", color: "#10B981" },
     prefix: "+",
+    iconBg: "rgba(16, 185, 129, 0.1)",
   },
   expense: {
     icon: ArrowDownLeft,
     label: "Pengeluaran",
-    iconClass: "text-rose-400",
-    amountClass: "text-rose-400 font-semibold",
-    badgeClass: "bg-rose-500/10 text-rose-400 border border-rose-500/20",
+    iconClass: "",
+    iconStyle: { color: "#EF4444" },
+    amountClass: "",
+    amountStyle: { color: "#EF4444" },
+    badgeStyle: { backgroundColor: "rgba(239, 68, 68, 0.15)", border: "1px solid #EF4444", color: "#EF4444" },
     prefix: "-",
+    iconBg: "rgba(239, 68, 68, 0.1)",
   },
   transfer: {
     icon: RefreshCcw,
     label: "Transfer",
-    iconClass: "text-indigo-400",
-    amountClass: "text-indigo-400 font-semibold",
-    badgeClass: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20",
+    iconClass: "",
+    iconStyle: { color: "#38BDF8" },
+    amountClass: "",
+    amountStyle: { color: "#38BDF8" },
+    badgeStyle: { backgroundColor: "rgba(56, 189, 248, 0.15)", border: "1px solid #38BDF8", color: "#38BDF8" },
     prefix: "",
+    iconBg: "rgba(56, 189, 248, 0.1)",
   },
 };
 
 const statusConfig = {
-  completed: { label: "Selesai", class: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" },
-  pending: { label: "Tertunda", class: "bg-amber-500/10 text-amber-400 border border-amber-500/20" },
-  failed: { label: "Gagal", class: "bg-rose-500/10 text-rose-400 border border-rose-500/20" },
+  completed: { label: "Selesai", style: { backgroundColor: "rgba(16, 185, 129, 0.15)", border: "1px solid #10B981", color: "#10B981" } },
+  pending: { label: "Tertunda", style: { backgroundColor: "rgba(245, 158, 11, 0.15)", border: "1px solid #F59E0B", color: "#F59E0B" } },
+  failed: { label: "Gagal", style: { backgroundColor: "rgba(239, 68, 68, 0.15)", border: "1px solid #EF4444", color: "#EF4444" } },
 };
 
 
@@ -119,30 +127,33 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         {/* Search */}
         <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4" style={{ color: "#64748B" }} />
           <Input
             id="transaction-search"
-            placeholder="Cari transaksi…"
+            placeholder="Cari transaksi\u2026"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 text-sm bg-zinc-900/50 border-zinc-800 text-zinc-50 placeholder:text-zinc-500 focus:border-emerald-500 focus:ring-emerald-500/20 transition-all"
+            className="pl-9 h-9 text-sm"
+            style={{ backgroundColor: "#1E293B", border: "1px solid #334155", color: "#F8FAFC" }}
           />
         </div>
-
+      
         {/* Filter Buttons */}
-        <div className="flex items-center gap-1.5 bg-zinc-900/50 backdrop-blur-md border border-zinc-800 p-1 rounded-lg">
+        <div className="flex items-center gap-1" style={{ backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", padding: "4px" }}>
           {FILTER_BUTTONS.map((btn) => (
             <Button
               key={btn.value}
               id={`filter-${btn.value}`}
               variant={typeFilter === btn.value ? "default" : "ghost"}
               size="sm"
-              className={cn(
-                "h-7 text-xs font-medium rounded-md transition-all",
-                typeFilter === btn.value
-                  ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-50 hover:bg-zinc-800"
-              )}
+              className="h-7 text-xs font-medium rounded-md transition-all"
+              style={typeFilter === btn.value ? {
+                backgroundColor: "#38BDF8",
+                color: "#0F172A",
+              } : {
+                backgroundColor: "transparent",
+                color: "#94A3B8",
+              }}
               onClick={() => setTypeFilter(btn.value)}
             >
               {btn.label}
@@ -152,22 +163,22 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-zinc-800 overflow-hidden">
+      <div style={{ borderRadius: "8px", border: "1px solid #334155", overflow: "hidden" }}>
         <Table>
           <TableHeader>
-            <TableRow className="bg-zinc-900/50 hover:bg-zinc-900/50">
-              <TableHead className="font-semibold text-zinc-400 w-32">Tanggal</TableHead>
-              <TableHead className="font-semibold text-zinc-400">Deskripsi</TableHead>
-              <TableHead className="font-semibold text-zinc-400 hidden md:table-cell">Kategori</TableHead>
-              <TableHead className="font-semibold text-zinc-400 hidden sm:table-cell">Tipe</TableHead>
-              <TableHead className="font-semibold text-zinc-400 hidden lg:table-cell">Status</TableHead>
-              <TableHead className="font-semibold text-zinc-400 text-right">Jumlah</TableHead>
+            <TableRow style={{ backgroundColor: "#1E293B" }}>
+              <TableHead style={{ fontFamily: "var(--font-inter)", fontSize: "11px", fontWeight: 600, color: "#64748B" }} className="w-32">Tanggal</TableHead>
+              <TableHead style={{ fontFamily: "var(--font-inter)", fontSize: "11px", fontWeight: 600, color: "#64748B" }}>Deskripsi</TableHead>
+              <TableHead style={{ fontFamily: "var(--font-inter)", fontSize: "11px", fontWeight: 600, color: "#64748B" }} className="hidden md:table-cell">Kategori</TableHead>
+              <TableHead style={{ fontFamily: "var(--font-inter)", fontSize: "11px", fontWeight: 600, color: "#64748B" }} className="hidden sm:table-cell">Tipe</TableHead>
+              <TableHead style={{ fontFamily: "var(--font-inter)", fontSize: "11px", fontWeight: 600, color: "#64748B" }} className="hidden lg:table-cell">Status</TableHead>
+              <TableHead style={{ fontFamily: "var(--font-inter)", fontSize: "11px", fontWeight: 600, color: "#64748B" }} className="text-right">Jumlah</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-zinc-400 py-10 text-sm">
+                <TableCell colSpan={6} className="text-center py-10 text-sm" style={{ color: "#94A3B8" }}>
                   Tidak ada transaksi yang ditemukan.
                 </TableCell>
               </TableRow>
@@ -181,40 +192,72 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
                 return (
                   <TableRow
                     key={tx.id}
-                    className={cn(
-                      "transition-colors cursor-pointer hover:bg-zinc-800/50",
-                      idx % 2 === 0 ? "bg-zinc-950" : "bg-zinc-900/30"
-                    )}
+                    className="transition-colors cursor-pointer"
+                    style={{
+                      backgroundColor: idx % 2 === 0 ? "#0F172A" : "#1E293B",
+                    }}
                   >
-                    <TableCell className="text-sm text-zinc-400 whitespace-nowrap">
+                    <TableCell style={{ fontFamily: "var(--font-inter)", fontSize: "14px", color: "#94A3B8" }} className="whitespace-nowrap">
                       {formatDate(tx.date)}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2.5">
-                        <div className={cn(
-                          "p-1.5 rounded-lg",
-                          tx.type === "income" ? "bg-emerald-500/10" :
-                          tx.type === "expense" ? "bg-rose-500/10" : "bg-indigo-500/10"
-                        )}>
-                          <Icon className={cn("size-3.5", tConfig.iconClass)} />
+                        <div
+                          className="flex items-center justify-center"
+                          style={{
+                            width: "24px",
+                            height: "24px",
+                            borderRadius: "8px",
+                            backgroundColor: tConfig.iconBg,
+                          }}
+                        >
+                          <Icon className="size-3.5" style={tConfig.iconStyle} />
                         </div>
-                        <span className="text-sm font-medium text-zinc-50 truncate max-w-[180px]">{tx.description}</span>
+                        <span style={{ fontFamily: "var(--font-inter)", fontSize: "14px", fontWeight: 400, color: "#F8FAFC" }} className="truncate max-w-[180px]">{tx.description}</span>
                       </div>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      <span className="text-sm text-zinc-400">{typeof tx.category === "string" ? tx.category : tx.category?.name ?? "-"}</span>
+                      <span style={{ fontFamily: "var(--font-inter)", fontSize: "14px", color: "#94A3B8" }}>{typeof tx.category === "string" ? tx.category : tx.category?.name ?? "-"}</span>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
-                      <Badge variant="outline" className={cn("text-xs", tConfig.badgeClass)}>
+                      <span
+                        className="inline-flex items-center"
+                        style={{
+                          borderRadius: "9999px",
+                          padding: "3px 10px",
+                          fontFamily: "var(--font-inter)",
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          ...tConfig.badgeStyle,
+                        }}
+                      >
                         {tConfig.label}
-                      </Badge>
+                      </span>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      <Badge variant="outline" className={cn("text-xs", sConfig.class)}>
+                      <span
+                        className="inline-flex items-center"
+                        style={{
+                          borderRadius: "9999px",
+                          padding: "3px 10px",
+                          fontFamily: "var(--font-inter)",
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          ...sConfig.style,
+                        }}
+                      >
                         {sConfig.label}
-                      </Badge>
+                      </span>
                     </TableCell>
-                    <TableCell className={cn("text-sm text-right font-mono tabular-nums", tConfig.amountClass)}>
+                    <TableCell
+                      className="text-right tabular-nums"
+                      style={{
+                        fontFamily: "var(--font-inter)",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        ...tConfig.amountStyle,
+                      }}
+                    >
                       {tConfig.prefix}{formatCurrency(tx.amount)}
                     </TableCell>
                   </TableRow>
@@ -232,14 +275,14 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
             onClick={loadMore}
             variant="outline"
             size="sm"
-            className="border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:text-zinc-50 hover:border-zinc-700 transition-all"
+            style={{ border: "1px solid #334155", backgroundColor: "#1E293B", color: "#94A3B8" }}
           >
             Muat Lebih Banyak ({filtered.length - visibleCount} tersisa)
           </Button>
         </div>
       )}
 
-      <p className="text-xs text-zinc-400 text-right">
+      <p style={{ fontFamily: "var(--font-inter)", fontSize: "12px", color: "#94A3B8" }} className="text-right">
         Menampilkan {Math.min(visibleCount, filtered.length)} dari {transactions.length} transaksi
       </p>
     </div>

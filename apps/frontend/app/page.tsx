@@ -120,22 +120,22 @@ const trustBadges = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#050505] text-zinc-100 overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#0F172A", color: "#F8FAFC" }}>
       {/* ── Animated background blobs ── */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 right-0 size-[700px] rounded-full bg-emerald-500/[0.04] blur-[140px] animate-pulse" />
-        <div className="absolute top-1/2 -left-40 size-[550px] rounded-full bg-teal-500/[0.04] blur-[140px] animate-pulse delay-1000" />
-        <div className="absolute bottom-0 right-1/3 size-[450px] rounded-full bg-emerald-500/[0.03] blur-[140px] animate-pulse delay-2000" />
+        <div className="absolute -top-40 right-0 size-[700px] rounded-full blur-[140px] animate-pulse" style={{ backgroundColor: "rgba(56,189,248,0.04)" }} />
+        <div className="absolute top-1/2 -left-40 size-[550px] rounded-full blur-[140px] animate-pulse delay-1000" style={{ backgroundColor: "rgba(56,189,248,0.04)" }} />
+        <div className="absolute bottom-0 right-1/3 size-[450px] rounded-full blur-[140px] animate-pulse delay-2000" style={{ backgroundColor: "rgba(56,189,248,0.03)" }} />
       </div>
 
       {/* ── Navbar ── */}
-      <nav className="sticky top-0 z-50 bg-[#050505]/80 backdrop-blur-xl border-b border-zinc-800/50">
+      <nav className="sticky top-0 z-50 backdrop-blur-xl" style={{ backgroundColor: "rgba(15,23,42,0.8)", borderBottom: "1px solid #334155" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-              <Wallet className="size-5 text-emerald-500" />
+            <div className="p-2 rounded-xl" style={{ backgroundColor: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)" }}>
+              <Wallet className="size-5" style={{ color: "#38BDF8" }} />
             </div>
-            <span className="text-lg font-bold tracking-tight text-zinc-50">
+            <span className="text-lg font-bold tracking-tight" style={{ color: "#F8FAFC", fontFamily: "var(--font-hanken)" }}>
               Pocket Mint
             </span>
           </div>
@@ -143,7 +143,8 @@ export default function LandingPage() {
             <Link href="/login">
               <Button
                 size="sm"
-                className="bg-emerald-500 hover:bg-emerald-600 text-white hover:shadow-[0_0_24px_rgba(16,185,129,0.35)] hover:scale-105 transition-all duration-300 font-semibold"
+                className="bg-transparent hover:bg-transparent text-sm font-semibold transition-all duration-300"
+                style={{ backgroundColor: "#38BDF8", color: "#0F172A" }}
               >
                 Buka Dashboard
               </Button>
@@ -158,7 +159,8 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 rounded-full bg-zinc-900/60 backdrop-blur-md border border-zinc-800/70 px-5 py-2 text-sm font-medium text-emerald-400 mb-10"
+          className="inline-flex items-center gap-2 rounded-full backdrop-blur-md px-5 py-2 text-sm font-medium mb-10"
+          style={{ backgroundColor: "rgba(30,41,59,0.6)", border: "1px solid #334155", color: "#38BDF8", fontFamily: "var(--font-inter)" }}
         >
           <Sparkles className="size-4" />
           <span>Self-Hosted · AI-Powered · Privasi Penuh</span>
@@ -169,11 +171,11 @@ export default function LandingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
           className="text-5xl sm:text-6xl lg:text-[4.5rem] font-black tracking-tight leading-[1.08] mb-8"
-          style={{ fontFamily: "var(--font-inter)" }}
+          style={{ fontFamily: "var(--font-hanken)" }}
         >
-          <span className="text-zinc-50">Semua Akunmu.</span>
+          <span style={{ color: "#F8FAFC" }}>Semua Akunmu.</span>
           <br />
-          <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text text-transparent animate-gradient">
+          <span style={{ color: "#38BDF8" }}>
             Satu Kendali.
           </span>
         </motion.h1>
@@ -182,12 +184,13 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.25 }}
-          className="mt-6 text-lg sm:text-xl text-zinc-400 max-w-3xl mx-auto leading-relaxed"
+          className="mt-6 text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed"
+          style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}
         >
           Pantau pemasukan, pengeluaran, saldo, limit kredit, dan cicilan
           paylater secara real-time dalam satu dashboard yang elegan. Catat
           transaksi hanya dengan mengirim pesan WhatsApp —{" "}
-          <span className="font-semibold text-emerald-400">
+          <span className="font-semibold" style={{ color: "#38BDF8" }}>
             AI akan mengerjakan sisanya
           </span>
           .
@@ -203,7 +206,8 @@ export default function LandingPage() {
           <Link href="/login">
             <Button
               size="lg"
-              className="group gap-2 px-10 text-base bg-emerald-500 hover:bg-emerald-600 text-white hover:scale-105 hover:shadow-[0_0_32px_rgba(16,185,129,0.45)] transition-all duration-300 font-semibold"
+              className="group gap-2 px-10 text-base font-semibold transition-all duration-300"
+              style={{ backgroundColor: "#38BDF8", color: "#0F172A" }}
             >
               Buka Dashboard
               <ArrowRight className="size-5 transition-transform duration-300 group-hover:translate-x-1" />
@@ -217,7 +221,8 @@ export default function LandingPage() {
             <Button
               variant="outline"
               size="lg"
-              className="gap-2 px-8 text-base border-2 border-zinc-800 bg-zinc-900/50 backdrop-blur-md text-zinc-50 hover:border-emerald-500/60 hover:text-emerald-400 transition-all duration-300 font-semibold"
+              className="gap-2 px-8 text-base backdrop-blur-md font-semibold transition-all duration-300"
+              style={{ border: "2px solid #334155", backgroundColor: "rgba(30,41,59,0.5)", color: "#F8FAFC" }}
             >
               <ExternalLink className="size-5" />
               Lihat Source Code
@@ -230,11 +235,12 @@ export default function LandingPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm text-zinc-500"
+          className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm"
+          style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}
         >
           {trustBadges.map((badge) => (
             <div key={badge} className="flex items-center gap-2">
-              <CheckCircle2 className="size-[18px] text-emerald-500 shrink-0" />
+              <CheckCircle2 className="size-[18px] shrink-0" style={{ color: "#10B981" }} />
               <span>{badge}</span>
             </div>
           ))}
@@ -242,7 +248,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       {/* ── Accent divider ── */}
-      <div className="mx-auto max-w-xs h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
+      <div className="mx-auto max-w-xs h-px" style={{ background: "linear-gradient(to right, transparent, rgba(56,189,248,0.3), transparent)" }} />
 
       {/* ── Features ── */}
       <AnimatedSection
@@ -250,10 +256,13 @@ export default function LandingPage() {
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28"
       >
         <motion.div variants={fadeUp} className="text-center mb-20">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-zinc-50 mb-5">
+          <h2
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-5"
+            style={{ fontFamily: "var(--font-hanken)", color: "#F8FAFC" }}
+          >
             Fitur Unggulan
           </h2>
-          <p className="text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}>
             Semua yang Anda butuhkan untuk mengelola keuangan pribadi dengan
             mudah dan cerdas
           </p>
@@ -274,42 +283,42 @@ export default function LandingPage() {
                 }}
                 className={`
                   group rounded-3xl backdrop-blur-md p-8 sm:p-10 transition-all duration-500 ease-out
-                  hover:-translate-y-3 hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-500/10
+                  hover:-translate-y-3 hover:shadow-2xl
                   ${
                     isHighlight
-                      ? "lg:col-span-2 bg-zinc-900/50 border border-emerald-500/20"
-                      : "bg-zinc-900/40 border border-zinc-800/80"
+                      ? "lg:col-span-2"
+                      : ""
                   }
                 `}
+                style={{
+                  backgroundColor: isHighlight ? "rgba(30,41,59,0.5)" : "rgba(30,41,59,0.4)",
+                  border: isHighlight ? "1px solid rgba(56,189,248,0.2)" : "1px solid #334155",
+                }}
               >
                 {/* Icon */}
                 <div
-                  className={`
-                  size-14 rounded-2xl flex items-center justify-center mb-7 transition-colors duration-500
-                  ${
-                    isHighlight
-                      ? "bg-emerald-500/10 border border-emerald-500/20 group-hover:bg-emerald-500/15"
-                      : "bg-emerald-500/10 border border-emerald-500/20 group-hover:bg-emerald-500/15"
-                  }
-                `}
+                  className="size-14 rounded-2xl flex items-center justify-center mb-7 transition-colors duration-500"
+                  style={{ backgroundColor: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)" }}
                 >
-                  <Icon className="size-7 text-emerald-500" />
+                  <Icon className="size-7" style={{ color: "#38BDF8" }} />
                 </div>
 
                 {/* Title */}
                 <h3
-                  className={`font-bold text-zinc-50 mb-3 ${
+                  className={`font-bold mb-3 ${
                     isHighlight ? "text-2xl" : "text-xl"
                   }`}
+                  style={{ color: "#F8FAFC", fontFamily: "var(--font-hanken)" }}
                 >
                   {feature.title}
                 </h3>
 
                 {/* Description */}
                 <p
-                  className={`text-zinc-400 leading-relaxed ${
+                  className={`leading-relaxed ${
                     isHighlight ? "text-lg mb-6" : ""
                   }`}
+                  style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}
                 >
                   {feature.description}
                 </p>
@@ -320,7 +329,8 @@ export default function LandingPage() {
                     {feature.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="px-4 py-2 rounded-full bg-zinc-800/50 backdrop-blur-md border border-zinc-700/60 text-sm font-medium text-zinc-300 transition-colors duration-300 group-hover:border-emerald-500/30"
+                        className="px-4 py-2 rounded-full backdrop-blur-md text-sm font-medium transition-colors duration-300"
+                        style={{ backgroundColor: "rgba(30,41,59,0.5)", border: "1px solid #334155", color: "#F8FAFC", fontFamily: "var(--font-inter)" }}
                       >
                         {tag}
                       </span>
@@ -334,15 +344,18 @@ export default function LandingPage() {
       </AnimatedSection>
 
       {/* ── Accent divider ── */}
-      <div className="mx-auto max-w-xs h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
+      <div className="mx-auto max-w-xs h-px" style={{ background: "linear-gradient(to right, transparent, rgba(56,189,248,0.3), transparent)" }} />
 
       {/* ── Bottom CTA ── */}
       <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <div className="rounded-3xl bg-zinc-900/40 backdrop-blur-xl border border-zinc-800/70 p-12 sm:p-16 lg:p-20 text-center relative overflow-hidden">
+        <div
+          className="rounded-3xl backdrop-blur-xl p-12 sm:p-16 lg:p-20 text-center relative overflow-hidden"
+          style={{ backgroundColor: "rgba(30,41,59,0.4)", border: "1px solid #334155" }}
+        >
           {/* Background decoration */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-40 -right-40 size-96 rounded-full bg-emerald-500/[0.07] blur-[120px]" />
-            <div className="absolute -bottom-40 -left-40 size-96 rounded-full bg-teal-500/[0.07] blur-[120px]" />
+            <div className="absolute -top-40 -right-40 size-96 rounded-full blur-[120px]" style={{ backgroundColor: "rgba(56,189,248,0.07)" }} />
+            <div className="absolute -bottom-40 -left-40 size-96 rounded-full blur-[120px]" style={{ backgroundColor: "rgba(56,189,248,0.07)" }} />
             {/* Subtle grid accent */}
             <div
               className="absolute inset-0 opacity-[0.02]"
@@ -360,9 +373,10 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 rounded-full bg-zinc-800/50 backdrop-blur-md border border-zinc-700/60 px-5 py-2 text-sm font-medium text-zinc-300 mb-8"
+              className="inline-flex items-center gap-2 rounded-full backdrop-blur-md px-5 py-2 text-sm font-medium mb-8"
+              style={{ backgroundColor: "rgba(30,41,59,0.5)", border: "1px solid #334155", color: "#F8FAFC", fontFamily: "var(--font-inter)" }}
             >
-              <Zap className="size-4 text-emerald-500" />
+              <Zap className="size-4" style={{ color: "#38BDF8" }} />
               <span>Mulai Hari Ini</span>
             </motion.div>
 
@@ -371,11 +385,12 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-bold text-zinc-50 mb-5 leading-tight"
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-5 leading-tight"
+              style={{ fontFamily: "var(--font-hanken)", color: "#F8FAFC" }}
             >
               Waktunya Mengambil Kendali
               <br />
-              <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text text-transparent animate-gradient">
+              <span style={{ color: "#38BDF8" }}>
                 atas Keuanganmu.
               </span>
             </motion.h2>
@@ -385,7 +400,8 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg text-zinc-400 max-w-2xl mx-auto mb-12 leading-relaxed"
+              className="text-lg max-w-2xl mx-auto mb-12 leading-relaxed"
+              style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}
             >
               Mulai bangun sistem keuangan pribadi yang jauh lebih tertata dan
               sadar. Tanpa iklan. Tanpa tracking. Hanya milikmu.
@@ -400,7 +416,8 @@ export default function LandingPage() {
               <Link href="/login">
                 <Button
                   size="lg"
-                  className="group gap-2 px-12 text-base font-semibold bg-emerald-500 hover:bg-emerald-600 text-white hover:scale-105 hover:shadow-[0_0_40px_rgba(16,185,129,0.45)] transition-all duration-300"
+                  className="group gap-2 px-12 text-base font-semibold transition-all duration-300"
+                  style={{ backgroundColor: "#38BDF8", color: "#0F172A" }}
                 >
                   Buka Dashboard
                   <ArrowRight className="size-5 transition-transform duration-300 group-hover:translate-x-1" />
@@ -412,21 +429,21 @@ export default function LandingPage() {
       </AnimatedSection>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-zinc-800/60 py-12 bg-[#050505]">
+      <footer className="py-12" style={{ borderTop: "1px solid #334155", backgroundColor: "#0F172A" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                <Wallet className="size-5 text-emerald-500" />
+              <div className="p-2 rounded-xl" style={{ backgroundColor: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)" }}>
+                <Wallet className="size-5" style={{ color: "#38BDF8" }} />
               </div>
-              <span className="text-lg font-bold tracking-tight text-zinc-50">
+              <span className="text-lg font-bold tracking-tight" style={{ color: "#F8FAFC", fontFamily: "var(--font-hanken)" }}>
                 Pocket Mint
               </span>
             </div>
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>
               © 2026 Pocket Mint — Kelola Keuangan Lebih Cerdas
             </p>
-            <p className="text-sm text-zinc-600">
+            <p className="text-sm" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>
               Dibangun dengan Next.js & Shadcn/ui
             </p>
           </div>

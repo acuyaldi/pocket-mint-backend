@@ -22,27 +22,39 @@ export function NetWorthHero({
     <div
       className="w-full"
       style={{
-        paddingTop: "24px",
-        paddingLeft: "22px",
-        paddingRight: "22px",
-        paddingBottom: "20px",
+        backgroundColor: "#1E293B",
+        border: "1px solid #334155",
+        borderRadius: "8px",
+        padding: "16px",
       }}
     >
       {/* Label */}
       <span
-        className="block text-[10px] font-medium uppercase tracking-[0.08em]"
-        style={{ color: "#71717a" }}
+        className="block uppercase font-semibold"
+        style={{
+          fontFamily: "var(--font-inter)",
+          fontSize: "11px",
+          fontWeight: 600,
+          color: "#64748B",
+          letterSpacing: "0.05em",
+        }}
       >
         Net Worth
       </span>
 
       {/* Amount */}
       {isLoading ? (
-        <div className="h-10 w-48 bg-zinc-800 rounded animate-pulse mt-2" />
+        <div className="h-10 w-48 rounded animate-pulse mt-2" style={{ backgroundColor: "#334155" }} />
       ) : (
         <p
-          className="text-[40px] font-[500] leading-none mt-2"
-          style={{ color: "#4ade80" }}
+          style={{
+            fontFamily: "var(--font-hanken)",
+            fontSize: "40px",
+            fontWeight: 600,
+            color: "#38BDF8",
+            lineHeight: 1.1,
+            marginTop: "8px",
+          }}
         >
           {formatCurrency(netWorth)}
         </p>
@@ -51,28 +63,41 @@ export function NetWorthHero({
       {/* Badge */}
       {trendPercent !== undefined && (
         <div
-          className="inline-flex items-center gap-1 mt-3 px-2.5 py-1 rounded-full"
+          className="inline-flex items-center gap-1"
           style={{
-            backgroundColor: "rgba(74, 222, 128, 0.1)",
-            color: "#4ade80",
+            marginTop: "12px",
+            borderRadius: "9999px",
+            padding: "3px 10px",
+            backgroundColor: trendPercent >= 0 ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)",
+            border: trendPercent >= 0 ? "1px solid #10B981" : "1px solid #EF4444",
+            fontFamily: "var(--font-inter)",
+            fontSize: "11px",
+            fontWeight: 600,
+            color: trendPercent >= 0 ? "#10B981" : "#EF4444",
           }}
         >
           <TrendingUp className="size-3" />
-          <span className="text-xs font-medium">+{trendPercent.toFixed(1)}% bulan ini</span>
+          <span>{trendPercent >= 0 ? "+" : ""}{trendPercent.toFixed(1)}% bulan ini</span>
         </div>
       )}
 
       {/* Meta items row */}
-      <div className="flex items-center gap-7 mt-4">
+      <div className="flex items-center gap-7" style={{ marginTop: "16px" }}>
         {/* Total Aset */}
         <div>
           <p
-            className="text-[10px] font-medium uppercase tracking-wide"
-            style={{ color: "#71717a" }}
+            className="uppercase font-semibold"
+            style={{
+              fontFamily: "var(--font-inter)",
+              fontSize: "11px",
+              fontWeight: 600,
+              color: "#64748B",
+              letterSpacing: "0.05em",
+            }}
           >
             Total Aset
           </p>
-          <p className="text-[13px] font-[500]" style={{ color: "#e4e4e7" }}>
+          <p style={{ fontFamily: "var(--font-inter)", fontSize: "14px", fontWeight: 500, color: "#F8FAFC", marginTop: "4px" }}>
             {formatCurrency(totalAssets)}
           </p>
         </div>
@@ -80,12 +105,18 @@ export function NetWorthHero({
         {/* Total Utang */}
         <div>
           <p
-            className="text-[10px] font-medium uppercase tracking-wide"
-            style={{ color: "#71717a" }}
+            className="uppercase font-semibold"
+            style={{
+              fontFamily: "var(--font-inter)",
+              fontSize: "11px",
+              fontWeight: 600,
+              color: "#64748B",
+              letterSpacing: "0.05em",
+            }}
           >
             Total Utang
           </p>
-          <p className="text-[13px] font-[500]" style={{ color: "#f87171" }}>
+          <p style={{ fontFamily: "var(--font-inter)", fontSize: "14px", fontWeight: 500, color: "#EF4444", marginTop: "4px" }}>
             {formatCurrency(totalDebts)}
           </p>
         </div>
@@ -93,12 +124,18 @@ export function NetWorthHero({
         {/* Net Savings */}
         <div>
           <p
-            className="text-[10px] font-medium uppercase tracking-wide"
-            style={{ color: "#71717a" }}
+            className="uppercase font-semibold"
+            style={{
+              fontFamily: "var(--font-inter)",
+              fontSize: "11px",
+              fontWeight: 600,
+              color: "#64748B",
+              letterSpacing: "0.05em",
+            }}
           >
             Net Savings
           </p>
-          <p className="text-[13px] font-[500]" style={{ color: "#f87171" }}>
+          <p style={{ fontFamily: "var(--font-inter)", fontSize: "14px", fontWeight: 500, color: (totalAssets - totalDebts) >= 0 ? "#F8FAFC" : "#EF4444", marginTop: "4px" }}>
             {formatCurrency(totalAssets - totalDebts)}
           </p>
         </div>

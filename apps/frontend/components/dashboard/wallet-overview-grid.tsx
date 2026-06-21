@@ -47,44 +47,38 @@ function WalletCard({ wallet }: { wallet: Wallet }) {
   if (!isDebt) {
     return (
       <div
-        className="flex-1"
-        style={{
-          backgroundColor: "#131313",
-          border: "0.5px solid #262626",
-          borderRadius: "10px",
-          padding: "14px 16px",
-        }}
+        style={{ backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", padding: "16px" }}
       >
         {/* Top section: icon + name + type */}
-        <div className="flex items-center gap-2.5 mb-3">
+        <div className="flex items-center gap-2" style={{ marginBottom: "8px" }}>
           <div
             className="flex items-center justify-center flex-shrink-0"
             style={{
-              width: "26px",
-              height: "26px",
-              borderRadius: "6px",
-              backgroundColor: "rgba(16, 185, 129, 0.1)",
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              backgroundColor: "rgba(56, 189, 248, 0.1)",
             }}
           >
-            <Icon className="size-4" style={{ color: "#10b981" }} />
+            <Icon className="size-4" style={{ color: "#38BDF8" }} />
           </div>
           <div className="min-w-0">
-            <p className="text-[13px] font-[500]" style={{ color: "#e4e4e7" }}>
+            <p style={{ fontFamily: "var(--font-inter)", fontSize: "13px", fontWeight: 500, color: "#F8FAFC" }}>
               {wallet.name}
             </p>
-            <p className="text-[11px]" style={{ color: "#71717a" }}>
+            <p style={{ fontFamily: "var(--font-inter)", fontSize: "11px", color: "#94A3B8" }}>
               {wallet.type.replace("_", " ")}
             </p>
           </div>
         </div>
 
         {/* Amount */}
-        <p className="text-[20px] font-[500]" style={{ color: "#e4e4e7" }}>
+        <p style={{ fontFamily: "var(--font-hanken)", fontSize: "20px", fontWeight: 600, color: "#F8FAFC" }}>
           {formatCurrency(wallet.balance)}
         </p>
 
         {/* Detail text */}
-        <p className="text-[11px] mt-0.5" style={{ color: "#71717a" }}>
+        <p style={{ fontFamily: "var(--font-inter)", fontSize: "12px", color: "#94A3B8", marginTop: "4px" }}>
           Saldo tersedia
         </p>
       </div>
@@ -94,67 +88,62 @@ function WalletCard({ wallet }: { wallet: Wallet }) {
   // Debt wallets: Credit Card or Paylater
   return (
     <div
-      className="flex-1"
-      style={{
-        backgroundColor: "#131313",
-        border: "0.5px solid #262626",
-        borderRadius: "10px",
-        padding: "14px 16px",
-      }}
+      style={{ backgroundColor: "#1E293B", border: "1px solid #334155", borderRadius: "8px", padding: "16px" }}
     >
       {/* Top section: icon + name + type */}
-      <div className="flex items-center gap-2.5 mb-3">
+      <div className="flex items-center gap-2" style={{ marginBottom: "8px" }}>
         <div
           className="flex items-center justify-center flex-shrink-0"
           style={{
-            width: "26px",
-            height: "26px",
-            borderRadius: "6px",
-            backgroundColor: "rgba(248, 113, 113, 0.1)",
+            width: "32px",
+            height: "32px",
+            borderRadius: "8px",
+            backgroundColor: "rgba(239, 68, 68, 0.1)",
           }}
         >
-          <Icon className="size-4" style={{ color: "#f87171" }} />
+          <Icon className="size-4" style={{ color: "#EF4444" }} />
         </div>
         <div className="min-w-0">
-          <p className="text-[13px] font-[500]" style={{ color: "#e4e4e7" }}>
+          <p style={{ fontFamily: "var(--font-inter)", fontSize: "13px", fontWeight: 500, color: "#F8FAFC" }}>
             {wallet.name}
           </p>
-          <p className="text-[11px]" style={{ color: "#71717a" }}>
+          <p style={{ fontFamily: "var(--font-inter)", fontSize: "11px", color: "#94A3B8" }}>
             {wallet.type.replace("_", " ")}
           </p>
         </div>
       </div>
 
       {/* Amount - red for debt */}
-      <p className="text-[20px] font-[500] mb-1" style={{ color: "#f87171" }}>
+      <p style={{ fontFamily: "var(--font-hanken)", fontSize: "20px", fontWeight: 600, color: "#EF4444", marginBottom: "4px" }}>
         {formatCurrency(creditUsed)}
       </p>
 
       {/* Detail text */}
-      <p className="text-[11px]" style={{ color: "#71717a" }}>
+      <p style={{ fontFamily: "var(--font-inter)", fontSize: "12px", color: "#94A3B8" }}>
         Sisa limit: {formatCurrency(wallet.creditLimit - creditUsed)}
       </p>
 
       {/* Utilization bar for credit cards */}
       {wallet.type === "CREDIT_CARD" && hasCreditLimit && (
-        <div className="mt-3">
+        <div style={{ marginTop: "12px" }}>
           <div
-            className="w-full overflow-hidden"
             style={{
-              height: "3px",
-              backgroundColor: "#262626",
-              borderRadius: "1.5px",
+              height: "4px",
+              backgroundColor: "#334155",
+              borderRadius: "9999px",
+              overflow: "hidden",
             }}
           >
             <div
               style={{
                 width: `${utilization}%`,
                 height: "100%",
-                backgroundColor: "#f87171",
+                borderRadius: "9999px",
+                backgroundColor: utilization >= 80 ? "#EF4444" : utilization >= 30 ? "#F59E0B" : "#10B981",
               }}
             />
           </div>
-          <p className="text-[10px] mt-1.5" style={{ color: "#71717a" }}>
+          <p style={{ fontFamily: "var(--font-inter)", fontSize: "12px", color: "#94A3B8", marginTop: "4px" }}>
             Utilisasi {utilization}%
           </p>
         </div>
@@ -169,9 +158,9 @@ export function WalletOverviewGrid({ wallets, isLoading, onAddWallet }: WalletOv
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-2" style={{ gap: "24px" }}>
         {[1, 2].map((i) => (
-          <div key={i} className="h-28 rounded-lg animate-pulse bg-zinc-900 border border-[#262626]" />
+          <div key={i} className="h-28 rounded animate-pulse" style={{ backgroundColor: "#334155", border: "1px solid #334155" }} />
         ))}
       </div>
     );
@@ -180,19 +169,21 @@ export function WalletOverviewGrid({ wallets, isLoading, onAddWallet }: WalletOv
   if (displayWallets.length === 0) {
     return (
       <div
-        className="rounded-lg border p-6 flex flex-col items-center gap-3"
+        className="flex flex-col items-center"
         style={{
-          backgroundColor: "#131313",
-          border: "0.5px solid #262626",
-          borderRadius: "10px",
-          padding: "14px 16px",
+          backgroundColor: "#1E293B",
+          border: "1px solid #334155",
+          borderRadius: "8px",
+          padding: "16px",
+          gap: "12px",
         }}
       >
-        <p className="text-sm text-zinc-500">No wallets yet.</p>
+        <p style={{ fontFamily: "var(--font-inter)", fontSize: "14px", color: "#94A3B8" }}>No wallets yet.</p>
         {onAddWallet && (
           <button
             onClick={onAddWallet}
-            className="text-xs text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+            style={{ fontFamily: "var(--font-inter)", fontSize: "12px", fontWeight: 500, color: "#38BDF8" }}
+            className="hover:underline"
           >
             + Add your first wallet
           </button>
@@ -202,7 +193,7 @@ export function WalletOverviewGrid({ wallets, isLoading, onAddWallet }: WalletOv
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2.5" style={{ paddingLeft: "22px", paddingRight: "22px" }}>
+    <div className="grid grid-cols-2" style={{ gap: "24px" }}>
       {displayWallets.map((w) => (
         <WalletCard key={w.id} wallet={w} />
       ))}

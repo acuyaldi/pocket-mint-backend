@@ -4,17 +4,17 @@ import { BottomNav } from "@/components/layout/bottom-nav";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="flex min-h-screen" style={{ backgroundColor: "#0F172A" }}>
       {/* Desktop Sidebar */}
       <AppSidebar />
 
       {/* Main content area */}
-      <div className="lg:ml-[172px] flex flex-col min-h-screen">
+      <div className="flex flex-col flex-1 min-h-screen lg:ml-[var(--sidebar-width)]">
         {/* Top Bar */}
         <TopBar />
 
         {/* Page content */}
-        <main className="flex-1 w-full">
+        <main className="flex-1 w-full" style={{ padding: "24px 32px 32px" }}>
           {children}
         </main>
       </div>

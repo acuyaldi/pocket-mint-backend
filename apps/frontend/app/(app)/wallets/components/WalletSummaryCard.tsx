@@ -42,25 +42,82 @@ export default function WalletSummaryCard({ netWorth, totalAset, totalUtang }: W
   ];
 
   return (
-    <motion.div variants={fadeUp} className="relative rounded-2xl border border-white/[0.06] bg-[#0a0a0a] p-6 overflow-hidden">
-      <div className="absolute -top-20 -right-20 w-52 h-52 rounded-full bg-emerald-500/[0.04] blur-3xl pointer-events-none" />
-      <p className="text-xs font-semibold text-white uppercase tracking-widest">Net Worth</p>
-      <p className="text-4xl font-bold text-emerald-400 tracking-tight mt-3">{formatRp(netWorth)}</p>
-      <div className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-        <ArrowUpRight className="size-3 text-emerald-400" />
-        <span className="text-xs text-emerald-400 font-semibold">+{growthPct.toFixed(1)}% this month</span>
+    <motion.div
+      variants={fadeUp}
+      className="relative overflow-hidden"
+      style={{
+        backgroundColor: "#1E293B",
+        border: "1px solid #334155",
+        borderRadius: "8px",
+        padding: "16px",
+      }}
+    >
+      <div className="absolute -top-20 -right-20 w-52 h-52 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: "rgba(56,189,248,0.04)" }} />
+      <p
+        className="uppercase tracking-widest"
+        style={{ fontSize: "11px", fontWeight: 600, color: "#64748B", fontFamily: "var(--font-inter)" }}
+      >
+        Net Worth
+      </p>
+      <p
+        className="tracking-tight mt-3"
+        style={{
+          fontSize: "20px",
+          fontWeight: 600,
+          color: "#38BDF8",
+          fontFamily: "var(--font-hanken)",
+        }}
+      >
+        {formatRp(netWorth)}
+      </p>
+      <div
+        className="inline-flex items-center gap-1.5 mt-2"
+        style={{
+          padding: "3px 10px",
+          borderRadius: "9999px",
+          backgroundColor: "rgba(16,185,129,0.15)",
+          border: "1px solid #10B981",
+        }}
+      >
+        <ArrowUpRight className="size-3" style={{ color: "#10B981" }} />
+        <span
+          className="font-semibold"
+          style={{ fontSize: "11px", color: "#10B981", fontFamily: "var(--font-inter)" }}
+        >
+          +{growthPct.toFixed(1)}% this month
+        </span>
       </div>
       <div className="absolute right-6 top-6">
-        <FullWidthSparkline data={sparklineData} color="#10B981" />
+        <FullWidthSparkline data={sparklineData} color="#38BDF8" />
       </div>
-      <div className="flex gap-8 mt-6 pt-5 border-t border-white/[0.04]">
+      <div className="flex gap-8 mt-6 pt-5" style={{ borderTop: "1px solid #334155" }}>
         <div>
-          <p className="text-[11px] text-white/35 uppercase tracking-wider">Assets</p>
-          <p className="text-sm font-semibold text-white/80 mt-1">{formatRp(totalAset)}</p>
+          <p
+            className="uppercase tracking-wider"
+            style={{ fontSize: "11px", color: "#64748B", fontFamily: "var(--font-inter)" }}
+          >
+            Assets
+          </p>
+          <p
+            className="font-semibold mt-1"
+            style={{ fontSize: "14px", color: "#F8FAFC", fontFamily: "var(--font-inter)" }}
+          >
+            {formatRp(totalAset)}
+          </p>
         </div>
         <div>
-          <p className="text-[11px] text-white/35 uppercase tracking-wider">Debts</p>
-          <p className="text-sm font-semibold text-white/80 mt-1">{formatRp(totalUtang)}</p>
+          <p
+            className="uppercase tracking-wider"
+            style={{ fontSize: "11px", color: "#64748B", fontFamily: "var(--font-inter)" }}
+          >
+            Debts
+          </p>
+          <p
+            className="font-semibold mt-1"
+            style={{ fontSize: "14px", color: "#F8FAFC", fontFamily: "var(--font-inter)" }}
+          >
+            {formatRp(totalUtang)}
+          </p>
         </div>
       </div>
     </motion.div>

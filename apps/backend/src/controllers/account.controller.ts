@@ -159,11 +159,10 @@ export const getWalletSparkline = async (
 ) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).userId;
 
-    // Verify wallet belongs to user
+    // Verify wallet exists
     const wallet = await prisma.wallet.findFirst({
-      where: { id, userId },
+      where: { id },
       select: { id: true, balance: true },
     });
     if (!wallet) {

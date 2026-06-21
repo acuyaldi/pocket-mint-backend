@@ -212,16 +212,14 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
       }
     }}>
       <DialogContent 
-        className={cn(
-          "max-w-2xl bg-[#0c0c0c] border-neutral-800 text-white sm:max-w-2xl p-0 overflow-hidden",
-          "max-h-[85vh] h-[calc(85vh-4rem)] flex flex-col"
-        )}
+        className="max-w-2xl text-white sm:max-w-2xl p-0 overflow-hidden max-h-[85vh] h-[calc(85vh-4rem)] flex flex-col"
+        style={{ backgroundColor: "#0F172A", border: "1px solid #334155" }}
       >
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
           {/* Header */}
-          <div className="px-6 py-5 border-b border-neutral-800 bg-[#0a0a0a] shrink-0">
-            <DialogTitle className="text-base font-semibold text-white">Create New Wallet</DialogTitle>
-            <DialogDescription className="text-sm text-white/40 mt-1">Define your wallet identity and configure its settings.</DialogDescription>
+          <div className="px-6 py-5 shrink-0" style={{ borderBottom: "1px solid #334155", backgroundColor: "#1E293B" }}>
+            <DialogTitle className="text-base font-semibold" style={{ color: "#F8FAFC", fontFamily: "var(--font-hanken)" }}>Create New Wallet</DialogTitle>
+            <DialogDescription className="text-sm mt-1" style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}>Define your wallet identity and configure its settings.</DialogDescription>
           </div>
 
           {/* Scrollable content section */}
@@ -229,7 +227,7 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
             
             {/* SECTION 1: CLASSIFICATION */}
             <div className="space-y-4">
-              <label className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase mb-3">Classification</label>
+              <label className="text-[11px] font-bold tracking-widest uppercase mb-3" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>Classification</label>
               <div className="grid grid-cols-2 gap-3">
                 {/* Asset Button */}
                 <button
@@ -238,9 +236,14 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                   className={cn(
                     "relative flex items-center justify-center gap-3 p-4 rounded-xl transition-all duration-200 border-2",
                     classification === "asset"
-                      ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
-                      : "border-neutral-700 bg-[#1a1a1a] text-white/40 hover:border-neutral-600 hover:bg-[#252525] hover:text-white/70"
+                      ? "border-[#38BDF8]"
+                      : "border-[#334155]"
                   )}
+                  style={{
+                    backgroundColor: classification === "asset" ? "rgba(56,189,248,0.08)" : "#1E293B",
+                    color: classification === "asset" ? "#38BDF8" : "#94A3B8",
+                    borderColor: classification === "asset" ? "#38BDF8" : "#334155",
+                  }}
                 >
                   <Wallet className="size-5" />
                   <span className="font-semibold text-sm">ASSET</span>
@@ -253,9 +256,14 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                   className={cn(
                     "relative flex items-center justify-center gap-3 p-4 rounded-xl transition-all duration-200 border-2",
                     classification === "debt"
-                      ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
-                      : "border-neutral-700 bg-[#1a1a1a] text-white/40 hover:border-neutral-600 hover:bg-[#252525] hover:text-white/70"
+                      ? "border-[#38BDF8]"
+                      : "border-[#334155]"
                   )}
+                  style={{
+                    backgroundColor: classification === "debt" ? "rgba(56,189,248,0.08)" : "#1E293B",
+                    color: classification === "debt" ? "#38BDF8" : "#94A3B8",
+                    borderColor: classification === "debt" ? "#38BDF8" : "#334155",
+                  }}
                 >
                   <CreditCard className="size-5" />
                   <span className="font-semibold text-sm">DEBT</span>
@@ -281,7 +289,7 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
 
             {/* SECTION 2: VISUAL IDENTITY */}
             <div className="space-y-4">
-              <label className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase mb-3">Visual Identity</label>
+              <label className="text-[11px] font-bold tracking-widest uppercase mb-3" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>Visual Identity</label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {classification === "asset" ? (
                   assetIdentityIcons.map((item) => {
@@ -301,9 +309,14 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                         className={cn(
                           "flex flex-col items-center justify-center gap-2 p-3 rounded-xl transition-all duration-200 border-2",
                           isActive
-                            ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
-                            : "border-neutral-700 bg-[#1a1a1a] text-white/60 hover:border-neutral-600 hover:bg-[#252525] hover:text-white"
+                            ? "border-[#38BDF8]"
+                            : "border-[#334155]"
                         )}
+                        style={{
+                          backgroundColor: isActive ? "rgba(56,189,248,0.08)" : "#1E293B",
+                          color: isActive ? "#38BDF8" : "#94A3B8",
+                          borderColor: isActive ? "#38BDF8" : "#334155",
+                        }}
                       >
                         <motion.div
                           layoutId={isActive ? "activeIdentityBtn" : undefined}
@@ -335,9 +348,14 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                         className={cn(
                           "flex flex-col items-center justify-center gap-2 p-3 rounded-xl transition-all duration-200 border-2",
                           isActive
-                            ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
-                            : "border-neutral-700 bg-[#1a1a1a] text-white/60 hover:border-neutral-600 hover:bg-[#252525] hover:text-white"
+                            ? "border-[#38BDF8]"
+                            : "border-[#334155]"
                         )}
+                        style={{
+                          backgroundColor: isActive ? "rgba(56,189,248,0.08)" : "#1E293B",
+                          color: isActive ? "#38BDF8" : "#94A3B8",
+                          borderColor: isActive ? "#38BDF8" : "#334155",
+                        }}
                       >
                         <motion.div
                           layoutId={isActive ? "activeIdentityBtn" : undefined}
@@ -362,7 +380,7 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                   exit={{ opacity: 0, height: 0 }}
                   className="space-y-3 overflow-hidden"
                 >
-                  <label className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase mb-3">Paylater Provider</label>
+                  <label className="text-[11px] font-bold tracking-widest uppercase mb-3" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>Paylater Provider</label>
                   <div className="grid grid-cols-3 gap-2">
                     {paylaterProviderButtons.map((provider) => {
                       const isActive = selectedPaylaterProvider === provider.name;
@@ -374,9 +392,14 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                           className={cn(
                             "px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-200 border-2",
                             isActive
-                              ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
-                              : "border-neutral-700 bg-[#1a1a1a] text-white/60 hover:border-neutral-600 hover:bg-[#252525] hover:text-white"
+                              ? "border-[#38BDF8]"
+                              : "border-[#334155]"
                           )}
+                          style={{
+                            backgroundColor: isActive ? "rgba(56,189,248,0.08)" : "#1E293B",
+                            color: isActive ? "#38BDF8" : "#94A3B8",
+                            borderColor: isActive ? "#38BDF8" : "#334155",
+                          }}
                         >
                           {provider.name}
                         </button>
@@ -389,7 +412,7 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
 
             {/* Wallet Name */}
             <div className="space-y-4">
-              <label className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase mb-3">Wallet Name</label>
+              <label className="text-[11px] font-bold tracking-widest uppercase mb-3" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>Wallet Name</label>
               <Input 
                 type="text" 
                 placeholder={classification === "debt" && !selectedPaylaterProvider ? "e.g. Kredivo, SPaylater" : "e.g. Daily Expenses"}
@@ -403,10 +426,8 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                 }}
                 disabled={!!(classification === "debt" && selectedDebtSubType === "paylater" && selectedPaylaterProvider && selectedPaylaterProvider !== "Lainnya +")}
                 required={!selectedPaylaterProvider || selectedPaylaterProvider === "Lainnya +" || classification !== "debt"}
-                className={cn(
-                  "h-11 bg-[#1a1a1a] border-neutral-700 text-white placeholder:text-white/30 focus-visible:ring-emerald-500/40 focus-visible:border-emerald-500/40",
-                  (classification === "debt" && selectedDebtSubType === "paylater" && selectedPaylaterProvider && selectedPaylaterProvider !== "Lainnya +") ? "opacity-50 cursor-not-allowed" : ""
-                )} 
+                className="h-11"
+                style={{ backgroundColor: "#1E293B", border: "1px solid #334155", color: "#F8FAFC" }} 
               />
             </div>
 
@@ -419,9 +440,9 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                   exit={{ opacity: 0, height: 0 }}
                   className="space-y-3 overflow-hidden"
                 >
-                  <label className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase mb-3">Initial Balance</label>
+                  <label className="text-[11px] font-bold tracking-widest uppercase mb-3" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>Initial Balance</label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-neutral-500 select-none">Rp</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold select-none" style={{ color: "#64748B" }}>Rp</span>
                     <Input
                       type="text"
                       inputMode="numeric"
@@ -431,7 +452,7 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                         const raw = e.target.value.replace(/\D/g, "");
                         setInitialBalance(raw ? formatRupiahVisual(raw) : "");
                       }}
-                      className="h-11 pl-10 pr-4 bg-[#1a1a1a] border-neutral-700 text-white placeholder:text-white/30 focus-visible:ring-emerald-500/40 focus-visible:border-emerald-500/40 [appearance:textfield]"
+                      className="h-11 pl-10 pr-4" style={{ backgroundColor: "#1E293B", border: "1px solid #334155", color: "#F8FAFC" }}
                     />
                   </div>
                 </motion.div>
@@ -448,9 +469,9 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                     exit={{ opacity: 0, height: 0 }}
                     className="space-y-3 overflow-hidden"
                   >
-                    <label className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase mb-3">Credit Limit</label>
+                    <label className="text-[11px] font-bold tracking-widest uppercase mb-3" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>Credit Limit</label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-neutral-500 select-none">Rp</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold select-none" style={{ color: "#64748B" }}>Rp</span>
                       <Input
                         type="text"
                         inputMode="numeric"
@@ -460,7 +481,7 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                           const raw = e.target.value.replace(/\D/g, "");
                           setCreditLimit(raw ? formatRupiahVisual(raw) : "");
                         }}
-                        className="h-11 pl-10 pr-4 bg-[#1a1a1a] border-neutral-700 text-white placeholder:text-white/30 focus-visible:ring-emerald-500/40 focus-visible:border-emerald-500/40 [appearance:textfield]"
+                        className="h-11 pl-10 pr-4" style={{ backgroundColor: "#1E293B", border: "1px solid #334155", color: "#F8FAFC" }}
                       />
                     </div>
                   </motion.div>
@@ -471,9 +492,9 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                     exit={{ opacity: 0, height: 0 }}
                     className="space-y-3 overflow-hidden"
                   >
-                    <label className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase mb-3">Current Outstanding</label>
+                    <label className="text-[11px] font-bold tracking-widest uppercase mb-3" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>Current Outstanding</label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-neutral-500 select-none">Rp</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold select-none" style={{ color: "#64748B" }}>Rp</span>
                       <Input 
                         type="text" 
                         inputMode="numeric" 
@@ -483,7 +504,7 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                           const raw = e.target.value.replace(/\D/g, "");
                           setCurrentOutstanding(raw ? formatRupiahVisual(raw) : "");
                         }}
-                        className="h-11 pl-10 pr-4 bg-[#1a1a1a] border-neutral-700 text-white placeholder:text-white/30 focus-visible:ring-emerald-500/40 focus-visible:border-emerald-500/40 [appearance:textfield]" 
+                        className="h-11 pl-10 pr-4" style={{ backgroundColor: "#1E293B", border: "1px solid #334155", color: "#F8FAFC" }} 
                       />
                     </div>
                   </motion.div>
@@ -499,7 +520,7 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                       >
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase mb-2">Interest Rate (%)</label>
+                            <label className="text-[11px] font-bold tracking-widest uppercase mb-2" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>Interest Rate (%)</label>
                             <Input
                               type="number"
                               step="0.01"
@@ -507,11 +528,11 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                               max="100"
                               value={interestRate}
                               onChange={(e) => setInterestRate(e.target.value)}
-                              className="h-11 bg-[#1a1a1a] border-neutral-700 text-white placeholder:text-white/30 focus-visible:ring-emerald-500/40 focus-visible:border-emerald-500/40"
+                              className="h-11" style={{ backgroundColor: "#1E293B", border: "1px solid #334155", color: "#F8FAFC" }}
                             />
                           </div>
                           <div>
-                            <label className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase mb-2">Admin Fee (%)</label>
+                            <label className="text-[11px] font-bold tracking-widest uppercase mb-2" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>Admin Fee (%)</label>
                             <Input
                               type="number"
                               step="0.01"
@@ -519,7 +540,7 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                               max="100"
                               value={adminFee}
                               onChange={(e) => setAdminFee(e.target.value)}
-                              className="h-11 bg-[#1a1a1a] border-neutral-700 text-white placeholder:text-white/30 focus-visible:ring-emerald-500/40 focus-visible:border-emerald-500/40"
+                              className="h-11" style={{ backgroundColor: "#1E293B", border: "1px solid #334155", color: "#F8FAFC" }}
                             />
                           </div>
                         </div>
@@ -535,7 +556,7 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
 
             {/* Wallet Color Picker */}
             <div className="space-y-4">
-              <label className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase mb-3">Wallet Color</label>
+              <label className="text-[11px] font-bold tracking-widest uppercase mb-3" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>Wallet Color</label>
               <div className="flex items-center gap-3">
                 {colorPresets.map((color) => (
                   <button 
@@ -557,12 +578,13 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                   onClick={handleCustomColorClick}
                   className={cn(
                     "size-9 rounded-full flex items-center justify-center transition-all duration-200",
-                    "bg-[#1a1a1a] border-2",
-                    customColor ? `border-transparent` : "border-neutral-700 hover:border-neutral-500"
+                    "border-2",
+                    customColor ? `border-transparent` : "border-[#334155]"
                   )}
+                  style={{ backgroundColor: customColor ? undefined : "#1E293B" }}
                   aria-label="Custom color picker"
                 >
-                  <Plus className={cn("size-4", customColor ? "text-neutral-900" : "text-white/60")} />
+                  <Plus className={cn("size-4", customColor ? "text-[#0F172A]" : "text-[#94A3B8]")} />
                 </button>
 
                 {/* Hidden native color input */}
@@ -593,18 +615,20 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
           </div>
 
           {/* Footer */}
-          <div className="mt-auto pt-4 border-t border-neutral-800/60 flex justify-end gap-3 bg-neutral-900 px-6 py-5 bg-[#0a0a0a] shrink-0">
+          <div className="mt-auto pt-4 flex justify-end gap-3 px-6 py-5 shrink-0" style={{ borderTop: "1px solid #334155", backgroundColor: "#1E293B" }}>
             <Button 
               type="button" 
               variant="ghost" 
               onClick={onClose} 
-              className="h-9 text-sm font-medium text-white/60 hover:text-white hover:border-neutral-600 transition-all"
+              className="h-9 text-sm font-medium transition-all"
+              style={{ color: "#94A3B8" }}
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
-              className="h-9 bg-emerald-500 hover:bg-emerald-400 text-neutral-900 font-semibold"
+              className="h-9 font-semibold"
+              style={{ backgroundColor: "#38BDF8", color: "#0F172A" }}
             >
               Create Wallet
             </Button>

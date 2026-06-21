@@ -12,10 +12,10 @@ import {
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Transaksi", href: "/transactions", icon: ArrowLeftRight },
   { label: "Wallets", href: "/wallets", icon: Wallet },
   { label: "Cicilan", href: "/cicilan", icon: CalendarClock },
-  { label: "Laporan", href: "/laporan", icon: BarChart2 },
+    { label: "Transaksi", href: "/transactions", icon: ArrowLeftRight },
+
 ];
 
 export function BottomNav() {
@@ -23,10 +23,11 @@ export function BottomNav() {
 
   return (
     <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 h-[60px] border-t border-divider z-20 flex items-center justify-around"
+      className="lg:hidden fixed bottom-0 left-0 right-0 h-[60px] z-20 flex items-center justify-around"
       style={{
-        backgroundColor: "#0e0e0e",
         paddingBottom: "env(safe-area-inset-bottom)",
+        backgroundColor: "#0F172A",
+        borderTop: "1px solid #334155",
       }}
     >
       {NAV_ITEMS.map((item) => {
@@ -37,9 +38,11 @@ export function BottomNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors duration-150 ease-out ${
-              isActive ? "text-mint" : "text-text-secondary"
-            }`}
+            className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors duration-150"
+            style={{
+              color: isActive ? "#38BDF8" : "#94A3B8",
+              fontWeight: "500",
+            }}
           >
             <Icon className="size-5" />
             <span
