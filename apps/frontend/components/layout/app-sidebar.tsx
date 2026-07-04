@@ -2,87 +2,84 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { logout } from "@/app/actions/auth";
-import { useState } from "react";
 import {
   LayoutDashboard,
   ArrowLeftRight,
   Wallet,
   CalendarClock,
-  LogOut,
-  Loader2,
+  Settings,
+  HelpCircle,
+  Plus,
 } from "lucide-react";
 import { PocketMintLogo } from "../Logo";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Wallets", href: "/wallets", icon: Wallet },
-  { label: "Cicilan", href: "/cicilan", icon: CalendarClock },
-  { label: "Transaksi", href: "/transactions", icon: ArrowLeftRight },
+  { label: "Transactions", href: "/transactions", icon: ArrowLeftRight },
+  { label: "Installments", href: "/cicilan", icon: CalendarClock },
 ];
 
-interface AppSidebarProps {
-  userName?: string;
-  userEmail?: string;
-}
+const UTILITY_NAV_ITEMS = [
+  { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Help", href: "/help", icon: HelpCircle },
+];
 
-export function AppSidebar({
-  userName = "User",
-  userEmail = "user@pocketmint.com",
-}: AppSidebarProps) {
+export function AppSidebar() {
   const pathname = usePathname();
-  const [loggingOut, setLoggingOut] = useState(false);
 
-  const initials = userName
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
-  async function handleLogout() {
-    setLoggingOut(true);
-    await logout();
+  function handleAddTransaction() {
+    window.dispatchEvent(new Event("fab-add-transaction"));
   }
 
   return (
     <aside
-      className="hidden lg:flex flex-col flex-shrink-0 w-[240px] h-full bg-surface"
-      style={{
-        borderRight: "1px solid #262626",
-      }}
+      className="hidden lg:flex flex-col flex-shrink-0 w-[240px] h-screen sticky top-0 overflow-y-auto"
+      style={{ borderRight: "1px solid #262626" }}
     >
-      {/* Logo */}
+      {/* Logo + Subtitle */}
       <div
-        className="flex items-center gap-2.5"
-        style={{ height: "56px", padding: "16px 20px", borderBottom: "1px solid #1a1a1a", color: "#e5e2e1" }}
+        className="flex flex-col justify-center shrink-0"
+        style={{ height: "64px", padding: "12px 20px", borderBottom: "1px solid #1a1a1a" }}
       >
         <PocketMintLogo />
+        <p style={{ fontFamily: "var(--font-inter)", fontSize: "11px", color: "#bccabb", marginTop: "2px" }}>
+          Financial Clarity
+        </p>
       </div>
 
-      {/* Nav Items */}
-      <nav className="flex-1 py-2 overflow-y-auto">
+      {/* Nav Items — flex-1 pushes everything below to the bottom */}
+      <nav className="flex-1 py-3 overflow-y-auto space-y-0.5 px-2">
         {NAV_ITEMS.map((item) => {
           const isActive =
-            pathname === item.href || pathname.startsWith(item.href + "/");
+            pathname === item.href ||
+            pathname.startsWith(item.href + "/");
           const Icon = item.icon;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-2.5 transition-all duration-150"
+              className="flex items-center gap-3 rounded-lg transition-all duration-150"
               style={{
-                padding: "8px 20px",
+                padding: "10px 12px",
                 fontFamily: "var(--font-inter)",
-                fontSize: "13px",
-                fontWeight: "500",
+                fontSize: "14px",
+                fontWeight: isActive ? "600" : "500",
                 color: isActive ? "#4ade80" : "#bccabb",
-                backgroundColor: isActive
-                  ? "rgba(74, 222, 128, 0.08)"
-                  : "transparent",
-                borderRight: isActive
-                  ? "2px solid #4ade80"
-                  : "2px solid transparent",
+                backgroundColor: isActive ? "rgba(74, 222, 128, 0.08)" : "transparent",
+                borderRight: isActive ? "3px solid #4ade80" : "3px solid transparent",
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = "rgba(74,222,128,0.04)";
+                  e.currentTarget.style.color = "#e5e2e1";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.color = "#bccabb";
+                }
               }}
             >
               <Icon className="size-4 shrink-0" />
@@ -92,51 +89,57 @@ export function AppSidebar({
         })}
       </nav>
 
-      {/* User info - pinned bottom */}
-      <div className="px-4 py-3" style={{ borderTop: "1px solid #1a1a1a" }}>
-        <div className="flex items-center gap-3">
-          {/* Avatar */}
-          <div
-            className="size-[28px] rounded-full flex items-center justify-center shrink-0 text-xs font-bold"
-            style={{
-              backgroundColor: "rgba(74, 222, 128, 0.15)",
-              color: "#4ade80",
-              fontFamily: "var(--font-heading)",
-            }}
-          >
-            {initials}
-          </div>
+      {/* Add Transaction button */}
+      <div className="px-3 pb-3 shrink-0" style={{ borderTop: "1px solid #1a1a1a", paddingTop: "12px" }}>
+        <button
+          onClick={handleAddTransaction}
+          className="flex items-center justify-center gap-2 w-full rounded-full transition-all duration-150 hover:brightness-110 active:scale-95"
+          style={{
+            padding: "10px 16px",
+            backgroundColor: "#4ade80",
+            color: "#003919",
+            fontFamily: "var(--font-inter)",
+            fontSize: "14px",
+            fontWeight: "600",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          <Plus className="size-4 shrink-0" />
+          Add Transaction
+        </button>
+      </div>
 
-          {/* Name + Email */}
-          <div className="flex-1 min-w-0">
-            <p
-              className="text-[13px] font-medium truncate"
-              style={{ fontFamily: "var(--font-sans)", color: "#e5e2e1" }}
+      {/* Settings + Help — absolute bottom */}
+      <div className="px-2 pb-3 space-y-0.5 shrink-0" style={{ borderTop: "1px solid #1a1a1a", paddingTop: "8px" }}>
+        {UTILITY_NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex items-center gap-3 rounded-lg transition-all duration-150"
+              style={{
+                padding: "9px 12px",
+                fontFamily: "var(--font-inter)",
+                fontSize: "13px",
+                fontWeight: "500",
+                color: "#bccabb",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "rgba(74,222,128,0.04)";
+                e.currentTarget.style.color = "#e5e2e1";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#bccabb";
+              }}
             >
-              {userName}
-            </p>
-            <p
-              className="text-[10px] truncate"
-              style={{ fontFamily: "var(--font-sans)", color: "#bccabb" }}
-            >
-              {userEmail}
-            </p>
-          </div>
-
-          {/* Logout */}
-          <button
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="text-muted-foreground hover:text-destructive transition-colors duration-150 disabled:opacity-50 shrink-0"
-            title="Keluar"
-          >
-            {loggingOut ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <LogOut className="size-4" />
-            )}
-          </button>
-        </div>
+              <Icon className="size-4 shrink-0" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </div>
     </aside>
   );

@@ -20,6 +20,7 @@ import { useDeleteWallet } from "@/src/features/wallets/hooks/useWallets";
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const DEBT_TYPES = ["CREDIT_CARD", "LOAN_PAYLATER"];
+const INSTALLMENT_TYPES = ["LOAN_PAYLATER"];
 
 const WALLET_ICON_MAP: Record<string, LucideIcon> = {
   CASH: Banknote,
@@ -74,8 +75,13 @@ export function WalletCard({ wallet, onEdit }: WalletCardProps) {
       : 0;
   const utilColor = getUtilizationColor(utilization);
 
-  const iconBg = isDebt ? "rgba(255,180,171,0.1)" : "rgba(74,222,128,0.1)";
-  const iconColor = isDebt ? "#ffb4ab" : "#4ade80";
+  const isInstallment = INSTALLMENT_TYPES.includes(wallet.type);
+  const iconBg = isInstallment
+    ? "rgba(255,183,132,0.1)"
+    : isDebt
+    ? "rgba(255,180,171,0.1)"
+    : "rgba(74,222,128,0.1)";
+  const iconColor = isInstallment ? "#ffb784" : isDebt ? "#ffb4ab" : "#4ade80";
 
   // ── Kebab menu state ──
   const [showMenu, setShowMenu] = useState(false);
@@ -122,6 +128,11 @@ export function WalletCard({ wallet, onEdit }: WalletCardProps) {
         background: "#0e0e0e",
         border: "1px solid #262626",
         borderRadius: "8px",
+        borderLeft: isInstallment
+          ? "4px solid #ffb784"
+          : isDebt
+          ? "4px solid #ffb4ab"
+          : "4px solid #4ade80",
         padding: "16px",
         position: "relative",
       }}
