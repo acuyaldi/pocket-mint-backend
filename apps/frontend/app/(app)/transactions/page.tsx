@@ -21,7 +21,7 @@ import { TransactionTable } from "./components/TransactionTable";
 import { TransactionDetailPanel } from "./components/TransactionDetailPanel";
 import { EditTransactionModal } from "./components/EditTransactionModal";
 import { DeleteTransactionModal } from "./components/DeleteTransactionModal";
-import { AddTransactionModal } from "./components/AddTransactionModal";
+import { AddTransactionModal, type AddTransactionData } from "./components/AddTransactionModal";
 
 export default function TransactionsPage() {
   const router = useRouter();
@@ -122,15 +122,7 @@ export default function TransactionsPage() {
   const handleDeleteConfirm = useCallback(async () => {
     if (!deleteConfirmId) return; setIsDeleting(true); try { await deleteTransaction.mutateAsync(deleteConfirmId); setDeleteConfirmId(null); setSelectedTx(null); } catch (e) { console.error(e); } finally { setIsDeleting(false); }
   }, [deleteConfirmId, deleteTransaction]);
-  const handleAddSubmit = useCallback(async (d: {
-    description: string;
-    amount: number;
-    type: "EXPENSE" | "INCOME" | "TRANSFER";
-    date: string;
-    walletId?: string;
-    toWalletId?: string;
-    isInstallment?: boolean;
-  }) => {
+  const handleAddSubmit = useCallback(async (d: AddTransactionData) => {
     setIsCreating(true);
     try { await createTransaction.mutateAsync(d); setIsAddModalOpen(false); }
     catch (e) { console.error(e); }

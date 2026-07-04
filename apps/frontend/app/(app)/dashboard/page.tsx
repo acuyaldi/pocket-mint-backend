@@ -8,7 +8,7 @@ import { WalletCard } from "@/components/WalletCard";
 import { formatCurrency } from "@/lib/utils";
 import { isDebtWallet } from "@/src/types/wallet";
 import { TrendingUp, ArrowDownLeft, ArrowUpRight } from "lucide-react";
-import { AddTransactionModal } from "@/app/(app)/transactions/components/AddTransactionModal";
+import { AddTransactionModal, type AddTransactionData } from "@/app/(app)/transactions/components/AddTransactionModal";
 
 export default function DashboardPage() {
   const { data, isLoading } = useTransactions();
@@ -21,15 +21,7 @@ export default function DashboardPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  const handleAddSubmit = useCallback(async (d: {
-    description: string;
-    amount: number;
-    type: "EXPENSE" | "INCOME" | "TRANSFER";
-    date: string;
-    walletId?: string;
-    toWalletId?: string;
-    isInstallment?: boolean;
-  }) => {
+  const handleAddSubmit = useCallback(async (d: AddTransactionData) => {
     setIsCreating(true);
     try {
       await createTransaction.mutateAsync(d);

@@ -20,6 +20,27 @@ export interface Installment {
   balanceDeducted: boolean;
 }
 
+export interface PaylaterRate {
+  match: string; // lowercase substring matched against wallet name
+  name: string;
+  rate: number; // bunga flat %/bulan
+  adminFee: number; // % dari pokok, sekali bayar
+}
+
+/**
+ * Static paylater provider rates from the backend. Never refetched (static data).
+ */
+export function usePaylaterRates() {
+  return useQuery<PaylaterRate[], Error>({
+    queryKey: ['paylater-rates'],
+    queryFn: async () => {
+      const res = await api.get<{ data: PaylaterRate[] }>('/installments/rates');
+      return res.data?.data ?? [];
+    },
+    staleTime: Infinity,
+  });
+}
+
 /**
  * Fetch installments, optionally filtered by status.
  */

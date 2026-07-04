@@ -1,7 +1,6 @@
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { TopBar } from "@/components/layout/top-bar";
 import { BottomNav } from "@/components/layout/bottom-nav";
-import { FAB } from "@/components/ui/fab";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,7 +17,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </main>
 
       <BottomNav />
-      <FAB />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, FormEvent } from "react";
+import { useState, useCallback, useEffect, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Loader2, ArrowDownLeft, ArrowUpRight, ArrowLeftRight,
@@ -9,7 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import type { Wallet } from "@/src/types/wallet";
+import { isDebtWallet, type Wallet } from "@/src/types/wallet";
+import { usePaylaterRates } from "@/src/features/installments/hooks/useInstallments";
 import { formatRupiah } from "./constants";
 
 type TxType = "EXPENSE" | "INCOME" | "TRANSFER";
@@ -19,6 +20,12 @@ const EXPENSE_CATS = [
   "Bills & Utilities", "Health", "Education", "Travel", "Personal Care", "Other",
 ];
 const INCOME_CATS = ["Salary", "Freelance", "Business", "Investment", "Gift", "Other"];
+
+const TENORS = [3, 6, 12]; // keep in sync with backend VALID_TENORS
+
+/** How much this wallet can still spend: assets use balance, debt wallets use remaining credit. */
+const spendable = (w: Wallet) =>
+  isDebtWallet(w.type) ? Math.max((w.creditLimit ?? 0) - Math.abs(w.balance), 0) : w.balance;
 
 const TYPE_OPTIONS = [
   { type: "EXPENSE" as TxType, label: "EXPENSE", Icon: ArrowDownLeft, color: "#ffb4ab", bg: "rgba(255,180,171,0.12)" },
@@ -42,6 +49,8 @@ export interface AddTransactionData {
   walletId?: string;
   toWalletId?: string;
   isInstallment?: boolean;
+  installmentMonths?: number;
+  interestRate?: number;
 }
 
 interface AddTransactionModalProps {
@@ -56,11 +65,13 @@ function WalletPills({
   wallets,
   selected,
   exclude = "",
+  isDisabled,
   onSelect,
 }: {
   wallets: Wallet[];
   selected: string;
   exclude?: string;
+  isDisabled?: (w: Wallet) => boolean;
   onSelect: (id: string) => void;
 }) {
   const available = wallets.filter((w) => w.id !== exclude);
@@ -71,12 +82,15 @@ function WalletPills({
     <div className="flex flex-wrap gap-1.5">
       {available.map((w) => {
         const active = selected === w.id;
+        const disabled = isDisabled?.(w) ?? false;
         return (
           <button
             key={w.id}
             type="button"
+            disabled={disabled}
+            title={disabled ? "Dana tidak cukup" : undefined}
             onClick={() => onSelect(active ? "" : w.id)}
-            className="px-2.5 py-1 rounded-full text-[11px] font-medium transition-all duration-150 cursor-pointer truncate max-w-[120px]"
+            className="px-2.5 py-1 rounded-full text-[11px] font-medium transition-all duration-150 cursor-pointer truncate max-w-[120px] disabled:opacity-40 disabled:cursor-not-allowed"
             style={
               active
                 ? { backgroundColor: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.4)", color: "#4ade80" }
@@ -102,6 +116,11 @@ export function AddTransactionModal({
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(todayStr);
   const [isInstallment, setIsInstallment] = useState(false);
+  const [installmentMonths, setInstallmentMonths] = useState(3);
+  const [interestRate, setInterestRate] = useState(""); // % flat per bulan
+  const [adminFee, setAdminFee] = useState(""); // % dari pokok, sekali bayar (belum dikirim ke backend)
+
+  const { data: paylaterRates } = usePaylaterRates();
 
   const activeOpt = TYPE_OPTIONS.find((o) => o.type === type)!;
 
@@ -113,6 +132,7 @@ export function AddTransactionModal({
     setType(t);
     setCategory("");
     if (t !== "TRANSFER") setToWalletId("");
+    if (t !== "EXPENSE") setIsInstallment(false);
   }, []);
 
   const handleClose = useCallback(() => {
@@ -123,6 +143,16 @@ export function AddTransactionModal({
     e.preventDefault();
     const parsed = Number(amount.replace(/\./g, ""));
     if (isNaN(parsed) || parsed <= 0) return;
+    const srcWallet = wallets.find((x) => x.id === walletId);
+    if (isInstallment && (!srcWallet || !isDebtWallet(srcWallet.type))) return; // backend rejects non-debt wallets
+    if (type === "TRANSFER" && srcWallet && isDebtWallet(srcWallet.type)) return; // paylater can't move funds out
+    if (srcWallet && type !== "INCOME") {
+      const rate = Number(interestRate.replace(",", ".")) || 0;
+      const need = isInstallment
+        ? parsed + Math.round(parsed * (rate / 100) * installmentMonths)
+        : parsed;
+      if (spendable(srcWallet) < need) return; // dana tidak cukup
+    }
     await onSubmit({
       description: description.trim(),
       amount: parsed,
@@ -131,6 +161,8 @@ export function AddTransactionModal({
       walletId: walletId || undefined,
       toWalletId: type === "TRANSFER" ? (toWalletId || undefined) : undefined,
       isInstallment: isInstallment || undefined,
+      installmentMonths: isInstallment ? installmentMonths : undefined,
+      interestRate: isInstallment ? Number(interestRate.replace(",", ".")) || 0 : undefined,
     });
     setAmount("");
     setType("EXPENSE");
@@ -140,9 +172,52 @@ export function AddTransactionModal({
     setDescription("");
     setDate(todayStr());
     setIsInstallment(false);
-  }, [amount, description, type, date, walletId, toWalletId, isInstallment, onSubmit]);
+    setInstallmentMonths(3);
+    setInterestRate("");
+    setAdminFee("");
+  }, [amount, description, type, date, walletId, toWalletId, isInstallment, installmentMonths, interestRate, wallets, onSubmit]);
 
   const cats = type === "INCOME" ? INCOME_CATS : type === "EXPENSE" ? EXPENSE_CATS : [];
+
+  // Installment preview (mirrors backend rounding in transaction.controller.ts)
+  const selectedWallet = wallets.find((w) => w.id === walletId);
+  const principal = Number(amount.replace(/\./g, "")) || 0;
+  const rateNum = Number(interestRate.replace(",", ".")) || 0;
+  const adminFeeNum = Number(adminFee.replace(",", ".")) || 0;
+  const totalInterest = Math.round(principal * (rateNum / 100) * installmentMonths);
+  const monthlyEst = Math.round((principal + totalInterest) / installmentMonths);
+  const adminRp = Math.round(principal * (adminFeeNum / 100));
+
+  // Wallet eligibility: type rules hide the wallet, insufficient funds disable it
+  const sourceWallets =
+    type === "TRANSFER"
+      ? wallets.filter((w) => !isDebtWallet(w.type)) // paylater/CC can't move funds out
+      : isInstallment
+        ? wallets.filter((w) => isDebtWallet(w.type)) // cicilan only on credit products
+        : wallets;
+  const requiredFunds = isInstallment ? principal + totalInterest : principal; // backend locks the grand total
+  const lacksFunds = (w: Wallet) =>
+    type !== "INCOME" && principal > 0 && spendable(w) < requiredFunds;
+  const matchedPreset =
+    isInstallment && selectedWallet
+      ? paylaterRates?.find((p) => selectedWallet.name.toLowerCase().includes(p.match))
+      : undefined;
+
+  // Auto-fill bunga & admin from the selected paylater wallet
+  useEffect(() => {
+    if (!isInstallment) return;
+    const w = wallets.find((x) => x.id === walletId);
+    if (!w || !isDebtWallet(w.type)) return;
+    const p = paylaterRates?.find((pr) => w.name.toLowerCase().includes(pr.match));
+    setInterestRate(p ? String(p.rate) : "");
+    setAdminFee(p ? String(p.adminFee) : "");
+  }, [isInstallment, walletId, wallets, paylaterRates]);
+
+  // Drop a selected wallet the current type/installment/amount no longer allows
+  useEffect(() => {
+    const w = wallets.find((x) => x.id === walletId);
+    if (w && (!sourceWallets.includes(w) || lacksFunds(w))) setWalletId("");
+  });
 
   return (
     <AnimatePresence>
@@ -209,7 +284,7 @@ export function AddTransactionModal({
                       className="bg-transparent outline-none text-center w-full max-w-[220px]"
                       style={{
                         color: "#e5e2e1",
-                        fontSize: "48px",
+                        fontSize: amount.length > 11 ? "28px" : amount.length > 7 ? "36px" : "48px",
                         fontWeight: 700,
                         fontFamily: "var(--font-heading)",
                         caretColor: activeOpt.color,
@@ -258,7 +333,7 @@ export function AddTransactionModal({
                         >
                           WALLET / SOURCE
                         </p>
-                        <WalletPills wallets={wallets} selected={walletId} exclude={toWalletId} onSelect={setWalletId} />
+                        <WalletPills wallets={sourceWallets} selected={walletId} exclude={toWalletId} isDisabled={lacksFunds} onSelect={setWalletId} />
                       </div>
                       <div>
                         <p
@@ -279,7 +354,7 @@ export function AddTransactionModal({
                         >
                           WALLET / SOURCE
                         </p>
-                        <WalletPills wallets={wallets} selected={walletId} onSelect={setWalletId} />
+                        <WalletPills wallets={sourceWallets} selected={walletId} isDisabled={lacksFunds} onSelect={setWalletId} />
                       </div>
                       {cats.length > 0 && (
                         <div>
@@ -360,50 +435,144 @@ export function AddTransactionModal({
                     />
                   </div>
 
-                  {/* Installment toggle */}
+                  {/* Installment toggle — backend only allows installments on EXPENSE */}
+                  {type === "EXPENSE" && (
                   <div
-                    className="flex items-center justify-between px-3 py-2.5 rounded-xl"
+                    className="rounded-xl"
                     style={{ backgroundColor: "#0a0a0a", border: "1px solid #1a1a1a" }}
                   >
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className="size-8 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: "rgba(74,222,128,0.08)" }}
+                    <div className="flex items-center justify-between px-3 py-2.5">
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className="size-8 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: "rgba(74,222,128,0.08)" }}
+                        >
+                          <RefreshCw className="size-3.5" style={{ color: "#4ade80" }} />
+                        </div>
+                        <div>
+                          <p
+                            className="text-sm font-medium leading-tight"
+                            style={{ color: "#e5e2e1", fontFamily: "var(--font-inter)" }}
+                          >
+                            Is this an installment?
+                          </p>
+                          <p
+                            className="text-[10px] font-semibold tracking-[0.12em] mt-0.5"
+                            style={{ color: "#3d4a3e" }}
+                          >
+                            RECURRING PAYMENT PLAN
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={isInstallment}
+                        onClick={() => setIsInstallment((v) => !v)}
+                        className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 cursor-pointer flex-shrink-0"
+                        style={{ backgroundColor: isInstallment ? "#4ade80" : "#262626" }}
                       >
-                        <RefreshCw className="size-3.5" style={{ color: "#4ade80" }} />
-                      </div>
-                      <div>
-                        <p
-                          className="text-sm font-medium leading-tight"
-                          style={{ color: "#e5e2e1", fontFamily: "var(--font-inter)" }}
-                        >
-                          Is this an installment?
-                        </p>
-                        <p
-                          className="text-[10px] font-semibold tracking-[0.12em] mt-0.5"
-                          style={{ color: "#3d4a3e" }}
-                        >
-                          RECURRING PAYMENT PLAN
-                        </p>
-                      </div>
+                        <span
+                          className="inline-block size-3.5 rounded-full transition-transform duration-200"
+                          style={{
+                            backgroundColor: isInstallment ? "#131313" : "#3d4a3e",
+                            transform: isInstallment ? "translateX(18px)" : "translateX(2px)",
+                          }}
+                        />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={isInstallment}
-                      onClick={() => setIsInstallment((v) => !v)}
-                      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 cursor-pointer flex-shrink-0"
-                      style={{ backgroundColor: isInstallment ? "#4ade80" : "#262626" }}
-                    >
-                      <span
-                        className="inline-block size-3.5 rounded-full transition-transform duration-200"
-                        style={{
-                          backgroundColor: isInstallment ? "#131313" : "#3d4a3e",
-                          transform: isInstallment ? "translateX(18px)" : "translateX(2px)",
-                        }}
-                      />
-                    </button>
+
+                    {isInstallment && (
+                      <div className="px-3 pb-3 space-y-3">
+                        {/* Tenor */}
+                        <div>
+                          <p
+                            className="text-[10px] font-semibold tracking-[0.15em] mb-2"
+                            style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
+                          >
+                            TENOR
+                          </p>
+                          <div className="flex gap-1.5">
+                            {TENORS.map((m) => {
+                              const active = installmentMonths === m;
+                              return (
+                                <button
+                                  key={m}
+                                  type="button"
+                                  onClick={() => setInstallmentMonths(m)}
+                                  className="flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 cursor-pointer"
+                                  style={
+                                    active
+                                      ? { backgroundColor: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.4)", color: "#4ade80" }
+                                      : { backgroundColor: "#1c1b1b", border: "1px solid #262626", color: "#bccabb" }
+                                  }
+                                >
+                                  {m} bln
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Rate + admin fee (manual override) */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <p
+                              className="text-[10px] font-semibold tracking-[0.15em] mb-2"
+                              style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
+                            >
+                              BUNGA % / BLN
+                            </p>
+                            <Input
+                              type="text"
+                              inputMode="decimal"
+                              placeholder="0"
+                              value={interestRate}
+                              onChange={(e) => setInterestRate(e.target.value.replace(/[^\d.,]/g, ""))}
+                              className="h-9 text-sm"
+                              style={{ backgroundColor: "#0a0a0a", border: "1px solid #262626", color: "#e5e2e1" }}
+                            />
+                          </div>
+                          <div>
+                            <p
+                              className="text-[10px] font-semibold tracking-[0.15em] mb-2"
+                              style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
+                            >
+                              BIAYA ADMIN %
+                            </p>
+                            <Input
+                              type="text"
+                              inputMode="decimal"
+                              placeholder="0"
+                              value={adminFee}
+                              onChange={(e) => setAdminFee(e.target.value.replace(/[^\d.,]/g, ""))}
+                              className="h-9 text-sm"
+                              style={{ backgroundColor: "#0a0a0a", border: "1px solid #262626", color: "#e5e2e1" }}
+                            />
+                          </div>
+                        </div>
+
+                        {matchedPreset && (
+                          <p className="text-[11px]" style={{ color: "#3d4a3e" }}>
+                            Bunga & biaya admin otomatis dari {selectedWallet!.name} — bisa diubah manual.
+                          </p>
+                        )}
+
+                        {/* Monthly estimate */}
+                        {principal > 0 && (
+                          <p className="text-[11px]" style={{ color: "#bccabb" }}>
+                            ≈{" "}
+                            <span style={{ color: "#4ade80", fontWeight: 600 }}>
+                              Rp {formatRupiah(String(monthlyEst))}/bln
+                            </span>{" "}
+                            × {installmentMonths} bulan
+                            {adminRp > 0 && <> + admin Rp {formatRupiah(String(adminRp))} (sekali bayar)</>}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
+                  )}
                 </div>
 
                 <Separator style={{ backgroundColor: "#1a1a1a" }} />
