@@ -7,7 +7,7 @@ import { useWallets } from "@/src/features/wallets/hooks/useWallets";
 import { WalletCard } from "@/components/WalletCard";
 import { formatCurrency } from "@/lib/utils";
 import { isDebtWallet } from "@/src/types/wallet";
-import { TrendingUp, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { TrendingUp, ArrowDownLeft, ArrowUpRight, Plus } from "lucide-react";
 import { AddTransactionModal, type AddTransactionData } from "@/app/(app)/transactions/components/AddTransactionModal";
 
 export default function DashboardPage() {
@@ -43,7 +43,8 @@ export default function DashboardPage() {
   const { totalAssets, totalDebts, netWorth } = useMemo(() => {
     const assets = wallets.filter((w) => !isDebtWallet(w.type)).reduce((s, w) => s + w.balance, 0);
     const debts = wallets.filter((w) => isDebtWallet(w.type)).reduce((s, w) => s + Math.abs(w.balance), 0);
-    return { totalAssets: assets, totalDebts: debts, netWorth: assets - debts };
+    // Net worth = assets only; debt reduces it only via repayment transactions
+    return { totalAssets: assets, totalDebts: debts, netWorth: assets };
   }, [wallets]);
 
   const { income, expense } = useMemo(() => {
@@ -112,7 +113,16 @@ export default function DashboardPage() {
           {/* ── LEFT COLUMN (8/12) ── */}
           <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
 
-            {/* Wallets Overview */}
+            {/* Wallets Overview — hidden when there are no wallets; a CTA takes its place */}
+            {walletsData && dashboardWallets.length === 0 ? (
+              <Link
+                href="/wallets"
+                className="flex items-center justify-center gap-2 rounded-xl py-10 border border-dashed border-border bg-card text-sm font-semibold text-primary transition-opacity hover:opacity-75"
+              >
+                <Plus className="size-4" />
+                Add New Wallet
+              </Link>
+            ) : (
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-foreground font-heading">
@@ -139,6 +149,7 @@ export default function DashboardPage() {
                   ))}
               </div>
             </div>
+            )}
 
             {/* Recent Transactions */}
             <div className="rounded-xl overflow-hidden bg-card border border-border">

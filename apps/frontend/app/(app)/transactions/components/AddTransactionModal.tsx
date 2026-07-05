@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Loader2, ArrowDownLeft, ArrowUpRight, ArrowLeftRight,
-  CreditCard, RefreshCw,
+  CreditCard, RefreshCw, HandCoins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ import { usePaylaterRates } from "@/src/features/installments/hooks/useInstallme
 import { formatRupiah } from "./constants";
 
 type TxType = "EXPENSE" | "INCOME" | "TRANSFER";
+/** UI tab — PAY_DEBT submits as a TRANSFER into a debt wallet (backend treats it as repayment) */
+type Tab = TxType | "PAY_DEBT";
 
 const EXPENSE_CATS = [
   "Food & Dining", "Transport", "Shopping", "Entertainment",
@@ -28,9 +30,10 @@ const spendable = (w: Wallet) =>
   isDebtWallet(w.type) ? Math.max((w.creditLimit ?? 0) - Math.abs(w.balance), 0) : w.balance;
 
 const TYPE_OPTIONS = [
-  { type: "EXPENSE" as TxType, label: "EXPENSE", Icon: ArrowDownLeft, color: "#ffb4ab", bg: "rgba(255,180,171,0.12)" },
-  { type: "INCOME"  as TxType, label: "INCOME",  Icon: ArrowUpRight,  color: "#4ade80", bg: "rgba(74,222,128,0.12)"  },
-  { type: "TRANSFER"as TxType, label: "TRANSFER",Icon: ArrowLeftRight,color: "#e5e2e1", bg: "rgba(229,226,225,0.08)" },
+  { type: "EXPENSE" as Tab, label: "EXPENSE", Icon: ArrowDownLeft, color: "#ffb4ab", bg: "rgba(255,180,171,0.12)" },
+  { type: "INCOME"  as Tab, label: "INCOME",  Icon: ArrowUpRight,  color: "#4ade80", bg: "rgba(74,222,128,0.12)"  },
+  { type: "TRANSFER"as Tab, label: "TRANSFER",Icon: ArrowLeftRight,color: "#e5e2e1", bg: "rgba(229,226,225,0.08)" },
+  { type: "PAY_DEBT"as Tab, label: "PAY DEBT",Icon: HandCoins,     color: "#bcc7de", bg: "rgba(188,199,222,0.10)" },
 ];
 
 function todayStr() {
@@ -66,12 +69,14 @@ function WalletPills({
   selected,
   exclude = "",
   isDisabled,
+  disabledTitle = "Dana tidak cukup",
   onSelect,
 }: {
   wallets: Wallet[];
   selected: string;
   exclude?: string;
   isDisabled?: (w: Wallet) => boolean;
+  disabledTitle?: string;
   onSelect: (id: string) => void;
 }) {
   const available = wallets.filter((w) => w.id !== exclude);
@@ -88,16 +93,21 @@ function WalletPills({
             key={w.id}
             type="button"
             disabled={disabled}
-            title={disabled ? "Dana tidak cukup" : undefined}
+            title={disabled ? disabledTitle : undefined}
             onClick={() => onSelect(active ? "" : w.id)}
-            className="px-2.5 py-1 rounded-full text-[11px] font-medium transition-all duration-150 cursor-pointer truncate max-w-[120px] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-2.5 py-1 rounded-full text-[11px] font-medium transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 max-w-[140px]"
             style={
               active
                 ? { backgroundColor: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.4)", color: "#4ade80" }
                 : { backgroundColor: "#1c1b1b", border: "1px solid #262626", color: "#bccabb" }
             }
           >
-            {w.name}
+            <span className="truncate">{w.name}</span>
+            {isDebtWallet(w.type) && (
+              <span className="text-[8px] font-bold tracking-[0.1em] flex-shrink-0" style={{ color: "#ffb4ab" }}>
+                DEBT
+              </span>
+            )}
           </button>
         );
       })}
@@ -109,7 +119,7 @@ export function AddTransactionModal({
   isOpen, isCreating, wallets, onClose, onSubmit,
 }: AddTransactionModalProps) {
   const [amount, setAmount] = useState("");
-  const [type, setType] = useState<TxType>("EXPENSE");
+  const [type, setType] = useState<Tab>("EXPENSE");
   const [walletId, setWalletId] = useState("");
   const [toWalletId, setToWalletId] = useState("");
   const [category, setCategory] = useState("");
@@ -129,11 +139,17 @@ export function AddTransactionModal({
     setAmount(formatRupiah(e.target.value.replace(/\D/g, "")));
   }, []);
 
-  const handleTypeChange = useCallback((t: TxType) => {
+  // Tab switch resets everything that depends on the tab; amount/description/date survive
+  const handleTypeChange = useCallback((t: Tab) => {
     setType(t);
+    setWalletId("");
+    setToWalletId("");
     setCategory("");
-    if (t !== "TRANSFER") setToWalletId("");
-    if (t !== "EXPENSE") setIsInstallment(false);
+    setIsInstallment(false);
+    setInstallmentMonths(3);
+    setInterestRate("");
+    setAdminFee("");
+    setError("");
   }, []);
 
   const handleClose = useCallback(() => {
@@ -146,17 +162,28 @@ export function AddTransactionModal({
     const parsed = Number(amount.replace(/\./g, ""));
     if (isNaN(parsed) || parsed <= 0) return;
     const srcWallet = wallets.find((x) => x.id === walletId);
-    if (isInstallment && (!srcWallet || !isDebtWallet(srcWallet.type))) {
-      setError("Pilih wallet Credit Card / Paylater untuk cicilan.");
-      return;
-    }
-    if (type === "TRANSFER" && srcWallet && isDebtWallet(srcWallet.type)) {
+    const destWallet = wallets.find((x) => x.id === toWalletId);
+    const isTransferLike = type === "TRANSFER" || type === "PAY_DEBT";
+    // Toggle can go stale if the user re-picks an asset wallet; treat that as a plain expense
+    const asInstallment = isInstallment && !!srcWallet && isDebtWallet(srcWallet.type);
+    if (isTransferLike && srcWallet && isDebtWallet(srcWallet.type)) {
       setError("Transfer tidak bisa dari wallet paylater / kartu kredit.");
       return;
     }
+    if (type === "PAY_DEBT") {
+      if (!srcWallet || !destWallet) {
+        setError("Pilih wallet sumber dan tagihan yang mau dibayar.");
+        return;
+      }
+      const outstanding = Math.abs(destWallet.balance);
+      if (parsed > outstanding) {
+        setError(`Melebihi tagihan — sisa Rp ${formatRupiah(String(outstanding))}.`);
+        return;
+      }
+    }
     if (srcWallet && type !== "INCOME") {
       const rate = Number(interestRate.replace(",", ".")) || 0;
-      const need = isInstallment
+      const need = asInstallment
         ? parsed + Math.round(parsed * (rate / 100) * installmentMonths)
         : parsed;
       if (spendable(srcWallet) < need) {
@@ -166,15 +193,16 @@ export function AddTransactionModal({
     }
     try {
       await onSubmit({
-        description: description.trim(),
+        description: description.trim() ||
+          (type === "PAY_DEBT" && destWallet ? `Bayar tagihan ${destWallet.name}` : ""),
         amount: parsed,
-        type,
+        type: type === "PAY_DEBT" ? "TRANSFER" : type,
         date: new Date(date).toISOString(),
         walletId: walletId || undefined,
-        toWalletId: type === "TRANSFER" ? (toWalletId || undefined) : undefined,
-        isInstallment: isInstallment || undefined,
-        installmentMonths: isInstallment ? installmentMonths : undefined,
-        interestRate: isInstallment ? Number(interestRate.replace(",", ".")) || 0 : undefined,
+        toWalletId: isTransferLike ? (toWalletId || undefined) : undefined,
+        isInstallment: asInstallment || undefined,
+        installmentMonths: asInstallment ? installmentMonths : undefined,
+        interestRate: asInstallment ? Number(interestRate.replace(",", ".")) || 0 : undefined,
       });
     } catch (err) {
       const msg = (err as { response?: { data?: { error?: { message?: string } } } })
@@ -210,12 +238,18 @@ export function AddTransactionModal({
   const sourceWallets =
     type === "TRANSFER"
       ? wallets.filter((w) => !isDebtWallet(w.type)) // paylater/CC can't move funds out
-      : isInstallment
-        ? wallets.filter((w) => isDebtWallet(w.type)) // cicilan only on credit products
+      : type === "PAY_DEBT"
+        ? wallets.filter((w) => w.type === "BANK" || w.type === "CASH") // e-wallet can't pay CC/paylater bills
         : wallets;
-  const requiredFunds = isInstallment ? principal + totalInterest : principal; // backend locks the grand total
+  const destWallets =
+    type === "PAY_DEBT"
+      ? wallets.filter((w) => isDebtWallet(w.type)) // bills to pay
+      : wallets.filter((w) => !isDebtWallet(w.type)); // plain transfer moves money between assets
+  const destWallet = wallets.find((w) => w.id === toWalletId);
+  // Backend locks the grand total for installments; asset pills only ever need the principal
   const lacksFunds = (w: Wallet) =>
-    type !== "INCOME" && principal > 0 && spendable(w) < requiredFunds;
+    type !== "INCOME" && principal > 0 &&
+    spendable(w) < (isInstallment && isDebtWallet(w.type) ? principal + totalInterest : principal);
   const matchedPreset =
     isInstallment && selectedWallet
       ? paylaterRates?.find((p) => selectedWallet.name.toLowerCase().includes(p.match))
@@ -238,11 +272,6 @@ export function AddTransactionModal({
     setAdminFee(p ? String(p.adminFee) : "");
   }, [isInstallment, walletId, wallets, paylaterRates]);
 
-  // Drop a selected wallet the current type/installment/amount no longer allows
-  useEffect(() => {
-    const w = wallets.find((x) => x.id === walletId);
-    if (w && (!sourceWallets.includes(w) || lacksFunds(w))) setWalletId("");
-  });
 
   return (
     <AnimatePresence>
@@ -349,14 +378,14 @@ export function AddTransactionModal({
                 {/* Form fields */}
                 <div className="px-5 pb-4 space-y-4">
                   {/* Wallet selector */}
-                  {type === "TRANSFER" ? (
+                  {type === "TRANSFER" || type === "PAY_DEBT" ? (
                     <>
                       <div>
                         <p
                           className="text-[10px] font-semibold tracking-[0.15em] mb-2"
                           style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
                         >
-                          WALLET / SOURCE
+                          {type === "PAY_DEBT" ? "PAY FROM" : "WALLET / SOURCE"}
                         </p>
                         <WalletPills wallets={sourceWallets} selected={walletId} exclude={toWalletId} isDisabled={lacksFunds} onSelect={setWalletId} />
                       </div>
@@ -365,9 +394,34 @@ export function AddTransactionModal({
                           className="text-[10px] font-semibold tracking-[0.15em] mb-2"
                           style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
                         >
-                          WALLET / DESTINATION
+                          {type === "PAY_DEBT" ? "DEBT TO PAY" : "WALLET / DESTINATION"}
                         </p>
-                        <WalletPills wallets={wallets} selected={toWalletId} exclude={walletId} onSelect={setToWalletId} />
+                        <WalletPills
+                          wallets={destWallets}
+                          selected={toWalletId}
+                          exclude={walletId}
+                          isDisabled={type === "PAY_DEBT" ? (w) => Math.abs(w.balance) === 0 : undefined}
+                          disabledTitle="Tidak ada tagihan"
+                          onSelect={setToWalletId}
+                        />
+                        {type === "PAY_DEBT" && destWallet && (
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-[11px]" style={{ color: "#bccabb" }}>
+                              Sisa tagihan:{" "}
+                              <span style={{ color: "#ffb4ab", fontWeight: 600 }}>
+                                Rp {formatRupiah(String(Math.abs(destWallet.balance)))}
+                              </span>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setAmount(formatRupiah(String(Math.abs(destWallet.balance))))}
+                              className="px-2.5 py-1 rounded-full text-[11px] font-medium cursor-pointer"
+                              style={{ backgroundColor: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.4)", color: "#4ade80" }}
+                            >
+                              Bayar penuh
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </>
                   ) : (
@@ -460,8 +514,8 @@ export function AddTransactionModal({
                     />
                   </div>
 
-                  {/* Installment toggle — backend only allows installments on EXPENSE */}
-                  {type === "EXPENSE" && (
+                  {/* Installment toggle — EXPENSE from a debt wallet only (backend enforces both) */}
+                  {type === "EXPENSE" && selectedWallet && isDebtWallet(selectedWallet.type) && (
                   <div
                     className="rounded-xl"
                     style={{ backgroundColor: "#0a0a0a", border: "1px solid #1a1a1a" }}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, FormEvent, ChangeEvent } from "react";
+import { useState, useCallback, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Landmark,
@@ -11,7 +11,6 @@ import {
   Zap,
   User,
   Building2,
-  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +32,6 @@ interface CreateWalletModalProps {
 export interface CreateWalletFormData {
   name: string;
   category: WalletCategory;
-  color: string;
   icon: string;
   balance?: number;
   subType?: AssetSubType | DebtSubType;
@@ -70,14 +68,6 @@ const parseRupiahToNumber = (value: string): number => {
 };
 
 
-const colorPresets = [
-  { hex: "#10B981", class: "bg-[#10B981]" },
-  { hex: "#3B82F6", class: "bg-[#3B82F6]" },
-  { hex: "#8B5CF6", class: "bg-[#8B5CF6]" },
-  { hex: "#EC4899", class: "bg-[#EC4899]" },
-  { hex: "#F59E0B", class: "bg-[#F59E0B]" },
-];
-
 const assetIdentityIcons = [
   { id: "bank_account", Icon: Landmark, label: "Bank Account" },
   { id: "e_wallet", Icon: Wallet, label: "E-Wallet" },
@@ -93,8 +83,6 @@ const debtIdentityIcons = [
 ];
 
 export default function CreateWalletModal({ isOpen, onClose, onSuccess }: CreateWalletModalProps) {
-  const colorInputRef = useRef<HTMLInputElement>(null);
-
   // Form state
   const [classification, setClassification] = useState<WalletCategory>("asset");
   const [walletName, setWalletName] = useState("");
@@ -114,11 +102,9 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
   const [selectedAssetSubType, setSelectedAssetSubType] = useState<AssetSubType | null>(null);
   const [selectedDebtSubType, setSelectedDebtSubType] = useState<DebtSubType | null>(null);
   const [selectedPaylaterProvider, setSelectedPaylaterProvider] = useState<string | null>(null);
-  
-  // Color & visual identity
-  const [customColor, setCustomColor] = useState<string | null>(null);
+
+  // Visual identity
   const [walletIcon, setWalletIcon] = useState<"landmark" | "creditcard" | "coins" | "wallet" | "handshake">("wallet");
-  const [walletColor, setWalletColor] = useState("#10B981");
 
   const formatRupiahVisual = (value: string): string => {
     if (!value) return "";
@@ -159,20 +145,8 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
     setSelectedAssetSubType(null);
     setSelectedDebtSubType(null);
     setSelectedPaylaterProvider(null);
-    setCustomColor(null);
-    setWalletColor("#10B981");
     setWalletIcon("wallet");
   }, []);
-
-  const handleCustomColorClick = () => {
-    colorInputRef.current?.click();
-  };
-
-  const handleCustomColorChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const color = e.target.value;
-    setCustomColor(color);
-    setWalletColor(color);
-  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -204,7 +178,6 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
                 }
               : {}),
           }),
-      color: customColor || walletColor,
       icon: walletIcon,
     };
 
@@ -212,8 +185,6 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
     onClose();
     resetForm();
   };
-
-  const activeColor = customColor || walletColor;
 
   const paylaterProviderButtons = POPULAR_PAYLATER_PROVIDERS.map((provider) => ({
     name: provider,
@@ -228,10 +199,10 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
       }
     }}>
       <DialogContent 
-        className="max-w-2xl text-white sm:max-w-2xl p-0 overflow-hidden max-h-[85vh] h-[calc(85vh-4rem)] flex flex-col"
+        className="max-w-2xl text-white sm:max-w-2xl p-0 overflow-hidden max-h-[85vh] flex flex-col"
         style={{ backgroundColor: "#131313", border: "1px solid #262626" }}
       >
-        <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        <form onSubmit={handleSubmit} className="flex flex-col">
           {/* Header */}
           <div className="px-6 py-5 shrink-0" style={{ borderBottom: "1px solid #262626", backgroundColor: "#0e0e0e" }}>
             <DialogTitle className="text-base font-semibold" style={{ color: "#e5e2e1", fontFamily: "var(--font-hanken)" }}>Create New Wallet</DialogTitle>
@@ -239,7 +210,7 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
           </div>
 
           {/* Scrollable content section */}
-          <div className="p-6 space-y-5 overflow-y-auto pr-2 max-h-[calc(85vh-140px)] min-h-87.5 scroll-smooth">
+          <div className="p-6 space-y-5 overflow-y-auto pr-2 max-h-[calc(85vh-140px)] scroll-smooth">
             
             {/* SECTION 1: CLASSIFICATION */}
             <div className="space-y-4">
@@ -570,68 +541,10 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
               )}
             </AnimatePresence>
 
-            {/* Wallet Color Picker */}
-            <div className="space-y-4">
-              <label className="text-[11px] font-bold tracking-widest uppercase mb-3" style={{ color: "#3d4a3e", fontFamily: "var(--font-inter)" }}>Wallet Color</label>
-              <div className="flex items-center gap-3">
-                {colorPresets.map((color) => (
-                  <button 
-                    key={color.hex} 
-                    type="button" 
-                    onClick={() => { setCustomColor(null); setWalletColor(color.hex); }} 
-                    className={cn(
-                      "size-9 rounded-full transition-all duration-200 relative",
-                      color.class,
-                      activeColor === color.hex ? "ring-2 ring-white ring-offset-2 ring-offset-[#0e0e0e]" : "opacity-60 hover:opacity-100"
-                    )}
-                    aria-label={`Select ${color.hex} color`}
-                  />
-                ))}
-                
-                {/* Custom Color Button */}
-                <button
-                  type="button"
-                  onClick={handleCustomColorClick}
-                  className={cn(
-                    "size-9 rounded-full flex items-center justify-center transition-all duration-200",
-                    "border-2",
-                    customColor ? "border-transparent" : "border-[#262626]"
-                  )}
-                  style={{ backgroundColor: customColor ? undefined : "#0e0e0e" }}
-                  aria-label="Custom color picker"
-                >
-                  <Plus className={cn("size-4", customColor ? "text-[#131313]" : "text-text-secondary")} />
-                </button>
-
-                {/* Hidden native color input */}
-                <input
-                  ref={colorInputRef}
-                  type="color"
-                  value={customColor || "#ffffff"}
-                  onChange={handleCustomColorChange}
-                  className="hidden"
-                />
-              </div>
-
-              {/* Show custom color preview */}
-              {customColor && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center gap-2 mt-2"
-                >
-                  <div 
-                    className="size-5 rounded-full border border-white/20"
-                    style={{ backgroundColor: customColor }}
-                  />
-                  <span className="text-xs text-white/40 font-mono">{customColor}</span>
-                </motion.div>
-              )}
-            </div>
           </div>
 
           {/* Footer */}
-          <div className="mt-auto pt-4 flex justify-end gap-3 px-6 py-5 shrink-0" style={{ borderTop: "1px solid #262626", backgroundColor: "#0e0e0e" }}>
+          <div className="flex justify-end gap-3 px-6 py-5 shrink-0" style={{ borderTop: "1px solid #262626", backgroundColor: "#0e0e0e" }}>
             <Button 
               type="button" 
               variant="ghost" 
