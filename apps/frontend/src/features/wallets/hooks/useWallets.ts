@@ -23,6 +23,8 @@ export interface CreateWalletDto {
   balance?: number;
   creditLimit?: number;
   interestRate?: number;
+  adminFee?: number;
+  adminFeeType?: 'FLAT' | 'PERCENT';
   color?: string;
   icon?: string;
 }
@@ -33,6 +35,19 @@ export const useCreateWallet = () => {
   return useMutation<Wallet, Error, CreateWalletDto>({
     mutationFn: (dto) =>
       api.post<{ status: string; data: Wallet }>('/wallets', dto).then((res) => res.data.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallets'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
+};
+
+export const useUpdateWallet = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<Wallet, Error, { id: string; isArchived?: boolean } & Partial<CreateWalletDto>>({
+    mutationFn: ({ id, ...updates }) =>
+      api.put<{ status: string; data: Wallet }>(`/wallets/${id}`, updates).then((res) => res.data.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wallets'] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });

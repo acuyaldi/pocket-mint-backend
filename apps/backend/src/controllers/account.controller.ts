@@ -12,14 +12,8 @@ const DEBT_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
  */
 export const getAllWallets = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // TODO: ganti dengan session auth
-    const userId = 'cmqcce9360000dfs48tkbmv4r';
-
-    // Verify user exists
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    // userId disuntik oleh apiKeyAuth — jangan hardcode, create/list harus user yang sama
+    const userId = (req as any).userId as string;
 
     const wallets = await prisma.wallet.findMany({
       where: { userId },
@@ -37,6 +31,7 @@ export const getAllWallets = async (req: Request, res: Response, next: NextFunct
         creditLimit,
         initialBalance: parseFloat(w.initialBalance.toString()),
         interestRate: parseFloat(w.interestRate.toString()),
+        adminFee: parseFloat(w.adminFee.toString()),
         // Computed fields for DEBT wallets
         sisa_limit: isDebt ? creditLimit + balance : null,
         outstanding_debt: isDebt ? Math.abs(balance) : null,
@@ -61,7 +56,7 @@ export const createWallet = async (req: Request, res: Response, next: NextFuncti
       return sendError(res, 'userId is required', 400);
     }
 
-    const { name, type, balance, creditLimit, interestRate, icon, color } = req.body;
+    const { name, type, balance, creditLimit, interestRate, adminFee, adminFeeType, icon, color } = req.body;
 
     if (!name || typeof name !== 'string') {
       return sendError(res, 'name is required and must be a string', 400);
@@ -78,6 +73,8 @@ export const createWallet = async (req: Request, res: Response, next: NextFuncti
         balance: balance !== undefined ? Number(balance) : 0,
         creditLimit: creditLimit !== undefined ? Number(creditLimit) : 0,
         interestRate: interestRate !== undefined ? Number(interestRate) : 0,
+        adminFee: adminFee !== undefined ? Number(adminFee) : 0,
+        ...(adminFeeType !== undefined && { adminFeeType }),
         icon: icon ?? null,
         color: color ?? null,
       },
@@ -99,7 +96,7 @@ export const createWallet = async (req: Request, res: Response, next: NextFuncti
 export const updateWallet = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const { name, type, balance, creditLimit, interestRate, icon, color, isArchived } = req.body;
+    const { name, type, balance, creditLimit, interestRate, adminFee, adminFeeType, icon, color, isArchived } = req.body;
 
     if (type && !VALID_WALLET_TYPES.includes(type)) {
       return sendError(res, `type must be one of: ${VALID_WALLET_TYPES.join(', ')}`, 400);
@@ -113,6 +110,8 @@ export const updateWallet = async (req: Request<{ id: string }>, res: Response, 
         ...(balance !== undefined && { balance: Number(balance) }),
         ...(creditLimit !== undefined && { creditLimit: Number(creditLimit) }),
         ...(interestRate !== undefined && { interestRate: Number(interestRate) }),
+        ...(adminFee !== undefined && { adminFee: Number(adminFee) }),
+        ...(adminFeeType !== undefined && { adminFeeType }),
         ...(icon !== undefined && { icon }),
         ...(color !== undefined && { color }),
         ...(isArchived !== undefined && { isArchived }),

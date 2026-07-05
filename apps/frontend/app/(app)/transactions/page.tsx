@@ -125,7 +125,7 @@ export default function TransactionsPage() {
   const handleAddSubmit = useCallback(async (d: AddTransactionData) => {
     setIsCreating(true);
     try { await createTransaction.mutateAsync(d); setIsAddModalOpen(false); }
-    catch (e) { console.error(e); }
+    catch (e) { console.error(e); throw e; } // let the modal surface the message
     finally { setIsCreating(false); }
   }, [createTransaction]);
 

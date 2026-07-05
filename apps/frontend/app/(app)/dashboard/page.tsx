@@ -28,6 +28,7 @@ export default function DashboardPage() {
       setIsAddModalOpen(false);
     } catch (err) {
       console.error("Gagal menambah transaksi:", err);
+      throw err; // let the modal surface the message
     } finally {
       setIsCreating(false);
     }

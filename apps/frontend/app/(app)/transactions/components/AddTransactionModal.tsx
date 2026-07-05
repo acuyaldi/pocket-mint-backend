@@ -119,6 +119,7 @@ export function AddTransactionModal({
   const [installmentMonths, setInstallmentMonths] = useState(3);
   const [interestRate, setInterestRate] = useState(""); // % flat per bulan
   const [adminFee, setAdminFee] = useState(""); // % dari pokok, sekali bayar (belum dikirim ke backend)
+  const [error, setError] = useState("");
 
   const { data: paylaterRates } = usePaylaterRates();
 
@@ -141,29 +142,46 @@ export function AddTransactionModal({
 
   const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();
+    setError("");
     const parsed = Number(amount.replace(/\./g, ""));
     if (isNaN(parsed) || parsed <= 0) return;
     const srcWallet = wallets.find((x) => x.id === walletId);
-    if (isInstallment && (!srcWallet || !isDebtWallet(srcWallet.type))) return; // backend rejects non-debt wallets
-    if (type === "TRANSFER" && srcWallet && isDebtWallet(srcWallet.type)) return; // paylater can't move funds out
+    if (isInstallment && (!srcWallet || !isDebtWallet(srcWallet.type))) {
+      setError("Pilih wallet Credit Card / Paylater untuk cicilan.");
+      return;
+    }
+    if (type === "TRANSFER" && srcWallet && isDebtWallet(srcWallet.type)) {
+      setError("Transfer tidak bisa dari wallet paylater / kartu kredit.");
+      return;
+    }
     if (srcWallet && type !== "INCOME") {
       const rate = Number(interestRate.replace(",", ".")) || 0;
       const need = isInstallment
         ? parsed + Math.round(parsed * (rate / 100) * installmentMonths)
         : parsed;
-      if (spendable(srcWallet) < need) return; // dana tidak cukup
+      if (spendable(srcWallet) < need) {
+        setError(`Dana di ${srcWallet.name} tidak cukup.`);
+        return;
+      }
     }
-    await onSubmit({
-      description: description.trim(),
-      amount: parsed,
-      type,
-      date: new Date(date).toISOString(),
-      walletId: walletId || undefined,
-      toWalletId: type === "TRANSFER" ? (toWalletId || undefined) : undefined,
-      isInstallment: isInstallment || undefined,
-      installmentMonths: isInstallment ? installmentMonths : undefined,
-      interestRate: isInstallment ? Number(interestRate.replace(",", ".")) || 0 : undefined,
-    });
+    try {
+      await onSubmit({
+        description: description.trim(),
+        amount: parsed,
+        type,
+        date: new Date(date).toISOString(),
+        walletId: walletId || undefined,
+        toWalletId: type === "TRANSFER" ? (toWalletId || undefined) : undefined,
+        isInstallment: isInstallment || undefined,
+        installmentMonths: isInstallment ? installmentMonths : undefined,
+        interestRate: isInstallment ? Number(interestRate.replace(",", ".")) || 0 : undefined,
+      });
+    } catch (err) {
+      const msg = (err as { response?: { data?: { error?: { message?: string } } } })
+        ?.response?.data?.error?.message;
+      setError(msg ?? "Gagal menyimpan transaksi. Coba lagi.");
+      return;
+    }
     setAmount("");
     setType("EXPENSE");
     setWalletId("");
@@ -203,11 +221,18 @@ export function AddTransactionModal({
       ? paylaterRates?.find((p) => selectedWallet.name.toLowerCase().includes(p.match))
       : undefined;
 
-  // Auto-fill bunga & admin from the selected paylater wallet
+  // Auto-fill bunga & admin from the selected paylater wallet:
+  // wallet's own stored rates win; fall back to name-matched provider presets
   useEffect(() => {
     if (!isInstallment) return;
     const w = wallets.find((x) => x.id === walletId);
     if (!w || !isDebtWallet(w.type)) return;
+    if (w.interestRate > 0 || (w.adminFee ?? 0) > 0) {
+      setInterestRate(String(w.interestRate));
+      // Modal's admin field is % of principal; FLAT (Rp) fees can't be expressed here
+      setAdminFee(w.adminFeeType === "PERCENT" ? String(w.adminFee ?? 0) : "");
+      return;
+    }
     const p = paylaterRates?.find((pr) => w.name.toLowerCase().includes(pr.match));
     setInterestRate(p ? String(p.rate) : "");
     setAdminFee(p ? String(p.adminFee) : "");
@@ -574,6 +599,10 @@ export function AddTransactionModal({
                   </div>
                   )}
                 </div>
+
+                {error && (
+                  <p className="px-5 pb-3 text-xs" style={{ color: "#ffb4ab" }}>{error}</p>
+                )}
 
                 <Separator style={{ backgroundColor: "#1a1a1a" }} />
 

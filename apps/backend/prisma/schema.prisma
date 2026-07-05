@@ -60,6 +60,12 @@ model Wallet {
   // Bunga flat per bulan dalam persen (contoh: 2.95 = 2.95%)
   // Default 0 untuk wallet tipe ASSET
   isArchived     Boolean    @default(false) @map("is_archived")
+  adminFee       Decimal    @default(0) @map("admin_fee") @db.Decimal(15, 2)
+  // Biaya admin default untuk wallet ini
+  // FLAT    → nilai dalam Rupiah (contoh: 45000)
+  // PERCENT → nilai dalam persen (contoh: 1.5 = 1.5%)
+  adminFeeType   AdminFeeType @default(FLAT) @map("admin_fee_type")
+  // Tipe kalkulasi biaya admin
   createdAt      DateTime   @default(now()) @map("created_at")
   updatedAt      DateTime   @updatedAt @map("updated_at")
 
@@ -141,6 +147,14 @@ model Transaction {
 // ─────────────────────────────────────────────
 // INSTALLMENT  (cicilan)
 // ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// ADMIN FEE TYPE
+// ─────────────────────────────────────────────
+enum AdminFeeType {
+  FLAT // nominal tetap dalam Rupiah
+  PERCENT // persentase dari pokok transaksi
+}
+
 enum InstallmentStatus {
   ACTIVE
   SETTLED
@@ -156,8 +170,16 @@ model Installment {
   // Snapshot bunga saat transaksi cicilan dibuat
   totalInterest    Decimal           @default(0) @map("total_interest") @db.Decimal(15, 2)
   // Total bunga = amount × (interest_rate/100) × installmentMonths
+  adminFee         Decimal           @default(0) @map("admin_fee") @db.Decimal(15, 2)
+  // Snapshot nilai admin_fee saat transaksi dibuat
+  adminFeeType     AdminFeeType      @default(FLAT) @map("admin_fee_type")
+  // Snapshot tipe admin fee saat transaksi dibuat
+  totalAdminFee    Decimal           @default(0) @map("total_admin_fee") @db.Decimal(15, 2)
+  // Hasil kalkulasi aktual:
+  // FLAT    → sama dengan admin_fee
+  // PERCENT → amount × (admin_fee / 100)
   grandTotal       Decimal           @default(0) @map("grand_total") @db.Decimal(15, 2)
-  // Total yang harus dibayar = amount + total_interest
+  // Total yang harus dibayar = amount + total_interest + total_admin_fee
   installmentMonths Int              @map("installment_months")
   currentTerm      Int               @default(1) @map("current_term")
   monthlyAmount    Decimal           @map("monthly_amount") @db.Decimal(15, 2)

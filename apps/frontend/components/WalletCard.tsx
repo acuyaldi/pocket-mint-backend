@@ -145,16 +145,18 @@ export function WalletCard({ wallet, onEdit }: WalletCardProps) {
           {/* Dropdown menu */}
           {showMenu && (
             <div className="absolute top-8 right-0 w-[130px] bg-card border border-border rounded-lg z-50 overflow-hidden">
-              <button
-                onClick={() => {
-                  setShowMenu(false);
-                  onEdit?.(wallet);
-                }}
-                className="flex items-center gap-2 w-full px-3.5 py-2 text-[13px] text-foreground hover:bg-accent transition-colors cursor-pointer font-sans"
-              >
-                <Pencil className="size-3.5" />
-                Edit wallet
-              </button>
+              {onEdit && (
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    onEdit(wallet);
+                  }}
+                  className="flex items-center gap-2 w-full px-3.5 py-2 text-[13px] text-foreground hover:bg-accent transition-colors cursor-pointer font-sans"
+                >
+                  <Pencil className="size-3.5" />
+                  Edit wallet
+                </button>
+              )}
               <button
                 onClick={() => {
                   setShowMenu(false);

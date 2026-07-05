@@ -9,8 +9,8 @@ export async function apiKeyAuth(req: Request, res: Response, next: NextFunction
   }
 
   try {
-    // 1. Cari user pertama
-    let user = await prisma.user.findFirst({ select: { id: true } });
+    // 1. Cari user pertama (deterministik: user tertua)
+    let user = await prisma.user.findFirst({ select: { id: true }, orderBy: { createdAt: 'asc' } });
     
     // 💡 JALUR BYPASS: Jika database kosong, buatkan User & Akun otomatis saat ini juga!
     if (!user) {

@@ -30,13 +30,13 @@ interface CreateWalletModalProps {
   onSuccess: (data: CreateWalletFormData) => void;
 }
 
-interface CreateWalletFormData {
+export interface CreateWalletFormData {
   name: string;
   category: WalletCategory;
   color: string;
   icon: string;
   balance?: number;
-  subType?: AssetSubType;
+  subType?: AssetSubType | DebtSubType;
   creditLimit?: number;
   outstanding?: number;
   interestRate?: number;
@@ -177,19 +177,28 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    const formData = {
-      name: walletName.trim(),
+    // Preset paylater providers disable the name input, so walletName stays empty —
+    // the provider name IS the wallet name.
+    const isPresetPaylater =
+      classification === "debt" &&
+      selectedDebtSubType === "paylater" &&
+      !!selectedPaylaterProvider &&
+      selectedPaylaterProvider !== "Lainnya +";
+
+    const formData: CreateWalletFormData = {
+      name: isPresetPaylater ? selectedPaylaterProvider : walletName.trim(),
       category: classification,
       ...(classification === "asset"
-        ? { 
+        ? {
             balance: parseRupiahToNumber(initialBalance),
             subType: selectedAssetSubType || undefined,
           }
-        : { 
-            creditLimit: parseRupiahToNumber(creditLimit), 
+        : {
+            creditLimit: parseRupiahToNumber(creditLimit),
             outstanding: parseRupiahToNumber(currentOutstanding),
+            subType: selectedDebtSubType || undefined,
             ...(selectedDebtSubType === "paylater" && selectedPaylaterProvider !== "Lainnya +"
-              ? { 
+              ? {
                   interestRate: parseFloat(interestRate) || 0,
                   adminFee: parseFloat(adminFee) || 0,
                 }
@@ -199,7 +208,6 @@ export default function CreateWalletModal({ isOpen, onClose, onSuccess }: Create
       icon: walletIcon,
     };
 
-    console.log("=== WALLET SUBMIT DATA ===", formData);
     onSuccess(formData);
     onClose();
     resetForm();

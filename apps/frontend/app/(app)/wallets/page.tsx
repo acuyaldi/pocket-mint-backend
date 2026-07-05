@@ -12,13 +12,26 @@ import { Button } from "@/components/ui/button";
 
 // Import components
 import WalletSummaryCard from "./components/WalletSummaryCard";
-import CreateWalletModal from "./components/CreateWalletModal";
+import CreateWalletModal, { type CreateWalletFormData } from "./components/CreateWalletModal";
+import EditWalletModal from "./components/EditWalletModal";
 import { WalletCard } from "@/components/WalletCard";
 
 // Import hooks & types
-import { useWallets } from "@/src/features/wallets/hooks/useWallets";
-import { isDebtWallet, type Wallet } from "@/src/types/wallet";
+import { useWallets, useCreateWallet } from "@/src/features/wallets/hooks/useWallets";
+import { isDebtWallet, type Wallet, type WalletType } from "@/src/types/wallet";
 import { formatCurrency } from "@/lib/utils";
+
+// Modal sub-types → backend WalletType
+const TYPE_FROM_SUBTYPE: Record<string, WalletType> = {
+  bank_account: "BANK",
+  e_wallet: "E_WALLET",
+  cash_on_hand: "CASH",
+  piutang: "CASH", // ponytail: no receivable type in schema; closest asset bucket
+  credit_card: "CREDIT_CARD",
+  paylater: "LOAN_PAYLATER",
+  utang_personal: "LOAN_PAYLATER",
+  line_of_credit: "LOAN_PAYLATER",
+};
 
 // Derived financial aggregates
 function computeAggregates(wallets: Wallet[]) {
@@ -97,6 +110,8 @@ export default function WalletsPage() {
 
   // Modal state
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
+  const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
+  const createWallet = useCreateWallet();
 
   const filteredWallets = useMemo(() => {
     let list = allWallets;
@@ -106,9 +121,26 @@ export default function WalletsPage() {
     return list;
   }, [filter, sort, allWallets]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleWalletCreateSuccess = (formData: any) => {
-    console.log("=== NEW WALLET CREATED SUCCESS ===", formData);
+  const handleWalletCreateSuccess = async (d: CreateWalletFormData) => {
+    const type =
+      TYPE_FROM_SUBTYPE[d.subType ?? ""] ?? (d.category === "debt" ? "LOAN_PAYLATER" : "CASH");
+    try {
+      await createWallet.mutateAsync({
+        name: d.name,
+        type,
+        // Debt wallets store outstanding as a negative balance
+        balance: d.category === "debt" ? -(d.outstanding ?? 0) : d.balance ?? 0,
+        creditLimit: d.creditLimit,
+        interestRate: d.interestRate,
+        // Modal collects admin fee as % of principal
+        adminFee: d.adminFee,
+        ...(d.adminFee !== undefined && { adminFeeType: "PERCENT" as const }),
+        color: d.color,
+        icon: d.icon,
+      });
+    } catch (err) {
+      console.error("Gagal membuat wallet:", err);
+    }
   };
 
   return (
@@ -221,7 +253,7 @@ export default function WalletsPage() {
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
       >
         {filteredWallets.map((wallet) => (
-          <WalletCard key={wallet.id} wallet={wallet} variant="full" />
+          <WalletCard key={wallet.id} wallet={wallet} variant="full" onEdit={setEditingWallet} />
         ))}
         <ConnectAccountCard onClick={() => setIsCustomModalOpen(true)} />
       </motion.div>
@@ -232,6 +264,9 @@ export default function WalletsPage() {
         onClose={() => setIsCustomModalOpen(false)}
         onSuccess={handleWalletCreateSuccess}
       />
+
+      {/* Edit Wallet Modal */}
+      <EditWalletModal wallet={editingWallet} onClose={() => setEditingWallet(null)} />
     </motion.div>
   );
 }

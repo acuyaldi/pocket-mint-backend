@@ -21,6 +21,8 @@ export interface Wallet {
   balance: number;
   creditLimit: number;
   interestRate: number;
+  adminFee?: number;
+  adminFeeType?: 'FLAT' | 'PERCENT';
   currency: string;
   icon?: string | null;
   color?: string | null;
