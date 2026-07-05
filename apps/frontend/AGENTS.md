@@ -7,26 +7,8 @@ Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
 
-<!-- BEGIN:frontend-optimization -->
-@skills/FRONTEND_OPTIMIZATION.md
-<!-- END:frontend-optimization -->
 
-<!-- BEGIN:ai-context -->
-@skills/AI_CONTEXT_RULES.md
-<!-- END:ai-context -->
-
-<!-- BEGIN:financial-precision -->
-@skills/financial-precision.md
-<!-- END:financial-precision -->
-
-<!-- BEGIN:prisma-best-practices -->
-@skills/prisma-best-practices.md
-<!-- END:prisma-best-practices -->
 
 <!-- BEGIN:api-design -->
-@skills/api-design.md
+@skills/design.md
 <!-- END:api-design -->
-
-<!-- BEGIN:component-structure -->
-@skills/component-structure.md
-<!-- END:component-structure -->
