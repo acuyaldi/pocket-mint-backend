@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, FormEvent } from "react";
+import { useState, useCallback, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Loader2, ArrowDownLeft, ArrowUpRight, ArrowLeftRight,
@@ -30,11 +30,33 @@ const spendable = (w: Wallet) =>
   isDebtWallet(w.type) ? Math.max((w.creditLimit ?? 0) - Math.abs(w.balance), 0) : w.balance;
 
 const TYPE_OPTIONS = [
-  { type: "EXPENSE" as Tab, label: "EXPENSE", Icon: ArrowDownLeft, color: "#ffb4ab", bg: "rgba(255,180,171,0.12)" },
-  { type: "INCOME"  as Tab, label: "INCOME",  Icon: ArrowUpRight,  color: "#4ade80", bg: "rgba(74,222,128,0.12)"  },
-  { type: "TRANSFER"as Tab, label: "TRANSFER",Icon: ArrowLeftRight,color: "#e5e2e1", bg: "rgba(229,226,225,0.08)" },
-  { type: "PAY_DEBT"as Tab, label: "PAY DEBT",Icon: HandCoins,     color: "#bcc7de", bg: "rgba(188,199,222,0.10)" },
+  { type: "EXPENSE" as Tab, label: "EXPENSE", Icon: ArrowDownLeft, color: "var(--color-destructive)", bg: "rgba(186,26,26,0.08)" },
+  { type: "INCOME"  as Tab, label: "INCOME",  Icon: ArrowUpRight,  color: "var(--color-primary)", bg: "rgba(0,109,54,0.08)"  },
+  { type: "TRANSFER"as Tab, label: "TRANSFER",Icon: ArrowLeftRight,color: "var(--color-foreground)", bg: "rgba(11,28,48,0.06)" },
+  { type: "PAY_DEBT"as Tab, label: "PAY DEBT",Icon: HandCoins,     color: "var(--color-secondary)", bg: "rgba(84,95,115,0.10)" },
 ];
+
+function getInstallmentDefaults(
+  wallet: Wallet | undefined,
+  paylaterRates: Array<{ match: string; rate: number; adminFee: number }> | undefined,
+) {
+  if (!wallet || !isDebtWallet(wallet.type)) {
+    return { interestRate: "", adminFee: "" };
+  }
+  if (wallet.interestRate > 0 || (wallet.adminFee ?? 0) > 0) {
+    return {
+      interestRate: String(wallet.interestRate),
+      // Modal's admin field is % of principal; FLAT (Rp) fees can't be expressed here
+      adminFee: wallet.adminFeeType === "PERCENT" ? String(wallet.adminFee ?? 0) : "",
+    };
+  }
+
+  const preset = paylaterRates?.find((item) => wallet.name.toLowerCase().includes(item.match));
+  return {
+    interestRate: preset ? String(preset.rate) : "",
+    adminFee: preset ? String(preset.adminFee) : "",
+  };
+}
 
 function todayStr() {
   const d = new Date();
@@ -69,7 +91,7 @@ function WalletPills({
   selected,
   exclude = "",
   isDisabled,
-  disabledTitle = "Dana tidak cukup",
+  disabledTitle = "Insufficient funds",
   onSelect,
 }: {
   wallets: Wallet[];
@@ -81,7 +103,7 @@ function WalletPills({
 }) {
   const available = wallets.filter((w) => w.id !== exclude);
   if (available.length === 0) {
-    return <p className="text-xs py-1" style={{ color: "#3d4a3e" }}>No wallets available</p>;
+    return <p className="text-xs py-1" style={{ color: "var(--color-muted-foreground)" }}>No wallets available</p>;
   }
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -98,13 +120,13 @@ function WalletPills({
             className="px-2.5 py-1 rounded-full text-[11px] font-medium transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 max-w-[140px]"
             style={
               active
-                ? { backgroundColor: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.4)", color: "#4ade80" }
-                : { backgroundColor: "#1c1b1b", border: "1px solid #262626", color: "#bccabb" }
+                ? { backgroundColor: "rgba(0,109,54,0.08)", border: "1px solid rgba(0,109,54,0.3)", color: "var(--color-primary)" }
+                : { backgroundColor: "var(--color-muted)", border: "1px solid var(--color-border)", color: "var(--color-muted-foreground)" }
             }
           >
             <span className="truncate">{w.name}</span>
             {isDebtWallet(w.type) && (
-              <span className="text-[8px] font-bold tracking-[0.1em] flex-shrink-0" style={{ color: "#ffb4ab" }}>
+              <span className="text-[8px] font-bold tracking-[0.1em] flex-shrink-0" style={{ color: "var(--color-destructive)" }}>
                 DEBT
               </span>
             )}
@@ -127,13 +149,17 @@ export function AddTransactionModal({
   const [date, setDate] = useState(todayStr);
   const [isInstallment, setIsInstallment] = useState(false);
   const [installmentMonths, setInstallmentMonths] = useState(3);
-  const [interestRate, setInterestRate] = useState(""); // % flat per bulan
-  const [adminFee, setAdminFee] = useState(""); // % dari pokok, sekali bayar (belum dikirim ke backend)
+  const [interestRateOverride, setInterestRateOverride] = useState<string | null>(null); // % flat per bulan
+  const [adminFeeOverride, setAdminFeeOverride] = useState<string | null>(null); // % dari pokok, sekali bayar (belum dikirim ke backend)
   const [error, setError] = useState("");
 
   const { data: paylaterRates } = usePaylaterRates();
 
   const activeOpt = TYPE_OPTIONS.find((o) => o.type === type)!;
+  const selectedWallet = wallets.find((w) => w.id === walletId);
+  const installmentDefaults = getInstallmentDefaults(selectedWallet, paylaterRates);
+  const interestRate = interestRateOverride ?? installmentDefaults.interestRate;
+  const adminFee = adminFeeOverride ?? installmentDefaults.adminFee;
 
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(formatRupiah(e.target.value.replace(/\D/g, "")));
@@ -147,8 +173,8 @@ export function AddTransactionModal({
     setCategory("");
     setIsInstallment(false);
     setInstallmentMonths(3);
-    setInterestRate("");
-    setAdminFee("");
+    setInterestRateOverride(null);
+    setAdminFeeOverride(null);
     setError("");
   }, []);
 
@@ -156,7 +182,7 @@ export function AddTransactionModal({
     if (!isCreating) onClose();
   }, [isCreating, onClose]);
 
-  const handleSubmit = useCallback(async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
     const parsed = Number(amount.replace(/\./g, ""));
@@ -167,17 +193,21 @@ export function AddTransactionModal({
     // Toggle can go stale if the user re-picks an asset wallet; treat that as a plain expense
     const asInstallment = isInstallment && !!srcWallet && isDebtWallet(srcWallet.type);
     if (isTransferLike && srcWallet && isDebtWallet(srcWallet.type)) {
-      setError("Transfer tidak bisa dari wallet paylater / kartu kredit.");
+      setError("Transfers can't be made from a paylater / credit card wallet.");
+      return;
+    }
+    if (type === "INCOME" && srcWallet && isDebtWallet(srcWallet.type)) {
+      setError("Income can't be added to a paylater / credit card wallet.");
       return;
     }
     if (type === "PAY_DEBT") {
       if (!srcWallet || !destWallet) {
-        setError("Pilih wallet sumber dan tagihan yang mau dibayar.");
+        setError("Select a source wallet and the debt to pay.");
         return;
       }
       const outstanding = Math.abs(destWallet.balance);
       if (parsed > outstanding) {
-        setError(`Melebihi tagihan — sisa Rp ${formatRupiah(String(outstanding))}.`);
+        setError(`Exceeds outstanding debt — Rp ${formatRupiah(String(outstanding))} remaining.`);
         return;
       }
     }
@@ -187,14 +217,14 @@ export function AddTransactionModal({
         ? parsed + Math.round(parsed * (rate / 100) * installmentMonths)
         : parsed;
       if (spendable(srcWallet) < need) {
-        setError(`Dana di ${srcWallet.name} tidak cukup.`);
+        setError(`Insufficient funds in ${srcWallet.name}.`);
         return;
       }
     }
     try {
       await onSubmit({
         description: description.trim() ||
-          (type === "PAY_DEBT" && destWallet ? `Bayar tagihan ${destWallet.name}` : ""),
+          (type === "PAY_DEBT" && destWallet ? `Debt payment — ${destWallet.name}` : ""),
         amount: parsed,
         type: type === "PAY_DEBT" ? "TRANSFER" : type,
         date: new Date(date).toISOString(),
@@ -207,7 +237,7 @@ export function AddTransactionModal({
     } catch (err) {
       const msg = (err as { response?: { data?: { error?: { message?: string } } } })
         ?.response?.data?.error?.message;
-      setError(msg ?? "Gagal menyimpan transaksi. Coba lagi.");
+      setError(msg ?? "Failed to save transaction. Please try again.");
       return;
     }
     setAmount("");
@@ -219,14 +249,13 @@ export function AddTransactionModal({
     setDate(todayStr());
     setIsInstallment(false);
     setInstallmentMonths(3);
-    setInterestRate("");
-    setAdminFee("");
-  }, [amount, description, type, date, walletId, toWalletId, isInstallment, installmentMonths, interestRate, wallets, onSubmit]);
+    setInterestRateOverride(null);
+    setAdminFeeOverride(null);
+  };
 
   const cats = type === "INCOME" ? INCOME_CATS : type === "EXPENSE" ? EXPENSE_CATS : [];
 
   // Installment preview (mirrors backend rounding in transaction.controller.ts)
-  const selectedWallet = wallets.find((w) => w.id === walletId);
   const principal = Number(amount.replace(/\./g, "")) || 0;
   const rateNum = Number(interestRate.replace(",", ".")) || 0;
   const adminFeeNum = Number(adminFee.replace(",", ".")) || 0;
@@ -236,8 +265,8 @@ export function AddTransactionModal({
 
   // Wallet eligibility: type rules hide the wallet, insufficient funds disable it
   const sourceWallets =
-    type === "TRANSFER"
-      ? wallets.filter((w) => !isDebtWallet(w.type)) // paylater/CC can't move funds out
+    type === "TRANSFER" || type === "INCOME"
+      ? wallets.filter((w) => !isDebtWallet(w.type)) // paylater/CC can't move funds out or receive income
       : type === "PAY_DEBT"
         ? wallets.filter((w) => w.type === "BANK" || w.type === "CASH") // e-wallet can't pay CC/paylater bills
         : wallets;
@@ -254,24 +283,6 @@ export function AddTransactionModal({
     isInstallment && selectedWallet
       ? paylaterRates?.find((p) => selectedWallet.name.toLowerCase().includes(p.match))
       : undefined;
-
-  // Auto-fill bunga & admin from the selected paylater wallet:
-  // wallet's own stored rates win; fall back to name-matched provider presets
-  useEffect(() => {
-    if (!isInstallment) return;
-    const w = wallets.find((x) => x.id === walletId);
-    if (!w || !isDebtWallet(w.type)) return;
-    if (w.interestRate > 0 || (w.adminFee ?? 0) > 0) {
-      setInterestRate(String(w.interestRate));
-      // Modal's admin field is % of principal; FLAT (Rp) fees can't be expressed here
-      setAdminFee(w.adminFeeType === "PERCENT" ? String(w.adminFee ?? 0) : "");
-      return;
-    }
-    const p = paylaterRates?.find((pr) => w.name.toLowerCase().includes(pr.match));
-    setInterestRate(p ? String(p.rate) : "");
-    setAdminFee(p ? String(p.adminFee) : "");
-  }, [isInstallment, walletId, wallets, paylaterRates]);
-
 
   return (
     <AnimatePresence>
@@ -293,16 +304,16 @@ export function AddTransactionModal({
             transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md mx-4 rounded-2xl overflow-hidden shadow-2xl"
-            style={{ backgroundColor: "#0e0e0e", border: "1px solid #1a1a1a" }}
+            style={{ backgroundColor: "var(--color-card)", border: "1px solid rgba(188,202,187,0.4)" }}
           >
             <div className="overflow-y-auto" style={{ maxHeight: "90vh" }}>
               {/* Header */}
               <div className="flex items-center justify-between px-5 pt-5 pb-4">
                 <div className="flex items-center gap-2.5">
-                  <CreditCard className="size-5" style={{ color: "#4ade80" }} />
+                  <CreditCard className="size-5" style={{ color: "var(--color-primary)" }} />
                   <h3
                     className="text-base font-semibold"
-                    style={{ color: "#e5e2e1", fontFamily: "var(--font-hanken)" }}
+                    style={{ color: "var(--color-foreground)", fontFamily: "var(--font-hanken)" }}
                   >
                     New Transaction
                   </h3>
@@ -311,7 +322,7 @@ export function AddTransactionModal({
                   type="button"
                   onClick={handleClose}
                   className="size-7 flex items-center justify-center rounded-md transition-colors cursor-pointer hover:bg-white/5"
-                  style={{ color: "#bccabb" }}
+                  style={{ color: "var(--color-muted-foreground)" }}
                 >
                   <X className="size-4" />
                 </button>
@@ -322,12 +333,12 @@ export function AddTransactionModal({
                 <div className="px-5 pb-5 text-center">
                   <p
                     className="text-[10px] font-semibold tracking-[0.2em] mb-3"
-                    style={{ color: "#3d4a3e", fontFamily: "var(--font-inter)" }}
+                    style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}
                   >
                     TRANSACTION AMOUNT
                   </p>
                   <div className="flex items-center justify-center gap-1.5">
-                    <span className="text-2xl font-light pb-1" style={{ color: "#3d4a3e" }}>Rp</span>
+                    <span className="text-2xl font-light pb-1" style={{ color: "var(--color-muted-foreground)" }}>Rp</span>
                     <input
                       type="text"
                       inputMode="numeric"
@@ -337,7 +348,7 @@ export function AddTransactionModal({
                       required
                       className="bg-transparent outline-none text-center w-full max-w-[220px]"
                       style={{
-                        color: "#e5e2e1",
+                        color: "var(--color-foreground)",
                         fontSize: amount.length > 11 ? "28px" : amount.length > 7 ? "36px" : "48px",
                         fontWeight: 700,
                         fontFamily: "var(--font-heading)",
@@ -351,7 +362,7 @@ export function AddTransactionModal({
                 <div className="px-5 pb-4">
                   <div
                     className="flex rounded-lg overflow-hidden"
-                    style={{ border: "1px solid #262626", backgroundColor: "#0a0a0a" }}
+                    style={{ border: "1px solid var(--color-border)", backgroundColor: "var(--color-input)" }}
                   >
                     {TYPE_OPTIONS.map(({ type: t, label, Icon, color, bg }) => {
                       const active = type === t;
@@ -364,7 +375,7 @@ export function AddTransactionModal({
                           style={
                             active
                               ? { backgroundColor: bg, color, borderBottom: `2px solid ${color}` }
-                              : { color: "#3d4a3e" }
+                              : { color: "var(--color-muted-foreground)" }
                           }
                         >
                           <Icon className="size-3.5" />
@@ -383,7 +394,7 @@ export function AddTransactionModal({
                       <div>
                         <p
                           className="text-[10px] font-semibold tracking-[0.15em] mb-2"
-                          style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
+                          style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}
                         >
                           {type === "PAY_DEBT" ? "PAY FROM" : "WALLET / SOURCE"}
                         </p>
@@ -392,7 +403,7 @@ export function AddTransactionModal({
                       <div>
                         <p
                           className="text-[10px] font-semibold tracking-[0.15em] mb-2"
-                          style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
+                          style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}
                         >
                           {type === "PAY_DEBT" ? "DEBT TO PAY" : "WALLET / DESTINATION"}
                         </p>
@@ -401,14 +412,14 @@ export function AddTransactionModal({
                           selected={toWalletId}
                           exclude={walletId}
                           isDisabled={type === "PAY_DEBT" ? (w) => Math.abs(w.balance) === 0 : undefined}
-                          disabledTitle="Tidak ada tagihan"
+                          disabledTitle="No outstanding debt"
                           onSelect={setToWalletId}
                         />
                         {type === "PAY_DEBT" && destWallet && (
                           <div className="flex items-center justify-between mt-2">
-                            <span className="text-[11px]" style={{ color: "#bccabb" }}>
-                              Sisa tagihan:{" "}
-                              <span style={{ color: "#ffb4ab", fontWeight: 600 }}>
+                            <span className="text-[11px]" style={{ color: "var(--color-muted-foreground)" }}>
+                              Outstanding:{" "}
+                              <span style={{ color: "var(--color-destructive)", fontWeight: 600 }}>
                                 Rp {formatRupiah(String(Math.abs(destWallet.balance)))}
                               </span>
                             </span>
@@ -416,9 +427,9 @@ export function AddTransactionModal({
                               type="button"
                               onClick={() => setAmount(formatRupiah(String(Math.abs(destWallet.balance))))}
                               className="px-2.5 py-1 rounded-full text-[11px] font-medium cursor-pointer"
-                              style={{ backgroundColor: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.4)", color: "#4ade80" }}
+                              style={{ backgroundColor: "rgba(0,109,54,0.08)", border: "1px solid rgba(0,109,54,0.3)", color: "var(--color-primary)" }}
                             >
-                              Bayar penuh
+                              Pay in full
                             </button>
                           </div>
                         )}
@@ -429,17 +440,26 @@ export function AddTransactionModal({
                       <div>
                         <p
                           className="text-[10px] font-semibold tracking-[0.15em] mb-2"
-                          style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
+                          style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}
                         >
                           WALLET / SOURCE
                         </p>
-                        <WalletPills wallets={sourceWallets} selected={walletId} isDisabled={lacksFunds} onSelect={setWalletId} />
+                        <WalletPills
+                          wallets={sourceWallets}
+                          selected={walletId}
+                          isDisabled={lacksFunds}
+                          onSelect={(id) => {
+                            setWalletId(id);
+                            setInterestRateOverride(null);
+                            setAdminFeeOverride(null);
+                          }}
+                        />
                       </div>
                       {cats.length > 0 && (
                         <div>
                           <p
                             className="text-[10px] font-semibold tracking-[0.15em] mb-2"
-                            style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
+                            style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}
                           >
                             CATEGORY
                           </p>
@@ -449,20 +469,20 @@ export function AddTransactionModal({
                               onChange={(e) => setCategory(e.target.value)}
                               className="w-full px-2.5 pr-7 rounded-lg text-[11px] appearance-none cursor-pointer outline-none"
                               style={{
-                                backgroundColor: "#1c1b1b",
-                                border: "1px solid #262626",
-                                color: category ? "#e5e2e1" : "#3d4a3e",
+                                backgroundColor: "var(--color-muted)",
+                                border: "1px solid var(--color-border)",
+                                color: category ? "var(--color-foreground)" : "var(--color-muted-foreground)",
                                 height: "30px",
                               }}
                             >
-                              <option value="" style={{ backgroundColor: "#0e0e0e", color: "#bccabb" }}>Select...</option>
+                              <option value="" style={{ backgroundColor: "var(--color-card)", color: "var(--color-muted-foreground)" }}>Select...</option>
                               {cats.map((c) => (
-                                <option key={c} value={c} style={{ backgroundColor: "#0e0e0e", color: "#e5e2e1" }}>{c}</option>
+                                <option key={c} value={c} style={{ backgroundColor: "var(--color-card)", color: "var(--color-foreground)" }}>{c}</option>
                               ))}
                             </select>
                             <svg
                               className="absolute right-2 top-1/2 -translate-y-1/2 size-3 pointer-events-none"
-                              style={{ color: "#3d4a3e" }}
+                              style={{ color: "var(--color-muted-foreground)" }}
                               viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
                             >
                               <polyline points="6 9 12 15 18 9" />
@@ -477,7 +497,7 @@ export function AddTransactionModal({
                   <div>
                     <p
                       className="text-[10px] font-semibold tracking-[0.15em] mb-2"
-                      style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
+                      style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}
                     >
                       DESCRIPTION
                     </p>
@@ -487,7 +507,7 @@ export function AddTransactionModal({
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       className="h-10 text-sm"
-                      style={{ backgroundColor: "#0a0a0a", border: "1px solid #262626", color: "#e5e2e1" }}
+                      style={{ backgroundColor: "var(--color-input)", border: "1px solid var(--color-border)", color: "var(--color-foreground)" }}
                     />
                   </div>
 
@@ -495,7 +515,7 @@ export function AddTransactionModal({
                   <div>
                     <p
                       className="text-[10px] font-semibold tracking-[0.15em] mb-2"
-                      style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
+                      style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}
                     >
                       TRANSACTION DATE
                     </p>
@@ -506,9 +526,9 @@ export function AddTransactionModal({
                       required
                       className="w-full h-10 px-3.5 rounded-md text-sm outline-none"
                       style={{
-                        backgroundColor: "#0a0a0a",
-                        border: "1px solid #262626",
-                        color: "#e5e2e1",
+                        backgroundColor: "var(--color-input)",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-foreground)",
                         colorScheme: "dark",
                       }}
                     />
@@ -518,26 +538,26 @@ export function AddTransactionModal({
                   {type === "EXPENSE" && selectedWallet && isDebtWallet(selectedWallet.type) && (
                   <div
                     className="rounded-xl"
-                    style={{ backgroundColor: "#0a0a0a", border: "1px solid #1a1a1a" }}
+                    style={{ backgroundColor: "var(--color-input)", border: "1px solid rgba(188,202,187,0.4)" }}
                   >
                     <div className="flex items-center justify-between px-3 py-2.5">
                       <div className="flex items-center gap-2.5">
                         <div
                           className="size-8 rounded-full flex items-center justify-center flex-shrink-0"
-                          style={{ backgroundColor: "rgba(74,222,128,0.08)" }}
+                          style={{ backgroundColor: "rgba(0,109,54,0.06)" }}
                         >
-                          <RefreshCw className="size-3.5" style={{ color: "#4ade80" }} />
+                          <RefreshCw className="size-3.5" style={{ color: "var(--color-primary)" }} />
                         </div>
                         <div>
                           <p
                             className="text-sm font-medium leading-tight"
-                            style={{ color: "#e5e2e1", fontFamily: "var(--font-inter)" }}
+                            style={{ color: "var(--color-foreground)", fontFamily: "var(--font-inter)" }}
                           >
                             Is this an installment?
                           </p>
                           <p
                             className="text-[10px] font-semibold tracking-[0.12em] mt-0.5"
-                            style={{ color: "#3d4a3e" }}
+                            style={{ color: "var(--color-muted-foreground)" }}
                           >
                             RECURRING PAYMENT PLAN
                           </p>
@@ -547,14 +567,18 @@ export function AddTransactionModal({
                         type="button"
                         role="switch"
                         aria-checked={isInstallment}
-                        onClick={() => setIsInstallment((v) => !v)}
+                        onClick={() => {
+                          setIsInstallment((v) => !v);
+                          setInterestRateOverride(null);
+                          setAdminFeeOverride(null);
+                        }}
                         className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 cursor-pointer flex-shrink-0"
-                        style={{ backgroundColor: isInstallment ? "#4ade80" : "#262626" }}
+                        style={{ backgroundColor: isInstallment ? "var(--color-primary)" : "var(--color-border)" }}
                       >
                         <span
                           className="inline-block size-3.5 rounded-full transition-transform duration-200"
                           style={{
-                            backgroundColor: isInstallment ? "#131313" : "#3d4a3e",
+                            backgroundColor: isInstallment ? "var(--color-primary-foreground)" : "var(--color-muted-foreground)",
                             transform: isInstallment ? "translateX(18px)" : "translateX(2px)",
                           }}
                         />
@@ -567,7 +591,7 @@ export function AddTransactionModal({
                         <div>
                           <p
                             className="text-[10px] font-semibold tracking-[0.15em] mb-2"
-                            style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
+                            style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}
                           >
                             TENOR
                           </p>
@@ -582,11 +606,11 @@ export function AddTransactionModal({
                                   className="flex-1 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 cursor-pointer"
                                   style={
                                     active
-                                      ? { backgroundColor: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.4)", color: "#4ade80" }
-                                      : { backgroundColor: "#1c1b1b", border: "1px solid #262626", color: "#bccabb" }
+                                      ? { backgroundColor: "rgba(0,109,54,0.08)", border: "1px solid rgba(0,109,54,0.3)", color: "var(--color-primary)" }
+                                      : { backgroundColor: "var(--color-muted)", border: "1px solid var(--color-border)", color: "var(--color-muted-foreground)" }
                                   }
                                 >
-                                  {m} bln
+                                  {m} mo
                                 </button>
                               );
                             })}
@@ -598,54 +622,54 @@ export function AddTransactionModal({
                           <div>
                             <p
                               className="text-[10px] font-semibold tracking-[0.15em] mb-2"
-                              style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
+                              style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}
                             >
-                              BUNGA % / BLN
+                              INTEREST % / MO
                             </p>
                             <Input
                               type="text"
                               inputMode="decimal"
                               placeholder="0"
                               value={interestRate}
-                              onChange={(e) => setInterestRate(e.target.value.replace(/[^\d.,]/g, ""))}
+                              onChange={(e) => setInterestRateOverride(e.target.value.replace(/[^\d.,]/g, ""))}
                               className="h-9 text-sm"
-                              style={{ backgroundColor: "#0a0a0a", border: "1px solid #262626", color: "#e5e2e1" }}
+                              style={{ backgroundColor: "var(--color-input)", border: "1px solid var(--color-border)", color: "var(--color-foreground)" }}
                             />
                           </div>
                           <div>
                             <p
                               className="text-[10px] font-semibold tracking-[0.15em] mb-2"
-                              style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
+                              style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}
                             >
-                              BIAYA ADMIN %
+                              ADMIN FEE %
                             </p>
                             <Input
                               type="text"
                               inputMode="decimal"
                               placeholder="0"
                               value={adminFee}
-                              onChange={(e) => setAdminFee(e.target.value.replace(/[^\d.,]/g, ""))}
+                              onChange={(e) => setAdminFeeOverride(e.target.value.replace(/[^\d.,]/g, ""))}
                               className="h-9 text-sm"
-                              style={{ backgroundColor: "#0a0a0a", border: "1px solid #262626", color: "#e5e2e1" }}
+                              style={{ backgroundColor: "var(--color-input)", border: "1px solid var(--color-border)", color: "var(--color-foreground)" }}
                             />
                           </div>
                         </div>
 
                         {matchedPreset && (
-                          <p className="text-[11px]" style={{ color: "#3d4a3e" }}>
-                            Bunga & biaya admin otomatis dari {selectedWallet!.name} — bisa diubah manual.
+                          <p className="text-[11px]" style={{ color: "var(--color-muted-foreground)" }}>
+                            Interest & admin fee auto-filled from {selectedWallet!.name} — you can edit them manually.
                           </p>
                         )}
 
                         {/* Monthly estimate */}
                         {principal > 0 && (
-                          <p className="text-[11px]" style={{ color: "#bccabb" }}>
+                          <p className="text-[11px]" style={{ color: "var(--color-muted-foreground)" }}>
                             ≈{" "}
-                            <span style={{ color: "#4ade80", fontWeight: 600 }}>
-                              Rp {formatRupiah(String(monthlyEst))}/bln
+                            <span style={{ color: "var(--color-primary)", fontWeight: 600 }}>
+                              Rp {formatRupiah(String(monthlyEst))}/mo
                             </span>{" "}
-                            × {installmentMonths} bulan
-                            {adminRp > 0 && <> + admin Rp {formatRupiah(String(adminRp))} (sekali bayar)</>}
+                            × {installmentMonths} months
+                            {adminRp > 0 && <> + Rp {formatRupiah(String(adminRp))} admin fee (one-time)</>}
                           </p>
                         )}
                       </div>
@@ -655,10 +679,10 @@ export function AddTransactionModal({
                 </div>
 
                 {error && (
-                  <p className="px-5 pb-3 text-xs" style={{ color: "#ffb4ab" }}>{error}</p>
+                  <p className="px-5 pb-3 text-xs" style={{ color: "var(--color-destructive)" }}>{error}</p>
                 )}
 
-                <Separator style={{ backgroundColor: "#1a1a1a" }} />
+                <Separator style={{ backgroundColor: "rgba(188,202,187,0.5)" }} />
 
                 {/* Buttons */}
                 <div className="flex gap-3 px-5 py-4">
@@ -668,7 +692,7 @@ export function AddTransactionModal({
                     onClick={handleClose}
                     disabled={isCreating}
                     className="flex-1 h-10 text-sm font-medium cursor-pointer"
-                    style={{ backgroundColor: "#1c1b1b", border: "1px solid #262626", color: "#bccabb" }}
+                    style={{ backgroundColor: "var(--color-muted)", border: "1px solid var(--color-border)", color: "var(--color-muted-foreground)" }}
                   >
                     Cancel
                   </Button>
@@ -676,7 +700,7 @@ export function AddTransactionModal({
                     type="submit"
                     disabled={isCreating}
                     className="flex-1 h-10 text-sm font-semibold gap-2 cursor-pointer"
-                    style={{ backgroundColor: "#4ade80", color: "#131313" }}
+                    style={{ backgroundColor: "var(--color-primary)", color: "var(--color-primary-foreground)" }}
                   >
                     {isCreating ? (
                       <><Loader2 className="size-4 animate-spin" />Saving...</>

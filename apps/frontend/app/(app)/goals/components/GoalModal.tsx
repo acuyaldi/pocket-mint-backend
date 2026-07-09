@@ -12,13 +12,13 @@ import {
 import { useCreateGoal, useUpdateGoal, type Goal } from "@/src/features/goals/hooks/useGoals";
 
 const labelStyle = {
-  color: "#3d4a3e",
+  color: "var(--color-muted-foreground)",
   fontFamily: "var(--font-inter)",
 } as const;
 const inputStyle = {
-  backgroundColor: "#0e0e0e",
-  border: "1px solid #262626",
-  color: "#e5e2e1",
+  backgroundColor: "var(--color-card)",
+  border: "1px solid var(--color-border)",
+  color: "var(--color-foreground)",
 } as const;
 
 interface GoalModalProps {
@@ -32,7 +32,7 @@ export default function GoalModal({ isOpen, goal, onClose }: GoalModalProps) {
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent
         className="max-w-md p-0 overflow-hidden"
-        style={{ backgroundColor: "#131313", border: "1px solid #262626" }}
+        style={{ backgroundColor: "var(--color-popover)", border: "1px solid var(--color-border)" }}
       >
         {/* Radix unmounts content on close, so form state resets naturally */}
         <GoalForm goal={goal} onClose={onClose} />
@@ -72,7 +72,7 @@ function GoalForm({ goal, onClose }: { goal: Goal | null; onClose: () => void })
     } catch (err) {
       const msg = (err as { response?: { data?: { error?: { message?: string } } } })
         ?.response?.data?.error?.message;
-      setError(msg ?? "Gagal menyimpan goal. Coba lagi.");
+      setError(msg ?? "Couldn't save goal. Please try again.");
     }
   };
 
@@ -80,17 +80,17 @@ function GoalForm({ goal, onClose }: { goal: Goal | null; onClose: () => void })
     <form onSubmit={handleSubmit}>
       <div
         className="px-6 py-5"
-        style={{ borderBottom: "1px solid #262626", backgroundColor: "#0e0e0e" }}
+        style={{ borderBottom: "1px solid var(--color-border)", backgroundColor: "var(--color-card)" }}
       >
         <DialogTitle
           className="text-base font-semibold"
-          style={{ color: "#e5e2e1", fontFamily: "var(--font-hanken)" }}
+          style={{ color: "var(--color-foreground)", fontFamily: "var(--font-hanken)" }}
         >
           {isEdit ? "Edit Goal" : "Add Goal"}
         </DialogTitle>
         <DialogDescription
           className="text-sm mt-1"
-          style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
+          style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}
         >
           {isEdit ? goal?.name : "Set a savings target"}
         </DialogDescription>
@@ -119,7 +119,7 @@ function GoalForm({ goal, onClose }: { goal: Goal | null; onClose: () => void })
           <div className="relative">
             <span
               className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold select-none"
-              style={{ color: "#3d4a3e" }}
+              style={{ color: "var(--color-muted-foreground)" }}
             >
               Rp
             </span>
@@ -143,7 +143,7 @@ function GoalForm({ goal, onClose }: { goal: Goal | null; onClose: () => void })
             <div className="relative">
               <span
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold select-none"
-                style={{ color: "#3d4a3e" }}
+                style={{ color: "var(--color-muted-foreground)" }}
               >
                 Rp
               </span>
@@ -173,13 +173,13 @@ function GoalForm({ goal, onClose }: { goal: Goal | null; onClose: () => void })
         </div>
 
         {error && (
-          <p className="text-[11px]" style={{ color: "#ffb4ab" }}>{error}</p>
+          <p className="text-[11px]" style={{ color: "var(--color-destructive)" }}>{error}</p>
         )}
       </div>
 
       <div
         className="flex justify-end gap-3 px-6 py-5"
-        style={{ borderTop: "1px solid #262626", backgroundColor: "#0e0e0e" }}
+        style={{ borderTop: "1px solid var(--color-border)", backgroundColor: "var(--color-card)" }}
       >
         <Button
           type="button"
@@ -187,7 +187,7 @@ function GoalForm({ goal, onClose }: { goal: Goal | null; onClose: () => void })
           onClick={onClose}
           disabled={isPending}
           className="h-9 text-sm font-medium"
-          style={{ color: "#bccabb" }}
+          style={{ color: "var(--color-muted-foreground)" }}
         >
           Cancel
         </Button>
@@ -195,7 +195,7 @@ function GoalForm({ goal, onClose }: { goal: Goal | null; onClose: () => void })
           type="submit"
           disabled={isPending}
           className="h-9 font-semibold"
-          style={{ backgroundColor: "#4ade80", color: "#131313" }}
+          style={{ backgroundColor: "var(--color-primary)", color: "var(--color-primary-foreground)" }}
         >
           {isPending ? "Saving..." : isEdit ? "Save Changes" : "Add Goal"}
         </Button>

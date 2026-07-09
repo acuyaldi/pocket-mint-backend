@@ -7,7 +7,7 @@ interface FullWidthSparklineProps {
   color?: string;
 }
 
-export function FullWidthSparkline({ data, color = "#10B981" }: FullWidthSparklineProps) {
+export function FullWidthSparkline({ data, color = "var(--color-primary)" }: FullWidthSparklineProps) {
   if (data.length < 2) return null;
   const width = 200;
   const height = 26;
@@ -26,7 +26,8 @@ export function FullWidthSparkline({ data, color = "#10B981" }: FullWidthSparkli
     .join(" ");
 
   const areaD = `${pathD} L${width},${height} L0,${height} Z`;
-  const gradId = `fw-spark-${color.replace("#", "")}`;
+  // Static id: color is a CSS var now, not safe to interpolate into an element id
+  const gradId = "fw-spark-gradient";
 
   return (
     <svg

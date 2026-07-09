@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import QueryProvider from "@/components/QueryProvider";
 import "./globals.css";
@@ -23,6 +23,13 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["500"],
   display: "swap",
 });
+
+// viewport-fit=cover is required for env(safe-area-inset-*) to be non-zero on iOS
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: "Pocket Mint — Financial Dashboard",

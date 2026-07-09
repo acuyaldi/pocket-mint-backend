@@ -7,16 +7,16 @@ interface JatuhTempoCardProps {
 export function JatuhTempoCard({ nearestDue }: JatuhTempoCardProps) {
   const hasDate = nearestDue !== "—";
   return (
-    <div className="rounded-lg p-5" style={{ backgroundColor: "#0e0e0e", border: "1px solid #262626" }}>
+    <div className="rounded-lg p-5" style={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)" }}>
       <p
         className="text-[10px] font-semibold uppercase tracking-widest"
-        style={{ color: "#bccabb", fontFamily: "var(--font-mono)" }}
+        style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-mono)" }}
       >
-        Jatuh Tempo
+        Next Due Date
       </p>
       <p
         className="mt-3 text-[20px] font-bold"
-        style={{ color: "#e5e2e1", fontFamily: "var(--font-heading)" }}
+        style={{ color: "var(--color-foreground)", fontFamily: "var(--font-heading)" }}
       >
         {nearestDue}
       </p>
@@ -25,17 +25,17 @@ export function JatuhTempoCard({ nearestDue }: JatuhTempoCardProps) {
         <div className="mt-3 flex items-center gap-2">
           <span
             className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px]"
-            style={{ backgroundColor: "#1c1b1b", border: "1px solid #262626", color: "#bccabb" }}
+            style={{ backgroundColor: "var(--color-muted)", border: "1px solid var(--color-border)", color: "var(--color-muted-foreground)" }}
           >
             {nearestDue}
-            <span style={{ color: "#4ade80" }}>↗</span>
+            <span style={{ color: "var(--color-primary)" }}>↗</span>
           </span>
         </div>
       )}
 
       {!hasDate && (
-        <p className="mt-2 text-[11px]" style={{ color: "#3d4a3e" }}>
-          Tidak ada cicilan aktif
+        <p className="mt-2 text-[11px]" style={{ color: "var(--color-muted-foreground)" }}>
+          No active installments
         </p>
       )}
     </div>

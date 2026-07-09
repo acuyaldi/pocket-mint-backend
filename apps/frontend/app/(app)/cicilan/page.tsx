@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { motion } from "framer-motion";
+import { LoaderCircle } from "lucide-react";
 import { useInstallments } from "@/src/features/installments/hooks/useInstallments";
 import { HeroCard } from "./components/HeroCard.tsx";
 import { InstallmentList } from "./components/InstallmentList.tsx";
@@ -53,21 +54,34 @@ export default function CicilanPage() {
       return daysUntilDue > 0 && daysUntilDue <= 30;
     });
     
-    if (overdue.length > 0) return { text: `${overdue.length} Terlambat`, color: "#ffb4ab" };
-    if (upcoming.length > 0) return { text: `${upcoming.length} Upcoming`, color: "#facc15" };
-    return { text: "Semua On-Track", color: "#4ade80" };
+    if (overdue.length > 0) return { text: `${overdue.length} Overdue`, color: "#ba1a1a" };
+    if (upcoming.length > 0) return { text: `${upcoming.length} Upcoming`, color: "#895024" };
+    return { text: "All on track", color: "#006d36" };
   }, [all]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4ade80]"></div>
+      <div className="flex min-h-screen items-center justify-center">
+        <LoaderCircle className="h-12 w-12 animate-spin text-primary" aria-label="Loading installments" />
       </div>
     );
   }
 
   return (
     <motion.div className="space-y-6" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.08 } } }}>
+      <section className="surface-card rounded-2xl border border-white/80 px-6 py-5">
+        <p className="font-mono text-[11px] tracking-[0.08em] text-primary">
+          INSTALLMENTS
+        </p>
+        <h1 className="mt-2 font-heading text-3xl font-bold tracking-[-0.02em] text-foreground">
+          Keep every cicilan honest and readable
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+          Monitor monthly obligation, remaining burden, nearest due date, and
+          account health from one route.
+        </p>
+      </section>
+
       {/* Hero Card - Full Width */}
       <HeroCard 
         total={totalActive} 
@@ -79,7 +93,7 @@ export default function CicilanPage() {
       />
 
       {/* Main Grid - Two Columns */}
-      <div className="grid" style={{ gridTemplateColumns: "1fr 260px", gap: "16px" }}>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
         <InstallmentList installments={all} />
         <RightSidebar activeCount={activeCount} totalRemaining={totalRemaining} nearestDue={nearestDue} />
       </div>

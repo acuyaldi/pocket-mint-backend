@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,13 +13,13 @@ import { useUpdateWallet } from "@/src/features/wallets/hooks/useWallets";
 import { isDebtWallet, type Wallet } from "@/src/types/wallet";
 
 const labelStyle = {
-  color: "#3d4a3e",
+  color: "var(--color-muted-foreground)",
   fontFamily: "var(--font-inter)",
 } as const;
 const inputStyle = {
-  backgroundColor: "#0e0e0e",
-  border: "1px solid #262626",
-  color: "#e5e2e1",
+  backgroundColor: "var(--color-card)",
+  border: "1px solid var(--color-border)",
+  color: "var(--color-foreground)",
 } as const;
 
 export default function EditWalletModal({
@@ -29,26 +29,30 @@ export default function EditWalletModal({
   wallet: Wallet | null;
   onClose: () => void;
 }) {
+  if (!wallet) {
+    return <Dialog open={false} onOpenChange={() => undefined} />;
+  }
+
+  return <EditWalletForm key={wallet.id} wallet={wallet} onClose={onClose} />;
+}
+
+function EditWalletForm({
+  wallet,
+  onClose,
+}: {
+  wallet: Wallet;
+  onClose: () => void;
+}) {
   const updateWallet = useUpdateWallet();
-  const isDebt = wallet ? isDebtWallet(wallet.type) : false;
+  const isDebt = isDebtWallet(wallet.type);
 
-  const [name, setName] = useState("");
-  const [balance, setBalance] = useState(""); // asset: saldo · debt: outstanding (positif)
-  const [creditLimit, setCreditLimit] = useState("");
+  const [name, setName] = useState(wallet.name);
+  const [balance, setBalance] = useState(String(Math.abs(wallet.balance))); // asset: saldo · debt: outstanding (positif)
+  const [creditLimit, setCreditLimit] = useState(String(wallet.creditLimit ?? 0));
   const [error, setError] = useState("");
-
-  // Prefill whenever a wallet is opened for editing
-  useEffect(() => {
-    if (!wallet) return;
-    setName(wallet.name);
-    setBalance(String(Math.abs(wallet.balance)));
-    setCreditLimit(String(wallet.creditLimit ?? 0));
-    setError("");
-  }, [wallet]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!wallet) return;
     setError("");
     try {
       await updateWallet.mutateAsync({
@@ -62,32 +66,32 @@ export default function EditWalletModal({
     } catch (err) {
       const msg = (err as { response?: { data?: { error?: { message?: string } } } })
         ?.response?.data?.error?.message;
-      setError(msg ?? "Gagal menyimpan perubahan. Coba lagi.");
+      setError(msg ?? "Couldn't save changes. Please try again.");
     }
   };
 
   return (
-    <Dialog open={!!wallet} onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent
         className="max-w-md p-0 overflow-hidden"
-        style={{ backgroundColor: "#131313", border: "1px solid #262626" }}
+        style={{ backgroundColor: "var(--color-popover)", border: "1px solid var(--color-border)" }}
       >
         <form onSubmit={handleSubmit}>
           <div
             className="px-6 py-5"
-            style={{ borderBottom: "1px solid #262626", backgroundColor: "#0e0e0e" }}
+            style={{ borderBottom: "1px solid var(--color-border)", backgroundColor: "var(--color-card)" }}
           >
             <DialogTitle
               className="text-base font-semibold"
-              style={{ color: "#e5e2e1", fontFamily: "var(--font-hanken)" }}
+              style={{ color: "var(--color-foreground)", fontFamily: "var(--font-hanken)" }}
             >
               Edit Wallet
             </DialogTitle>
             <DialogDescription
               className="text-sm mt-1"
-              style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}
+              style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}
             >
-              {wallet?.name} · {wallet?.type}
+              {wallet.name} · {wallet.type}
             </DialogDescription>
           </div>
 
@@ -113,7 +117,7 @@ export default function EditWalletModal({
               <div className="relative">
                 <span
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold select-none"
-                  style={{ color: "#3d4a3e" }}
+                  style={{ color: "var(--color-muted-foreground)" }}
                 >
                   Rp
                 </span>
@@ -136,7 +140,7 @@ export default function EditWalletModal({
                 <div className="relative">
                   <span
                     className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold select-none"
-                    style={{ color: "#3d4a3e" }}
+                    style={{ color: "var(--color-muted-foreground)" }}
                   >
                     Rp
                   </span>
@@ -153,13 +157,13 @@ export default function EditWalletModal({
             )}
 
             {error && (
-              <p className="text-[11px]" style={{ color: "#ffb4ab" }}>{error}</p>
+              <p className="text-[11px]" style={{ color: "var(--color-destructive)" }}>{error}</p>
             )}
           </div>
 
           <div
             className="flex justify-end gap-3 px-6 py-5"
-            style={{ borderTop: "1px solid #262626", backgroundColor: "#0e0e0e" }}
+            style={{ borderTop: "1px solid var(--color-border)", backgroundColor: "var(--color-card)" }}
           >
             <Button
               type="button"
@@ -167,7 +171,7 @@ export default function EditWalletModal({
               onClick={onClose}
               disabled={updateWallet.isPending}
               className="h-9 text-sm font-medium"
-              style={{ color: "#bccabb" }}
+              style={{ color: "var(--color-muted-foreground)" }}
             >
               Cancel
             </Button>
@@ -175,7 +179,7 @@ export default function EditWalletModal({
               type="submit"
               disabled={updateWallet.isPending}
               className="h-9 font-semibold"
-              style={{ backgroundColor: "#4ade80", color: "#131313" }}
+              style={{ backgroundColor: "var(--color-primary)", color: "var(--color-primary-foreground)" }}
             >
               {updateWallet.isPending ? "Saving..." : "Save Changes"}
             </Button>

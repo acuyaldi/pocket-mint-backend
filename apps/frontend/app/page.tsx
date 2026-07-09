@@ -1,446 +1,171 @@
-"use client";
-
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import {
-  TrendingUp,
-  PieChart,
-  Shield,
   ArrowRight,
-  MessageCircle,
-  Sparkles,
-  Zap,
-  CheckCircle2,
-  ExternalLink,
-  LayoutDashboard,
+  CalendarClock,
+  ShieldCheck,
+  Wallet,
+  Webhook,
 } from "lucide-react";
-import { motion, useInView, type Variants } from "framer-motion";
-import { useRef } from "react";
 import { PocketMintLogo } from "@/components/Logo";
+import { Button } from "@/components/ui/button";
 
-/* ──────────────────────────────────────────────
-   Animation variants
-   ────────────────────────────────────────────── */
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 32 },
-  visible: { opacity: 1, y: 0 },
-};
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.12 } },
-};
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.92 },
-  visible: { opacity: 1, scale: 1 },
-};
-
-/* ──────────────────────────────────────────────
-   Reusable Section wrapper with fade-in on scroll
-   ────────────────────────────────────────────── */
-
-function AnimatedSection({
-  children,
-  className = "",
-  variants = fadeUp,
-  delay = 0,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  variants?: Variants;
-  delay?: number;
-}) {
-  const ref = useRef<HTMLElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
-
-  return (
-    <motion.section
-      ref={ref}
-      initial="hidden"
-      animate={inView ? "visible" : "hidden"}
-      variants={variants}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay }}
-      className={className}
-    >
-      {children}
-    </motion.section>
-  );
-}
-
-/* ──────────────────────────────────────────────
-   Feature card data
-   ────────────────────────────────────────────── */
-
-const features = [
+const capabilityCards = [
   {
-    icon: MessageCircle,
-    title: "Catat Transaksi Sekejap via WhatsApp",
-    description:
-      "Kirim pesan biasa ke bot, AI kami langsung memproses, mengkategorikan, dan mencatat ke Pocket Mint secara otomatis.",
-    highlighted: true,
-    tags: ["🚀 Cepat & Mudah", "🤖 AI Cerdas", "📱 Via WhatsApp"],
+    title: "Multi-wallet clarity",
+    body: "Pantau kas, bank, e-wallet, kartu kredit, dan paylater dalam satu permukaan yang tetap rapi saat datanya makin padat.",
+    icon: Wallet,
   },
   {
-    icon: TrendingUp,
-    title: "Pantau Semua Aktivitas Real-time",
-    description:
-      "Lihat pergerakan saldo, sisa limit kredit, dan outstanding cicilan seketika.",
+    title: "Debt told straight",
+    body: "Outstanding, sisa limit, debt ratio, dan status aman atau bahaya tetap tampil jujur tanpa dibungkus gamifikasi.",
+    icon: ShieldCheck,
   },
   {
-    icon: PieChart,
-    title: "Dashboard yang Indah & Mudah Dibaca",
-    description:
-      "Visualisasi keuangan yang jelas dengan grafik, tren bulanan, dan net worth yang akurat.",
-  },
-  {
-    icon: LayoutDashboard,
-    title: "Kelola Semua Akun dalam Satu Layar",
-    description:
-      "Rekening bank, e-wallet, kartu kredit, hingga paylater — semua terintegrasi rapi.",
-  },
-  {
-    icon: Shield,
-    title: "Privasi & Keamanan Tingkat Tinggi",
-    description:
-      "Self-hosted sepenuhnya. Data tersimpan di server Anda sendiri. Tidak ada cloud pihak ketiga.",
+    title: "Installment intelligence",
+    body: "Cicilan dipantau dari grand total, tenor berjalan, sampai due terdekat supaya keputusan bayar tidak menunggu kejutan tagihan.",
+    icon: CalendarClock,
   },
 ];
 
-const trustBadges = [
-  "100% Gratis & Self-Hosted",
-  "Setup dalam Hitungan Menit",
-  "Privasi Terjamin • Data Milikmu Sepenuhnya",
+const productSignals = [
+  { label: "Access model", value: "Email & Google sign-in" },
+  { label: "Deployment", value: "Cloud-ready private workspace" },
+  { label: "Money engine", value: "IDR-first precise tracking" },
+  { label: "Automation", value: "Webhook + n8n ready roadmap" },
 ];
-
-/* ──────────────────────────────────────────────
-   Page
-   ────────────────────────────────────────────── */
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ backgroundColor: "#0F172A", color: "#F8FAFC" }}>
-      {/* ── Animated background blobs ── */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 right-0 size-175 rounded-full blur-[140px] animate-pulse" style={{ backgroundColor: "rgba(56,189,248,0.04)" }} />
-        <div className="absolute top-1/2 -left-40 size-175 rounded-full blur-[140px] animate-pulse delay-1000" style={{ backgroundColor: "rgba(56,189,248,0.04)" }} />
-        <div className="absolute bottom-0 right-1/3 size-112 rounded-full blur-[140px] animate-pulse delay-2000" style={{ backgroundColor: "rgba(56,189,248,0.03)" }} />
-      </div>
-
-      {/* ── Navbar ── */}
-      <nav className="sticky top-0 z-50 backdrop-blur-xl" style={{ backgroundColor: "rgba(15,23,42,0.8)", borderBottom: "1px solid #334155" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <div className="flex items-center gap-2.5">
-               <PocketMintLogo />
-          
-
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/login">
-              <Button
-                size="sm"
-                className="bg-transparent hover:bg-transparent text-sm font-semibold transition-all duration-300"
-                style={{ backgroundColor: "#38BDF8", color: "#0F172A" }}
-              >
-                Buka Dashboard
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* ── Hero ── */}
-      <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-24 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 rounded-full backdrop-blur-md px-5 py-2 text-sm font-medium mb-10"
-          style={{ backgroundColor: "rgba(30,41,59,0.6)", border: "1px solid #334155", color: "#38BDF8", fontFamily: "var(--font-inter)" }}
-        >
-          <Sparkles className="size-4" />
-          <span>Self-Hosted · AI-Powered · Privasi Penuh</span>
-        </motion.div>
-
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="text-5xl sm:text-6xl lg:text-[4.5rem] font-black tracking-tight leading-[1.08] mb-8"
-          style={{ fontFamily: "var(--font-hanken)" }}
-        >
-          <span style={{ color: "#F8FAFC" }}>Semua Akunmu.</span>
-          <br />
-          <span style={{ color: "#38BDF8" }}>
-            Satu Kendali.
-          </span>
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.25 }}
-          className="mt-6 text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed"
-          style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}
-        >
-          Pantau pemasukan, pengeluaran, saldo, limit kredit, dan cicilan
-          paylater secara real-time dalam satu dashboard yang elegan. Catat
-          transaksi hanya dengan mengirim pesan WhatsApp —{" "}
-          <span className="font-semibold" style={{ color: "#38BDF8" }}>
-            AI akan mengerjakan sisanya
-          </span>
-          .
-        </motion.p>
-
-        {/* CTA Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-4"
-        >
-          <Link href="/login">
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="mx-auto flex min-h-screen w-full max-w-[1440px] flex-col px-4 py-4 sm:px-6 lg:px-8">
+        <header className="surface-card sticky top-4 z-20 flex items-center justify-between gap-3 rounded-2xl border border-white/70 px-4 py-3 backdrop-blur sm:px-6 sm:py-4">
+          <PocketMintLogo />
+          <div className="flex shrink-0 items-center gap-2">
             <Button
-              size="lg"
-              className="group gap-2 px-10 text-base font-semibold transition-all duration-300"
-              style={{ backgroundColor: "#38BDF8", color: "#0F172A" }}
-            >
-              Buka Dashboard
-              <ArrowRight className="size-5 transition-transform duration-300 group-hover:translate-x-1" />
-            </Button>
-          </Link>
-          <Link
-            href="https://github.com/pocket-mint/pocket-mint"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button
+              render={<Link href="/login" />}
               variant="outline"
-              size="lg"
-              className="gap-2 px-8 text-base backdrop-blur-md font-semibold transition-all duration-300"
-              style={{ border: "2px solid #334155", backgroundColor: "rgba(30,41,59,0.5)", color: "#F8FAFC" }}
+              className="hidden border-border/80 bg-white/70 px-4 sm:inline-flex"
             >
-              <ExternalLink className="size-5" />
-              Lihat Source Code
+              Sign In
             </Button>
-          </Link>
-        </motion.div>
+            <Button
+              render={<Link href="/login" />}
+              className="bg-primary px-4 text-primary-foreground hover:bg-primary/92"
+            >
+              Get Started
+            </Button>
+          </div>
+        </header>
 
-        {/* Trust Badges */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm"
-          style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}
-        >
-          {trustBadges.map((badge) => (
-            <div key={badge} className="flex items-center gap-2">
-              <CheckCircle2 className="size-4.5 shrink-0" style={{ color: "#10B981" }} />
-              <span>{badge}</span>
-            </div>
-          ))}
-        </motion.div>
-      </AnimatedSection>
-
-      {/* ── Accent divider ── */}
-      <div className="mx-auto max-w-xs h-px" style={{ background: "linear-gradient(to right, transparent, rgba(56,189,248,0.3), transparent)" }} />
-
-      {/* ── Features ── */}
-      <AnimatedSection
-        variants={stagger}
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28"
-      >
-        <motion.div variants={fadeUp} className="text-center mb-20">
-          <h2
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-5"
-            style={{ fontFamily: "var(--font-hanken)", color: "#F8FAFC" }}
-          >
-            Fitur Unggulan
-          </h2>
-          <p className="text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}>
-            Semua yang Anda butuhkan untuk mengelola keuangan pribadi dengan
-            mudah dan cerdas
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
-          {features.map((feature) => {
-            const Icon = feature.icon;
-            const isHighlight = feature.highlighted;
-
-            return (
-              <motion.div
-                key={feature.title}
-                variants={scaleIn}
-                transition={{
-                  duration: 0.5,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-                className={`
-                  group rounded-3xl backdrop-blur-md p-8 sm:p-10 transition-all duration-500 ease-out
-                  hover:-translate-y-3 hover:shadow-2xl
-                  ${
-                    isHighlight
-                      ? "lg:col-span-2"
-                      : ""
-                  }
-                `}
-                style={{
-                  backgroundColor: isHighlight ? "rgba(30,41,59,0.5)" : "rgba(30,41,59,0.4)",
-                  border: isHighlight ? "1px solid rgba(56,189,248,0.2)" : "1px solid #334155",
-                }}
-              >
-                {/* Icon */}
-                <div
-                  className="size-14 rounded-2xl flex items-center justify-center mb-7 transition-colors duration-500"
-                  style={{ backgroundColor: "rgba(56,189,248,0.1)", border: "1px solid rgba(56,189,248,0.2)" }}
-                >
-                  <Icon className="size-7" style={{ color: "#38BDF8" }} />
+        <main className="flex flex-1 flex-col justify-center py-8 lg:py-12">
+          <section className="surface-grid relative overflow-hidden rounded-[28px] border border-white/70 bg-white/64 px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,109,54,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(137,80,36,0.1),transparent_22%)]" />
+            <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_420px] lg:items-end">
+              <div>
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/12 bg-white/82 px-3 py-1.5 text-[11px] font-semibold tracking-[0.08em] text-primary">
+                  <ShieldCheck className="size-3.5" />
+                  PRIVATE PERSONAL FINANCE TERMINAL
                 </div>
 
-                {/* Title */}
-                <h3
-                  className={`font-bold mb-3 ${
-                    isHighlight ? "text-2xl" : "text-xl"
-                  }`}
-                  style={{ color: "#F8FAFC", fontFamily: "var(--font-hanken)" }}
-                >
-                  {feature.title}
-                </h3>
+                <h1 className="max-w-4xl font-heading text-4xl font-bold leading-[1.04] tracking-[-0.03em] text-foreground sm:text-5xl lg:text-[64px]">
+                  Financial clarity for people juggling assets, debt, and
+                  cicilan in one private workspace.
+                </h1>
 
-                {/* Description */}
-                <p
-                  className={`leading-relaxed ${
-                    isHighlight ? "text-lg mb-6" : ""
-                  }`}
-                  style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}
-                >
-                  {feature.description}
+                <p className="mt-6 max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+                  Pocket Mint is a premium personal finance workspace built for
+                  people who need net worth, debt, and cicilan to stay clearly
+                  readable — precise, private, and always under your control.
                 </p>
 
-                {/* Tags (highlighted card only) */}
-                {feature.tags && (
-                  <div className="flex flex-wrap gap-3 mt-2">
-                    {feature.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-4 py-2 rounded-full backdrop-blur-md text-sm font-medium transition-colors duration-300"
-                        style={{ backgroundColor: "rgba(30,41,59,0.5)", border: "1px solid #334155", color: "#F8FAFC", fontFamily: "var(--font-inter)" }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
-      </AnimatedSection>
+                <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+                  <Button
+                    render={<Link href="/login" />}
+                    size="lg"
+                    className="h-11 min-w-52 justify-between bg-primary px-4 text-primary-foreground hover:bg-primary/92"
+                  >
+                    <span>Get Started</span>
+                    <ArrowRight className="size-4" />
+                  </Button>
+                  <Button
+                    render={<Link href="/login" />}
+                    size="lg"
+                    variant="outline"
+                    className="h-11 justify-center border-border/80 bg-white/70 px-6"
+                  >
+                    Sign In
+                  </Button>
+                </div>
+              </div>
 
-      {/* ── Accent divider ── */}
-      <div className="mx-auto max-w-xs h-px" style={{ background: "linear-gradient(to right, transparent, rgba(56,189,248,0.3), transparent)" }} />
-
-      {/* ── Bottom CTA ── */}
-      <AnimatedSection className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <div
-          className="rounded-3xl backdrop-blur-xl p-12 sm:p-16 lg:p-20 text-center relative overflow-hidden"
-          style={{ backgroundColor: "rgba(30,41,59,0.4)", border: "1px solid #334155" }}
-        >
-          {/* Background decoration */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-40 -right-40 size-96 rounded-full blur-[120px]" style={{ backgroundColor: "rgba(56,189,248,0.07)" }} />
-            <div className="absolute -bottom-40 -left-40 size-96 rounded-full blur-[120px]" style={{ backgroundColor: "rgba(56,189,248,0.07)" }} />
-            {/* Subtle grid accent */}
-            <div
-              className="absolute inset-0 opacity-[0.02]"
-              style={{
-                backgroundImage:
-                  "linear-gradient(rgba(16,185,129,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.3) 1px, transparent 1px)",
-                backgroundSize: "60px 60px",
-              }}
-            />
-          </div>
-
-          <div className="relative z-10">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 rounded-full backdrop-blur-md px-5 py-2 text-sm font-medium mb-8"
-              style={{ backgroundColor: "rgba(30,41,59,0.5)", border: "1px solid #334155", color: "#F8FAFC", fontFamily: "var(--font-inter)" }}
-            >
-              <Zap className="size-4" style={{ color: "#38BDF8" }} />
-              <span>Mulai Hari Ini</span>
-            </motion.div>
-
-            <motion.h2
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-5 leading-tight"
-              style={{ fontFamily: "var(--font-hanken)", color: "#F8FAFC" }}
-            >
-              Waktunya Mengambil Kendali
-              <br />
-              <span style={{ color: "#38BDF8" }}>
-                atas Keuanganmu.
-              </span>
-            </motion.h2>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg max-w-2xl mx-auto mb-12 leading-relaxed"
-              style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}
-            >
-              Mulai bangun sistem keuangan pribadi yang jauh lebih tertata dan
-              sadar. Tanpa iklan. Tanpa tracking. Hanya milikmu.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.35 }}
-            >
-              <Link href="/login">
-                <Button
-                  size="lg"
-                  className="group gap-2 px-12 text-base font-semibold transition-all duration-300"
-                  style={{ backgroundColor: "#38BDF8", color: "#0F172A" }}
-                >
-                  Buka Dashboard
-                  <ArrowRight className="size-5 transition-transform duration-300 group-hover:translate-x-1" />
-                </Button>
-              </Link>
-            </motion.div>
-          </div>
-        </div>
-      </AnimatedSection>
-
-      {/* ── Footer ── */}
-      <footer className="py-12" style={{ borderTop: "1px solid #334155", backgroundColor: "#0F172A" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2.5">
-              <PocketMintLogo  />
+              <div className="surface-card rounded-[24px] border border-white/80 p-5">
+                <p className="text-[11px] font-semibold tracking-[0.08em] text-muted-foreground">
+                  SYSTEM SIGNALS
+                </p>
+                <div className="mt-5 grid gap-3">
+                  {productSignals.map((signal) => (
+                    <div
+                      key={signal.label}
+                      className="rounded-2xl border border-border/80 bg-white/82 px-4 py-3"
+                    >
+                      <p className="text-[11px] font-semibold tracking-[0.08em] text-muted-foreground">
+                        {signal.label.toUpperCase()}
+                      </p>
+                      <p className="mt-2 font-mono text-sm font-semibold text-foreground">
+                        {signal.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <p className="text-sm" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>
-              © 2026 Pocket Mint — Kelola Keuangan Lebih Cerdas
-            </p>
-            <p className="text-sm" style={{ color: "#64748B", fontFamily: "var(--font-inter)" }}>
-              Dibangun dengan Next.js & Shadcn/ui
-            </p>
-          </div>
-        </div>
-      </footer>
+          </section>
+
+          <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="grid gap-4 md:grid-cols-3">
+              {capabilityCards.map((card) => {
+                const Icon = card.icon;
+
+                return (
+                  <article
+                    key={card.title}
+                    className="surface-card rounded-2xl border border-white/80 p-5"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-xl border border-primary/12 bg-primary/10 p-2 text-primary">
+                        <Icon className="size-4" />
+                      </div>
+                      <h2 className="font-heading text-base font-semibold text-foreground">
+                        {card.title}
+                      </h2>
+                    </div>
+                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                      {card.body}
+                    </p>
+                  </article>
+                );
+              })}
+            </div>
+
+            <aside className="surface-card rounded-2xl border border-white/80 p-5">
+              <div className="flex items-center gap-2 text-primary">
+                <Webhook className="size-4" />
+                <p className="text-[11px] font-semibold tracking-[0.08em]">
+                  CURRENT ROADMAP
+                </p>
+              </div>
+              <h2 className="mt-3 font-heading text-xl font-semibold text-foreground">
+                Automation-ready, but privacy still stays in your hands.
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                Next up: secure webhooks and n8n flows to ingest transaction
+                notifications — automation that never trades away the privacy
+                and precision at the core of the product.
+              </p>
+            </aside>
+          </section>
+        </main>
+      </div>
     </div>
   );
 }

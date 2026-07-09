@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { fadeUp } from "./constants";
@@ -48,24 +48,38 @@ export function TransactionFilters(props: TransactionFiltersProps) {
     <motion.div variants={fadeUp}>
       <div
         style={{
-          backgroundColor: "#0e0e0e",
-          border: "1px solid #262626",
+          backgroundColor: "var(--color-card)",
+          border: "1px solid var(--color-border)",
           borderRadius: 8,
           padding: "16px 20px",
         }}
       >
-        <div className="flex flex-wrap items-end gap-3">
-          {/* Date Range */}
-          <div className="flex flex-col gap-1.5" style={{ minWidth: 160 }}>
-            <span style={{ fontSize: 10, fontWeight: 600, color: "#bccabb", letterSpacing: "0.07em", textTransform: "uppercase", fontFamily: "var(--font-mono)" }}>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-[repeat(4,minmax(0,1fr))_auto] xl:items-end">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: "var(--color-muted-foreground)",
+                letterSpacing: "0.07em",
+                textTransform: "uppercase",
+                fontFamily: "var(--font-mono)",
+              }}
+            >
               Date Range
             </span>
             <div className="relative">
               <select
                 value={pendingDate}
                 onChange={(e) => onPendingDateChange(e.target.value as DateRangeFilter)}
-                className="w-full h-9 px-3 pr-8 rounded text-sm appearance-none cursor-pointer outline-none"
-                style={{ backgroundColor: "#131313", border: "1px solid #262626", color: "#e5e2e1", borderRadius: 4, fontSize: 14 }}
+                className="h-9 w-full cursor-pointer appearance-none rounded px-3 pr-8 text-sm outline-none"
+                style={{
+                  backgroundColor: "var(--color-input)",
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-foreground)",
+                  borderRadius: 4,
+                  fontSize: 14,
+                }}
               >
                 <option value="7d">Last 7 Days</option>
                 <option value="30d">Last 30 Days</option>
@@ -75,78 +89,142 @@ export function TransactionFilters(props: TransactionFiltersProps) {
                 <option value="all">All Time</option>
                 <option value="custom">Custom</option>
               </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 size-4 pointer-events-none" style={{ color: "#3d4a3e" }} />
+              <ChevronDown
+                className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2"
+                style={{ color: "var(--color-muted-foreground)" }}
+              />
             </div>
           </div>
 
-          {/* Wallet */}
-          <div className="flex flex-col gap-1.5" style={{ minWidth: 160 }}>
-            <span style={{ fontSize: 10, fontWeight: 600, color: "#bccabb", letterSpacing: "0.07em", textTransform: "uppercase", fontFamily: "var(--font-mono)" }}>
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: "var(--color-muted-foreground)",
+                letterSpacing: "0.07em",
+                textTransform: "uppercase",
+                fontFamily: "var(--font-mono)",
+              }}
+            >
               Wallet
             </span>
             <div className="relative">
               <select
                 value={pendingWallet}
                 onChange={(e) => onPendingWalletChange(e.target.value)}
-                className="w-full h-9 px-3 pr-8 rounded text-sm appearance-none cursor-pointer outline-none"
-                style={{ backgroundColor: "#131313", border: "1px solid #262626", color: "#e5e2e1", borderRadius: 4, fontSize: 14 }}
+                className="h-9 w-full cursor-pointer appearance-none rounded px-3 pr-8 text-sm outline-none"
+                style={{
+                  backgroundColor: "var(--color-input)",
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-foreground)",
+                  borderRadius: 4,
+                  fontSize: 14,
+                }}
               >
                 <option value="all">All Wallets</option>
-                {wallets.map((w) => (
-                  <option key={w.id} value={w.id}>{w.name}</option>
+                {wallets.map((wallet) => (
+                  <option key={wallet.id} value={wallet.id}>
+                    {wallet.name}
+                  </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 size-4 pointer-events-none" style={{ color: "#3d4a3e" }} />
+              <ChevronDown
+                className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2"
+                style={{ color: "var(--color-muted-foreground)" }}
+              />
             </div>
           </div>
 
-          {/* Category */}
-          <div className="flex flex-col gap-1.5" style={{ minWidth: 160 }}>
-            <span style={{ fontSize: 10, fontWeight: 600, color: "#bccabb", letterSpacing: "0.07em", textTransform: "uppercase", fontFamily: "var(--font-mono)" }}>
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: "var(--color-muted-foreground)",
+                letterSpacing: "0.07em",
+                textTransform: "uppercase",
+                fontFamily: "var(--font-mono)",
+              }}
+            >
               Category
             </span>
             <div className="relative">
               <select
                 value={pendingCategory}
                 onChange={(e) => onPendingCategoryChange(e.target.value)}
-                className="w-full h-9 px-3 pr-8 rounded text-sm appearance-none cursor-pointer outline-none"
-                style={{ backgroundColor: "#131313", border: "1px solid #262626", color: "#e5e2e1", borderRadius: 4, fontSize: 14 }}
+                className="h-9 w-full cursor-pointer appearance-none rounded px-3 pr-8 text-sm outline-none"
+                style={{
+                  backgroundColor: "var(--color-input)",
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-foreground)",
+                  borderRadius: 4,
+                  fontSize: 14,
+                }}
               >
                 <option value="all">All Categories</option>
-                {uniqueCategories.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
+                {uniqueCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 size-4 pointer-events-none" style={{ color: "#3d4a3e" }} />
+              <ChevronDown
+                className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2"
+                style={{ color: "var(--color-muted-foreground)" }}
+              />
             </div>
           </div>
 
-          {/* Type */}
-          <div className="flex flex-col gap-1.5" style={{ minWidth: 160 }}>
-            <span style={{ fontSize: 10, fontWeight: 600, color: "#bccabb", letterSpacing: "0.07em", textTransform: "uppercase", fontFamily: "var(--font-mono)" }}>
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: "var(--color-muted-foreground)",
+                letterSpacing: "0.07em",
+                textTransform: "uppercase",
+                fontFamily: "var(--font-mono)",
+              }}
+            >
               Type
             </span>
             <div className="relative">
               <select
                 value={pendingType}
                 onChange={(e) => onPendingTypeChange(e.target.value)}
-                className="w-full h-9 px-3 pr-8 rounded text-sm appearance-none cursor-pointer outline-none"
-                style={{ backgroundColor: "#131313", border: "1px solid #262626", color: "#e5e2e1", borderRadius: 4, fontSize: 14 }}
+                className="h-9 w-full cursor-pointer appearance-none rounded px-3 pr-8 text-sm outline-none"
+                style={{
+                  backgroundColor: "var(--color-input)",
+                  border: "1px solid var(--color-border)",
+                  color: "var(--color-foreground)",
+                  borderRadius: 4,
+                  fontSize: 14,
+                }}
               >
                 <option value="all">All Types</option>
                 <option value="income">Income</option>
                 <option value="expense">Expense</option>
                 <option value="transfer">Transfer</option>
               </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 size-4 pointer-events-none" style={{ color: "#3d4a3e" }} />
+              <ChevronDown
+                className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2"
+                style={{ color: "var(--color-muted-foreground)" }}
+              />
             </div>
           </div>
 
-          {/* Apply Filters */}
           <button
             onClick={onApply}
-            className="flex items-center gap-2 h-9 px-4 rounded text-sm font-medium cursor-pointer transition-colors"
-            style={{ backgroundColor: "#2a2a2a", color: "#e5e2e1", border: "1px solid #262626", borderRadius: 4, fontSize: 13, fontWeight: 500 }}
+            className="flex h-9 w-full items-center justify-center gap-2 whitespace-nowrap rounded px-4 text-sm font-medium transition-colors xl:w-auto"
+            style={{
+              backgroundColor: "var(--color-accent)",
+              color: "var(--color-foreground)",
+              border: "1px solid var(--color-border)",
+              borderRadius: 4,
+              fontSize: 13,
+              fontWeight: 500,
+            }}
           >
             <Filter className="size-3.5" />
             Apply Filters
@@ -154,7 +232,6 @@ export function TransactionFilters(props: TransactionFiltersProps) {
         </div>
       </div>
 
-      {/* Custom date range inputs */}
       <AnimatePresence>
         {pendingDate === "custom" && (
           <motion.div
@@ -162,22 +239,32 @@ export function TransactionFilters(props: TransactionFiltersProps) {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="flex items-center gap-3 mt-3"
+            className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center"
           >
             <Input
               type="date"
               value={pendingCustomFrom}
               onChange={(e) => onPendingCustomFromChange(e.target.value)}
               className="h-9 text-sm"
-              style={{ backgroundColor: "#0a0a0a", border: "1px solid #262626", color: "#e5e2e1" }}
+              style={{
+                backgroundColor: "var(--color-input)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-foreground)",
+              }}
             />
-            <span style={{ color: "#3d4a3e" }}>—</span>
+            <span className="hidden text-center sm:block" style={{ color: "var(--color-muted-foreground)" }}>
+              -
+            </span>
             <Input
               type="date"
               value={pendingCustomTo}
               onChange={(e) => onPendingCustomToChange(e.target.value)}
               className="h-9 text-sm"
-              style={{ backgroundColor: "#0a0a0a", border: "1px solid #262626", color: "#e5e2e1" }}
+              style={{
+                backgroundColor: "var(--color-input)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-foreground)",
+              }}
             />
           </motion.div>
         )}

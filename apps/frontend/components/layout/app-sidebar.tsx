@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -8,11 +7,24 @@ import {
   Wallet,
   CalendarClock,
   Target,
-  Settings,
-  HelpCircle,
   Plus,
+  User,
 } from "lucide-react";
 import { PocketMintLogo } from "../Logo";
+import {
+  Sidebar,
+  SidebarBody,
+  SidebarLabel,
+  SidebarLink,
+  SidebarToggle,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { AccountMenuItems } from "./account-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -22,127 +34,79 @@ const NAV_ITEMS = [
   { label: "Installments", href: "/cicilan", icon: CalendarClock },
 ];
 
-const UTILITY_NAV_ITEMS = [
-  { label: "Settings", href: "/settings", icon: Settings },
-  { label: "Help", href: "/help", icon: HelpCircle },
-];
-
 export function AppSidebar() {
+  return (
+    <Sidebar>
+      <SidebarBody>
+        <SidebarContent />
+      </SidebarBody>
+    </Sidebar>
+  );
+}
+
+function SidebarContent() {
+  const { open } = useSidebar();
   const pathname = usePathname();
 
-  function handleAddTransaction() {
-    window.dispatchEvent(new Event("fab-add-transaction"));
-  }
-
   return (
-    <aside
-      className="hidden lg:flex flex-col flex-shrink-0 w-[240px] h-screen sticky top-0 overflow-y-auto"
-      style={{ borderRight: "1px solid #262626" }}
-    >
-      {/* Logo + Subtitle */}
-      <div
-        className="flex flex-col justify-center shrink-0"
-        style={{ height: "64px", padding: "12px 20px", borderBottom: "1px solid #1a1a1a" }}
-      >
-        <PocketMintLogo />
-        <p style={{ fontFamily: "var(--font-inter)", fontSize: "11px", color: "#bccabb", marginTop: "2px" }}>
-          Financial Clarity
-        </p>
+    <>
+      {/* Top: logo + main nav */}
+      <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
+        <div className="py-2 text-foreground">
+          <PocketMintLogo className="w-6 h-6" showText={open} />
+        </div>
+
+        <nav aria-label="Main" className="mt-6 flex flex-col gap-1">
+          {NAV_ITEMS.map((item) => {
+            const isActive =
+              pathname === item.href || pathname.startsWith(item.href + "/");
+            const Icon = item.icon;
+            return (
+              <SidebarLink
+                key={item.href}
+                link={{
+                  label: item.label,
+                  href: item.href,
+                  icon: <Icon className="size-5 shrink-0" />,
+                }}
+                isActive={isActive}
+                className={isActive ? "text-primary font-semibold" : ""}
+              />
+            );
+          })}
+        </nav>
       </div>
 
-      {/* Nav Items — flex-1 pushes everything below to the bottom */}
-      <nav className="flex-1 py-3 overflow-y-auto space-y-0.5 px-2">
-        {NAV_ITEMS.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            pathname.startsWith(item.href + "/");
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex items-center gap-3 rounded-lg transition-all duration-150"
-              style={{
-                padding: "10px 12px",
-                fontFamily: "var(--font-inter)",
-                fontSize: "14px",
-                fontWeight: isActive ? "600" : "500",
-                color: isActive ? "#4ade80" : "#bccabb",
-                backgroundColor: isActive ? "rgba(74, 222, 128, 0.08)" : "transparent",
-                borderRight: isActive ? "3px solid #4ade80" : "3px solid transparent",
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = "rgba(74,222,128,0.04)";
-                  e.currentTarget.style.color = "#e5e2e1";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                  e.currentTarget.style.color = "#bccabb";
-                }
-              }}
-            >
-              <Icon className="size-4 shrink-0" />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Add Transaction button */}
-      <div className="px-3 pb-3 shrink-0" style={{ borderTop: "1px solid #1a1a1a", paddingTop: "12px" }}>
+      {/* Bottom: add transaction + help + account */}
+      <div className="flex shrink-0 flex-col gap-1">
         <button
-          onClick={handleAddTransaction}
-          className="flex items-center justify-center gap-2 w-full rounded-full transition-all duration-150 hover:brightness-110 active:scale-95"
-          style={{
-            padding: "10px 16px",
-            backgroundColor: "#4ade80",
-            color: "#003919",
-            fontFamily: "var(--font-inter)",
-            fontSize: "14px",
-            fontWeight: "600",
-            border: "none",
-            cursor: "pointer",
-          }}
+          onClick={() => window.dispatchEvent(new Event("fab-add-transaction"))}
+          className="flex cursor-pointer items-center justify-start gap-2 rounded-md py-2 text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          aria-label="Add transaction"
         >
-          <Plus className="size-4 shrink-0" />
-          Add Transaction
+          <Plus className="size-5 shrink-0" />
+          <SidebarLabel className="font-semibold">Add Transaction</SidebarLabel>
         </button>
-      </div>
 
-      {/* Settings + Help — absolute bottom */}
-      <div className="px-2 pb-3 space-y-0.5 shrink-0" style={{ borderTop: "1px solid #1a1a1a", paddingTop: "8px" }}>
-        {UTILITY_NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex items-center gap-3 rounded-lg transition-all duration-150"
-              style={{
-                padding: "9px 12px",
-                fontFamily: "var(--font-inter)",
-                fontSize: "13px",
-                fontWeight: "500",
-                color: "#bccabb",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(74,222,128,0.04)";
-                e.currentTarget.style.color = "#e5e2e1";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = "#bccabb";
-              }}
-            >
-              <Icon className="size-4 shrink-0" />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+        {/* ponytail: Help link removed — /help route doesn't exist yet; re-add when it ships */}
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className="flex cursor-pointer items-center justify-start gap-2 rounded-md py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            aria-label="Account menu"
+          >
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary">
+              <User className="size-4" />
+            </span>
+            <SidebarLabel className="text-muted-foreground">Account</SidebarLabel>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <AccountMenuItems />
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <SidebarToggle />
       </div>
-    </aside>
+    </>
   );
 }

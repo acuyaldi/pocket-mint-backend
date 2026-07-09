@@ -37,10 +37,10 @@ export const PocketMintLogo: React.FC<LogoProps> = ({ className = "w-8 h-8", sho
       {/* TYPOGRAPHY LOGO TEXT */}
       {showText && (
         <div className="flex flex-col justify-center">
-          <span className="text-sm font-bold tracking-[0.2em] text-white uppercase leading-none">
+          <span className="text-sm font-bold tracking-[0.2em] text-foreground uppercase leading-none">
             Pocket
           </span>
-          <span className="text-sm font-bold tracking-[0.2em] text-[#bccabb] uppercase leading-tight">
+          <span className="text-sm font-bold tracking-[0.2em] text-muted-foreground uppercase leading-tight">
             Mint
           </span>
         </div>

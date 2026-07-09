@@ -1,18 +1,14 @@
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { TopBar } from "@/components/layout/top-bar";
 import { BottomNav } from "@/components/layout/bottom-nav";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen w-full bg-[#131313] text-[#e5e2e1] overflow-hidden">
+    <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
       <AppSidebar />
 
-      <main className="flex-1 min-w-0 overflow-y-auto p-6 md:p-8">
-        <div className="w-full max-w-7xl mx-auto flex flex-col">
-          <TopBar />
-          <div className="flex flex-col flex-1 min-h-screen">
-            {children}
-          </div>
+      <main className="min-w-0 flex-1 overflow-y-auto px-4 py-5 pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:px-6 md:py-6 md:pb-8">
+        <div className="mx-auto flex min-h-full w-full max-w-7xl flex-col rounded-[28px] border border-white/70 bg-white/42 p-4 sm:p-5 md:p-6">
+          {children}
         </div>
       </main>
 

@@ -1,6 +1,35 @@
 {
+  "name": "pocket-mint",
+  "version": "1.0.0",
+  "scripts": {
+    "backend": " cd apps && cd backend && npm run dev",
+    "frontend": " cd apps && cd frontend && npm run dev",
+    "start": "concurrently \"npm run backend\" \"npm run frontend\" --kill-others",
+    "install": "cd apps && cd backend && npm install && cd .. && cd frontend && npm install"
+  },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.1"
-  }
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  },
+  "description": "A **full‑stack expense tracker** built with **Next.js** for the frontend, **Express** (Node.js) for the backend API, and **Prisma** as the ORM for a SQLite/PostgreSQL database. The application lets users add, view, and manage their financial transactions in a clean dashboard.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+ 
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acuyaldi/pocket-mint.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/acuyaldi/pocket-mint/issues"
+  },
+  "homepage": "https://github.com/acuyaldi/pocket-mint#readme"
 }

@@ -1,8 +1,21 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { syncUserToBackend } from "@/lib/auth/sync-user";
+
+// ─── Helpers ─────────────────────────────────────────────────────
+/** Resolve the request origin (protocol + host) for OAuth redirect URLs. */
+async function getOrigin(): Promise<string> {
+  const h = await headers();
+  const origin = h.get("origin");
+  if (origin) return origin;
+  const host = h.get("host") ?? "localhost:4000";
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  return `${proto}://${host}`;
+}
 
 // ─── Login ───────────────────────────────────────────────────────
 export async function login(formData: FormData) {
@@ -43,32 +56,41 @@ export async function signup(formData: FormData) {
     return { error: error.message };
   }
 
-  // Sync user to backend Prisma database
+  // Sync user to backend Prisma database (non-blocking failure)
   if (authData.user) {
-    try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api/v1"}/users/sync`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": process.env.API_KEY || "kunci_rahasia_pocket_mint_2026",
-          },
-          body: JSON.stringify({
-            supabaseId: authData.user.id,
-            email,
-            name,
-          }),
-        }
-      );
-    } catch (syncError) {
-      console.error("Failed to sync user to backend:", syncError);
-      // Don't fail signup if sync fails — user is still registered in Supabase
-    }
+    await syncUserToBackend({
+      supabaseId: authData.user.id,
+      email,
+      name,
+    });
   }
 
   revalidatePath("/", "layout");
   redirect("/dashboard");
+}
+
+// ─── Google OAuth ────────────────────────────────────────────────
+export async function signInWithGoogle() {
+  const supabase = await createClient();
+  const origin = await getOrigin();
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  // Supabase returns the provider consent URL — send the browser there.
+  if (data.url) {
+    redirect(data.url);
+  }
+
+  return { error: "Failed to start Google sign-in." };
 }
 
 // ─── Logout ──────────────────────────────────────────────────────

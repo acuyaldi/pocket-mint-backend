@@ -5,7 +5,7 @@ interface SparklineProps {
   color?: string;
 }
 
-export function Sparkline({ data, color = "#10B981" }: SparklineProps) {
+export function Sparkline({ data, color = "var(--color-primary)" }: SparklineProps) {
   if (!data || data.length === 0) {
     // No data: render a flat line at 0
     return (

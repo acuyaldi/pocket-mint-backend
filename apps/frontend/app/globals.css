@@ -6,63 +6,80 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* ── Pemetaan Ulang Variabel Shadcn ke Pro-Fintech Dark ── */
-  --color-background: #131313;         /* Level 0 Floor */
-  --color-foreground: #e5e2e1;         /* On-Surface Text */
-  
-  --color-card: #0e0e0e;               /* Level 1 Card (Deep Charcoal) */
-  --color-card-foreground: #e5e2e1;
-  
-  --color-popover: #111111;            /* Level 2 Modals/Popovers */
-  --color-popover-foreground: #e5e2e1;
-  
-  --color-primary: #4ade80;            /* Pocket Mint Hero Color */
-  --color-primary-foreground: #003919; /* Text on Mint */
-  
-  --color-secondary: #bcc7de;
-  --color-secondary-foreground: #263143;
-  
-  --color-muted: #1c1b1b;
-  --color-muted-foreground: #bccabb;
-  
-  --color-accent: #2a2a2a;
-  --color-accent-foreground: #4ade80;
-  
-  --color-destructive: #ffb4ab;        /* Error */
-  --color-destructive-foreground: #690005;
-  
-  --color-border: #262626;             /* Low-Contrast Outline */
-  --color-input: #0a0a0a;
-  --color-ring: #4ade80;
+  --color-background: #f8f9ff;
+  --color-foreground: #0b1c30;
+  --color-card: #ffffff;
+  --color-card-foreground: #0b1c30;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0b1c30;
+  --color-primary: #006d36;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #545f73;
+  --color-secondary-foreground: #ffffff;
+  --color-muted: #e5eeff;
+  --color-muted-foreground: #3d4a3e;
+  --color-accent: #d3e4fe;
+  --color-accent-foreground: #0b1c30;
+  --color-destructive: #ba1a1a;
+  --color-destructive-foreground: #ffffff;
+  --color-warning: #895024;
+  --color-warning-foreground: #ffffff;
+  --color-border: #bccabb;
+  --color-input: #eff4ff;
+  --color-ring: #006d36;
 
-  /* ── Radius & Spacing Sync ── */
-  --radius-sm: 0.125rem;
-  --radius-md: 0.25rem;                 /* DEFAULT radius 4px */
-  --radius-lg: 0.5rem;                  /* Card radius 8px */
-  --radius-xl: 0.75rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
   --radius-full: 9999px;
 
-  /* ── Font Family Setup ── */
-  --font-sans: "Inter", sans-serif;
-  --font-heading: "Hanken Grotesk", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
-
-  /* Keep your animation custom keyframes below if needed */
+  --font-sans: var(--font-inter), sans-serif;
+  --font-body: var(--font-inter), sans-serif;
+  --font-heading: var(--font-inter), sans-serif;
+  --font-mono: var(--font-inter), sans-serif;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+
   html {
     @apply font-sans;
   }
+
+  body {
+    @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(circle at top left, rgba(211, 228, 254, 0.9), transparent 28%),
+      radial-gradient(circle at bottom right, rgba(77, 224, 130, 0.14), transparent 26%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(248, 249, 255, 0.94));
+  }
 }
 
-/* Reduced motion: disable all animations and transitions */
+@layer utilities {
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .surface-panel {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(239, 244, 255, 0.96));
+  }
+
+  .surface-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 249, 255, 0.98));
+    box-shadow: 0 20px 48px rgba(11, 28, 48, 0.08);
+  }
+
+  .surface-grid {
+    background-image:
+      linear-gradient(to right, rgba(188, 202, 187, 0.25) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(188, 202, 187, 0.25) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -74,12 +91,12 @@
   }
 }
 
-/* Custom animations */
 @keyframes gradient {
   0%,
   100% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
@@ -95,6 +112,7 @@
   100% {
     transform: translateX(0);
   }
+
   10%,
   30%,
   50%,
@@ -102,6 +120,7 @@
   90% {
     transform: translateX(-4px);
   }
+
   20%,
   40%,
   60%,
@@ -114,7 +133,6 @@
   animation: shake 0.5s;
 }
 
-/* Delay utilities for staggered animations */
 .delay-1000 {
   animation-delay: 1000ms;
 }

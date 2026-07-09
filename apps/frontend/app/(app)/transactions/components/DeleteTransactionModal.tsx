@@ -34,17 +34,17 @@ export function DeleteTransactionModal({ isOpen, isDeleting, onClose, onConfirm 
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-sm mx-4"
           >
-            <Card className="border shadow-2xl" style={{ backgroundColor: "#1E293B", borderColor: "#334155" }}>
+            <Card className="border shadow-2xl" style={{ backgroundColor: "var(--color-popover)", borderColor: "var(--color-border)" }}>
               <CardContent className="pt-6 pb-6">
                 <div className="flex flex-col items-center text-center gap-4">
-                  <div className="size-12 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(239,68,68,0.1)" }}>
-                    <Trash2 className="size-5" style={{ color: "#EF4444" }} />
+                  <div className="size-12 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(186,26,26,0.08)" }}>
+                    <Trash2 className="size-5" style={{ color: "var(--color-destructive)" }} />
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold" style={{ color: "#F8FAFC", fontFamily: "var(--font-hanken)" }}>
+                    <h3 className="text-base font-semibold" style={{ color: "var(--color-foreground)", fontFamily: "var(--font-hanken)" }}>
                       Delete Transaction?
                     </h3>
-                    <p className="text-sm mt-1" style={{ color: "#94A3B8", fontFamily: "var(--font-inter)" }}>
+                    <p className="text-sm mt-1" style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}>
                       Deleting a transaction will reverse the wallet balance. This action cannot be undone.
                     </p>
                   </div>
@@ -55,7 +55,7 @@ export function DeleteTransactionModal({ isOpen, isDeleting, onClose, onConfirm 
                       onClick={() => { if (!isDeleting) onClose(); }}
                       disabled={isDeleting}
                       className="flex-1 h-11 transition-all"
-                      style={{ backgroundColor: "#334155", border: "1px solid #334155", color: "#94A3B8" }}
+                      style={{ backgroundColor: "var(--color-accent)", border: "1px solid var(--color-border)", color: "var(--color-accent-foreground)" }}
                     >
                       Cancel
                     </Button>
@@ -63,7 +63,7 @@ export function DeleteTransactionModal({ isOpen, isDeleting, onClose, onConfirm 
                       onClick={onConfirm}
                       disabled={isDeleting}
                       className="flex-1 h-11 font-medium gap-2"
-                      style={{ backgroundColor: "#EF4444", color: "#F8FAFC" }}
+                      style={{ backgroundColor: "var(--color-destructive)", color: "var(--color-destructive-foreground)" }}
                     >
                       {isDeleting ? (<><Loader2 className="size-4 animate-spin" />Deleting...</>) : "Delete"}
                     </Button>

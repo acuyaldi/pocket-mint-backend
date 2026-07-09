@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 import { PAGE_SIZE } from "./components/constants";
 import type { DateRangeFilter } from "./components/constants";
 import { TransactionStats } from "./components/TransactionStats";
+import { TransactionBreakdownChart } from "./components/TransactionBreakdownChart";
 import { TransactionFilters } from "./components/TransactionFilters";
 import { TransactionTable } from "./components/TransactionTable";
 import { TransactionDetailPanel } from "./components/TransactionDetailPanel";
@@ -131,20 +132,26 @@ export default function TransactionsPage() {
   return (
     <div className="space-y-6">
       <motion.main className="space-y-6" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.08 } } }}>
-        {/* Header row: title (left) + stats (right) */}
+        {/* Header + summary (left, 2/3) · Income vs Expense donut (right, 1/3) */}
         <motion.div
-          className="flex items-start justify-between gap-6 flex-wrap"
+          className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3"
           variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } }}
         >
-          <div>
-            <h2 className="tracking-tight" style={{ fontSize: 28, fontWeight: 700, color: "#e5e2e1", fontFamily: "var(--font-heading)" }}>
-              Transactions History
-            </h2>
-            <p className="mt-1" style={{ fontSize: 14, color: "#bccabb", fontFamily: "var(--font-inter)" }}>
-              Track every cent of your growth.
-            </p>
+          <div className="flex flex-col gap-5 lg:col-span-2">
+            <div>
+              <p className="font-mono text-[11px] tracking-[0.08em] text-primary">
+                TRANSACTIONS
+              </p>
+              <h2 className="mt-2 tracking-tight" style={{ fontSize: 28, fontWeight: 700, color: "var(--color-foreground)", fontFamily: "var(--font-heading)" }}>
+                Transactions History
+              </h2>
+              <p className="mt-1" style={{ fontSize: 14, color: "var(--color-muted-foreground)", fontFamily: "var(--font-body)" }}>
+                Track every inflow, expense, and transfer from the same ledger.
+              </p>
+            </div>
+            <TransactionStats income={stats.income} expense={stats.expense} net={stats.net} />
           </div>
-          <TransactionStats income={stats.income} expense={stats.expense} net={stats.net} />
+          <TransactionBreakdownChart income={stats.income} expense={stats.expense} />
         </motion.div>
         <TransactionFilters
           wallets={wallets} uniqueCategories={uniqueCategories}
