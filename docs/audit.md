@@ -31,6 +31,7 @@ Pocket Mint frontend is a **single Next.js App-Router application**, not a micro
 | 7 | `/cicilan` | [app/(app)/cicilan/page.tsx](<../apps/frontend/app/(app)/cicilan/page.tsx>) | `(app)` | Client |
 | 8 | `/profile` | [app/(app)/profile/page.tsx](<../apps/frontend/app/(app)/profile/page.tsx>) | `(app)` | Client |
 | — | `/auth/callback` | [app/auth/callback/route.ts](../apps/frontend/app/auth/callback/route.ts) | *(root only)* | Route Handler (GET) — Supabase OAuth code exchange + backend user sync, then redirect to `/dashboard` |
+| 9 | `/auth/reset-password` | [app/auth/reset-password/page.tsx](../apps/frontend/app/auth/reset-password/page.tsx) | *(root only)* | Client (`"use client"`) — password-recovery landing page (set new password) |
 
 **Layout files**
 
@@ -47,6 +48,7 @@ Pocket Mint frontend is a **single Next.js App-Router application**, not a micro
 | [lib/supabase/middleware.ts](../apps/frontend/lib/supabase/middleware.ts) | `updateSession` — refreshes the Supabase session cookie and holds the redirect rules. |
 | [app/actions/auth.ts](../apps/frontend/app/actions/auth.ts) | Server actions: `login`, `signup` (+ backend sync), `signInWithGoogle` (OAuth initiate), `logout`, `getUser`. |
 | [lib/auth/sync-user.ts](../apps/frontend/lib/auth/sync-user.ts) | `syncUserToBackend` + `resolveUserName` — shared user-sync helper used by both `signup()` and the OAuth callback. |
+| [app/auth/reset-password/page.tsx](../apps/frontend/app/auth/reset-password/page.tsx) | Password-recovery landing page. **Client-side** flow (no server action): the login page calls `supabase.auth.resetPasswordForEmail(email, { redirectTo: …/auth/reset-password })`; this page exchanges the recovery code (browser client, PKCE + `detectSessionInUrl`) and calls `supabase.auth.updateUser({ password })`, then `signOut()` → `/login?message=…`. |
 
 ---
 
@@ -85,8 +87,9 @@ Pocket Mint frontend is a **single Next.js App-Router application**, not a micro
 | `accessHighlights` panel, password show/hide toggle | local state |
 | `useSearchParams` (reads `?error=` from OAuth callback) | `next/navigation` — component wrapped in `<Suspense>` |
 
-**Mode toggle:** `authMode: "signin" | "signup"` local state. Sign Up adds **Name**, **Confirm password** fields + client validation (valid email, password ≥ 8 chars, passwords match) before calling `signup`. Toggle link swaps modes ("Don't have an account? Sign Up" ⇄ "Already have an account? Sign In"). Loading spinner + inline error (`displayError`: submit error → Google init error → OAuth `?error=`) on both modes.
-**Cross-feature:** none (auth actions only).
+**Mode toggle:** `authMode: "signin" | "signup" | "forgot"` local state. Sign Up adds **Name**, **Confirm password** fields + client validation (valid email, password ≥ 8 chars, passwords match) before calling `signup`. Toggle link swaps modes ("Don't have an account? Sign Up" ⇄ "Already have an account? Sign In"). Loading spinner + inline error (`displayError`: submit error → Google init error → OAuth `?error=`) on all modes. Also reads `?message=` to show a success banner (bounced back from the reset-password page).
+**Forgot password:** a **"Forgot password?"** link sits in the password-field label row and is shown **only in `signin` mode** (never in signup, and never next to the Google button). It switches the card to `forgot` mode — an email-only form that calls `supabase.auth.resetPasswordForEmail(email, { redirectTo: …/auth/reset-password })` client-side and confirms with *"Check your email inbox for the password reset link."* The Google button + sign-up toggle are hidden in this mode; a "Back to sign in" link returns.
+**Cross-feature:** none (auth actions + Supabase browser client only).
 
 ---
 
@@ -186,6 +189,19 @@ Pocket Mint frontend is a **single Next.js App-Router application**, not a micro
 
 ---
 
+### 9. Reset Password — `/auth/reset-password` · `app/auth/reset-password/page.tsx`
+| Element | Source |
+|---|---|
+| Supabase browser client | `createClient()` from `lib/supabase/client` — recovery-code exchange (`onAuthStateChange` / `getSession`) + `updateUser({ password })` |
+| `Button`, `Input`, `Card/CardContent/CardDescription/CardHeader/CardTitle` | `components/ui/*` |
+| `PocketMintLogo` | `components/Logo` |
+| Icons | `lucide-react` (`ArrowLeft, Eye, EyeOff, KeyRound, Loader2, ShieldCheck`) |
+
+**Recovery flow:** landing page for the reset email link (email-only **Email/Password** users; Google users never see the forgot-password entry point). On mount the browser client exchanges the recovery code in the URL for a short-lived session (`sessionReady`). The form (New Password + Confirm New Password) validates ≥ 8 chars + match, calls `updateUser({ password })`, then `signOut()` and redirects to `/login?message=…`. Submit is disabled until a valid recovery session is detected; an expired/invalid link shows a `warning`-token notice.
+**Cross-feature:** none.
+
+---
+
 ## 4. Structure tree (parent → child layout)
 
 ```
@@ -194,9 +210,10 @@ proxy.ts        ──  updateSession on every request (auth refresh + route gua
 app/layout.tsx  ──  <html><body> · fonts · QueryProvider (React Query)
 │
 ├── /               → app/page.tsx              (Landing · server)
-├── /login          → app/login/page.tsx        (Sign In / Sign Up toggle + Google OAuth)
+├── /login          → app/login/page.tsx        (Sign In / Sign Up / Forgot-password toggle + Google OAuth)
 ├── /register       → app/register/page.tsx
 ├── /auth/callback  → app/auth/callback/route.ts (OAuth code exchange · route handler)
+├── /auth/reset-password → app/auth/reset-password/page.tsx (recovery landing · set new password · client)
 │
 └── app/(app)/layout.tsx   ──  AppSidebar + <main> + BottomNav
     │                            (desktop rail · mobile DockMorph)

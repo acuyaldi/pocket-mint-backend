@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   CalendarClock,
+  CheckCircle2,
   Eye,
   EyeOff,
   Loader2,
@@ -13,6 +14,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { login, signInWithGoogle, signup } from "@/app/actions/auth";
+import { createClient } from "@/lib/supabase/client";
 import { PocketMintLogo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +26,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-type AuthMode = "signin" | "signup";
+type AuthMode = "signin" | "signup" | "forgot";
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -87,8 +89,11 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  // Confirmation shown after a reset-password email is dispatched.
+  const [resetSent, setResetSent] = useState(false);
 
   const isSignUp = authMode === "signup";
+  const isForgot = authMode === "forgot";
   const searchParams = useSearchParams();
 
   // Google OAuth runs as a server action that redirects to the provider on
@@ -101,14 +106,49 @@ function LoginForm() {
   // Show the first available error: a submit/validation error, a Google
   // init error, or an OAuth failure bounced back from /auth/callback (?error=).
   const displayError = error ?? googleState?.error ?? searchParams.get("error");
+  // Success banner bounced back from the reset-password page (?message=).
+  const successMessage = searchParams.get("message");
 
-  function toggleMode() {
-    setAuthMode((mode) => (mode === "signin" ? "signup" : "signin"));
+  function switchMode(mode: AuthMode) {
+    setAuthMode(mode);
     setError(null);
     setShowPassword(false);
+    setResetSent(false);
+  }
+
+  // Forgot-password: mail a reset link via Supabase. Kept client-side per
+  // Supabase's recommended flow so the browser client holds the PKCE verifier
+  // needed to exchange the recovery code on /auth/reset-password.
+  async function handleResetSubmit(formData: FormData) {
+    const email = ((formData.get("email") as string) ?? "").trim();
+    if (!emailPattern.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const supabase = createClient();
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+      email,
+      { redirectTo: `${window.location.origin}/auth/reset-password` }
+    );
+
+    setLoading(false);
+    if (resetError) {
+      setError(resetError.message);
+      return;
+    }
+    setResetSent(true);
   }
 
   async function handleSubmit(formData: FormData) {
+    if (isForgot) {
+      await handleResetSubmit(formData);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -209,12 +249,18 @@ function LoginForm() {
                   <PocketMintLogo className="h-9 w-9" />
                 </div>
                 <CardTitle className="text-2xl font-semibold text-foreground">
-                  {isSignUp ? "Create your account" : "Welcome back"}
+                  {isForgot
+                    ? "Reset your password"
+                    : isSignUp
+                      ? "Create your account"
+                      : "Welcome back"}
                 </CardTitle>
                 <CardDescription className="text-sm leading-6 text-muted-foreground">
-                  {isSignUp
-                    ? "Set up your Pocket Mint workspace in a few seconds."
-                    : "Enter your credentials to access your workspace."}
+                  {isForgot
+                    ? "Enter your account email and we'll send you a password reset link."
+                    : isSignUp
+                      ? "Set up your Pocket Mint workspace in a few seconds."
+                      : "Enter your credentials to access your workspace."}
                 </CardDescription>
               </CardHeader>
 
@@ -258,45 +304,58 @@ function LoginForm() {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="password"
-                      className="text-sm font-medium text-foreground"
-                    >
-                      Password
-                    </label>
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        name="password"
-                        type={showPassword ? "text" : "password"}
-                        required
-                        minLength={isSignUp ? 8 : undefined}
-                        autoComplete={
-                          isSignUp ? "new-password" : "current-password"
-                        }
-                        placeholder={
-                          isSignUp ? "At least 8 characters" : "Enter password"
-                        }
-                        aria-invalid={displayError ? "true" : "false"}
-                        className="h-11 border-border/80 bg-input px-3 pr-11 text-foreground placeholder:text-muted-foreground"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((value) => !value)}
-                        className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-                        aria-label={
-                          showPassword ? "Hide password" : "Show password"
-                        }
-                      >
-                        {showPassword ? (
-                          <EyeOff className="size-4" />
-                        ) : (
-                          <Eye className="size-4" />
-                        )}
-                      </button>
+                  {!isForgot ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <label
+                          htmlFor="password"
+                          className="text-sm font-medium text-foreground"
+                        >
+                          Password
+                        </label>
+                        {authMode === "signin" ? (
+                          <button
+                            type="button"
+                            onClick={() => switchMode("forgot")}
+                            className="text-sm font-semibold text-primary transition-colors hover:text-primary/80"
+                          >
+                            Forgot password?
+                          </button>
+                        ) : null}
+                      </div>
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          name="password"
+                          type={showPassword ? "text" : "password"}
+                          required
+                          minLength={isSignUp ? 8 : undefined}
+                          autoComplete={
+                            isSignUp ? "new-password" : "current-password"
+                          }
+                          placeholder={
+                            isSignUp ? "At least 8 characters" : "Enter password"
+                          }
+                          aria-invalid={displayError ? "true" : "false"}
+                          className="h-11 border-border/80 bg-input px-3 pr-11 text-foreground placeholder:text-muted-foreground"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((value) => !value)}
+                          className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                          aria-label={
+                            showPassword ? "Hide password" : "Show password"
+                          }
+                        >
+                          {showPassword ? (
+                            <EyeOff className="size-4" />
+                          ) : (
+                            <Eye className="size-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
 
                   {isSignUp ? (
                     <div className="space-y-2">
@@ -320,6 +379,20 @@ function LoginForm() {
                     </div>
                   ) : null}
 
+                  {successMessage && !isForgot ? (
+                    <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
+                      <CheckCircle2 className="size-4 shrink-0" />
+                      {successMessage}
+                    </div>
+                  ) : null}
+
+                  {isForgot && resetSent ? (
+                    <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
+                      <CheckCircle2 className="size-4 shrink-0" />
+                      Check your email inbox for the password reset link.
+                    </div>
+                  ) : null}
+
                   {displayError ? (
                     <p className="text-sm text-destructive" role="alert">
                       {displayError}
@@ -335,8 +408,14 @@ function LoginForm() {
                     {loading ? (
                       <>
                         <Loader2 className="size-4 animate-spin" />
-                        {isSignUp ? "Creating account..." : "Signing in..."}
+                        {isForgot
+                          ? "Sending link..."
+                          : isSignUp
+                            ? "Creating account..."
+                            : "Signing in..."}
                       </>
+                    ) : isForgot ? (
+                      "Send reset link"
                     ) : isSignUp ? (
                       "Create Account"
                     ) : (
@@ -345,43 +424,58 @@ function LoginForm() {
                   </Button>
                 </form>
 
-                <div className="mt-5 flex items-center gap-3">
-                  <span className="h-px flex-1 bg-border" />
-                  <span className="text-xs font-medium tracking-wide text-muted-foreground">
-                    or continue with
-                  </span>
-                  <span className="h-px flex-1 bg-border" />
-                </div>
+                {isForgot ? (
+                  <p className="mt-5 text-center text-sm text-muted-foreground">
+                    Remembered your password?{" "}
+                    <button
+                      type="button"
+                      onClick={() => switchMode("signin")}
+                      className="font-semibold text-primary transition-colors hover:text-primary/80"
+                    >
+                      Back to sign in
+                    </button>
+                  </p>
+                ) : (
+                  <>
+                    <div className="mt-5 flex items-center gap-3">
+                      <span className="h-px flex-1 bg-border" />
+                      <span className="text-xs font-medium tracking-wide text-muted-foreground">
+                        or continue with
+                      </span>
+                      <span className="h-px flex-1 bg-border" />
+                    </div>
 
-                <form action={googleAction} className="mt-5">
-                  <Button
-                    type="submit"
-                    size="lg"
-                    variant="outline"
-                    disabled={busy}
-                    className="h-11 w-full justify-center gap-2 border-border/80 bg-white text-foreground hover:bg-muted"
-                  >
-                    {googlePending ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <GoogleIcon className="size-4" />
-                    )}
-                    Continue with Google
-                  </Button>
-                </form>
+                    <form action={googleAction} className="mt-5">
+                      <Button
+                        type="submit"
+                        size="lg"
+                        variant="outline"
+                        disabled={busy}
+                        className="h-11 w-full justify-center gap-2 border-border/80 bg-white text-foreground hover:bg-muted"
+                      >
+                        {googlePending ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <GoogleIcon className="size-4" />
+                        )}
+                        Continue with Google
+                      </Button>
+                    </form>
 
-                <p className="mt-5 text-center text-sm text-muted-foreground">
-                  {isSignUp
-                    ? "Already have an account? "
-                    : "Don't have an account? "}
-                  <button
-                    type="button"
-                    onClick={toggleMode}
-                    className="font-semibold text-primary transition-colors hover:text-primary/80"
-                  >
-                    {isSignUp ? "Sign In" : "Sign Up"}
-                  </button>
-                </p>
+                    <p className="mt-5 text-center text-sm text-muted-foreground">
+                      {isSignUp
+                        ? "Already have an account? "
+                        : "Don't have an account? "}
+                      <button
+                        type="button"
+                        onClick={() => switchMode(isSignUp ? "signin" : "signup")}
+                        className="font-semibold text-primary transition-colors hover:text-primary/80"
+                      >
+                        {isSignUp ? "Sign In" : "Sign Up"}
+                      </button>
+                    </p>
+                  </>
+                )}
 
                 <div className="mt-5 rounded-xl border border-border/70 bg-muted/55 px-4 py-3 text-sm text-muted-foreground">
                   Protected by encrypted sessions. Your financial data stays
