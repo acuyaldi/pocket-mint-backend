@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -47,6 +49,23 @@ export function AppSidebar() {
 function SidebarContent() {
   const { open } = useSidebar();
   const pathname = usePathname();
+
+  // Bottom account entry shows the signed-in user's name (Supabase session),
+  // falling back to their email, then a static "Account" label.
+  const [accountLabel, setAccountLabel] = useState("Account");
+
+  useEffect(() => {
+    const supabase = createClient();
+    let active = true;
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!active || !user) return;
+      const meta = user.user_metadata ?? {};
+      setAccountLabel(meta.full_name || meta.name || user.email || "Account");
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <>
@@ -98,7 +117,9 @@ function SidebarContent() {
             <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary">
               <User className="size-4" />
             </span>
-            <SidebarLabel className="text-muted-foreground">Account</SidebarLabel>
+            <SidebarLabel className="max-w-45 truncate text-muted-foreground">
+              {accountLabel}
+            </SidebarLabel>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
             <AccountMenuItems />
