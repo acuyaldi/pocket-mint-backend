@@ -7,7 +7,6 @@ import {
   ArrowLeftRight,
   Wallet,
   CalendarClock,
-  Target,
   User,
 } from "lucide-react";
 import { AccountMenuItems } from "./account-menu";
@@ -24,7 +23,6 @@ const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Wallets", href: "/wallets", icon: Wallet },
   { label: "Transactions", href: "/transactions", icon: ArrowLeftRight },
-  { label: "Goals", href: "/goals", icon: Target },
   { label: "Installments", href: "/cicilan", icon: CalendarClock },
 ];
 
