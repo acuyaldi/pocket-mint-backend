@@ -4,7 +4,6 @@ import { useMemo, useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useTransactions, useCreateTransaction, useMonthlySummary } from "@/src/features/transactions/hooks/useTransactions";
 import { useWallets } from "@/src/features/wallets/hooks/useWallets";
-import { useGoals, goalProgress, isGoalComplete } from "@/src/features/goals/hooks/useGoals";
 import { useInstallments } from "@/src/features/installments/hooks/useInstallments";
 import { WalletCard } from "@/components/WalletCard";
 import { formatCurrency } from "@/lib/utils";
@@ -65,22 +64,6 @@ export default function DashboardPage() {
   const income = summary?.income ?? 0;
   const expense = summary?.expenses ?? 0;
   const netSavings = summary?.netSavings ?? 0;
-
-  // Next major goal: closest deadline among incomplete goals, else highest progress
-  const { data: goalsData } = useGoals();
-  const nextGoal = useMemo(() => {
-    const goals = goalsData ?? [];
-    const active = goals.filter((g) => !isGoalComplete(g));
-    const pool = active.length > 0 ? active : goals;
-    if (pool.length === 0) return null;
-    const withDeadline = pool.filter((g) => g.deadline);
-    if (withDeadline.length > 0) {
-      return [...withDeadline].sort(
-        (a, b) => new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime(),
-      )[0];
-    }
-    return [...pool].sort((a, b) => goalProgress(b) - goalProgress(a))[0];
-  }, [goalsData]);
 
   // Most recent active installment for the Cicilan Aktif widget
   const { data: activeInstallments } = useInstallments("ACTIVE");
@@ -384,44 +367,6 @@ export default function DashboardPage() {
                     {formatCurrency(netSavings)}
                   </span>
                 </div>
-              </div>
-            </div>
-
-            {/* Savings Goal bento */}
-            <div className="relative overflow-hidden rounded-2xl border border-white/80 bg-muted/70 p-6">
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground font-mono">
-                    Next Major Goal
-                  </p>
-                  <Link
-                    href="/goals"
-                    className="text-[12px] font-semibold transition-opacity hover:opacity-75 text-primary"
-                  >
-                    View all →
-                  </Link>
-                </div>
-                {nextGoal ? (
-                  <>
-                    <h4 className="text-base font-bold mb-4 text-foreground font-heading">
-                      {nextGoal.name}
-                    </h4>
-                    <div className="flex justify-between text-[11px] font-semibold mb-1.5 text-muted-foreground font-mono">
-                      <span>{formatCurrency(nextGoal.savedAmount)} saved</span>
-                      <span className="text-foreground">{formatCurrency(nextGoal.targetAmount)}</span>
-                    </div>
-                    <div className="h-1.5 rounded-full overflow-hidden bg-border">
-                      <div
-                        className="h-full rounded-full bg-primary shadow-[0_0_10px_rgba(0,109,54,0.24)] transition-all duration-700"
-                        style={{ width: `${goalProgress(nextGoal)}%` }}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <Link href="/goals" className="block py-3 text-sm text-muted-foreground hover:opacity-75">
-                    No goals created yet — set up your first savings target →
-                  </Link>
-                )}
               </div>
             </div>
 
