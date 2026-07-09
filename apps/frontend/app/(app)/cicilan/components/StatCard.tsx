@@ -8,15 +8,15 @@ interface StatCardProps {
 
 export function StatCard({ label, value, color }: StatCardProps) {
   return (
-    <div className="px-5 first:pl-0">
+    <div className="min-w-0 sm:px-5 sm:first:pl-0">
       <p
         className="mb-1 text-[10px] font-semibold uppercase tracking-widest"
-        style={{ color: "#bccabb", fontFamily: "var(--font-mono)" }}
+        style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-mono)" }}
       >
         {label}
       </p>
       <p
-        className="text-[14px] font-semibold leading-none"
+        className="text-[14px] font-semibold leading-tight break-words"
         style={{ color, fontFamily: "var(--font-heading)" }}
       >
         {value}

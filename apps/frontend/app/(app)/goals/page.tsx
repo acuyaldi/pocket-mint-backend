@@ -23,17 +23,22 @@ export default function GoalsPage() {
   return (
     <div className="w-full min-h-full flex flex-col gap-6 text-foreground">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold font-heading text-foreground">Goals</h1>
-          <p className="text-sm mt-1 text-muted-foreground">
-            Target tabungan dan progresnya
+      <div className="surface-card flex flex-col gap-4 rounded-2xl border border-white/80 px-5 py-5 sm:px-6 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0">
+          <p className="font-mono text-[11px] tracking-[0.08em] text-primary">
+            GOALS
+          </p>
+          <h1 className="mt-2 text-2xl font-bold font-heading text-foreground">
+            Savings targets with real progress
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Tetapkan target, pantau nominal tersimpan, dan lihat progres tanpa
+            noise tambahan.
           </p>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all hover:brightness-110 active:scale-95 cursor-pointer"
-          style={{ backgroundColor: "#4ade80", color: "#003919" }}
+          className="flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:brightness-105 active:scale-95 md:w-auto"
         >
           <Plus className="size-4" />
           Add Goal
@@ -59,9 +64,9 @@ export default function GoalsPage() {
           className="flex flex-col items-center justify-center gap-3 rounded-xl py-16 border border-dashed border-border bg-card transition-opacity hover:opacity-75 cursor-pointer"
         >
           <Target className="size-8 text-primary" />
-          <p className="text-sm font-semibold text-foreground">Belum ada goal</p>
+          <p className="text-sm font-semibold text-foreground">No goals yet</p>
           <p className="text-[12px] text-muted-foreground">
-            Buat target tabungan pertamamu
+            Create your first savings target
           </p>
         </button>
       )}

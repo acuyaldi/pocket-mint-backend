@@ -72,21 +72,21 @@ export function EditTransactionModal({ tx, isSaving, onClose, onSubmit }: EditTr
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md mx-4"
           >
-            <Card className="border shadow-2xl" style={{ backgroundColor: "#0e0e0e", borderColor: "#262626" }}>
+            <Card className="border shadow-2xl" style={{ backgroundColor: "var(--color-popover)", borderColor: "var(--color-border)" }}>
               <div className="px-6 pt-6 pb-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-base font-semibold" style={{ color: "#e5e2e1", fontFamily: "var(--font-hanken)" }}>
+                    <h3 className="text-base font-semibold" style={{ color: "var(--color-foreground)", fontFamily: "var(--font-hanken)" }}>
                       Edit Transaction
                     </h3>
-                    <p className="text-xs mt-0.5" style={{ color: "#3d4a3e", fontFamily: "var(--font-inter)" }}>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}>
                       Update transaction details
                     </p>
                   </div>
                   <button
                     onClick={() => { if (!isSaving) onClose(); }}
                     className="size-8 flex items-center justify-center rounded-lg transition-all cursor-pointer"
-                    style={{ color: "#bccabb" }}
+                    style={{ color: "var(--color-muted-foreground)" }}
                   >
                     <X className="size-4" />
                   </button>
@@ -96,7 +96,7 @@ export function EditTransactionModal({ tx, isSaving, onClose, onSubmit }: EditTr
               <CardContent className="pt-4 pb-6">
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-medium" style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}>Description</label>
+                    <label className="text-xs font-medium" style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}>Description</label>
                     <Input
                       type="text"
                       placeholder="Transaction description"
@@ -104,13 +104,13 @@ export function EditTransactionModal({ tx, isSaving, onClose, onSubmit }: EditTr
                       onChange={(e) => setDescription(e.target.value)}
                       required
                       className="h-11"
-                      style={{ backgroundColor: "#0a0a0a", border: "1px solid #262626", color: "#e5e2e1" }}
+                      style={{ backgroundColor: "var(--color-input)", border: "1px solid var(--color-border)", color: "var(--color-foreground)" }}
                     />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-medium" style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}>Amount</label>
+                    <label className="text-xs font-medium" style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}>Amount</label>
                     <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none select-none" style={{ color: "#3d4a3e" }}>Rp</span>
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none select-none" style={{ color: "var(--color-muted-foreground)" }}>Rp</span>
                       <Input
                         type="text"
                         inputMode="numeric"
@@ -119,21 +119,21 @@ export function EditTransactionModal({ tx, isSaving, onClose, onSubmit }: EditTr
                         onChange={handleAmountChange}
                         required
                         className="h-11 pl-10 pr-4"
-                        style={{ backgroundColor: "#0a0a0a", border: "1px solid #262626", color: "#e5e2e1" }}
+                        style={{ backgroundColor: "var(--color-input)", border: "1px solid var(--color-border)", color: "var(--color-foreground)" }}
                       />
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-medium" style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}>Type</label>
+                    <label className="text-xs font-medium" style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}>Type</label>
                     <div className="flex gap-2">
                       {(["EXPENSE", "INCOME"] as const).map((t) => {
                         const active = type === t;
                         const label = t === "EXPENSE" ? "Expense" : "Income";
                         const Icon = t === "EXPENSE" ? TrendingDown : TrendingUp;
                         const activeStyle = t === "EXPENSE"
-                          ? { backgroundColor: "rgba(255,180,171,0.12)", border: "1px solid rgba(255,180,171,0.4)", color: "#ffb4ab" }
-                          : { backgroundColor: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.4)", color: "#4ade80" };
-                        const inactiveStyle = { backgroundColor: "#0e0e0e", border: "1px solid #262626", color: "#3d4a3e" };
+                          ? { backgroundColor: "rgba(186,26,26,0.08)", border: "1px solid rgba(186,26,26,0.35)", color: "var(--color-destructive)" }
+                          : { backgroundColor: "rgba(0,109,54,0.08)", border: "1px solid rgba(0,109,54,0.3)", color: "var(--color-primary)" };
+                        const inactiveStyle = { backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", color: "var(--color-muted-foreground)" };
                         return (
                           <button
                             key={t}
@@ -150,13 +150,13 @@ export function EditTransactionModal({ tx, isSaving, onClose, onSubmit }: EditTr
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs font-medium" style={{ color: "#bccabb", fontFamily: "var(--font-inter)" }}>Date</label>
+                    <label className="text-xs font-medium" style={{ color: "var(--color-muted-foreground)", fontFamily: "var(--font-inter)" }}>Date</label>
                     <Input
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
                       className="h-11"
-                      style={{ backgroundColor: "#0a0a0a", border: "1px solid #262626", color: "#e5e2e1" }}
+                      style={{ backgroundColor: "var(--color-input)", border: "1px solid var(--color-border)", color: "var(--color-foreground)" }}
                     />
                   </div>
                   <div className="flex items-center gap-3 pt-1">
@@ -166,7 +166,7 @@ export function EditTransactionModal({ tx, isSaving, onClose, onSubmit }: EditTr
                       onClick={() => { if (!isSaving) onClose(); }}
                       disabled={isSaving}
                       className="flex-1 h-11 transition-all"
-                      style={{ backgroundColor: "#2a2a2a", border: "1px solid #262626", color: "#bccabb" }}
+                      style={{ backgroundColor: "var(--color-accent)", border: "1px solid var(--color-border)", color: "var(--color-accent-foreground)" }}
                     >
                       Cancel
                     </Button>
@@ -174,7 +174,7 @@ export function EditTransactionModal({ tx, isSaving, onClose, onSubmit }: EditTr
                       type="submit"
                       disabled={isSaving}
                       className="flex-1 h-11 font-medium gap-2"
-                      style={{ backgroundColor: "#4ade80", color: "#131313" }}
+                      style={{ backgroundColor: "var(--color-primary)", color: "var(--color-primary-foreground)" }}
                     >
                       {isSaving ? (<><Loader2 className="size-4 animate-spin" />Saving...</>) : "Save Changes"}
                     </Button>

@@ -47,12 +47,12 @@ interface WalletCardProps {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-// Utilization threshold color as classes (mid-range yellow #facc15 has no token)
+// Utilization threshold color: warning (amber) token for the mid band
 function utilBarClass(pct: number): string {
-  return pct >= 80 ? "bg-destructive" : pct >= 30 ? "bg-[#facc15]" : "bg-primary";
+  return pct >= 80 ? "bg-destructive" : pct >= 30 ? "bg-warning" : "bg-primary";
 }
 function utilTextClass(pct: number): string {
-  return pct >= 80 ? "text-destructive" : pct >= 30 ? "text-[#facc15]" : "text-primary";
+  return pct >= 80 ? "text-destructive" : pct >= 30 ? "text-warning" : "text-primary";
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -73,12 +73,12 @@ export function WalletCard({ wallet, onEdit }: WalletCardProps) {
 
   const isInstallment = INSTALLMENT_TYPES.includes(wallet.type);
   const accentBorder = isInstallment
-    ? "border-l-[#ffb784]"
+    ? "border-l-warning"
     : isDebt
     ? "border-l-destructive"
     : "border-l-primary";
-  const iconBg = isInstallment ? "bg-[#ffb784]/10" : isDebt ? "bg-destructive/10" : "bg-primary/10";
-  const iconColor = isInstallment ? "text-[#ffb784]" : isDebt ? "text-destructive" : "text-primary";
+  const iconBg = isInstallment ? "bg-warning/10" : isDebt ? "bg-destructive/10" : "bg-primary/10";
+  const iconColor = isInstallment ? "text-warning" : isDebt ? "text-destructive" : "text-primary";
 
   // ── Kebab menu state ──
   const [showMenu, setShowMenu] = useState(false);
@@ -113,14 +113,14 @@ export function WalletCard({ wallet, onEdit }: WalletCardProps) {
       setShowDeleteModal(false);
       setShowMenu(false);
     } catch (err) {
-      console.error("Gagal menghapus wallet:", err);
+      console.error("Failed to delete wallet:", err);
     } finally {
       setIsDeleting(false);
     }
   }, [wallet.id, deleteWallet, setShowDeleteModal]);
 
   return (
-    <div className={`relative bg-card border border-border rounded-xl p-4 border-l-4 ${accentBorder}`}>
+    <div className={`surface-card relative rounded-xl border border-white/80 p-4 border-l-4 ${accentBorder}`}>
       {/* ── Top row: icon + name + kebab ── */}
       <div className="flex items-center gap-2 mb-3">
         <div className={`flex items-center justify-center shrink-0 size-8 rounded-lg border border-border ${iconBg}`}>
@@ -165,7 +165,7 @@ export function WalletCard({ wallet, onEdit }: WalletCardProps) {
                 className="flex items-center gap-2 w-full px-3.5 py-2 text-[13px] text-destructive hover:bg-accent transition-colors cursor-pointer font-sans"
               >
                 <Trash2 className="size-3.5" />
-                Hapus wallet
+                Delete wallet
               </button>
             </div>
           )}
@@ -241,24 +241,24 @@ export function WalletCard({ wallet, onEdit }: WalletCardProps) {
             className="bg-card border border-border rounded-lg p-5 max-w-[360px] w-full mx-4"
           >
             <h3 className="text-[15px] font-semibold text-foreground font-heading mb-2">
-              Hapus wallet?
+              Delete wallet?
             </h3>
             <p className="text-[13px] text-muted-foreground font-sans mb-5 leading-normal">
-              {wallet.name} akan dihapus permanen. Riwayat transaksi yang terhubung tidak akan ikut terhapus.
+              {wallet.name} will be permanently deleted. Linked transaction history will not be removed.
             </p>
             <div className="flex items-center justify-end gap-2">
               <button
                 onClick={() => { if (!isDeleting) setShowDeleteModal(false); }}
                 className="border border-border text-muted-foreground px-3.5 py-[7px] rounded text-[13px] font-sans cursor-pointer"
               >
-                Batal
+                Cancel
               </button>
               <button
                 onClick={handleDeleteConfirm}
                 disabled={isDeleting}
                 className="bg-destructive text-destructive-foreground font-medium px-3.5 py-[7px] rounded text-[13px] font-sans disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
               >
-                {isDeleting ? "Menghapus..." : "Hapus"}
+                {isDeleting ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>

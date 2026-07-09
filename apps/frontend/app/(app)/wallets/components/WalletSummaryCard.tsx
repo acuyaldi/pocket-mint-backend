@@ -36,7 +36,7 @@ export default function WalletSummaryCard({ netWorth, totalAset, totalUtang }: W
   return (
     <motion.div
       variants={fadeUp}
-      className="relative overflow-hidden bg-card border border-border rounded-xl p-5"
+      className="surface-card relative overflow-hidden rounded-2xl border border-white/80 p-5"
     >
       <p className="uppercase tracking-widest text-[11px] font-semibold text-muted-foreground font-mono">
         Net Worth
@@ -55,11 +55,11 @@ export default function WalletSummaryCard({ netWorth, totalAset, totalUtang }: W
 
       {/* Sparkline top-right */}
       <div className="absolute right-5 top-5">
-        <FullWidthSparkline data={sparklineData} color="#4ade80" />
+        <FullWidthSparkline data={sparklineData} color="#006d36" />
       </div>
 
       {/* Bottom stats */}
-      <div className="flex gap-8 mt-6 pt-4 border-t border-[#1a1a1a]">
+      <div className="mt-6 flex gap-8 border-t border-border/70 pt-4">
         <div>
           <p className="uppercase tracking-wider text-[11px] text-muted-foreground font-mono">
             Assets

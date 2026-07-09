@@ -10,7 +10,18 @@ import { WalletCard } from "@/components/WalletCard";
 import { formatCurrency } from "@/lib/utils";
 import { isDebtWallet } from "@/src/types/wallet";
 import { TrendingUp, ArrowDownLeft, ArrowUpRight, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { AddTransactionModal, type AddTransactionData } from "@/app/(app)/transactions/components/AddTransactionModal";
+
+function buildMiniBarHeights(value: number, maxValue: number) {
+  const normalized = maxValue > 0 ? value / maxValue : 0;
+  const bars = [0.38, 0.58, 0.76, 1];
+
+  return bars.map((bar) => {
+    const height = Math.round((18 + normalized * 26) * bar);
+    return Math.max(8, Math.min(44, height));
+  });
+}
 
 export default function DashboardPage() {
   const { data, isLoading } = useTransactions();
@@ -29,7 +40,7 @@ export default function DashboardPage() {
       await createTransaction.mutateAsync(d);
       setIsAddModalOpen(false);
     } catch (err) {
-      console.error("Gagal menambah transaksi:", err);
+      console.error("Failed to add transaction:", err);
       throw err; // let the modal surface the message
     } finally {
       setIsCreating(false);
@@ -77,6 +88,15 @@ export default function DashboardPage() {
   const maxPnl = Math.max(income, expense, 1);
   const incomeBarPct = Math.round((income / maxPnl) * 100);
   const expenseBarPct = Math.round((expense / maxPnl) * 100);
+  const summaryChartMax = Math.max(totalAssets, totalDebts, 1);
+  const assetBarHeights = useMemo(
+    () => buildMiniBarHeights(totalAssets, summaryChartMax),
+    [totalAssets, summaryChartMax],
+  );
+  const debtBarHeights = useMemo(
+    () => buildMiniBarHeights(totalDebts, summaryChartMax),
+    [totalDebts, summaryChartMax],
+  );
 
   const dashboardWallets = useMemo(
     () => wallets.filter((w) => !w.isArchived).slice(0, 4),
@@ -84,14 +104,36 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="w-full min-h-full flex flex-col gap-6 select-none overflow-x-hidden text-foreground">
+    <div className="space-y-6" style={{opacity: isLoading ? 0.5 : 1, transition: "opacity 0.3s ease-in-out"}}>
       <div className="w-full flex flex-col gap-6">
+        <section className="surface-card flex flex-col gap-4 rounded-2xl border border-white/80 px-6 py-5 md:flex-row md:items-center md:justify-between">
+          <div className="flex-1">
+            <p className="font-mono text-[11px] tracking-[0.08em] text-primary">
+              OVERVIEW
+            </p>
+            <h1 className="mt-2 font-heading text-3xl font-bold tracking-[-0.02em] text-foreground">
+              Financial clarity at a glance
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Net worth, wallet exposure, monthly cash movement, and active
+              cicilan stay visible in one owner workspace.
+            </p>
+          </div>
+          <div className="w-full shrink-0 md:w-auto">
+            <Button
+              onClick={() => setIsAddModalOpen(true)}
+              className="h-9 w-full gap-2 rounded-lg bg-primary px-5 font-semibold text-primary-foreground md:w-auto"
+            >
+              <Plus className="size-4" /> Add New Transaction
+            </Button>
+          </div>
+        </section>
 
         {/* ── HERO: Net Worth Summary — full width ── */}
-        <section className="relative overflow-hidden rounded-xl p-8 group bg-card border border-border">
+        <section className="surface-card group relative overflow-hidden rounded-2xl border border-white/80 p-8">
           {/* Background graphic placeholder */}
           <div className="absolute right-0 top-0 h-full w-1/2 opacity-5 pointer-events-none transition-transform group-hover:scale-105 duration-700" />
-          <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-[11px] uppercase tracking-widest font-semibold mb-2 text-muted-foreground font-mono">
                 Net Worth
@@ -105,21 +147,48 @@ export default function DashboardPage() {
                 <span className="text-sm text-muted-foreground">vs last month</span>
               </div>
             </div>
-            <div className="flex gap-8 shrink-0">
-              <div className="text-right">
+            <div className="grid shrink-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:min-w-[360px]">
+              <div className="rounded-xl border border-white/80 bg-white/72 p-4 text-right shadow-[inset_0_1px_0_rgba(255,255,255,0.52)]">
+                <div className="mb-3 flex h-12 items-end justify-end gap-1.5">
+                  {assetBarHeights.map((height, index) => (
+                    <div
+                      key={`asset-bar-${index}`}
+                      className="w-2 rounded-full bg-primary/18"
+                      style={{ height: `${height}px` }}
+                    >
+                      <div
+                        className="w-full rounded-full bg-primary shadow-[0_0_14px_rgba(0,109,54,0.18)]"
+                        style={{ height: `${Math.max(6, height - 6)}px` }}
+                      />
+                    </div>
+                  ))}
+                </div>
                 <p className="text-[11px] uppercase tracking-widest font-semibold mb-1 text-muted-foreground font-mono">
                   Total Assets
                 </p>
-                <p className="text-xl font-semibold text-primary font-heading">
+                <p className="text-xl font-semibold text-primary font-mono">
                   {formatCurrency(totalAssets)}
                 </p>
               </div>
-              <div className="w-px self-stretch bg-border" />
-              <div className="text-right">
+              <div className="rounded-xl border border-white/80 bg-white/72 p-4 text-right shadow-[inset_0_1px_0_rgba(255,255,255,0.52)]">
+                <div className="mb-3 flex h-12 items-end justify-end gap-1.5">
+                  {debtBarHeights.map((height, index) => (
+                    <div
+                      key={`debt-bar-${index}`}
+                      className="w-2 rounded-full bg-destructive/16"
+                      style={{ height: `${height}px` }}
+                    >
+                      <div
+                        className="w-full rounded-full bg-destructive shadow-[0_0_14px_rgba(186,26,26,0.14)]"
+                        style={{ height: `${Math.max(6, height - 6)}px` }}
+                      />
+                    </div>
+                  ))}
+                </div>
                 <p className="text-[11px] uppercase tracking-widest font-semibold mb-1 text-muted-foreground font-mono">
                   Total Debt
                 </p>
-                <p className="text-xl font-semibold text-destructive font-heading">
+                <p className="text-xl font-semibold text-destructive font-mono">
                   {formatCurrency(totalDebts)}
                 </p>
               </div>
@@ -172,7 +241,7 @@ export default function DashboardPage() {
             )}
 
             {/* Recent Transactions */}
-            <div className="rounded-xl overflow-hidden bg-card border border-border">
+            <div className="surface-card overflow-hidden rounded-2xl border border-white/80">
               <div className="px-6 py-4 flex items-center justify-between border-b border-border">
                 <span className="text-sm font-semibold text-foreground font-heading">
                   Recent Transactions
@@ -188,8 +257,8 @@ export default function DashboardPage() {
               <div>
                 {transactions.slice(0, 5).map((t, i) => (
                   <div key={t.id || i}>
-                    {i > 0 && <div className="h-px mx-6 bg-[#1a1a1a]" />}
-                    <div className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-[#141414]">
+                    {i > 0 && <div className="mx-6 h-px bg-border/70" />}
+                    <div className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-muted/60">
                       <div
                         className={`flex items-center justify-center shrink-0 rounded-full size-10 ${
                           t.type === "INCOME" ? "bg-primary/10" : "bg-destructive/10"
@@ -234,12 +303,12 @@ export default function DashboardPage() {
 
               {transactions.length === 0 && !isLoading && (
                 <p className="text-sm text-center py-6 text-muted-foreground">
-                  Belum ada transaksi
+                  No transactions yet
                 </p>
               )}
               {isLoading && (
                 <p className="text-sm text-center py-6 text-muted-foreground">
-                  Memuat...
+                  Loading...
                 </p>
               )}
 
@@ -256,7 +325,7 @@ export default function DashboardPage() {
           <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
 
             {/* Monthly P&L */}
-            <div className="rounded-xl p-6 bg-card border border-border">
+            <div className="surface-card rounded-2xl border border-white/80 p-6">
               <span className="text-sm font-semibold block mb-5 text-foreground font-heading">
                 Monthly P&L
               </span>
@@ -303,7 +372,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Net Savings */}
-                <div className="pt-4 flex items-center justify-between border-t border-[#1a1a1a]">
+                <div className="flex items-center justify-between border-t border-border/70 pt-4">
                   <span className="text-sm font-semibold text-foreground font-sans">
                     Net Savings
                   </span>
@@ -319,7 +388,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Savings Goal bento */}
-            <div className="relative overflow-hidden rounded-xl p-6 bg-muted border border-border">
+            <div className="relative overflow-hidden rounded-2xl border border-white/80 bg-muted/70 p-6">
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground font-mono">
@@ -329,7 +398,7 @@ export default function DashboardPage() {
                     href="/goals"
                     className="text-[12px] font-semibold transition-opacity hover:opacity-75 text-primary"
                   >
-                    Lihat semua →
+                    View all →
                   </Link>
                 </div>
                 {nextGoal ? (
@@ -343,24 +412,24 @@ export default function DashboardPage() {
                     </div>
                     <div className="h-1.5 rounded-full overflow-hidden bg-border">
                       <div
-                        className="h-full rounded-full bg-primary shadow-[0_0_8px_rgba(74,222,128,0.4)] transition-all duration-700"
+                        className="h-full rounded-full bg-primary shadow-[0_0_10px_rgba(0,109,54,0.24)] transition-all duration-700"
                         style={{ width: `${goalProgress(nextGoal)}%` }}
                       />
                     </div>
                   </>
                 ) : (
                   <Link href="/goals" className="block py-3 text-sm text-muted-foreground hover:opacity-75">
-                    Belum ada goal — buat target tabungan pertamamu →
+                    No goals created yet — set up your first savings target →
                   </Link>
                 )}
               </div>
             </div>
 
             {/* Cicilan Aktif */}
-            <div className="rounded-xl p-6 bg-card border border-border">
+            <div className="surface-card rounded-2xl border border-white/80 p-6">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-[11px] uppercase tracking-widest font-semibold text-muted-foreground font-mono">
-                  Cicilan Aktif
+                  Active Installments
                 </span>
                 <Link
                   href="/cicilan"
@@ -376,8 +445,8 @@ export default function DashboardPage() {
                     {activeInstallment.walletName}
                   </p>
                   <p className="text-[12px] mb-3 text-muted-foreground">
-                    {activeInstallment.description || "Cicilan"} ·{" "}
-                    <span className="font-mono">{formatCurrency(activeInstallment.monthlyAmount)}/bln</span>
+                    {activeInstallment.description || "Installment"} ·{" "}
+                    <span className="font-mono">{formatCurrency(activeInstallment.monthlyAmount)}/mo</span>
                   </p>
 
                   <div className="h-1.5 rounded-full overflow-hidden mb-2 bg-border">
@@ -391,10 +460,10 @@ export default function DashboardPage() {
 
                   <div className="flex items-center justify-between">
                     <span className="text-[12px] text-muted-foreground font-mono">
-                      {Math.min(100, Math.round((activeInstallment.currentTerm / activeInstallment.installmentMonths) * 100))}% lunas
+                      {Math.min(100, Math.round((activeInstallment.currentTerm / activeInstallment.installmentMonths) * 100))}% paid off
                     </span>
                     <span className="text-[12px] text-muted-foreground">
-                      {activeInstallment.installmentMonths - activeInstallment.currentTerm} cicilan lagi
+                      {activeInstallment.installmentMonths - activeInstallment.currentTerm} payments left
                     </span>
                   </div>
 
@@ -402,11 +471,11 @@ export default function DashboardPage() {
                     <span className="text-[12px] text-primary font-mono">
                       {activeInstallment.currentTerm} / {activeInstallment.installmentMonths}
                     </span>
-                    <span className="text-[12px] text-[#3d4a3e]">bulan berjalan</span>
+                    <span className="text-[12px] text-muted-foreground">months elapsed</span>
                   </div>
                 </>
               ) : (
-                <p className="text-sm py-2 text-muted-foreground">Tidak ada cicilan aktif</p>
+                <p className="text-sm py-2 text-muted-foreground">No active installments</p>
               )}
             </div>
           </div>

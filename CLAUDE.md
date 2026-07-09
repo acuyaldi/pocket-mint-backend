@@ -33,6 +33,12 @@ No test scripts exist in either app despite the root README mentioning Jest/Supe
 
 Root `.clinerules` has the same project context, read by Cline (not Claude Code) — useful background/history if the AGENTS.md chains above are incomplete.
 
+### ⚠️ CRITICAL INSTRUCTION FOR CLAUDE CODE:
+Before executing ANY prompt, you **MUST** read and adhere to the behaviors defined in the skill files above. Additionally, follow these strict execution rules:
+1. **Strict Context Focus:** Work on ONE task at a time. Do not modify, refactor, or clean up any code/files outside the direct context of the prompt.
+2. **Cicilan Component Anomaly:** Inside `apps/frontend/app/(app)/cicilan/`, local components MUST be imported using explicit `.tsx` extensions (e.g., `import HeroCard from "./HeroCard.tsx"`). Never strip away this extension.
+3. **No Global Grep:** Do not run wide-scope global searches or scan `node_modules`, `.next`, or `dist` directories to preserve token usage.
+
 Highlights worth knowing regardless of where the docs end up:
 - Design system is "Pro-Fintech Dark" — hardcoded hex tokens, **not** Tailwind's default slate/gray/zinc/indigo/emerald/rose palettes.
 - All monetary values are `Prisma.Decimal` end-to-end; never `number`/`float`/`parseInt` for money. Convert with `parseFloat(val.toString())` only at the output boundary.
@@ -49,3 +55,22 @@ Highlights worth knowing regardless of where the docs end up:
 ## Git conventions
 
 Conventional-commit-style prefixes: `feat:`, `fix:`, `chore:`.
+
+## Allowed Frontend Dependencies
+Hanya gunakan library yang sudah terinstall di `apps/frontend/package.json`:
+- Next.js 16.2 / React 19.2
+- Primitif & UI: @base-ui/react, shadcn, lucide-react
+- Animasi & Styling: framer-motion, tw-animate-css, tailwind-merge
+- Data Fetching: @tanstack/react-query, axios, @supabase/supabase-js
+Jangan install package baru kecuali diperintahkan secara eksplisit.
+
+# Pocket Mint Monorepo Rules
+
+This is the root configuration. Depending on which app you are working on, you MUST check the specific rules inside their directories:
+
+- For Frontend work, always read and follow: `apps/frontend/CLAUDE.md` and `apps/frontend/AGENTS.md`
+- For Backend work, follow the backend instructions.
+
+## Design Context
+
+Strategic design context lives in root `PRODUCT.md` — register: **product** (app UI; design serves the task). Read it before any UI/UX work. Core principles: numbers are the interface (mono figures, figure-first hierarchy); debt told straight; density without clutter; earned familiarity (one component vocabulary); fast transaction logging. Accessibility target: WCAG AA. Visual tokens stay in `apps/frontend/skills/design.md` (source of truth: `app/globals.css` `@theme`).

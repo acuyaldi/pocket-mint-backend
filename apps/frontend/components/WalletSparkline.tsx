@@ -19,14 +19,14 @@ export function WalletSparkline({ walletId, isDebt }: WalletSparklineProps) {
     return (
       <div
         className="w-full rounded-b-lg"
-        style={{ height: 48, background: "linear-gradient(90deg, #0e0e0e 0%, #262626 50%, #0e0e0e 100%)", animation: "pulse 1.6s ease-in-out infinite" }}
+        style={{ height: 48, background: "linear-gradient(90deg, #ffffff 0%, #d3e4fe 50%, #ffffff 100%)", animation: "pulse 1.6s ease-in-out infinite" }}
       />
     );
   }
 
   if (!data || data.length < 2) return null;
 
-  const strokeColor = isDebt ? "#ffb4ab" : "#4ade80";
+  const strokeColor = isDebt ? "#ba1a1a" : "#006d36";
   const gradientId = `sparkline-gradient-${walletId}`;
 
   return (

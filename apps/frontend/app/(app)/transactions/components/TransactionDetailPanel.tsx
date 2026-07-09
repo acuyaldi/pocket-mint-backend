@@ -48,19 +48,19 @@ export function TransactionDetailPanel({ tx, onClose, onEdit, onDelete }: Transa
             className="fixed top-0 right-0 h-screen overflow-y-auto z-51 flex flex-col"
             style={{
               width: 320,
-              backgroundColor: "#1E293B",
-              borderLeft: "1px solid #334155",
+              backgroundColor: "var(--color-card)",
+              borderLeft: "1px solid var(--color-border)",
               padding: 20,
             }}
           >
             {/* Panel header */}
             <div className="flex items-center justify-between">
-              <span style={{ fontSize: 15, fontWeight: 600, color: "#F8FAFC" }}>Transaction Details</span>
+              <span style={{ fontSize: 15, fontWeight: 600, color: "var(--color-foreground)" }}>Transaction Details</span>
               <button
                 onClick={onClose}
                 className="flex items-center justify-center cursor-pointer transition-colors"
-                style={{ width: 28, height: 28, borderRadius: 6, color: "#94A3B8" }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#334155"; }}
+                style={{ width: 28, height: 28, borderRadius: 6, color: "var(--color-muted-foreground)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--color-muted)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
               >
                 <X className="size-4" />
@@ -75,16 +75,16 @@ export function TransactionDetailPanel({ tx, onClose, onEdit, onDelete }: Transa
                   width: 64,
                   height: 64,
                   borderRadius: 16,
-                  backgroundColor: "#0F172A",
-                  border: "1px solid #334155",
+                  backgroundColor: "var(--color-muted)",
+                  border: "1px solid var(--color-border)",
                 }}
               >
-                <Receipt className="size-7" style={{ color: "#64748B" }} />
+                <Receipt className="size-7" style={{ color: "var(--color-muted-foreground)" }} />
               </div>
             </div>
 
             {/* Merchant name */}
-            <div className="text-center mt-4" style={{ fontSize: 16, fontWeight: 500, color: "#F8FAFC" }}>
+            <div className="text-center mt-4" style={{ fontSize: 16, fontWeight: 500, color: "var(--color-foreground)" }}>
               {tx.description ?? "Untitled"}
             </div>
 
@@ -95,7 +95,7 @@ export function TransactionDetailPanel({ tx, onClose, onEdit, onDelete }: Transa
                 fontSize: 28,
                 fontWeight: 600,
                 fontFamily: "var(--font-hanken)",
-                color: tx.type === "INCOME" ? "#10B981" : tx.type === "EXPENSE" ? "#EF4444" : "#38BDF8",
+                color: tx.type === "INCOME" ? "var(--color-primary)" : tx.type === "EXPENSE" ? "var(--color-destructive)" : "var(--color-secondary)",
               }}
             >
               {tx.type === "INCOME" ? "+" : tx.type === "EXPENSE" ? "-" : ""}
@@ -107,8 +107,8 @@ export function TransactionDetailPanel({ tx, onClose, onEdit, onDelete }: Transa
               <div className="flex justify-center mt-3">
                 <span
                   style={{
-                    background: "rgba(249,115,22,0.15)",
-                    color: "#F97316",
+                    background: "rgba(137,80,36,0.10)",
+                    color: "var(--color-warning)",
                     borderRadius: 9999,
                     padding: "4px 12px",
                     fontSize: 12,
@@ -121,39 +121,39 @@ export function TransactionDetailPanel({ tx, onClose, onEdit, onDelete }: Transa
             )}
 
             {/* Details list */}
-            <div style={{ paddingTop: 20, borderTop: "1px solid #334155", marginTop: 20 }}>
+            <div style={{ paddingTop: 20, borderTop: "1px solid var(--color-border)", marginTop: 20 }}>
               {/* Status */}
-              <div className="flex justify-between" style={{ padding: "10px 0", borderBottom: "1px solid #1E293B" }}>
-                <span style={{ fontSize: 12, color: "#64748B", textTransform: "uppercase" }}>Status</span>
-                <span className="flex items-center gap-1.5" style={{ fontSize: 13, color: "#10B981" }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#10B981", display: "inline-block" }} />
+              <div className="flex justify-between" style={{ padding: "10px 0", borderBottom: "1px solid rgba(188,202,187,0.4)" }}>
+                <span style={{ fontSize: 12, color: "var(--color-muted-foreground)", textTransform: "uppercase" }}>Status</span>
+                <span className="flex items-center gap-1.5" style={{ fontSize: 13, color: "var(--color-primary)" }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "var(--color-primary)", display: "inline-block" }} />
                   Cleared
                 </span>
               </div>
 
               {/* Date */}
-              <div className="flex justify-between" style={{ padding: "10px 0", borderBottom: "1px solid #1E293B" }}>
-                <span style={{ fontSize: 12, color: "#64748B", textTransform: "uppercase" }}>Date</span>
-                <span style={{ fontSize: 13, color: "#F8FAFC" }}>{formatDate(tx.date)}</span>
+              <div className="flex justify-between" style={{ padding: "10px 0", borderBottom: "1px solid rgba(188,202,187,0.4)" }}>
+                <span style={{ fontSize: 12, color: "var(--color-muted-foreground)", textTransform: "uppercase" }}>Date</span>
+                <span style={{ fontSize: 13, color: "var(--color-foreground)" }}>{formatDate(tx.date)}</span>
               </div>
 
               {/* Wallet */}
-              <div className="flex justify-between" style={{ padding: "10px 0", borderBottom: "1px solid #1E293B" }}>
-                <span style={{ fontSize: 12, color: "#64748B", textTransform: "uppercase" }}>Wallet</span>
-                <span style={{ fontSize: 13, color: "#F8FAFC" }}>{tx.wallet?.name ?? "—"}</span>
+              <div className="flex justify-between" style={{ padding: "10px 0", borderBottom: "1px solid rgba(188,202,187,0.4)" }}>
+                <span style={{ fontSize: 12, color: "var(--color-muted-foreground)", textTransform: "uppercase" }}>Wallet</span>
+                <span style={{ fontSize: 13, color: "var(--color-foreground)" }}>{tx.wallet?.name ?? "—"}</span>
               </div>
 
               {/* Category */}
-              <div className="flex justify-between" style={{ padding: "10px 0", borderBottom: "1px solid #1E293B" }}>
-                <span style={{ fontSize: 12, color: "#64748B", textTransform: "uppercase" }}>Category</span>
-                <span style={{ fontSize: 13, color: "#F8FAFC" }}>{tx.category?.name ?? "—"}</span>
+              <div className="flex justify-between" style={{ padding: "10px 0", borderBottom: "1px solid rgba(188,202,187,0.4)" }}>
+                <span style={{ fontSize: 12, color: "var(--color-muted-foreground)", textTransform: "uppercase" }}>Category</span>
+                <span style={{ fontSize: 13, color: "var(--color-foreground)" }}>{tx.category?.name ?? "—"}</span>
               </div>
 
               {/* Installment progress */}
               {tx.isInstallment && (
-                <div className="flex justify-between" style={{ padding: "10px 0", borderBottom: "1px solid #1E293B" }}>
-                  <span style={{ fontSize: 12, color: "#64748B", textTransform: "uppercase" }}>Installment Progress</span>
-                  <span style={{ fontSize: 13, color: "#F8FAFC" }}>
+                <div className="flex justify-between" style={{ padding: "10px 0", borderBottom: "1px solid rgba(188,202,187,0.4)" }}>
+                  <span style={{ fontSize: 12, color: "var(--color-muted-foreground)", textTransform: "uppercase" }}>Installment Progress</span>
+                  <span style={{ fontSize: 13, color: "var(--color-foreground)" }}>
                     {tx.currentTerm ?? 0}/{tx.installmentMonths ?? "?"} months
                   </span>
                 </div>
@@ -162,19 +162,19 @@ export function TransactionDetailPanel({ tx, onClose, onEdit, onDelete }: Transa
 
             {/* Map placeholder */}
             <div className="mt-5">
-              <div style={{ fontSize: 11, color: "#64748B", textTransform: "uppercase", fontWeight: 600, marginBottom: 8 }}>
+              <div style={{ fontSize: 11, color: "var(--color-muted-foreground)", textTransform: "uppercase", fontWeight: 600, marginBottom: 8 }}>
                 MAP LOCATION
               </div>
               <div
                 className="flex items-center justify-center"
                 style={{
-                  backgroundColor: "#0F172A",
-                  border: "1px solid #334155",
+                  backgroundColor: "var(--color-muted)",
+                  border: "1px solid var(--color-border)",
                   borderRadius: 8,
                   height: 120,
                 }}
               >
-                <MapPin className="size-5" style={{ color: "#64748B" }} />
+                <MapPin className="size-5" style={{ color: "var(--color-muted-foreground)" }} />
               </div>
             </div>
 
@@ -182,16 +182,16 @@ export function TransactionDetailPanel({ tx, onClose, onEdit, onDelete }: Transa
             <div className="flex-1" />
 
             {/* Bottom actions */}
-            <div className="flex gap-2 pt-4 mt-4" style={{ borderTop: "1px solid #334155" }}>
+            <div className="flex gap-2 pt-4 mt-4" style={{ borderTop: "1px solid var(--color-border)" }}>
               <button
                 onClick={() => { onEdit(tx); onClose(); }}
                 className="flex-1 flex items-center justify-center gap-2 cursor-pointer transition-colors"
                 style={{
                   padding: 10,
-                  backgroundColor: "#334155",
-                  border: "1px solid #475569",
+                  backgroundColor: "var(--color-accent)",
+                  border: "1px solid var(--color-border)",
                   borderRadius: 4,
-                  color: "#F8FAFC",
+                  color: "var(--color-accent-foreground)",
                   fontSize: 13,
                   fontWeight: 500,
                 }}
@@ -204,10 +204,10 @@ export function TransactionDetailPanel({ tx, onClose, onEdit, onDelete }: Transa
                 className="flex-1 flex items-center justify-center gap-2 cursor-pointer transition-colors"
                 style={{
                   padding: 10,
-                  backgroundColor: "rgba(239,68,68,0.1)",
-                  border: "1px solid #EF4444",
+                  backgroundColor: "rgba(186,26,26,0.08)",
+                  border: "1px solid var(--color-destructive)",
                   borderRadius: 4,
-                  color: "#EF4444",
+                  color: "var(--color-destructive)",
                   fontSize: 13,
                   fontWeight: 500,
                 }}

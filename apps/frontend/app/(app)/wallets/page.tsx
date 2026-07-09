@@ -89,7 +89,7 @@ function ConnectAccountCard({ onClick }: { onClick: () => void }) {
         <p className="text-sm font-medium text-muted-foreground font-sans">
           Connect Account
         </p>
-        <p className="text-xs mt-1 text-[#3d4a3e] font-sans">
+        <p className="mt-1 text-xs font-sans text-muted-foreground">
           Bank, Card, or Investment
         </p>
       </div>
@@ -140,12 +140,38 @@ export default function WalletsPage() {
         icon: d.icon,
       });
     } catch (err) {
-      console.error("Gagal membuat wallet:", err);
+      console.error("Failed to create wallet:", err);
     }
   };
 
   return (
     <motion.div variants={pageVariants} initial="hidden" animate="visible" className="space-y-6">
+      <motion.section
+        variants={fadeUp}
+        className="surface-card flex flex-col gap-4 rounded-2xl border border-white/80 px-6 py-5 md:flex-row md:items-center md:justify-between"
+      >
+        <div className="flex-1">
+          <p className="font-mono text-[11px] tracking-[0.08em] text-primary">
+            WALLETS
+          </p>
+          <h1 className="mt-2 font-heading text-3xl font-bold tracking-[-0.02em] text-foreground">
+            Every asset and debt account in one ledger
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Filter by asset or debt, monitor total exposure, and keep every
+            wallet ready for fast transaction logging.
+          </p>
+        </div>
+        <div className="w-full shrink-0 md:w-auto">
+          <Button
+            onClick={() => setIsCustomModalOpen(true)}
+            className="h-9 w-full gap-2 rounded-lg bg-primary px-5 font-semibold text-primary-foreground md:w-auto"
+          >
+            <Plus className="size-4" /> Add New Wallet
+          </Button>
+        </div>
+      </motion.section>
+
       {/* Header Stats Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6">
         {/* Wallet Summary (Net Worth Card) */}
@@ -158,7 +184,7 @@ export default function WalletsPage() {
         {/* Total Debt Ratio Card — lighter surface (bg-accent) per mockup */}
         <motion.div
           variants={fadeUp}
-          className="relative overflow-hidden bg-accent border border-border rounded-xl p-5"
+          className="surface-card relative overflow-hidden rounded-2xl border border-white/80 bg-accent/80 p-5"
         >
           <p className="uppercase tracking-widest text-[11px] font-semibold text-muted-foreground font-mono">
             Total Debt Ratio
@@ -177,7 +203,7 @@ export default function WalletsPage() {
           <div className="mt-4 overflow-hidden h-1 rounded-full bg-muted">
             <motion.div
               className={`h-full rounded-full ${
-                agg.debtRatio > 50 ? "bg-destructive" : agg.debtRatio > 30 ? "bg-[#facc15]" : "bg-primary"
+                agg.debtRatio > 50 ? "bg-destructive" : agg.debtRatio > 30 ? "bg-[#895024]" : "bg-primary"
               }`}
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(agg.debtRatio, 100)}%` }}
@@ -190,7 +216,7 @@ export default function WalletsPage() {
               Safe threshold: &lt;30%
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-4 mt-5 pt-4 border-t border-[#1a1a1a]">
+          <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border/70 pt-4">
             <div>
               <p className="uppercase tracking-wider text-[11px] text-muted-foreground font-mono">
                 Total Outstanding
@@ -238,12 +264,6 @@ export default function WalletsPage() {
             <ArrowUpDown className="size-3.5" />
             Sort by Balance
           </button>
-          <Button
-            onClick={() => setIsCustomModalOpen(true)}
-            className="font-semibold h-9 px-5 gap-2 rounded-lg bg-primary text-primary-foreground"
-          >
-            <Plus className="size-4" /> Add New Wallet
-          </Button>
         </div>
       </motion.div>
 

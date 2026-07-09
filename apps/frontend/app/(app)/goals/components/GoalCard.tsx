@@ -21,7 +21,7 @@ export function GoalCard({ goal, onEdit }: GoalCardProps) {
 
   const handleDelete = () => {
     // ponytail: native confirm; swap for a styled Dialog if UX polish is requested
-    if (window.confirm(`Hapus goal "${goal.name}"?`)) {
+    if (window.confirm(`Delete goal "${goal.name}"?`)) {
       deleteGoal.mutate(goal.id);
     }
   };
@@ -49,15 +49,15 @@ export function GoalCard({ goal, onEdit }: GoalCardProps) {
           <button
             onClick={() => onEdit(goal)}
             aria-label={`Edit goal ${goal.name}`}
-            className="p-2 rounded-lg transition-colors hover:bg-[#141414] text-muted-foreground cursor-pointer"
+            className="p-2 rounded-lg transition-colors hover:bg-muted text-muted-foreground cursor-pointer"
           >
             <Pencil className="size-4" />
           </button>
           <button
             onClick={handleDelete}
             disabled={deleteGoal.isPending}
-            aria-label={`Hapus goal ${goal.name}`}
-            className="p-2 rounded-lg transition-colors hover:bg-[#141414] text-destructive disabled:opacity-50 cursor-pointer"
+            aria-label={`Delete goal ${goal.name}`}
+            className="p-2 rounded-lg transition-colors hover:bg-muted text-destructive disabled:opacity-50 cursor-pointer"
           >
             <Trash2 className="size-4" />
           </button>
@@ -87,7 +87,7 @@ export function GoalCard({ goal, onEdit }: GoalCardProps) {
           {complete && (
             <span className="flex items-center gap-1 text-[12px] font-semibold text-primary">
               <CheckCircle2 className="size-3.5" />
-              Tercapai
+              Reached
             </span>
           )}
         </div>

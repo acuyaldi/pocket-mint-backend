@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node 'C:\\Users\\ALDI\\Documents\\Dev\\pocket-mint\\.codex\\hooks\\check-tailwind-colors.js' 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
