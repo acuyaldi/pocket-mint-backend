@@ -154,6 +154,7 @@ Pocket Mint frontend is a **single Next.js App-Router application**, not a micro
 **Data hooks:** `useTransactions`, `useCreateTransaction`, `useUpdateTransaction`, `useDeleteTransaction` (transactions) · `useWallets` (wallets, for filter/labels).
 **Auth guard:** Supabase `createClient()` → redirect to `/login` if no user.
 **Cross-feature:** consumes `useWallets`; its `AddTransactionModal` is the component the **Dashboard** borrows.
+**Empty-state fallback:** when `wallets.length === 0`, `AddTransactionModal` hides the WALLET / SOURCE selector and renders a *"No wallets yet"* panel with an **Add Wallet** button (`useRouter().push("/wallets")` after closing the modal). The **Save Transaction** button is `disabled` in this state so no invalid payload reaches the backend. Normal form behaviour is unchanged once at least one wallet exists.
 
 ---
 
