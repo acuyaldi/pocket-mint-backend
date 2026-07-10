@@ -243,7 +243,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\ALDI\\Documents\\Dev\\pocket-mint\\src\\generated\\prisma",
+      "value": "C:\\Users\\ALDI\\Documents\\Dev\\pocket-mint-be\\src\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -257,7 +257,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\ALDI\\Documents\\Dev\\pocket-mint\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\Users\\ALDI\\Documents\\Dev\\pocket-mint-be\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
