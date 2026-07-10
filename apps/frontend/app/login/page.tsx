@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense, useActionState, useState } from "react";
+import { Suspense, useActionState, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 import {
   ArrowLeft,
   CalendarClock,
@@ -71,6 +72,9 @@ const accessHighlights = [
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// hCaptcha site key (public). Placeholder until provisioned in the env file.
+const HCAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY ?? "";
+
 function validateSignup(formData: FormData): string | null {
   const name = ((formData.get("name") as string) ?? "").trim();
   const email = ((formData.get("email") as string) ?? "").trim();
@@ -91,6 +95,16 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   // Confirmation shown after a reset-password email is dispatched.
   const [resetSent, setResetSent] = useState(false);
+  // hCaptcha response token; required before any credential submit is allowed.
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<HCaptcha>(null);
+
+  // Clear the current token and reset the widget so a fresh challenge is
+  // required (tokens are single-use; consumed on every submit attempt).
+  function resetCaptcha() {
+    captchaRef.current?.resetCaptcha();
+    setCaptchaToken(null);
+  }
 
   const isSignUp = authMode === "signup";
   const isForgot = authMode === "forgot";
@@ -114,6 +128,7 @@ function LoginForm() {
     setError(null);
     setShowPassword(false);
     setResetSent(false);
+    resetCaptcha();
   }
 
   // Forgot-password: mail a reset link via Supabase. Kept client-side per
@@ -132,12 +147,16 @@ function LoginForm() {
     const supabase = createClient();
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       email,
-      { redirectTo: `${window.location.origin}/auth/reset-password` }
+      {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+        captchaToken: captchaToken ?? undefined,
+      }
     );
 
     setLoading(false);
     if (resetError) {
       setError(resetError.message);
+      resetCaptcha();
       return;
     }
     setResetSent(true);
@@ -151,6 +170,8 @@ function LoginForm() {
 
     setLoading(true);
     setError(null);
+    // Forward the verified hCaptcha token to the Supabase auth server action.
+    formData.append("captchaToken", captchaToken ?? "");
 
     if (isSignUp) {
       const validationError = validateSignup(formData);
@@ -164,6 +185,7 @@ function LoginForm() {
       if (result?.error) {
         setError(result.error);
         setLoading(false);
+        resetCaptcha();
       }
       return;
     }
@@ -172,6 +194,7 @@ function LoginForm() {
     if (result?.error) {
       setError(result.error);
       setLoading(false);
+      resetCaptcha();
     }
   }
 
@@ -399,10 +422,21 @@ function LoginForm() {
                     </p>
                   ) : null}
 
+                  {/* Anti-bot gate: token required before the submit unlocks. */}
+                  <div className="flex justify-center">
+                    <HCaptcha
+                      ref={captchaRef}
+                      sitekey={HCAPTCHA_SITE_KEY}
+                      onVerify={(token) => setCaptchaToken(token)}
+                      onExpire={() => setCaptchaToken(null)}
+                      onError={() => setCaptchaToken(null)}
+                    />
+                  </div>
+
                   <Button
                     type="submit"
                     size="lg"
-                    disabled={busy}
+                    disabled={busy || !captchaToken}
                     className="h-11 w-full justify-center bg-primary text-primary-foreground hover:bg-primary/92"
                   >
                     {loading ? (

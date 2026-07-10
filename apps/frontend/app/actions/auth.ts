@@ -21,12 +21,15 @@ async function getOrigin(): Promise<string> {
 export async function login(formData: FormData) {
   const supabase = await createClient();
 
-  const data = {
+  // hCaptcha anti-bot token, forwarded from the client widget. Optional so
+  // callers without the widget (e.g. captcha disabled) still work.
+  const captchaToken = (formData.get("captchaToken") as string) || undefined;
+
+  const { error } = await supabase.auth.signInWithPassword({
     email: formData.get("email") as string,
     password: formData.get("password") as string,
-  };
-
-  const { error } = await supabase.auth.signInWithPassword(data);
+    options: { captchaToken },
+  });
 
   if (error) {
     return { error: error.message };
@@ -43,12 +46,16 @@ export async function signup(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const name = formData.get("name") as string;
+  // hCaptcha anti-bot token, forwarded from the client widget. Optional so
+  // callers without the widget (e.g. captcha disabled) still work.
+  const captchaToken = (formData.get("captchaToken") as string) || undefined;
 
   const { data: authData, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: { name },
+      captchaToken,
     },
   });
 
