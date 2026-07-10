@@ -23,8 +23,11 @@ async function netWorthSnapshot(userId: string) {
  */
 export const getAllWallets = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // userId disuntik oleh apiKeyAuth — jangan hardcode, create/list harus user yang sama
+    // userId disuntik oleh requireUser — jangan hardcode, create/list harus user yang sama
     const userId = (req as any).userId as string;
+    if (!userId) {
+      return sendError(res, 'Unauthorized', 401);
+    }
 
     const wallets = await prisma.wallet.findMany({
       where: { userId },
@@ -110,10 +113,17 @@ export const createWallet = async (req: Request, res: Response, next: NextFuncti
 export const updateWallet = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
+    const userId = (req as any).userId as string;
     const { name, type, balance, creditLimit, interestRate, adminFee, adminFeeType, icon, color, isArchived } = req.body;
 
     if (type && !VALID_WALLET_TYPES.includes(type)) {
       return sendError(res, `type must be one of: ${VALID_WALLET_TYPES.join(', ')}`, 400);
+    }
+
+    // Ownership check: refuse to touch a wallet that isn't the caller's.
+    const owned = await prisma.wallet.findFirst({ where: { id, userId }, select: { id: true } });
+    if (!owned) {
+      return sendError(res, `Wallet with id ${id} not found`, 404);
     }
 
     const wallet = await prisma.wallet.update({
@@ -149,8 +159,15 @@ export const updateWallet = async (req: Request<{ id: string }>, res: Response, 
 export const deleteWallet = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
+    const userId = (req as any).userId as string;
 
-    const txCount = await prisma.transaction.count({ where: { walletId: id } });
+    // Ownership check: refuse to delete a wallet that isn't the caller's.
+    const owned = await prisma.wallet.findFirst({ where: { id, userId }, select: { id: true } });
+    if (!owned) {
+      return sendError(res, `Wallet with id ${id} not found`, 404);
+    }
+
+    const txCount = await prisma.transaction.count({ where: { walletId: id, userId } });
     if (txCount > 0 && req.query.force !== 'true') {
       return sendError(res, `Wallet has ${txCount} transactions. Pass ?force=true to delete anyway.`, 409);
     }
@@ -178,10 +195,11 @@ export const getWalletSparkline = async (
 ) => {
   try {
     const { id } = req.params;
+    const userId = (req as any).userId as string;
 
-    // Verify wallet exists
+    // Verify wallet exists AND belongs to the caller
     const wallet = await prisma.wallet.findFirst({
-      where: { id },
+      where: { id, userId },
       select: { id: true, balance: true },
     });
     if (!wallet) {
@@ -190,7 +208,7 @@ export const getWalletSparkline = async (
 
     // Last 7 transactions (newest first)
     const recentTx = await prisma.transaction.findMany({
-      where: { walletId: id },
+      where: { walletId: id, userId },
       orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
       take: 7,
       select: { id: true, type: true, amount: true, date: true },

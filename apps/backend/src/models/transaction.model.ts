@@ -2,7 +2,7 @@ export type TransactionType = 'INCOME' | 'EXPENSE' | 'TRANSFER';
 
 // Payload untuk membuat transaksi baru (POST /api/v1/transactions)
 // userId & walletId bersifat opsional di body — bisa di-resolve otomatis oleh backend
-// (userId dari apiKeyAuth middleware via req.query, walletId dari wallet pertama user)
+// (userId dari requireUser middleware via req.userId, walletId dari wallet pertama user)
 export interface CreateTransactionDto {
   userId?: string;
   walletId?: string;

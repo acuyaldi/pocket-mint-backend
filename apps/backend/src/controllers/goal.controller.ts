@@ -75,6 +75,7 @@ export async function createGoal(req: Request, res: Response, next: NextFunction
 export async function updateGoal(req: Request<{ id: string }>, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    const userId = (req as any).userId as string;
     const { name, targetAmount, savedAmount, deadline } = req.body;
 
     if (targetAmount !== undefined && (isNaN(Number(targetAmount)) || Number(targetAmount) <= 0)) {
@@ -89,6 +90,12 @@ export async function updateGoal(req: Request<{ id: string }>, res: Response, ne
       if (parsedDeadline && isNaN(parsedDeadline.getTime())) {
         return sendError(res, 'deadline must be a valid date (e.g. YYYY-MM-DD)', 400);
       }
+    }
+
+    // Ownership check: refuse to touch a goal that isn't the caller's.
+    const owned = await prisma.goal.findFirst({ where: { id, userId }, select: { id: true } });
+    if (!owned) {
+      return sendError(res, `Goal with id ${id} not found`, 404);
     }
 
     const goal = await prisma.goal.update({
@@ -116,6 +123,14 @@ export async function updateGoal(req: Request<{ id: string }>, res: Response, ne
 export async function deleteGoal(req: Request<{ id: string }>, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    const userId = (req as any).userId as string;
+
+    // Ownership check: refuse to delete a goal that isn't the caller's.
+    const owned = await prisma.goal.findFirst({ where: { id, userId }, select: { id: true } });
+    if (!owned) {
+      return sendError(res, `Goal with id ${id} not found`, 404);
+    }
+
     await prisma.goal.delete({ where: { id } });
     sendSuccess(res, { id }, `Goal ${id} deleted successfully`);
   } catch (err) {

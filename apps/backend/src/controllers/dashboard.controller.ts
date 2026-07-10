@@ -7,7 +7,7 @@ import { getUserNetWorth } from '../utils/financial';
  */
 export const getDashboardSummary = async (req: Request, res: Response) => {
   try {
-    // userId disuntik oleh apiKeyAuth — harus konsisten dengan endpoint lain
+    // userId disuntik oleh requireUser — harus konsisten dengan endpoint lain
     const userId = (req as any).userId as string;
 
     const { totalAset, totalUtang, netWorth } = await getUserNetWorth(userId);

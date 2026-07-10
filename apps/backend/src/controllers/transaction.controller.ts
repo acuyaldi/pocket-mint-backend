@@ -51,7 +51,9 @@ export class TransactionController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { userId, walletId, type, limit, month, year } = req.query;
+      // userId is injected by requireUser — always scope to the caller, never trust query.
+      const userId = (req as any).userId as string;
+      const { walletId, type, limit, month, year } = req.query;
 
       if (type && !VALID_TYPES.includes(type)) {
         return sendError(res, `Invalid type. Allowed: ${VALID_TYPES.join(', ')}`, 400);
@@ -64,7 +66,7 @@ export class TransactionController {
 
       const transactions = await prisma.transaction.findMany({
         where: {
-          ...(userId && { userId }),
+          userId,
           ...(walletId && { walletId }),
           ...(type && { type: type as TransactionType }),
           // Current-month filter
@@ -139,7 +141,9 @@ export class TransactionController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { userId, walletId, type, limit } = req.query;
+      // userId is injected by requireUser — always scope to the caller, never trust query.
+      const userId = (req as any).userId as string;
+      const { walletId, type, limit } = req.query;
 
       if (type && !VALID_TYPES.includes(type)) {
         return sendError(res, `Invalid type. Allowed: ${VALID_TYPES.join(', ')}`, 400);
@@ -149,7 +153,7 @@ export class TransactionController {
 
       const transactions = await prisma.transaction.findMany({
         where: {
-          ...(userId && { userId }),
+          userId,
           ...(walletId && { walletId }),
           ...(type && { type: type as TransactionType }),
         },
@@ -234,15 +238,23 @@ export class TransactionController {
 
       const numAmount = Number(amount);
 
-      // ---- Validate wallet exists ----
-      const wallet = await prisma.wallet.findUnique({ where: { id: walletId } });
+      // ---- Validate wallet exists AND belongs to the caller ----
+      const wallet = await prisma.wallet.findFirst({ where: { id: walletId, userId } });
       if (!wallet) {
         return sendError(res, 'Wallet tidak ditemukan', 404);
       }
 
-      // ---- Validate category exists (if provided) ----
+      // ---- Validate transfer destination belongs to the caller ----
+      if (type === 'TRANSFER' && toWalletId) {
+        const toWallet = await prisma.wallet.findFirst({ where: { id: toWalletId, userId }, select: { id: true } });
+        if (!toWallet) {
+          return sendError(res, 'Wallet tujuan tidak ditemukan', 404);
+        }
+      }
+
+      // ---- Validate category exists (if provided) AND belongs to the caller ----
       if (categoryId) {
-        const category = await prisma.category.findUnique({ where: { id: categoryId } });
+        const category = await prisma.category.findFirst({ where: { id: categoryId, userId } });
         if (!category) {
           return sendError(res, 'Kategori tidak ditemukan', 404);
         }
@@ -436,10 +448,19 @@ export class TransactionController {
         }
       }
 
-      // Fetch the existing transaction to compute balance delta
-      const existing = await prisma.transaction.findUnique({ where: { id } });
+      // Fetch the existing transaction (scoped to caller) to compute balance delta
+      const userId = (req as any).userId as string;
+      const existing = await prisma.transaction.findFirst({ where: { id, userId } });
       if (!existing) {
         return sendError(res, `Transaction with id ${id} not found`, 404);
+      }
+
+      // If moving to a different wallet, that wallet must also belong to the caller.
+      if (walletId) {
+        const targetWallet = await prisma.wallet.findFirst({ where: { id: walletId, userId }, select: { id: true } });
+        if (!targetWallet) {
+          return sendError(res, 'Wallet tidak ditemukan', 404);
+        }
       }
 
       const newType   = (type ?? existing.type) as TransactionType;
@@ -500,8 +521,9 @@ export class TransactionController {
   ): Promise<void> {
     try {
       const { id } = req.params;
+      const userId = (req as any).userId as string;
 
-      const existing = await prisma.transaction.findUnique({ where: { id } });
+      const existing = await prisma.transaction.findFirst({ where: { id, userId } });
       if (!existing) {
         return sendError(res, `Transaction with id ${id} not found`, 404);
       }

@@ -1,22 +1,22 @@
 import { Router } from 'express';
 import { getAllWallets, createWallet, updateWallet, deleteWallet, getWalletSparkline } from '../controllers/account.controller';
-import { apiKeyAuth } from '../middleware/apiKeyAuth';
+import { requireUser } from '../middleware/apiKeyAuth';
 
 const walletRouter = Router();
 
 // GET /api/v1/wallets
-walletRouter.get('/', apiKeyAuth, getAllWallets);
+walletRouter.get('/', requireUser, getAllWallets);
 
 // GET /api/v1/wallets/:id/sparkline
-walletRouter.get('/:id/sparkline', apiKeyAuth, getWalletSparkline);
+walletRouter.get('/:id/sparkline', requireUser, getWalletSparkline);
 
 // POST /api/v1/wallets
-walletRouter.post('/', apiKeyAuth, createWallet);
+walletRouter.post('/', requireUser, createWallet);
 
 // PUT /api/v1/wallets/:id
-walletRouter.put('/:id', apiKeyAuth, updateWallet);
+walletRouter.put('/:id', requireUser, updateWallet);
 
 // DELETE /api/v1/wallets/:id
-walletRouter.delete('/:id', apiKeyAuth, deleteWallet);
+walletRouter.delete('/:id', requireUser, deleteWallet);
 
 export { walletRouter };
