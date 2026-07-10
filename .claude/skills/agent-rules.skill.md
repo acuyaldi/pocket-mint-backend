@@ -35,9 +35,11 @@ Before any task, read in this order:
 - Positive = `text-[#4ade80]`, Negative = `text-[#ffb4ab]`
 - Loading state required for every data-fetching component
 
-### Git & Pull Request Conventions
-- **Target Branch:** Setiap kali membuat, mengonfigurasi, atau mengotomatisasi Pull Request (PR) dalam repositori ini, Agent **WAJIB** menetapkan target branch ke `dev`. 
-- **Pengecualian:** JANGAN PERNAH mengarahkan target branch langsung ke `main` kecuali ada instruksi tertulis eksplisit dari pengguna untuk perubahan hotfix produksi.
+### Git & Pull Request Conventions (Staging vs Production)
+- **Branch Roles:** Branch `master` adalah Production (Live App) dan branch `dev` adalah Staging (Development/Testing).
+- **Feature Branching:** Setiap kali mulai mengerjakan task baru, Agent **WAJIB** membuat branch baru dari base `dev` (misal: `feature/nama-fitur` atau `fix/nama-bug`). JANGAN PERNAH commit atau push langsung ke branch `dev` atau `master`.
+- **Target Pull Request:** Saat membuat Pull Request (PR), pastikan source branch-nya adalah branch fitur baru tersebut, dan **TARGET BRANCH-nya HARUS `dev` (Staging)**.
+- **Pengecualian:** JANGAN PERNAH menargetkan PR ke branch `master` kecuali ada perintah tertulis eksplisit dari pengguna untuk kebutuhan rilis hotfix produksi.
 
 ### Documentation Maintenance
 - **Automated Audit Update:** Setiap kali Agent melakukan modifikasi, penambahan, atau penghapusan file halaman baru di dalam direktori `apps/frontend/app/` atau mengubah struktur komponen utama, Agent **WAJIB** langsung memperbarui berkas peta fitur di `docs/audit.md`.
@@ -53,7 +55,8 @@ A task is DONE only when:
 - [ ] No regressions to existing features
 
 ## Common Mistakes to Avoid
-- Menargetkan Pull Request (PR) ke branch `main` (seharusnya selalu ke `dev`).
+- **SALAH ALUR GIT:** Membuat Pull Request langsung menuju branch `master` (Alur yang benar: Bikin branch dari `dev`, push, lalu buat PR dengan target merge ke `dev`).
+- Melakukan commit atau push langsung (*direct push*) ke branch `dev` atau `master`.
 - Lupa mengupdate berkas `docs/audit.md` setelah selesai melakukan tweak/refactor komponen halaman frontend.
 - Starting frontend before backend is ready
 - Forgetting to recalculate net worth after wallet mutation

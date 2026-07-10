@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useCallback, FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Loader2, ArrowDownLeft, ArrowUpRight, ArrowLeftRight,
-  CreditCard, RefreshCw, HandCoins,
+  CreditCard, RefreshCw, HandCoins, Wallet as WalletIcon, Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -153,7 +154,11 @@ export function AddTransactionModal({
   const [adminFeeOverride, setAdminFeeOverride] = useState<string | null>(null); // % dari pokok, sekali bayar (belum dikirim ke backend)
   const [error, setError] = useState("");
 
+  const router = useRouter();
   const { data: paylaterRates } = usePaylaterRates();
+
+  // No wallets yet → block transaction creation and offer a redirect to /wallets
+  const hasNoWallets = wallets.length === 0;
 
   const activeOpt = TYPE_OPTIONS.find((o) => o.type === type)!;
   const selectedWallet = wallets.find((w) => w.id === walletId);
@@ -181,6 +186,12 @@ export function AddTransactionModal({
   const handleClose = useCallback(() => {
     if (!isCreating) onClose();
   }, [isCreating, onClose]);
+
+  // Close the modal, then send the user to the Wallets page to create one
+  const handleAddWallet = useCallback(() => {
+    onClose();
+    router.push("/wallets");
+  }, [onClose, router]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -388,8 +399,40 @@ export function AddTransactionModal({
 
                 {/* Form fields */}
                 <div className="px-5 pb-4 space-y-4">
-                  {/* Wallet selector */}
-                  {type === "TRANSFER" || type === "PAY_DEBT" ? (
+                  {/* Wallet selector — or an empty-state redirect when the user has no wallets */}
+                  {hasNoWallets ? (
+                    <div
+                      className="rounded-xl px-4 py-5 flex flex-col items-center text-center gap-3"
+                      style={{ backgroundColor: "var(--color-input)", border: "1px solid var(--color-border)" }}
+                    >
+                      <div
+                        className="size-10 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: "rgba(0,109,54,0.06)" }}
+                      >
+                        <WalletIcon className="size-5" style={{ color: "var(--color-primary)" }} />
+                      </div>
+                      <div>
+                        <p
+                          className="text-sm font-medium"
+                          style={{ color: "var(--color-foreground)", fontFamily: "var(--font-inter)" }}
+                        >
+                          No wallets yet
+                        </p>
+                        <p className="text-xs mt-1" style={{ color: "var(--color-muted-foreground)" }}>
+                          Create a wallet first before logging a transaction.
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={handleAddWallet}
+                        className="h-9 px-4 text-sm font-semibold gap-2 cursor-pointer"
+                        style={{ backgroundColor: "var(--color-primary)", color: "var(--color-primary-foreground)" }}
+                      >
+                        <Plus className="size-4" />
+                        Add Wallet
+                      </Button>
+                    </div>
+                  ) : type === "TRANSFER" || type === "PAY_DEBT" ? (
                     <>
                       <div>
                         <p
@@ -698,8 +741,8 @@ export function AddTransactionModal({
                   </Button>
                   <Button
                     type="submit"
-                    disabled={isCreating}
-                    className="flex-1 h-10 text-sm font-semibold gap-2 cursor-pointer"
+                    disabled={isCreating || hasNoWallets}
+                    className="flex-1 h-10 text-sm font-semibold gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ backgroundColor: "var(--color-primary)", color: "var(--color-primary-foreground)" }}
                   >
                     {isCreating ? (

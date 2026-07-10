@@ -31,28 +31,8 @@ model User {
   transactions Transaction[]
   installments Installment[]
   transfers    Transfer[]
-  goals        Goal[]
 
   @@map("users")
-}
-
-// ─────────────────────────────────────────────
-// GOAL  (target tabungan)
-// ─────────────────────────────────────────────
-model Goal {
-  id           String    @id @default(cuid())
-  userId       String    @map("user_id")
-  name         String
-  targetAmount Decimal   @map("target_amount") @db.Decimal(15, 2)
-  savedAmount  Decimal   @default(0) @map("saved_amount") @db.Decimal(15, 2)
-  deadline     DateTime?
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@map("goals")
 }
 
 // ─────────────────────────────────────────────

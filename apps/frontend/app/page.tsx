@@ -7,7 +7,8 @@ import {
   Webhook,
 } from "lucide-react";
 import { PocketMintLogo } from "@/components/Logo";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const capabilityCards = [
   {
@@ -41,19 +42,24 @@ export default function LandingPage() {
         <header className="surface-card sticky top-4 z-20 flex items-center justify-between gap-3 rounded-2xl border border-white/70 px-4 py-3 backdrop-blur sm:px-6 sm:py-4">
           <PocketMintLogo />
           <div className="flex shrink-0 items-center gap-2">
-            <Button
-              render={<Link href="/login" />}
-              variant="outline"
-              className="hidden border-border/80 bg-white/70 px-4 sm:inline-flex"
+            <Link
+              href="/login"
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "hidden border-border/80 bg-white/70 px-4 sm:inline-flex"
+              )}
             >
               Sign In
-            </Button>
-            <Button
-              render={<Link href="/login" />}
-              className="bg-primary px-4 text-primary-foreground hover:bg-primary/92"
+            </Link>
+            <Link
+              href="/login"
+              className={cn(
+                buttonVariants(),
+                "bg-primary px-4 text-primary-foreground hover:bg-primary/92"
+              )}
             >
               Get Started
-            </Button>
+            </Link>
           </div>
         </header>
 
@@ -79,22 +85,25 @@ export default function LandingPage() {
                 </p>
 
                 <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-                  <Button
-                    render={<Link href="/login" />}
-                    size="lg"
-                    className="h-11 min-w-52 justify-between bg-primary px-4 text-primary-foreground hover:bg-primary/92"
+                  <Link
+                    href="/login"
+                    className={cn(
+                      buttonVariants({ size: "lg" }),
+                      "h-11 min-w-52 justify-between bg-primary px-4 text-primary-foreground hover:bg-primary/92"
+                    )}
                   >
                     <span>Get Started</span>
                     <ArrowRight className="size-4" />
-                  </Button>
-                  <Button
-                    render={<Link href="/login" />}
-                    size="lg"
-                    variant="outline"
-                    className="h-11 justify-center border-border/80 bg-white/70 px-6"
+                  </Link>
+                  <Link
+                    href="/login"
+                    className={cn(
+                      buttonVariants({ size: "lg", variant: "outline" }),
+                      "h-11 justify-center border-border/80 bg-white/70 px-6"
+                    )}
                   >
                     Sign In
-                  </Button>
+                  </Link>
                 </div>
               </div>
 

@@ -69,7 +69,7 @@ Cards must be "breathable" — no cramped padding, no information overload per c
                    Wallet cards grid (2 col)
                    Recent Transactions
                                           Monthly P&L
-                                          Goals / Debt Ratio
+                                          Debt Ratio
 ```
 
 ## Stitch Alignment Checklist

@@ -41,48 +41,7 @@ Rules:
 
 ---
 
-## 2. Goals Feature (New — Backend + Frontend)
-
-### Backend
-
-New Prisma model:
-```prisma
-model Goal {
-  id          String   @id @default(cuid())
-  userId      String
-  name        String
-  targetAmount Float
-  savedAmount  Float   @default(0)
-  deadline    DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id])
-}
-```
-
-Endpoints:
-- `POST /goals` — create goal
-- `GET /goals` — list goals for user
-- `PUT /goals/:id` — update savedAmount or name
-- `DELETE /goals/:id`
-
-### Frontend
-
-New menu entry: **Goals** in sidebar (between Transactions and Installments).
-
-Goals page (`/goals`):
-- List all active goals
-- Progress bar: `savedAmount / targetAmount * 100`
-- Add Goal button → modal with: name, targetAmount, deadline (optional)
-- Mark as complete when savedAmount >= targetAmount
-
-Dashboard widget (right sidebar):
-- Show **next major goal** = goal closest to deadline or highest progress
-- Display: name, savedAmount, targetAmount, progress bar
-
----
-
-## 3. Fix Active Installments on Dashboard
+## 2. Fix Active Installments on Dashboard
 
 Dashboard must show installments where `paidMonths < totalMonths`.
 
@@ -95,7 +54,7 @@ Frontend:
 
 ---
 
-## 4. Monthly P&L Reset
+## 3. Monthly P&L Reset
 
 P&L = income minus expenses, scoped to current calendar month.
 
@@ -114,13 +73,11 @@ Frontend:
 
 ---
 
-## 5. Implementation Order
+## 4. Implementation Order
 
 1. Fix port conflict → confirm backend starts
 2. Wallet CRUD fixes → test each endpoint
-3. Run `npx prisma migrate dev` for Goal model
-4. Goals endpoints → Goals page → Dashboard widget
-5. Active installments query → dashboard render
-6. P&L summary endpoint → dashboard widget
+3. Active installments query → dashboard render
+4. P&L summary endpoint → dashboard widget
 
 After each step, confirm: API returns correct data, no TypeScript errors, no regressions.

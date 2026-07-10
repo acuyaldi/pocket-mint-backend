@@ -5,7 +5,6 @@ import { userRouter } from './user.routes';
 import { walletRouter } from './walletRoutes';
 import { dashboardRouter } from './dashboardRoutes';
 import { installmentRouter } from './installmentRoutes';
-import { goalRouter } from './goalRoutes';
 
 const router = Router();
 
@@ -18,6 +17,5 @@ router.use('/v1/transactions', transactionRouter);
 router.use('/v1/wallets', walletRouter);
 router.use('/v1/users', userRouter);
 router.use('/v1/installments', installmentRouter);
-router.use('/v1/goals', goalRouter);
 
 export { router };
