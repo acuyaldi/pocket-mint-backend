@@ -1,11 +1,11 @@
+// `./config` loads dotenv (side effect) and parses/validates env before any
+// other module reads process.env, so it must be imported first.
+import { serverConfig, validateConfig } from './config';
 import app from './app';
-import dotenv from 'dotenv';
 
-dotenv.config();
+validateConfig();
 
-const PORT = process.env.PORT || 5001;
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📦 Environment: ${process.env.NODE_ENV || 'development'}`);
+app.listen(serverConfig.port, () => {
+  console.log(`🚀 Server running on http://localhost:${serverConfig.port}`);
+  console.log(`📦 Environment: ${serverConfig.nodeEnv}`);
 });

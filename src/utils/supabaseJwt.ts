@@ -1,42 +1,46 @@
-import { jwtVerify, createRemoteJWKSet, type JWTPayload } from 'jose';
+import { jwtVerify, createRemoteJWKSet, type JWTPayload, type JWTVerifyOptions } from 'jose';
+import { authConfig } from '../config';
 
 /**
  * Supabase JWT verification.
  *
  * Supports both key models Supabase offers:
- *  - Legacy shared HS256 secret  -> SUPABASE_JWT_SECRET
- *  - Modern asymmetric signing keys (JWKS) -> derived from SUPABASE_URL
+ *  - Legacy shared HS256 secret        -> SUPABASE_JWT_SECRET
+ *  - Modern asymmetric signing keys    -> JWKS derived from SUPABASE_URL
  *
- * When neither is configured, verification is disabled and callers fall back
- * to the legacy header-based identity path (see `requireUser`).
+ * All configuration comes from the central `authConfig` (no direct env reads).
+ * When neither key source is configured, verification is disabled and callers
+ * fall back to the legacy header-based identity path (see `requireUser`).
  */
 
-const jwtSecret = process.env.SUPABASE_JWT_SECRET?.trim();
-const hsKey = jwtSecret ? new TextEncoder().encode(jwtSecret) : null;
+const { secret, supabaseUrl, audience, issuer } = authConfig.jwt;
 
-const supabaseUrl = process.env.SUPABASE_URL?.trim().replace(/\/+$/, '');
+const hsKey = secret ? new TextEncoder().encode(secret) : null;
 const jwks = supabaseUrl
   ? createRemoteJWKSet(new URL(`${supabaseUrl}/auth/v1/.well-known/jwks.json`))
   : null;
 
 /** True when at least one verification key source is configured. */
-export const jwtVerificationConfigured = Boolean(hsKey || jwks);
+export const jwtVerificationConfigured = authConfig.jwt.configured;
 
-/** Supabase user access tokens are issued with this audience. */
-const AUDIENCE = 'authenticated';
+/** `aud` is always checked; `iss` only when configured/derivable. */
+const verifyOptions: JWTVerifyOptions = {
+  audience,
+  ...(issuer ? { issuer } : {}),
+};
 
 /**
  * Verify a Supabase access token and return the authenticated user's id
  * (the `sub` claim, which equals the backend `User.id`). Returns null for any
- * invalid, expired, or unverifiable token — never throws.
+ * invalid, expired, wrong-audience/issuer, or unverifiable token — never throws.
  */
 export async function verifySupabaseJwt(token: string): Promise<string | null> {
   try {
     let payload: JWTPayload;
     if (jwks) {
-      ({ payload } = await jwtVerify(token, jwks, { audience: AUDIENCE }));
+      ({ payload } = await jwtVerify(token, jwks, verifyOptions));
     } else if (hsKey) {
-      ({ payload } = await jwtVerify(token, hsKey, { audience: AUDIENCE }));
+      ({ payload } = await jwtVerify(token, hsKey, verifyOptions));
     } else {
       return null;
     }

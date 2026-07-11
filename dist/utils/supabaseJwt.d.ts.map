@@ -1,1 +1,1 @@
-{"version":3,"file":"supabaseJwt.d.ts","sourceRoot":"","sources":["../../src/utils/supabaseJwt.ts"],"names":[],"mappings":"AAqBA,oEAAoE;AACpE,eAAO,MAAM,yBAAyB,SAAyB,CAAC;AAKhE;;;;GAIG;AACH,wBAAsB,iBAAiB,CAAC,KAAK,EAAE,MAAM,GAAG,OAAO,CAAC,MAAM,GAAG,IAAI,CAAC,CAc7E"}
+{"version":3,"file":"supabaseJwt.d.ts","sourceRoot":"","sources":["../../src/utils/supabaseJwt.ts"],"names":[],"mappings":"AAsBA,oEAAoE;AACpE,eAAO,MAAM,yBAAyB,SAA4B,CAAC;AAQnE;;;;GAIG;AACH,wBAAsB,iBAAiB,CAAC,KAAK,EAAE,MAAM,GAAG,OAAO,CAAC,MAAM,GAAG,IAAI,CAAC,CAc7E"}

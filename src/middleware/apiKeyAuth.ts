@@ -1,19 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../lib/prisma';
-import { verifySupabaseJwt, jwtVerificationConfigured } from '../utils/supabaseJwt';
+import { verifySupabaseJwt } from '../utils/supabaseJwt';
+import { authConfig, verifyApiKey } from '../config';
+import { recordLegacyAuthUsage } from '../utils/logger';
 
 /**
- * When 'true', a verified Supabase JWT is mandatory and the legacy
- * self-asserted header identity path is disabled. Defaults to off so the
- * frontend can migrate to Bearer tokens without a breaking change.
+ * Authentication method resolved for a request.
+ *  - `jwt`             : identity proven by a verified Supabase JWT (`sub`).
+ *  - `legacy-api-key`  : DEPRECATED shared API key + self-asserted `x-user-id`.
  */
-const requireJwt = process.env.AUTH_REQUIRE_JWT === 'true';
-
-/** Validate the shared API key. Returns true when it matches the configured key. */
-function checkApiKey(req: Request): boolean {
-  const apiKey = req.headers['x-api-key'];
-  return Boolean(apiKey) && apiKey === process.env.API_KEY;
-}
+export type AuthMethod = 'jwt' | 'legacy-api-key';
 
 /** Normalize a header value that may arrive as string | string[] | undefined. */
 function headerValue(v: string | string[] | undefined): string | undefined {
@@ -27,9 +23,15 @@ function bearerToken(header: string | undefined): string | undefined {
   return scheme?.toLowerCase() === 'bearer' && value ? value.trim() : undefined;
 }
 
+/** Uniform 401 in the existing `{ error }` shape (preserves current frontend contract). */
+function unauthorized(res: Response, message: string): void {
+  res.status(401).json({ error: message });
+}
+
 /** Inject the resolved, trusted user id for downstream controllers, then continue. */
-function injectUser(req: Request, userId: string, next: NextFunction): void {
+function injectUser(req: Request, userId: string, method: AuthMethod, next: NextFunction): void {
   (req as any).userId = userId;
+  (req as any).authMethod = method;
   if (!req.body) req.body = {};
   req.body.userId = userId;
   (req.query as any).userId = userId;
@@ -42,8 +44,8 @@ function injectUser(req: Request, userId: string, next: NextFunction): void {
  * (e.g. POST /users/sync during signup).
  */
 export function apiKeyAuth(req: Request, res: Response, next: NextFunction) {
-  if (!checkApiKey(req)) {
-    return res.status(401).json({ error: 'Invalid or missing API key' });
+  if (!verifyApiKey(headerValue(req.headers['x-api-key']))) {
+    return unauthorized(res, 'Invalid or missing API key');
   }
   next();
 }
@@ -51,54 +53,60 @@ export function apiKeyAuth(req: Request, res: Response, next: NextFunction) {
 /**
  * API-key gate + authenticated-user resolution.
  *
- * Identity is established in order of trust:
- *   1. A verified Supabase JWT (`Authorization: Bearer <token>`). The user id is
- *      taken from the cryptographically verified `sub` claim — it cannot be
- *      spoofed. Used whenever JWT verification is configured (see supabaseJwt).
- *   2. Legacy fallback: the self-asserted `x-user-id` header (Supabase UID ===
- *      backend User.id via /users/sync), then `x-user-email`. This path trusts
- *      the caller and exists only so the frontend can migrate to Bearer tokens
- *      without a breaking change. Set AUTH_REQUIRE_JWT=true to disable it once
- *      the frontend sends tokens.
+ * Authentication decision tree (strict — the order below is the contract):
+ *
+ *   1. An `Authorization: Bearer <token>` was supplied → treated as a JWT login.
+ *        - verify it → success: identity is the verified `sub` claim.
+ *        - failure (invalid/expired/unverifiable) → 401. NEVER falls back to
+ *          the legacy header path. A bearer token is authoritative; any
+ *          `x-user-id` on the same request is ignored.
+ *   2. No bearer token and AUTH_REQUIRE_JWT=true → 401 (legacy path disabled).
+ *   3. No bearer token and compatibility mode (AUTH_REQUIRE_JWT=false):
+ *        DEPRECATED legacy path — validate the shared API key, then resolve the
+ *        self-asserted `x-user-id` / `x-user-email` header. This trusts the
+ *        caller and exists only so the frontend can migrate to Bearer tokens
+ *        without a breaking change. Remove once migration completes.
  *
  * The resolved id is injected into req.userId / req.body.userId /
  * req.query.userId, overwriting any client-supplied value so downstream
  * controllers can never be handed a spoofed userId.
  *
- * SECURITY: this NEVER falls back to a shared/default user. A request without a
- * valid, known user identity is rejected.
+ * SECURITY: this NEVER falls back to a shared/default user.
  */
 export async function requireUser(req: Request, res: Response, next: NextFunction) {
-  if (!checkApiKey(req)) {
-    return res.status(401).json({ error: 'Invalid or missing API key' });
-  }
-
   try {
-    // 1. Preferred: cryptographically verified Supabase JWT.
     const token = bearerToken(req.headers.authorization);
-    if (token && jwtVerificationConfigured) {
+
+    // 1. Bearer token present → JWT login attempt, authoritative, no fallback.
+    if (token) {
       const verifiedUserId = await verifySupabaseJwt(token);
-      if (verifiedUserId) {
-        const user = await prisma.user.findUnique({ where: { id: verifiedUserId }, select: { id: true } });
-        if (!user) {
-          return res.status(401).json({ error: 'Unknown user' });
-        }
-        return injectUser(req, user.id, next);
+      if (!verifiedUserId) {
+        return unauthorized(res, 'Invalid or expired token');
       }
-      // Token supplied but invalid/expired.
-      if (requireJwt) {
-        return res.status(401).json({ error: 'Invalid or expired token' });
+      const user = await prisma.user.findUnique({
+        where: { id: verifiedUserId },
+        select: { id: true },
+      });
+      if (!user) {
+        return unauthorized(res, 'Unknown user');
       }
-    } else if (requireJwt) {
-      return res.status(401).json({ error: 'Missing bearer token' });
+      return injectUser(req, user.id, 'jwt', next);
     }
 
-    // 2. Legacy fallback: self-asserted header identity (temporary; see docblock).
+    // 2. No bearer token and JWT-only mode → reject.
+    if (authConfig.requireJwt) {
+      return unauthorized(res, 'Missing bearer token');
+    }
+
+    // 3. DEPRECATED legacy compatibility path: API key + self-asserted identity.
+    if (!verifyApiKey(headerValue(req.headers['x-api-key']))) {
+      return unauthorized(res, 'Invalid or missing API key');
+    }
+
     const headerUserId = headerValue(req.headers['x-user-id']);
     const headerEmail = headerValue(req.headers['x-user-email']);
-
     if (!headerUserId && !headerEmail) {
-      return res.status(401).json({ error: 'Missing user identity (x-user-id header)' });
+      return unauthorized(res, 'Missing user identity (x-user-id header)');
     }
 
     let user: { id: string } | null = null;
@@ -108,12 +116,12 @@ export async function requireUser(req: Request, res: Response, next: NextFunctio
     if (!user && headerEmail) {
       user = await prisma.user.findUnique({ where: { email: headerEmail }, select: { id: true } });
     }
-
     if (!user) {
-      return res.status(401).json({ error: 'Unknown user' });
+      return unauthorized(res, 'Unknown user');
     }
 
-    return injectUser(req, user.id, next);
+    recordLegacyAuthUsage();
+    return injectUser(req, user.id, 'legacy-api-key', next);
   } catch (err) {
     console.error('requireUser middleware error:', err);
     return res.status(500).json({ error: 'Internal server error' });
