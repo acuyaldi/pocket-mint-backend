@@ -156,3 +156,31 @@ describe('requireUser — legacy compatibility path', () => {
     expect(findUnique).not.toHaveBeenCalled();
   });
 });
+
+describe('requireUser — uniform failure response (S11)', () => {
+  const UNIFORM = {
+    success: false,
+    error: { code: 'UNAUTHORIZED', message: 'Invalid or missing authentication credentials' },
+  };
+
+  it('returns the identical body for every JWT failure variant', async () => {
+    const app = await buildApp();
+    const expired = await mint(validClaims, '-1h');
+    const wrongAud = await mint({ sub: 'u1', aud: 'anon', iss: ISSUER });
+    const bodies = await Promise.all(
+      [expired, 'not.a.jwt', `${expired}xyz`, wrongAud].map((t) =>
+        request(app).get('/protected').set('Authorization', `Bearer ${t}`).then((r) => r.body)
+      )
+    );
+    for (const body of bodies) expect(body).toEqual(UNIFORM);
+  });
+
+  it('returns that same body for an API-key failure — indistinguishable from a JWT failure', async () => {
+    const app = await buildApp();
+    const res = await request(app)
+      .get('/protected')
+      .set('x-api-key', 'wrong-key')
+      .set('x-user-id', 'u1');
+    expect(res.body).toEqual(UNIFORM);
+  });
+});
