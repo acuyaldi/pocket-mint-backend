@@ -4,7 +4,7 @@ import { Request, Response, NextFunction } from 'express';
  * Returns list of wallets for the authenticated user,
  * with computed fields: sisa_limit & outstanding_debt for DEBT wallets.
  */
-export declare const getAllWallets: (req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
+export declare const getAllWallets: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 /**
  * POST /api/v1/wallets
  * Create a new wallet for the user.
@@ -32,5 +32,5 @@ export declare const deleteWallet: (req: Request<{
  */
 export declare const getWalletSparkline: (req: Request<{
     id: string;
-}>, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;
+}>, res: Response, next: NextFunction) => Promise<void>;
 //# sourceMappingURL=account.controller.d.ts.map

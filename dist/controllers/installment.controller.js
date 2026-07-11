@@ -68,8 +68,7 @@ async function getInstallments(req, res, next) {
         (0, response_1.sendSuccess)(res, serialized, 'Retrieved installments');
     }
     catch (err) {
-        console.error('getInstallments error:', err);
-        return res.status(500).json({ error: 'Internal server error' });
+        next(err);
     }
 }
 //# sourceMappingURL=installment.controller.js.map

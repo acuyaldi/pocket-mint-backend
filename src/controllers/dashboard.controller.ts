@@ -1,11 +1,11 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { getUserNetWorth } from '../utils/financial';
 
 /**
  * GET /api/v1/dashboard/summary
  * Returns aggregated financial summary: total_aset, total_utang, net_worth.
  */
-export const getDashboardSummary = async (req: Request, res: Response) => {
+export const getDashboardSummary = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // userId disuntik oleh requireUser — harus konsisten dengan endpoint lain
     const userId = (req as any).userId as string;
@@ -18,8 +18,8 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
       net_worth: parseFloat(netWorth.toString()),
     });
   } catch (err) {
-    console.error('getDashboardSummary error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    // Delegate to the central error handler (safe envelope + redacted logging).
+    next(err);
   }
 };
 

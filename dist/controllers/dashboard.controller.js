@@ -6,7 +6,7 @@ const financial_1 = require("../utils/financial");
  * GET /api/v1/dashboard/summary
  * Returns aggregated financial summary: total_aset, total_utang, net_worth.
  */
-const getDashboardSummary = async (req, res) => {
+const getDashboardSummary = async (req, res, next) => {
     try {
         // userId disuntik oleh requireUser — harus konsisten dengan endpoint lain
         const userId = req.userId;
@@ -18,8 +18,8 @@ const getDashboardSummary = async (req, res) => {
         });
     }
     catch (err) {
-        console.error('getDashboardSummary error:', err);
-        return res.status(500).json({ error: 'Internal server error' });
+        // Delegate to the central error handler (safe envelope + redacted logging).
+        next(err);
     }
 };
 exports.getDashboardSummary = getDashboardSummary;

@@ -73,7 +73,6 @@ export async function getInstallments(
 
     sendSuccess(res, serialized, 'Retrieved installments');
   } catch (err) {
-    console.error('getInstallments error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    next(err);
   }
 }

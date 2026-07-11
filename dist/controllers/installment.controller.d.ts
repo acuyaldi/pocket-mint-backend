@@ -11,5 +11,5 @@ export declare function getPaylaterRates(_req: Request, res: Response): void;
  */
 export declare function getInstallments(req: Request<unknown, unknown, unknown, {
     status?: string;
-}>, res: Response, next: NextFunction): Promise<void | Response<any, Record<string, any>>>;
+}>, res: Response, next: NextFunction): Promise<void>;
 //# sourceMappingURL=installment.controller.d.ts.map

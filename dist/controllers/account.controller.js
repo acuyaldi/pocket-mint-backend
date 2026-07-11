@@ -53,8 +53,7 @@ const getAllWallets = async (req, res, next) => {
         (0, response_1.sendSuccess)(res, serialized, 'Fetched wallets');
     }
     catch (err) {
-        console.error('getAllWallets error:', err);
-        return res.status(500).json({ error: 'Internal server error' });
+        next(err);
     }
 };
 exports.getAllWallets = getAllWallets;
@@ -231,8 +230,7 @@ const getWalletSparkline = async (req, res, next) => {
         (0, response_1.sendSuccess)(res, points, 'Sparkline data');
     }
     catch (err) {
-        console.error('getWalletSparkline error:', err);
-        return res.status(500).json({ error: 'Internal server error' });
+        next(err);
     }
 };
 exports.getWalletSparkline = getWalletSparkline;
