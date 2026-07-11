@@ -1,8 +1,19 @@
 import { Prisma } from '../generated/prisma/client';
 import prisma from '../lib/prisma';
 
-const ASSET_TYPES = ['CASH', 'BANK', 'E_WALLET'];
-const DEBT_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
+export function classifyWalletForNetWorth(type: string): 'ASSET' | 'DEBT' {
+  switch (type) {
+    case 'CASH':
+    case 'BANK':
+    case 'E_WALLET':
+      return 'ASSET';
+    case 'CREDIT_CARD':
+    case 'LOAN_PAYLATER':
+      return 'DEBT';
+    default:
+      throw new Error(`Unsupported wallet type: ${type}`);
+  }
+}
 
 export interface WalletInput {
   type: string;
@@ -18,9 +29,9 @@ export function calculateNetWorth(wallets: WalletInput[]) {
   let totalUtang = new Prisma.Decimal(0);
 
   for (const w of wallets) {
-    if (ASSET_TYPES.includes(w.type)) {
+    if (classifyWalletForNetWorth(w.type) === 'ASSET') {
       totalAset = totalAset.plus(w.balance);
-    } else if (DEBT_TYPES.includes(w.type)) {
+    } else {
       // Outstanding debt = absolute value of the negative balance
       totalUtang = totalUtang.plus(w.balance.abs());
     }
