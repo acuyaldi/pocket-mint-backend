@@ -4,6 +4,9 @@ export declare const serverConfig: {
     readonly nodeEnv: string;
     readonly port: number;
 };
+export declare const reportingConfig: {
+    readonly timezone: string;
+};
 export declare const authConfig: {
     /** True once the frontend migration is complete; disables the legacy path entirely. */
     readonly requireJwt: boolean;

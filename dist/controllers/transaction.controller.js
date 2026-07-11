@@ -10,6 +10,8 @@ const response_1 = require("../utils/response");
 const logger_1 = require("../utils/logger");
 const transactionBalance_1 = require("../domain/transactionBalance");
 const installment_1 = require("../domain/installment");
+const config_1 = require("../config");
+const reportingTime_1 = require("../domain/reportingTime");
 const VALID_TYPES = ['INCOME', 'EXPENSE', 'TRANSFER'];
 const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
 const VALID_TENORS = [3, 6, 12];
@@ -23,11 +25,11 @@ const serialize = (tx) => ({
  */
 function getMonthRange(month, year) {
     const now = new Date();
-    const m = month ? Math.min(Math.max(parseInt(month, 10) || now.getMonth() + 1, 1), 12) : now.getMonth() + 1;
-    const y = year ? parseInt(year, 10) || now.getFullYear() : now.getFullYear();
-    const startDate = new Date(y, m - 1, 1, 0, 0, 0, 0);
-    const endDate = new Date(y, m, 0, 23, 59, 59, 999); // last day of month
-    return { startDate, endDate, month: m, year: y };
+    const current = (0, reportingTime_1.formatReportingDate)(now, config_1.reportingConfig.timezone).split('-').map(Number);
+    const m = month ? Math.min(Math.max(parseInt(month, 10) || current[1], 1), 12) : current[1];
+    const y = year ? parseInt(year, 10) || current[0] : current[0];
+    const { startInclusive, endExclusive } = (0, reportingTime_1.getReportingMonthRange)({ month: m, year: y }, config_1.reportingConfig.timezone);
+    return { startDate: startInclusive, endDate: endExclusive, month: m, year: y };
 }
 class TransactionController {
     // GET /api/v1/transactions
@@ -49,7 +51,7 @@ class TransactionController {
                     ...(walletId && { walletId }),
                     ...(type && { type: type }),
                     // Current-month filter
-                    date: { gte: startDate, lte: endDate },
+                    date: { gte: startDate, lt: endDate },
                 },
                 include: {
                     wallet: { select: { id: true, name: true, type: true } },
@@ -78,20 +80,20 @@ class TransactionController {
                 where: {
                     userId,
                     type: { in: ['INCOME', 'EXPENSE'] },
-                    date: { gte: startDate, lte: endDate },
+                    date: { gte: startDate, lt: endDate },
                 },
                 _sum: { amount: true },
             });
             const sumFor = (t) => {
                 const row = sums.find((s) => s.type === t);
-                return row?._sum.amount ? parseFloat(row._sum.amount.toString()) : 0;
+                return row?._sum.amount ?? new client_1.Prisma.Decimal(0);
             };
             const income = sumFor('INCOME');
             const expenses = sumFor('EXPENSE');
             (0, response_1.sendSuccess)(res, {
-                income,
-                expenses,
-                netSavings: income - expenses,
+                income: Number(income.toString()),
+                expenses: Number(expenses.toString()),
+                netSavings: Number(income.minus(expenses).toString()),
                 month: `${year}-${String(month).padStart(2, '0')}`,
             }, 'Monthly summary');
         }
@@ -168,12 +170,12 @@ class TransactionController {
             if (type === 'TRANSFER' && toWalletId === walletId) {
                 return (0, response_1.sendError)(res, 'Wallet asal dan tujuan tidak boleh sama', 400, 'INVALID_TRANSFER');
             }
-            let parsedDate = new Date();
-            if (date) {
-                parsedDate = new Date(date);
-                if (isNaN(parsedDate.getTime())) {
-                    return (0, response_1.sendError)(res, 'date must be a valid date (e.g. YYYY-MM-DD)', 400);
-                }
+            let parsedDate;
+            try {
+                parsedDate = (0, reportingTime_1.parseBusinessDate)(date, config_1.reportingConfig.timezone);
+            }
+            catch (error) {
+                return (0, response_1.sendError)(res, error instanceof Error ? error.message : 'date must be a valid date', 400);
             }
             const numAmount = Number(amount);
             // ---- Validate wallet exists AND belongs to the caller ----
@@ -346,9 +348,11 @@ class TransactionController {
             }
             let parsedDate;
             if (date) {
-                parsedDate = new Date(date);
-                if (isNaN(parsedDate.getTime())) {
-                    return (0, response_1.sendError)(res, 'date must be a valid date (e.g. YYYY-MM-DD)', 400);
+                try {
+                    parsedDate = (0, reportingTime_1.parseBusinessDate)(date, config_1.reportingConfig.timezone);
+                }
+                catch (error) {
+                    return (0, response_1.sendError)(res, error instanceof Error ? error.message : 'date must be a valid date', 400);
                 }
             }
             // Fetch the existing transaction (scoped to caller) to compute balance delta

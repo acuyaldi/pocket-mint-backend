@@ -1,10 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.corsConfig = exports.rateLimitConfig = exports.trustProxy = exports.apiKeyConfigured = exports.authConfig = exports.serverConfig = exports.isProduction = void 0;
+exports.corsConfig = exports.rateLimitConfig = exports.trustProxy = exports.apiKeyConfigured = exports.authConfig = exports.reportingConfig = exports.serverConfig = exports.isProduction = void 0;
 exports.verifyApiKey = verifyApiKey;
 exports.validateConfig = validateConfig;
 require("dotenv/config");
 const crypto_1 = require("crypto");
+const reportingTime_1 = require("../domain/reportingTime");
 /**
  * Centralized, typed configuration.
  *
@@ -49,6 +50,10 @@ exports.isProduction = nodeEnv === 'production';
 exports.serverConfig = {
     nodeEnv,
     port: Number(process.env.PORT) || 5001,
+};
+// One application-wide reporting calendar until user-specific timezones exist.
+exports.reportingConfig = {
+    timezone: (0, reportingTime_1.assertValidTimeZone)(str(process.env.REPORTING_TIMEZONE) ?? 'Asia/Jakarta'),
 };
 // ---------------- auth ----------------
 const apiKey = str(process.env.API_KEY);

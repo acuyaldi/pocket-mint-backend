@@ -1,4 +1,5 @@
 import { Prisma } from '../generated/prisma/client';
+export declare function classifyWalletForNetWorth(type: string): 'ASSET' | 'DEBT';
 export interface WalletInput {
     type: string;
     balance: Prisma.Decimal;

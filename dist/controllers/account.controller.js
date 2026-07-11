@@ -8,6 +8,10 @@ const prisma_1 = __importDefault(require("../lib/prisma"));
 const client_1 = require("../generated/prisma/client");
 const response_1 = require("../utils/response");
 const financial_1 = require("../utils/financial");
+const config_1 = require("../config");
+const reportingTime_1 = require("../domain/reportingTime");
+const reportingEffect_1 = require("../domain/reportingEffect");
+const logger_1 = require("../utils/logger");
 const VALID_WALLET_TYPES = ['CASH', 'BANK', 'E_WALLET', 'CREDIT_CARD', 'LOAN_PAYLATER'];
 const DEBT_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
 /** Serialized net worth snapshot, recomputed after every wallet mutation. */
@@ -219,49 +223,51 @@ const getWalletSparkline = async (req, res, next) => {
         // Verify wallet exists AND belongs to the caller
         const wallet = await prisma_1.default.wallet.findFirst({
             where: { id, userId },
-            select: { id: true, balance: true },
+            select: { id: true, balance: true, createdAt: true },
         });
         if (!wallet) {
             return (0, response_1.sendError)(res, 'Wallet not found', 404);
         }
-        // Last 7 transactions (newest first)
+        const now = new Date();
+        const buckets = (0, reportingTime_1.getRollingDayRanges)(now, 7, config_1.reportingConfig.timezone);
+        // Every realized transaction that can affect one of the seven day closes.
         const recentTx = await prisma_1.default.transaction.findMany({
-            where: { walletId: id, userId },
-            orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
-            take: 7,
-            select: { id: true, type: true, amount: true, date: true },
+            where: {
+                userId,
+                OR: [{ walletId: id }, { toWalletId: id }],
+                date: { gte: buckets[0].startInclusive, lt: buckets[6].endExclusive },
+            },
+            orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+            select: {
+                id: true, type: true, amount: true, walletId: true, toWalletId: true,
+                isInstallment: true, date: true, createdAt: true,
+                installment: { select: { grandTotal: true } },
+            },
         });
-        if (recentTx.length < 2) {
-            return (0, response_1.sendSuccess)(res, [], 'Not enough data for sparkline');
+        if (recentTx.some((tx) => tx.type === 'TRANSFER' && tx.toWalletId === null)) {
+            logger_1.logger.warn('wallet sparkline includes legacy transfer with unknown destination', { walletId: id });
         }
-        // Reverse to oldest-first
-        const txChronological = [...recentTx].reverse();
-        // Replay balances from current balance backwards
-        let runningBalance = parseFloat(wallet.balance.toString());
-        const points = [];
-        // Final point = current balance
-        points.push({
-            date: txChronological[txChronological.length - 1].date.toISOString().slice(0, 10),
-            balance: Math.round(runningBalance),
-        });
-        // Walk backwards from newest to second-oldest, undoing each tx
-        for (let i = recentTx.length - 1; i >= 1; i--) {
-            const tx = recentTx[i];
-            const amt = parseFloat(tx.amount.toString());
-            if (tx.type === 'INCOME') {
-                runningBalance -= amt;
+        let runningBalance = new client_1.Prisma.Decimal(wallet.balance);
+        let transactionIndex = 0;
+        const newestFirst = [];
+        for (let bucketIndex = buckets.length - 1; bucketIndex >= 0; bucketIndex--) {
+            const bucket = buckets[bucketIndex];
+            const closingBoundary = bucketIndex === buckets.length - 1 ? now : bucket.endExclusive;
+            while (transactionIndex < recentTx.length &&
+                (bucketIndex === buckets.length - 1
+                    ? recentTx[transactionIndex].date.getTime() > closingBoundary.getTime()
+                    : recentTx[transactionIndex].date.getTime() >= closingBoundary.getTime())) {
+                runningBalance = runningBalance.minus((0, reportingEffect_1.getWalletReportingEffect)(recentTx[transactionIndex], id));
+                transactionIndex++;
             }
-            else if (tx.type === 'EXPENSE') {
-                runningBalance += amt;
-            }
-            // TRANSFER: no net change for single-wallet sparkline
-            points.push({
-                date: tx.date.toISOString().slice(0, 10),
-                balance: Math.round(runningBalance),
+            newestFirst.push({
+                date: bucket.label,
+                balance: bucket.endExclusive.getTime() <= wallet.createdAt.getTime()
+                    ? null
+                    : Number(runningBalance.toString()),
             });
         }
-        // Reverse to get oldest-first order
-        points.reverse();
+        const points = newestFirst.reverse();
         (0, response_1.sendSuccess)(res, points, 'Sparkline data');
     }
     catch (err) {
