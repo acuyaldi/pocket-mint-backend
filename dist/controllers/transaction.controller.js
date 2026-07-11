@@ -56,9 +56,9 @@ function mapUpdateTransactionRequest(req, userId) {
         isInstallment: b.isInstallment,
     };
 }
+// Still used by the read endpoints (getAll/getAllTime) to validate the `type`
+// filter. Mutation-side type/tenor/wallet rules now live in the service.
 const VALID_TYPES = ['INCOME', 'EXPENSE', 'TRANSFER'];
-const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
-const VALID_TENORS = [3, 6, 12];
 // Decimal (Prisma) → number agar JSON-nya bersih buat frontend
 const serialize = (tx) => ({
     ...tx,

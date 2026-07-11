@@ -2,17 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import prisma from '../lib/prisma';
 import { Prisma } from '../generated/prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
-import { logger } from '../utils/logger';
 import { CreateTransactionDto, UpdateTransactionDto, ListTransactionQuery, TransactionType } from '../models/transaction.model';
-import {
-  applyBalanceDeltas,
-  computeBalanceEffect,
-  reverseBalanceEffect,
-  type FinancialTxType,
-} from '../domain/transactionBalance';
-import { computeInstallmentPlan } from '../domain/installment';
 import { reportingConfig } from '../config';
-import { formatReportingDate, getReportingMonthRange, parseBusinessDate } from '../domain/reportingTime';
+import { formatReportingDate, getReportingMonthRange } from '../domain/reportingTime';
 import { transactionService } from '../services/transaction.service';
 import { TransactionError } from '../services/transaction.errors';
 import type { CreateTransactionInput, UpdateTransactionInput } from '../services/transaction.types';
@@ -71,10 +63,9 @@ function mapUpdateTransactionRequest(
   };
 }
 
+// Still used by the read endpoints (getAll/getAllTime) to validate the `type`
+// filter. Mutation-side type/tenor/wallet rules now live in the service.
 const VALID_TYPES: string[] = ['INCOME', 'EXPENSE', 'TRANSFER'];
-const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
-
-const VALID_TENORS = [3, 6, 12];
 
 // Decimal (Prisma) → number agar JSON-nya bersih buat frontend
 const serialize = <T extends { amount: unknown }>(tx: T) => ({
