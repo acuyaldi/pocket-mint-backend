@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.apiKeyConfigured = exports.authConfig = exports.serverConfig = exports.isProduction = void 0;
+exports.rateLimitConfig = exports.trustProxy = exports.apiKeyConfigured = exports.authConfig = exports.serverConfig = exports.isProduction = void 0;
 exports.verifyApiKey = verifyApiKey;
 exports.validateConfig = validateConfig;
 require("dotenv/config");
@@ -23,6 +23,25 @@ function bool(value, fallback) {
     if (v === undefined)
         return fallback;
     return v === 'true' || v === '1' || v === 'yes';
+}
+function int(value, fallback) {
+    const n = Number(str(value));
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+}
+/**
+ * Express `trust proxy` setting. Defaults to `false` (do not trust any proxy).
+ * Set TRUST_PROXY to the NUMBER of trusted reverse-proxy hops in front of the
+ * app (e.g. `1` behind a single load balancer). Avoid `true`, which trusts an
+ * arbitrary X-Forwarded-For chain and lets clients spoof their rate-limit key.
+ */
+function parseTrustProxy(value) {
+    const v = str(value)?.toLowerCase();
+    if (v === undefined || v === 'false')
+        return false;
+    if (v === 'true')
+        return true;
+    const n = Number(v);
+    return Number.isFinite(n) && n >= 0 ? Math.floor(n) : false;
 }
 // ---------------- server ----------------
 const nodeEnv = str(process.env.NODE_ENV) ?? 'development';
@@ -70,6 +89,22 @@ function verifyApiKey(candidate) {
 }
 /** True when a legacy API key is configured at all. */
 exports.apiKeyConfigured = Boolean(apiKey);
+// ---------------- network / rate limiting ----------------
+exports.trustProxy = parseTrustProxy(process.env.TRUST_PROXY);
+/**
+ * Rate-limiting configuration. NOTE: the default limiter store is in-memory and
+ * therefore PER INSTANCE — limits are not shared across horizontally scaled
+ * processes. Move to a shared store (e.g. Redis) when running more than one
+ * instance.
+ */
+exports.rateLimitConfig = {
+    enabled: bool(process.env.RATE_LIMIT_ENABLED, true),
+    windowMs: int(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60000),
+    /** Max requests per window for general API traffic. */
+    max: int(process.env.RATE_LIMIT_MAX, 300),
+    /** Stricter cap per window for mutating requests (POST/PUT/PATCH/DELETE). */
+    mutationMax: int(process.env.RATE_LIMIT_MUTATION_MAX, 60),
+};
 // ---------------- startup validation ----------------
 /**
  * Validate configuration at startup. Fatal problems throw in production so the

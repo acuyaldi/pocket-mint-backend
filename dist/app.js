@@ -9,11 +9,21 @@ const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
 const routes_1 = require("./routes");
 const error_middleware_1 = require("./middlewares/error.middleware");
+const config_1 = require("./config");
+const rateLimit_1 = require("./middleware/rateLimit");
 const app = (0, express_1.default)();
+// Trust proxy governs how req.ip is derived (and thus rate-limit keying).
+// Defaults to false; set TRUST_PROXY to the reverse-proxy hop count in prod.
+app.set('trust proxy', config_1.trustProxy);
 // --------------- Middleware ---------------
 app.use((0, helmet_1.default)());
 app.use((0, cors_1.default)());
 app.use((0, morgan_1.default)('dev'));
+// --------------- Rate limiting (before body parsing to reject early) ---------------
+if (config_1.rateLimitConfig.enabled) {
+    app.use('/api', rateLimit_1.generalLimiter);
+    app.use('/api', rateLimit_1.mutationLimiter);
+}
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 // --------------- Routes ---------------

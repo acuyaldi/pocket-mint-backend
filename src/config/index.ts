@@ -23,6 +23,25 @@ function bool(value: string | undefined, fallback: boolean): boolean {
   return v === 'true' || v === '1' || v === 'yes';
 }
 
+function int(value: string | undefined, fallback: number): number {
+  const n = Number(str(value));
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+}
+
+/**
+ * Express `trust proxy` setting. Defaults to `false` (do not trust any proxy).
+ * Set TRUST_PROXY to the NUMBER of trusted reverse-proxy hops in front of the
+ * app (e.g. `1` behind a single load balancer). Avoid `true`, which trusts an
+ * arbitrary X-Forwarded-For chain and lets clients spoof their rate-limit key.
+ */
+function parseTrustProxy(value: string | undefined): boolean | number {
+  const v = str(value)?.toLowerCase();
+  if (v === undefined || v === 'false') return false;
+  if (v === 'true') return true;
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : false;
+}
+
 // ---------------- server ----------------
 
 const nodeEnv = str(process.env.NODE_ENV) ?? 'development';
@@ -76,6 +95,25 @@ export function verifyApiKey(candidate: string | undefined): boolean {
 
 /** True when a legacy API key is configured at all. */
 export const apiKeyConfigured = Boolean(apiKey);
+
+// ---------------- network / rate limiting ----------------
+
+export const trustProxy = parseTrustProxy(process.env.TRUST_PROXY);
+
+/**
+ * Rate-limiting configuration. NOTE: the default limiter store is in-memory and
+ * therefore PER INSTANCE — limits are not shared across horizontally scaled
+ * processes. Move to a shared store (e.g. Redis) when running more than one
+ * instance.
+ */
+export const rateLimitConfig = {
+  enabled: bool(process.env.RATE_LIMIT_ENABLED, true),
+  windowMs: int(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60_000),
+  /** Max requests per window for general API traffic. */
+  max: int(process.env.RATE_LIMIT_MAX, 300),
+  /** Stricter cap per window for mutating requests (POST/PUT/PATCH/DELETE). */
+  mutationMax: int(process.env.RATE_LIMIT_MUTATION_MAX, 60),
+} as const;
 
 // ---------------- startup validation ----------------
 

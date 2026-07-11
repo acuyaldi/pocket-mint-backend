@@ -28,6 +28,21 @@ export declare const authConfig: {
 export declare function verifyApiKey(candidate: string | undefined): boolean;
 /** True when a legacy API key is configured at all. */
 export declare const apiKeyConfigured: boolean;
+export declare const trustProxy: number | boolean;
+/**
+ * Rate-limiting configuration. NOTE: the default limiter store is in-memory and
+ * therefore PER INSTANCE — limits are not shared across horizontally scaled
+ * processes. Move to a shared store (e.g. Redis) when running more than one
+ * instance.
+ */
+export declare const rateLimitConfig: {
+    readonly enabled: boolean;
+    readonly windowMs: number;
+    /** Max requests per window for general API traffic. */
+    readonly max: number;
+    /** Stricter cap per window for mutating requests (POST/PUT/PATCH/DELETE). */
+    readonly mutationMax: number;
+};
 /**
  * Validate configuration at startup. Fatal problems throw in production so the
  * process fails fast; in development they are surfaced as warnings so local
