@@ -10,6 +10,7 @@ import {
   reverseBalanceEffect,
   type FinancialTxType,
 } from '../domain/transactionBalance';
+import { computeInstallmentPlan } from '../domain/installment';
 
 const VALID_TYPES: string[] = ['INCOME', 'EXPENSE', 'TRANSFER'];
 const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
@@ -288,21 +289,17 @@ export class TransactionController {
           return sendError(res, 'Bunga tidak valid', 400);
         }
 
-        // ---- Interest calculations using Prisma.Decimal ----
-        const totalAmount = new Prisma.Decimal(numAmount);
+        // ---- Interest calculations (Decimal-safe, no floating point) ----
+        // grand_total is the source of truth locked on the wallet; monthly_amount
+        // is the rounded display value. See src/domain/installment.ts for the
+        // scale/rounding and remainder policy.
         const interestRateDecimal = new Prisma.Decimal(parsedInterestRate);
-        // total_interest = amount × (interestRate / 100) × installmentMonths
-        const totalInterest = new Prisma.Decimal(
-          Math.round(numAmount * (parsedInterestRate / 100) * installmentMonths)
-        );
-        // grand_total = amount + total_interest
-        const grandTotal = new Prisma.Decimal(
-          Math.round(numAmount + totalInterest.toNumber())
-        );
-        // monthly_amount = grand_total / installmentMonths
-        const monthlyAmount = new Prisma.Decimal(
-          Math.round(grandTotal.toNumber() / installmentMonths)
-        );
+        const plan = computeInstallmentPlan({
+          principal: new Prisma.Decimal(numAmount),
+          interestRatePctPerMonth: interestRateDecimal,
+          months: installmentMonths,
+        });
+        const { totalAmount, totalInterest, grandTotal, monthlyAmount } = plan;
 
         try {
           const transaction = await prisma.$transaction(async (tx) => {

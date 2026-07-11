@@ -9,6 +9,7 @@ const client_1 = require("../generated/prisma/client");
 const response_1 = require("../utils/response");
 const logger_1 = require("../utils/logger");
 const transactionBalance_1 = require("../domain/transactionBalance");
+const installment_1 = require("../domain/installment");
 const VALID_TYPES = ['INCOME', 'EXPENSE', 'TRANSFER'];
 const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
 const VALID_TENORS = [3, 6, 12];
@@ -220,15 +221,17 @@ class TransactionController {
                 if (parsedInterestRate > 100) {
                     return (0, response_1.sendError)(res, 'Bunga tidak valid', 400);
                 }
-                // ---- Interest calculations using Prisma.Decimal ----
-                const totalAmount = new client_1.Prisma.Decimal(numAmount);
+                // ---- Interest calculations (Decimal-safe, no floating point) ----
+                // grand_total is the source of truth locked on the wallet; monthly_amount
+                // is the rounded display value. See src/domain/installment.ts for the
+                // scale/rounding and remainder policy.
                 const interestRateDecimal = new client_1.Prisma.Decimal(parsedInterestRate);
-                // total_interest = amount × (interestRate / 100) × installmentMonths
-                const totalInterest = new client_1.Prisma.Decimal(Math.round(numAmount * (parsedInterestRate / 100) * installmentMonths));
-                // grand_total = amount + total_interest
-                const grandTotal = new client_1.Prisma.Decimal(Math.round(numAmount + totalInterest.toNumber()));
-                // monthly_amount = grand_total / installmentMonths
-                const monthlyAmount = new client_1.Prisma.Decimal(Math.round(grandTotal.toNumber() / installmentMonths));
+                const plan = (0, installment_1.computeInstallmentPlan)({
+                    principal: new client_1.Prisma.Decimal(numAmount),
+                    interestRatePctPerMonth: interestRateDecimal,
+                    months: installmentMonths,
+                });
+                const { totalAmount, totalInterest, grandTotal, monthlyAmount } = plan;
                 try {
                     const transaction = await prisma_1.default.$transaction(async (tx) => {
                         // a. Create installment record with interest fields
