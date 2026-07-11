@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { timingSafeEqual } from 'crypto';
+import { assertValidTimeZone } from '../domain/reportingTime';
 
 /**
  * Centralized, typed configuration.
@@ -51,6 +52,11 @@ export const isProduction = nodeEnv === 'production';
 export const serverConfig = {
   nodeEnv,
   port: Number(process.env.PORT) || 5001,
+} as const;
+
+// One application-wide reporting calendar until user-specific timezones exist.
+export const reportingConfig = {
+  timezone: assertValidTimeZone(str(process.env.REPORTING_TIMEZONE) ?? 'Asia/Jakarta'),
 } as const;
 
 // ---------------- auth ----------------
