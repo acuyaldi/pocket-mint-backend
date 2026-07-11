@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import prisma from '../lib/prisma';
 import { Prisma } from '../generated/prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
+import { logger } from '../utils/logger';
 import { CreateTransactionDto, UpdateTransactionDto, ListTransactionQuery, TransactionType } from '../models/transaction.model';
 
 const VALID_TYPES: string[] = ['INCOME', 'EXPENSE', 'TRANSFER'];
@@ -364,7 +365,9 @@ export class TransactionController {
 
           return sendSuccess(res, serialize(transaction), 'Transaction created successfully', 201);
         } catch (txErr) {
-          console.error('Installment $transaction failed:', txErr);
+          logger.error('installment transaction failed', {
+            message: txErr instanceof Error ? txErr.message : String(txErr),
+          });
           return sendError(res, 'Transaksi gagal', 500);
         }
       }

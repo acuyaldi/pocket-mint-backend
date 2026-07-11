@@ -20,9 +20,18 @@ function bearerToken(header) {
     const [scheme, value] = header.split(' ');
     return scheme?.toLowerCase() === 'bearer' && value ? value.trim() : undefined;
 }
-/** Uniform 401 in the existing `{ error }` shape (preserves current frontend contract). */
-function unauthorized(res, message) {
-    res.status(401).json({ error: message });
+/**
+ * Uniform 401 for every authentication failure. The external body never reveals
+ * WHICH check failed (invalid key vs expired token vs unknown user vs wrong
+ * issuer/audience) — that only aids attackers. The specific `reason` is a safe
+ * internal code logged server-side; no token, key, or user id is ever logged.
+ */
+function unauthorized(res, reason) {
+    logger_1.logger.warn('authentication failed', { reason });
+    res.status(401).json({
+        success: false,
+        error: { code: 'UNAUTHORIZED', message: 'Invalid or missing authentication credentials' },
+    });
 }
 /** Inject the resolved, trusted user id for downstream controllers, then continue. */
 function injectUser(req, userId, method, next) {
@@ -41,7 +50,7 @@ function injectUser(req, userId, method, next) {
  */
 function apiKeyAuth(req, res, next) {
     if (!(0, config_1.verifyApiKey)(headerValue(req.headers['x-api-key']))) {
-        return unauthorized(res, 'Invalid or missing API key');
+        return unauthorized(res, 'invalid_api_key');
     }
     next();
 }
@@ -75,29 +84,29 @@ async function requireUser(req, res, next) {
         if (token) {
             const verifiedUserId = await (0, supabaseJwt_1.verifySupabaseJwt)(token);
             if (!verifiedUserId) {
-                return unauthorized(res, 'Invalid or expired token');
+                return unauthorized(res, 'invalid_token');
             }
             const user = await prisma_1.default.user.findUnique({
                 where: { id: verifiedUserId },
                 select: { id: true },
             });
             if (!user) {
-                return unauthorized(res, 'Unknown user');
+                return unauthorized(res, 'unknown_user');
             }
             return injectUser(req, user.id, 'jwt', next);
         }
         // 2. No bearer token and JWT-only mode → reject.
         if (config_1.authConfig.requireJwt) {
-            return unauthorized(res, 'Missing bearer token');
+            return unauthorized(res, 'missing_bearer');
         }
         // 3. DEPRECATED legacy compatibility path: API key + self-asserted identity.
         if (!(0, config_1.verifyApiKey)(headerValue(req.headers['x-api-key']))) {
-            return unauthorized(res, 'Invalid or missing API key');
+            return unauthorized(res, 'invalid_api_key');
         }
         const headerUserId = headerValue(req.headers['x-user-id']);
         const headerEmail = headerValue(req.headers['x-user-email']);
         if (!headerUserId && !headerEmail) {
-            return unauthorized(res, 'Missing user identity (x-user-id header)');
+            return unauthorized(res, 'missing_identity');
         }
         let user = null;
         if (headerUserId) {
@@ -107,14 +116,18 @@ async function requireUser(req, res, next) {
             user = await prisma_1.default.user.findUnique({ where: { email: headerEmail }, select: { id: true } });
         }
         if (!user) {
-            return unauthorized(res, 'Unknown user');
+            return unauthorized(res, 'unknown_user');
         }
         (0, logger_1.recordLegacyAuthUsage)();
         return injectUser(req, user.id, 'legacy-api-key', next);
     }
     catch (err) {
-        console.error('requireUser middleware error:', err);
-        return res.status(500).json({ error: 'Internal server error' });
+        // Unexpected failure during auth resolution is an internal error, not an
+        // auth decision — hand it to the central handler (generic 500 + safe log).
+        logger_1.logger.error('requireUser unexpected error', {
+            message: err instanceof Error ? err.message : String(err),
+        });
+        return next(err);
     }
 }
 //# sourceMappingURL=apiKeyAuth.js.map

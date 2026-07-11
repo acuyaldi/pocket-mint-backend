@@ -7,6 +7,7 @@ exports.TransactionController = void 0;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const client_1 = require("../generated/prisma/client");
 const response_1 = require("../utils/response");
+const logger_1 = require("../utils/logger");
 const VALID_TYPES = ['INCOME', 'EXPENSE', 'TRANSFER'];
 const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
 const VALID_TENORS = [3, 6, 12];
@@ -285,7 +286,9 @@ class TransactionController {
                     return (0, response_1.sendSuccess)(res, serialize(transaction), 'Transaction created successfully', 201);
                 }
                 catch (txErr) {
-                    console.error('Installment $transaction failed:', txErr);
+                    logger_1.logger.error('installment transaction failed', {
+                        message: txErr instanceof Error ? txErr.message : String(txErr),
+                    });
                     return (0, response_1.sendError)(res, 'Transaksi gagal', 500);
                 }
             }

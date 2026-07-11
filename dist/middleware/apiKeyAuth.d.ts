@@ -34,5 +34,5 @@ export declare function apiKeyAuth(req: Request, res: Response, next: NextFuncti
  *
  * SECURITY: this NEVER falls back to a shared/default user.
  */
-export declare function requireUser(req: Request, res: Response, next: NextFunction): Promise<void | Response<any, Record<string, any>>>;
+export declare function requireUser(req: Request, res: Response, next: NextFunction): Promise<void>;
 //# sourceMappingURL=apiKeyAuth.d.ts.map

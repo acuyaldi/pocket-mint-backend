@@ -148,7 +148,11 @@ describe('requireUser — legacy compatibility path', () => {
       .set('x-api-key', API_KEY)
       .set('x-user-id', 'u1');
     expect(res.status).toBe(401);
-    expect(res.body).toEqual({ error: 'Missing bearer token' });
+    // Uniform auth failure: never reveals which check failed (S11).
+    expect(res.body).toEqual({
+      success: false,
+      error: { code: 'UNAUTHORIZED', message: 'Invalid or missing authentication credentials' },
+    });
     expect(findUnique).not.toHaveBeenCalled();
   });
 });
