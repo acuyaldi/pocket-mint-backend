@@ -5,12 +5,13 @@
 
 generator client {
   provider = "prisma-client-js"
+  // Output must match the path imported by src/lib/prisma.ts
+  // ('../generated/prisma/client', which resolves to this directory's shim).
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ─────────────────────────────────────────────
@@ -20,7 +21,9 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String
-  password  String
+  // NOTE: no password column. Authentication is owned entirely by Supabase Auth;
+  // this backend never stores, hashes, or verifies passwords. Local users are
+  // linked to the verified Supabase identity via `id` (the JWT `sub` claim).
   avatarUrl String?  @map("avatar_url")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
