@@ -74,7 +74,9 @@ model Wallet {
 
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
+  transactions   Transaction[] @relation("WalletTransactions")
+  // Transfers whose destination is this wallet (Transaction.toWalletId).
+  toTransactions Transaction[] @relation("WalletToTransactions")
   installments Installment[]
   fromTransfers Transfer[]   @relation("FromWallet")
   toTransfers   Transfer[]   @relation("ToWallet")
@@ -123,6 +125,10 @@ model Transaction {
   id            String          @id @default(cuid())
   userId        String          @map("user_id")
   walletId      String          @map("wallet_id")
+  // Destination wallet for TRANSFER rows. Persisting it makes a transfer
+  // self-describing so update/delete can reverse BOTH sides from the stored
+  // row (not from request data). Null for INCOME/EXPENSE and legacy transfers.
+  toWalletId    String?         @map("to_wallet_id")
   categoryId    String?         @map("category_id")
   type          TransactionType
   amount        Decimal         @db.Decimal(15, 2)
@@ -135,13 +141,15 @@ model Transaction {
 
   // Relations
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wallet      Wallet       @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  wallet      Wallet       @relation("WalletTransactions", fields: [walletId], references: [id], onDelete: Cascade)
+  toWallet    Wallet?      @relation("WalletToTransactions", fields: [toWalletId], references: [id], onDelete: SetNull)
   category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   installment Installment? @relation(fields: [installmentId], references: [id], onDelete: SetNull)
 
   @@index([userId, date])
   @@index([userId, type])
   @@index([walletId, date])
+  @@index([toWalletId])
   @@index([categoryId])
   @@index([installmentId])
   @@map("transactions")

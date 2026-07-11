@@ -8,6 +8,7 @@ const prisma_1 = __importDefault(require("../lib/prisma"));
 const client_1 = require("../generated/prisma/client");
 const response_1 = require("../utils/response");
 const logger_1 = require("../utils/logger");
+const transactionBalance_1 = require("../domain/transactionBalance");
 const VALID_TYPES = ['INCOME', 'EXPENSE', 'TRANSFER'];
 const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
 const VALID_TENORS = [3, 6, 12];
@@ -16,15 +17,6 @@ const serialize = (tx) => ({
     ...tx,
     amount: parseFloat(tx.amount.toString()),
 });
-/**
- * Compute the effective wallet balance change for a transaction.
- * For installment credit expenses, the wallet is locked for the full total
- * while the stored amount is only the monthly portion.
- */
-function getWalletImpact(tx) {
-    const amt = typeof tx.amount === 'number' ? tx.amount : tx.amount.toNumber();
-    return amt;
-}
 /**
  * Build date range for a given month/year (defaults to current month).
  */
@@ -171,6 +163,10 @@ class TransactionController {
             if (type === 'TRANSFER' && !toWalletId) {
                 return (0, response_1.sendError)(res, 'toWalletId is required for TRANSFER transactions', 400);
             }
+            // A transfer must move value between two distinct wallets (Invariant 4).
+            if (type === 'TRANSFER' && toWalletId === walletId) {
+                return (0, response_1.sendError)(res, 'Wallet asal dan tujuan tidak boleh sama', 400, 'INVALID_TRANSFER');
+            }
             let parsedDate = new Date();
             if (date) {
                 parsedDate = new Date(date);
@@ -293,14 +289,17 @@ class TransactionController {
                 }
             }
             // ─── LAYER 1: Regular transaction ──────────────────────────────────
+            const amountDecimal = new client_1.Prisma.Decimal(numAmount);
+            const destWalletId = type === 'TRANSFER' ? toWalletId : null;
             const transaction = await prisma_1.default.$transaction(async (tx) => {
                 const created = await tx.transaction.create({
                     data: {
                         userId,
                         walletId,
+                        toWalletId: destWalletId,
                         categoryId: categoryId ?? null,
                         type: type,
-                        amount: new client_1.Prisma.Decimal(numAmount),
+                        amount: amountDecimal,
                         description: description ?? null,
                         date: parsedDate,
                         isInstallment: false,
@@ -310,29 +309,14 @@ class TransactionController {
                         category: { select: { id: true, name: true, type: true } },
                     },
                 });
-                // Update wallet balance(s)
-                if (type === 'INCOME') {
-                    await tx.wallet.update({
-                        where: { id: walletId },
-                        data: { balance: { increment: new client_1.Prisma.Decimal(numAmount) } },
-                    });
-                }
-                else if (type === 'EXPENSE') {
-                    await tx.wallet.update({
-                        where: { id: walletId },
-                        data: { balance: { decrement: new client_1.Prisma.Decimal(numAmount) } },
-                    });
-                }
-                else if (type === 'TRANSFER') {
-                    await tx.wallet.update({
-                        where: { id: walletId },
-                        data: { balance: { decrement: new client_1.Prisma.Decimal(numAmount) } },
-                    });
-                    await tx.wallet.update({
-                        where: { id: toWalletId },
-                        data: { balance: { increment: new client_1.Prisma.Decimal(numAmount) } },
-                    });
-                }
+                // Balance effect derived from one source of truth (transfer-symmetric,
+                // atomic increments) so it can be reversed exactly on update/delete.
+                await (0, transactionBalance_1.applyBalanceDeltas)(tx, (0, transactionBalance_1.computeBalanceEffect)({
+                    type: type,
+                    amount: amountDecimal,
+                    walletId,
+                    toWalletId: destWalletId,
+                }));
                 return created;
             });
             (0, response_1.sendSuccess)(res, serialize(transaction), 'Transaction created successfully', 201);
@@ -345,16 +329,17 @@ class TransactionController {
         }
     }
     // PUT /api/v1/transactions/:id
-    // Adjusts wallet balance when amount or type changes.
+    // Reverses the persisted original effect, then applies the new effect —
+    // both sides of a transfer included — atomically (Invariants 1–4).
     static async update(req, res, next) {
         try {
             const { id } = req.params;
-            const { type, amount, description, date, categoryId, walletId } = req.body;
+            const { type, amount, description, date, categoryId, walletId, toWalletId } = req.body;
             if (type && !VALID_TYPES.includes(type)) {
                 return (0, response_1.sendError)(res, `Invalid type. Allowed: ${VALID_TYPES.join(', ')}`, 400);
             }
             if (amount !== undefined && (isNaN(Number(amount)) || Number(amount) <= 0)) {
-                return (0, response_1.sendError)(res, 'amount must be a positive number', 400);
+                return (0, response_1.sendError)(res, 'amount must be a positive number', 400, 'INVALID_AMOUNT');
             }
             let parsedDate;
             if (date) {
@@ -367,87 +352,141 @@ class TransactionController {
             const userId = req.userId;
             const existing = await prisma_1.default.transaction.findFirst({ where: { id, userId } });
             if (!existing) {
-                return (0, response_1.sendError)(res, `Transaction with id ${id} not found`, 404);
+                return (0, response_1.sendError)(res, `Transaction with id ${id} not found`, 404, 'TRANSACTION_NOT_FOUND');
             }
-            // If moving to a different wallet, that wallet must also belong to the caller.
+            // Installment transactions are managed as a unit (installment + its debt),
+            // not via ad-hoc edits to the generated expense row. Editing one here would
+            // desync grandTotal vs. the stored monthly amount, so reject it outright.
+            if (existing.isInstallment) {
+                return (0, response_1.sendError)(res, 'Transaksi cicilan tidak bisa diubah langsung', 409, 'CONFLICT');
+            }
+            if (req.body.isInstallment === true) {
+                return (0, response_1.sendError)(res, 'Tidak bisa mengubah transaksi biasa menjadi cicilan', 400);
+            }
+            // A legacy transfer (pre-toWalletId) cannot be reversed on its destination
+            // side, so it cannot be safely re-balanced. Refuse rather than drift.
+            if (existing.type === 'TRANSFER' && !existing.toWalletId) {
+                return (0, response_1.sendError)(res, 'Transfer lama tidak bisa diubah; hapus lalu buat ulang', 409, 'CONFLICT');
+            }
+            const newType = (type ?? existing.type);
+            const newAmount = amount !== undefined ? new client_1.Prisma.Decimal(Number(amount)) : existing.amount;
+            const newWalletId = walletId ?? existing.walletId;
+            const newToWalletId = newType === 'TRANSFER' ? (toWalletId ?? existing.toWalletId ?? null) : null;
+            // If moving to a different source wallet, it must belong to the caller.
             if (walletId) {
                 const targetWallet = await prisma_1.default.wallet.findFirst({ where: { id: walletId, userId }, select: { id: true } });
                 if (!targetWallet) {
-                    return (0, response_1.sendError)(res, 'Wallet tidak ditemukan', 404);
+                    return (0, response_1.sendError)(res, 'Wallet tidak ditemukan', 404, 'WALLET_NOT_FOUND');
                 }
             }
-            const newType = (type ?? existing.type);
-            const newAmount = amount !== undefined ? Number(amount) : parseFloat(existing.amount.toString());
-            const newWalletId = walletId ?? existing.walletId;
+            // Validate the resulting transfer shape before any mutation.
+            if (newType === 'TRANSFER') {
+                if (!newToWalletId) {
+                    return (0, response_1.sendError)(res, 'toWalletId is required for TRANSFER transactions', 400, 'INVALID_TRANSFER');
+                }
+                if (newToWalletId === newWalletId) {
+                    return (0, response_1.sendError)(res, 'Wallet asal dan tujuan tidak boleh sama', 400, 'INVALID_TRANSFER');
+                }
+                const destWallet = await prisma_1.default.wallet.findFirst({ where: { id: newToWalletId, userId }, select: { id: true } });
+                if (!destWallet) {
+                    return (0, response_1.sendError)(res, 'Wallet tujuan tidak ditemukan', 404, 'WALLET_NOT_FOUND');
+                }
+            }
             const transaction = await prisma_1.default.$transaction(async (tx) => {
-                // ── Revert OLD balance effects ──
-                const oldImpact = getWalletImpact(existing);
-                if (existing.type === 'INCOME' && existing.walletId) {
-                    await tx.wallet.update({ where: { id: existing.walletId }, data: { balance: { decrement: oldImpact } } });
-                }
-                else if (existing.type === 'EXPENSE' && existing.walletId) {
-                    await tx.wallet.update({ where: { id: existing.walletId }, data: { balance: { increment: oldImpact } } });
-                }
-                // ── Apply NEW balance effects ──
-                const newImpact = getWalletImpact({ type: newType, amount: newAmount });
-                if (newType === 'INCOME' && newWalletId) {
-                    await tx.wallet.update({ where: { id: newWalletId }, data: { balance: { increment: newImpact } } });
-                }
-                else if (newType === 'EXPENSE' && newWalletId) {
-                    await tx.wallet.update({ where: { id: newWalletId }, data: { balance: { decrement: newImpact } } });
-                }
-                // ── Update the transaction record itself ──
-                return tx.transaction.update({
+                // 1. Reverse the ORIGINAL effect from the persisted row (never request data).
+                await (0, transactionBalance_1.applyBalanceDeltas)(tx, (0, transactionBalance_1.reverseBalanceEffect)({
+                    type: existing.type,
+                    amount: existing.amount,
+                    walletId: existing.walletId,
+                    toWalletId: existing.toWalletId,
+                }));
+                // 2. Update the transaction row itself.
+                const updated = await tx.transaction.update({
                     where: { id },
                     data: {
                         ...(type !== undefined && { type: type }),
-                        ...(amount !== undefined && { amount: new client_1.Prisma.Decimal(Number(amount)) }),
+                        ...(amount !== undefined && { amount: newAmount }),
                         ...(description !== undefined && { description }),
                         ...(parsedDate && { date: parsedDate }),
                         ...(categoryId !== undefined && { categoryId: categoryId || null }),
                         ...(walletId !== undefined && { walletId }),
+                        // Keep toWalletId consistent with the resulting type.
+                        toWalletId: newToWalletId,
                     },
                     include: {
                         wallet: { select: { id: true, name: true, type: true } },
                         category: { select: { id: true, name: true, type: true } },
                     },
                 });
+                // 3. Apply the NEW effect.
+                await (0, transactionBalance_1.applyBalanceDeltas)(tx, (0, transactionBalance_1.computeBalanceEffect)({
+                    type: newType,
+                    amount: newAmount,
+                    walletId: newWalletId,
+                    toWalletId: newToWalletId,
+                }));
+                return updated;
             });
             (0, response_1.sendSuccess)(res, serialize(transaction), 'Transaction updated successfully');
         }
         catch (err) {
             if (err.code === 'P2025') {
-                return (0, response_1.sendError)(res, `Transaction with id ${req.params.id} not found`, 404);
+                return (0, response_1.sendError)(res, `Transaction with id ${req.params.id} not found`, 404, 'TRANSACTION_NOT_FOUND');
             }
             next(err);
         }
     }
     // DELETE /api/v1/transactions/:id
-    // Rolls back wallet balance when a transaction is deleted.
+    // Reverses the EXACT persisted effect (both transfer sides; an installment's
+    // full grandTotal, not just the monthly amount) and removes the row atomically.
     static async delete(req, res, next) {
         try {
             const { id } = req.params;
             const userId = req.userId;
-            const existing = await prisma_1.default.transaction.findFirst({ where: { id, userId } });
+            const existing = await prisma_1.default.transaction.findFirst({
+                where: { id, userId },
+                include: { installment: { select: { id: true, grandTotal: true } } },
+            });
             if (!existing) {
-                return (0, response_1.sendError)(res, `Transaction with id ${id} not found`, 404);
+                return (0, response_1.sendError)(res, `Transaction with id ${id} not found`, 404, 'TRANSACTION_NOT_FOUND');
+            }
+            // A legacy transfer has no persisted destination to credit back — deleting
+            // it would leave the other wallet permanently drifted. Refuse.
+            if (existing.type === 'TRANSFER' && !existing.toWalletId) {
+                return (0, response_1.sendError)(res, 'Transfer lama tidak bisa dihapus otomatis; sesuaikan saldo manual', 409, 'CONFLICT');
             }
             await prisma_1.default.$transaction(async (tx) => {
-                // Rollback balance
-                const impact = getWalletImpact(existing);
-                if (existing.type === 'INCOME' && existing.walletId) {
-                    await tx.wallet.update({ where: { id: existing.walletId }, data: { balance: { decrement: impact } } });
+                if (existing.isInstallment) {
+                    // Refund the FULL debt that was deducted at create (grandTotal), not
+                    // the stored monthly amount (fixes C2).
+                    await (0, transactionBalance_1.applyBalanceDeltas)(tx, (0, transactionBalance_1.reverseBalanceEffect)({
+                        type: 'EXPENSE',
+                        amount: existing.amount,
+                        walletId: existing.walletId,
+                        isInstallment: true,
+                        installmentGrandTotal: existing.installment?.grandTotal ?? existing.amount,
+                    }));
+                    await tx.transaction.delete({ where: { id } });
+                    // Remove the now-orphaned installment record (Model A: 1 installment ↔ 1 tx).
+                    if (existing.installmentId) {
+                        await tx.installment.delete({ where: { id: existing.installmentId } });
+                    }
                 }
-                else if (existing.type === 'EXPENSE' && existing.walletId) {
-                    await tx.wallet.update({ where: { id: existing.walletId }, data: { balance: { increment: impact } } });
+                else {
+                    await (0, transactionBalance_1.applyBalanceDeltas)(tx, (0, transactionBalance_1.reverseBalanceEffect)({
+                        type: existing.type,
+                        amount: existing.amount,
+                        walletId: existing.walletId,
+                        toWalletId: existing.toWalletId,
+                    }));
+                    await tx.transaction.delete({ where: { id } });
                 }
-                await tx.transaction.delete({ where: { id } });
             });
             (0, response_1.sendSuccess)(res, { id }, `Transaction ${id} deleted successfully`);
         }
         catch (err) {
             if (err.code === 'P2025') {
-                return (0, response_1.sendError)(res, `Transaction with id ${req.params.id} not found`, 404);
+                return (0, response_1.sendError)(res, `Transaction with id ${req.params.id} not found`, 404, 'TRANSACTION_NOT_FOUND');
             }
             next(err);
         }

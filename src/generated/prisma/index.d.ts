@@ -1459,6 +1459,7 @@ export namespace Prisma {
 
   export type WalletCountOutputType = {
     transactions: number
+    toTransactions: number
     installments: number
     fromTransfers: number
     toTransfers: number
@@ -1466,6 +1467,7 @@ export namespace Prisma {
 
   export type WalletCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     transactions?: boolean | WalletCountOutputTypeCountTransactionsArgs
+    toTransactions?: boolean | WalletCountOutputTypeCountToTransactionsArgs
     installments?: boolean | WalletCountOutputTypeCountInstallmentsArgs
     fromTransfers?: boolean | WalletCountOutputTypeCountFromTransfersArgs
     toTransfers?: boolean | WalletCountOutputTypeCountToTransfersArgs
@@ -1486,6 +1488,13 @@ export namespace Prisma {
    * WalletCountOutputType without action
    */
   export type WalletCountOutputTypeCountTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TransactionWhereInput
+  }
+
+  /**
+   * WalletCountOutputType without action
+   */
+  export type WalletCountOutputTypeCountToTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TransactionWhereInput
   }
 
@@ -3073,6 +3082,7 @@ export namespace Prisma {
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     transactions?: boolean | Wallet$transactionsArgs<ExtArgs>
+    toTransactions?: boolean | Wallet$toTransactionsArgs<ExtArgs>
     installments?: boolean | Wallet$installmentsArgs<ExtArgs>
     fromTransfers?: boolean | Wallet$fromTransfersArgs<ExtArgs>
     toTransfers?: boolean | Wallet$toTransfersArgs<ExtArgs>
@@ -3139,6 +3149,7 @@ export namespace Prisma {
   export type WalletInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     transactions?: boolean | Wallet$transactionsArgs<ExtArgs>
+    toTransactions?: boolean | Wallet$toTransactionsArgs<ExtArgs>
     installments?: boolean | Wallet$installmentsArgs<ExtArgs>
     fromTransfers?: boolean | Wallet$fromTransfersArgs<ExtArgs>
     toTransfers?: boolean | Wallet$toTransfersArgs<ExtArgs>
@@ -3156,6 +3167,7 @@ export namespace Prisma {
     objects: {
       user: Prisma.$UserPayload<ExtArgs>
       transactions: Prisma.$TransactionPayload<ExtArgs>[]
+      toTransactions: Prisma.$TransactionPayload<ExtArgs>[]
       installments: Prisma.$InstallmentPayload<ExtArgs>[]
       fromTransfers: Prisma.$TransferPayload<ExtArgs>[]
       toTransfers: Prisma.$TransferPayload<ExtArgs>[]
@@ -3572,6 +3584,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     transactions<T extends Wallet$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    toTransactions<T extends Wallet$toTransactionsArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$toTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     installments<T extends Wallet$installmentsArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$installmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     fromTransfers<T extends Wallet$fromTransfersArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$fromTransfersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     toTransfers<T extends Wallet$toTransfersArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$toTransfersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4023,6 +4036,30 @@ export namespace Prisma {
    * Wallet.transactions
    */
   export type Wallet$transactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionInclude<ExtArgs> | null
+    where?: TransactionWhereInput
+    orderBy?: TransactionOrderByWithRelationInput | TransactionOrderByWithRelationInput[]
+    cursor?: TransactionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TransactionScalarFieldEnum | TransactionScalarFieldEnum[]
+  }
+
+  /**
+   * Wallet.toTransactions
+   */
+  export type Wallet$toTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Transaction
      */
@@ -5290,6 +5327,7 @@ export namespace Prisma {
     id: string | null
     userId: string | null
     walletId: string | null
+    toWalletId: string | null
     categoryId: string | null
     type: $Enums.TransactionType | null
     amount: Decimal | null
@@ -5305,6 +5343,7 @@ export namespace Prisma {
     id: string | null
     userId: string | null
     walletId: string | null
+    toWalletId: string | null
     categoryId: string | null
     type: $Enums.TransactionType | null
     amount: Decimal | null
@@ -5320,6 +5359,7 @@ export namespace Prisma {
     id: number
     userId: number
     walletId: number
+    toWalletId: number
     categoryId: number
     type: number
     amount: number
@@ -5345,6 +5385,7 @@ export namespace Prisma {
     id?: true
     userId?: true
     walletId?: true
+    toWalletId?: true
     categoryId?: true
     type?: true
     amount?: true
@@ -5360,6 +5401,7 @@ export namespace Prisma {
     id?: true
     userId?: true
     walletId?: true
+    toWalletId?: true
     categoryId?: true
     type?: true
     amount?: true
@@ -5375,6 +5417,7 @@ export namespace Prisma {
     id?: true
     userId?: true
     walletId?: true
+    toWalletId?: true
     categoryId?: true
     type?: true
     amount?: true
@@ -5477,6 +5520,7 @@ export namespace Prisma {
     id: string
     userId: string
     walletId: string
+    toWalletId: string | null
     categoryId: string | null
     type: $Enums.TransactionType
     amount: Decimal
@@ -5511,6 +5555,7 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     walletId?: boolean
+    toWalletId?: boolean
     categoryId?: boolean
     type?: boolean
     amount?: boolean
@@ -5522,6 +5567,7 @@ export namespace Prisma {
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     wallet?: boolean | WalletDefaultArgs<ExtArgs>
+    toWallet?: boolean | Transaction$toWalletArgs<ExtArgs>
     category?: boolean | Transaction$categoryArgs<ExtArgs>
     installment?: boolean | Transaction$installmentArgs<ExtArgs>
   }, ExtArgs["result"]["transaction"]>
@@ -5530,6 +5576,7 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     walletId?: boolean
+    toWalletId?: boolean
     categoryId?: boolean
     type?: boolean
     amount?: boolean
@@ -5541,6 +5588,7 @@ export namespace Prisma {
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     wallet?: boolean | WalletDefaultArgs<ExtArgs>
+    toWallet?: boolean | Transaction$toWalletArgs<ExtArgs>
     category?: boolean | Transaction$categoryArgs<ExtArgs>
     installment?: boolean | Transaction$installmentArgs<ExtArgs>
   }, ExtArgs["result"]["transaction"]>
@@ -5549,6 +5597,7 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     walletId?: boolean
+    toWalletId?: boolean
     categoryId?: boolean
     type?: boolean
     amount?: boolean
@@ -5560,6 +5609,7 @@ export namespace Prisma {
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     wallet?: boolean | WalletDefaultArgs<ExtArgs>
+    toWallet?: boolean | Transaction$toWalletArgs<ExtArgs>
     category?: boolean | Transaction$categoryArgs<ExtArgs>
     installment?: boolean | Transaction$installmentArgs<ExtArgs>
   }, ExtArgs["result"]["transaction"]>
@@ -5568,6 +5618,7 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     walletId?: boolean
+    toWalletId?: boolean
     categoryId?: boolean
     type?: boolean
     amount?: boolean
@@ -5579,22 +5630,25 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type TransactionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "walletId" | "categoryId" | "type" | "amount" | "description" | "isInstallment" | "installmentId" | "date" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
+  export type TransactionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "walletId" | "toWalletId" | "categoryId" | "type" | "amount" | "description" | "isInstallment" | "installmentId" | "date" | "createdAt" | "updatedAt", ExtArgs["result"]["transaction"]>
   export type TransactionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     wallet?: boolean | WalletDefaultArgs<ExtArgs>
+    toWallet?: boolean | Transaction$toWalletArgs<ExtArgs>
     category?: boolean | Transaction$categoryArgs<ExtArgs>
     installment?: boolean | Transaction$installmentArgs<ExtArgs>
   }
   export type TransactionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     wallet?: boolean | WalletDefaultArgs<ExtArgs>
+    toWallet?: boolean | Transaction$toWalletArgs<ExtArgs>
     category?: boolean | Transaction$categoryArgs<ExtArgs>
     installment?: boolean | Transaction$installmentArgs<ExtArgs>
   }
   export type TransactionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     wallet?: boolean | WalletDefaultArgs<ExtArgs>
+    toWallet?: boolean | Transaction$toWalletArgs<ExtArgs>
     category?: boolean | Transaction$categoryArgs<ExtArgs>
     installment?: boolean | Transaction$installmentArgs<ExtArgs>
   }
@@ -5604,6 +5658,7 @@ export namespace Prisma {
     objects: {
       user: Prisma.$UserPayload<ExtArgs>
       wallet: Prisma.$WalletPayload<ExtArgs>
+      toWallet: Prisma.$WalletPayload<ExtArgs> | null
       category: Prisma.$CategoryPayload<ExtArgs> | null
       installment: Prisma.$InstallmentPayload<ExtArgs> | null
     }
@@ -5611,6 +5666,7 @@ export namespace Prisma {
       id: string
       userId: string
       walletId: string
+      toWalletId: string | null
       categoryId: string | null
       type: $Enums.TransactionType
       amount: Prisma.Decimal
@@ -6016,6 +6072,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     wallet<T extends WalletDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WalletDefaultArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    toWallet<T extends Transaction$toWalletArgs<ExtArgs> = {}>(args?: Subset<T, Transaction$toWalletArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     category<T extends Transaction$categoryArgs<ExtArgs> = {}>(args?: Subset<T, Transaction$categoryArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     installment<T extends Transaction$installmentArgs<ExtArgs> = {}>(args?: Subset<T, Transaction$installmentArgs<ExtArgs>>): Prisma__InstallmentClient<$Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
@@ -6050,6 +6107,7 @@ export namespace Prisma {
     readonly id: FieldRef<"Transaction", 'String'>
     readonly userId: FieldRef<"Transaction", 'String'>
     readonly walletId: FieldRef<"Transaction", 'String'>
+    readonly toWalletId: FieldRef<"Transaction", 'String'>
     readonly categoryId: FieldRef<"Transaction", 'String'>
     readonly type: FieldRef<"Transaction", 'TransactionType'>
     readonly amount: FieldRef<"Transaction", 'Decimal'>
@@ -6457,6 +6515,25 @@ export namespace Prisma {
      * Limit how many Transactions to delete.
      */
     limit?: number
+  }
+
+  /**
+   * Transaction.toWallet
+   */
+  export type Transaction$toWalletArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Wallet
+     */
+    select?: WalletSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Wallet
+     */
+    omit?: WalletOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletInclude<ExtArgs> | null
+    where?: WalletWhereInput
   }
 
   /**
@@ -9082,6 +9159,7 @@ export namespace Prisma {
     id: 'id',
     userId: 'userId',
     walletId: 'walletId',
+    toWalletId: 'toWalletId',
     categoryId: 'categoryId',
     type: 'type',
     amount: 'amount',
@@ -9407,6 +9485,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     transactions?: TransactionListRelationFilter
+    toTransactions?: TransactionListRelationFilter
     installments?: InstallmentListRelationFilter
     fromTransfers?: TransferListRelationFilter
     toTransfers?: TransferListRelationFilter
@@ -9430,6 +9509,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
     transactions?: TransactionOrderByRelationAggregateInput
+    toTransactions?: TransactionOrderByRelationAggregateInput
     installments?: InstallmentOrderByRelationAggregateInput
     fromTransfers?: TransferOrderByRelationAggregateInput
     toTransfers?: TransferOrderByRelationAggregateInput
@@ -9456,6 +9536,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     transactions?: TransactionListRelationFilter
+    toTransactions?: TransactionListRelationFilter
     installments?: InstallmentListRelationFilter
     fromTransfers?: TransferListRelationFilter
     toTransfers?: TransferListRelationFilter
@@ -9586,6 +9667,7 @@ export namespace Prisma {
     id?: StringFilter<"Transaction"> | string
     userId?: StringFilter<"Transaction"> | string
     walletId?: StringFilter<"Transaction"> | string
+    toWalletId?: StringNullableFilter<"Transaction"> | string | null
     categoryId?: StringNullableFilter<"Transaction"> | string | null
     type?: EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
     amount?: DecimalFilter<"Transaction"> | Decimal | DecimalJsLike | number | string
@@ -9597,6 +9679,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Transaction"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     wallet?: XOR<WalletScalarRelationFilter, WalletWhereInput>
+    toWallet?: XOR<WalletNullableScalarRelationFilter, WalletWhereInput> | null
     category?: XOR<CategoryNullableScalarRelationFilter, CategoryWhereInput> | null
     installment?: XOR<InstallmentNullableScalarRelationFilter, InstallmentWhereInput> | null
   }
@@ -9605,6 +9688,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     walletId?: SortOrder
+    toWalletId?: SortOrderInput | SortOrder
     categoryId?: SortOrderInput | SortOrder
     type?: SortOrder
     amount?: SortOrder
@@ -9616,6 +9700,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
     wallet?: WalletOrderByWithRelationInput
+    toWallet?: WalletOrderByWithRelationInput
     category?: CategoryOrderByWithRelationInput
     installment?: InstallmentOrderByWithRelationInput
   }
@@ -9627,6 +9712,7 @@ export namespace Prisma {
     NOT?: TransactionWhereInput | TransactionWhereInput[]
     userId?: StringFilter<"Transaction"> | string
     walletId?: StringFilter<"Transaction"> | string
+    toWalletId?: StringNullableFilter<"Transaction"> | string | null
     categoryId?: StringNullableFilter<"Transaction"> | string | null
     type?: EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
     amount?: DecimalFilter<"Transaction"> | Decimal | DecimalJsLike | number | string
@@ -9638,6 +9724,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Transaction"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     wallet?: XOR<WalletScalarRelationFilter, WalletWhereInput>
+    toWallet?: XOR<WalletNullableScalarRelationFilter, WalletWhereInput> | null
     category?: XOR<CategoryNullableScalarRelationFilter, CategoryWhereInput> | null
     installment?: XOR<InstallmentNullableScalarRelationFilter, InstallmentWhereInput> | null
   }, "id">
@@ -9646,6 +9733,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     walletId?: SortOrder
+    toWalletId?: SortOrderInput | SortOrder
     categoryId?: SortOrderInput | SortOrder
     type?: SortOrder
     amount?: SortOrder
@@ -9669,6 +9757,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Transaction"> | string
     userId?: StringWithAggregatesFilter<"Transaction"> | string
     walletId?: StringWithAggregatesFilter<"Transaction"> | string
+    toWalletId?: StringNullableWithAggregatesFilter<"Transaction"> | string | null
     categoryId?: StringNullableWithAggregatesFilter<"Transaction"> | string | null
     type?: EnumTransactionTypeWithAggregatesFilter<"Transaction"> | $Enums.TransactionType
     amount?: DecimalWithAggregatesFilter<"Transaction"> | Decimal | DecimalJsLike | number | string
@@ -9991,6 +10080,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutWalletsInput
     transactions?: TransactionCreateNestedManyWithoutWalletInput
+    toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
     installments?: InstallmentCreateNestedManyWithoutWalletInput
     fromTransfers?: TransferCreateNestedManyWithoutFromWalletInput
     toTransfers?: TransferCreateNestedManyWithoutToWalletInput
@@ -10013,6 +10103,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
+    toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
     fromTransfers?: TransferUncheckedCreateNestedManyWithoutFromWalletInput
     toTransfers?: TransferUncheckedCreateNestedManyWithoutToWalletInput
@@ -10035,6 +10126,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutWalletsNestedInput
     transactions?: TransactionUpdateManyWithoutWalletNestedInput
+    toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUpdateManyWithoutWalletNestedInput
     fromTransfers?: TransferUpdateManyWithoutFromWalletNestedInput
     toTransfers?: TransferUpdateManyWithoutToWalletNestedInput
@@ -10057,6 +10149,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
+    toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
     fromTransfers?: TransferUncheckedUpdateManyWithoutFromWalletNestedInput
     toTransfers?: TransferUncheckedUpdateManyWithoutToWalletNestedInput
@@ -10206,6 +10299,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutTransactionsInput
     wallet: WalletCreateNestedOneWithoutTransactionsInput
+    toWallet?: WalletCreateNestedOneWithoutToTransactionsInput
     category?: CategoryCreateNestedOneWithoutTransactionsInput
     installment?: InstallmentCreateNestedOneWithoutTransactionsInput
   }
@@ -10214,6 +10308,7 @@ export namespace Prisma {
     id?: string
     userId: string
     walletId: string
+    toWalletId?: string | null
     categoryId?: string | null
     type: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
@@ -10236,6 +10331,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutTransactionsNestedInput
     wallet?: WalletUpdateOneRequiredWithoutTransactionsNestedInput
+    toWallet?: WalletUpdateOneWithoutToTransactionsNestedInput
     category?: CategoryUpdateOneWithoutTransactionsNestedInput
     installment?: InstallmentUpdateOneWithoutTransactionsNestedInput
   }
@@ -10244,6 +10340,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     walletId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -10259,6 +10356,7 @@ export namespace Prisma {
     id?: string
     userId: string
     walletId: string
+    toWalletId?: string | null
     categoryId?: string | null
     type: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
@@ -10285,6 +10383,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     walletId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -10916,6 +11015,11 @@ export namespace Prisma {
     isNot?: WalletWhereInput
   }
 
+  export type WalletNullableScalarRelationFilter = {
+    is?: WalletWhereInput | null
+    isNot?: WalletWhereInput | null
+  }
+
   export type CategoryNullableScalarRelationFilter = {
     is?: CategoryWhereInput | null
     isNot?: CategoryWhereInput | null
@@ -10930,6 +11034,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     walletId?: SortOrder
+    toWalletId?: SortOrder
     categoryId?: SortOrder
     type?: SortOrder
     amount?: SortOrder
@@ -10949,6 +11054,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     walletId?: SortOrder
+    toWalletId?: SortOrder
     categoryId?: SortOrder
     type?: SortOrder
     amount?: SortOrder
@@ -10964,6 +11070,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     walletId?: SortOrder
+    toWalletId?: SortOrder
     categoryId?: SortOrder
     type?: SortOrder
     amount?: SortOrder
@@ -11399,6 +11506,13 @@ export namespace Prisma {
     connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
   }
 
+  export type TransactionCreateNestedManyWithoutToWalletInput = {
+    create?: XOR<TransactionCreateWithoutToWalletInput, TransactionUncheckedCreateWithoutToWalletInput> | TransactionCreateWithoutToWalletInput[] | TransactionUncheckedCreateWithoutToWalletInput[]
+    connectOrCreate?: TransactionCreateOrConnectWithoutToWalletInput | TransactionCreateOrConnectWithoutToWalletInput[]
+    createMany?: TransactionCreateManyToWalletInputEnvelope
+    connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+  }
+
   export type InstallmentCreateNestedManyWithoutWalletInput = {
     create?: XOR<InstallmentCreateWithoutWalletInput, InstallmentUncheckedCreateWithoutWalletInput> | InstallmentCreateWithoutWalletInput[] | InstallmentUncheckedCreateWithoutWalletInput[]
     connectOrCreate?: InstallmentCreateOrConnectWithoutWalletInput | InstallmentCreateOrConnectWithoutWalletInput[]
@@ -11424,6 +11538,13 @@ export namespace Prisma {
     create?: XOR<TransactionCreateWithoutWalletInput, TransactionUncheckedCreateWithoutWalletInput> | TransactionCreateWithoutWalletInput[] | TransactionUncheckedCreateWithoutWalletInput[]
     connectOrCreate?: TransactionCreateOrConnectWithoutWalletInput | TransactionCreateOrConnectWithoutWalletInput[]
     createMany?: TransactionCreateManyWalletInputEnvelope
+    connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+  }
+
+  export type TransactionUncheckedCreateNestedManyWithoutToWalletInput = {
+    create?: XOR<TransactionCreateWithoutToWalletInput, TransactionUncheckedCreateWithoutToWalletInput> | TransactionCreateWithoutToWalletInput[] | TransactionUncheckedCreateWithoutToWalletInput[]
+    connectOrCreate?: TransactionCreateOrConnectWithoutToWalletInput | TransactionCreateOrConnectWithoutToWalletInput[]
+    createMany?: TransactionCreateManyToWalletInputEnvelope
     connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
   }
 
@@ -11490,6 +11611,20 @@ export namespace Prisma {
     deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
   }
 
+  export type TransactionUpdateManyWithoutToWalletNestedInput = {
+    create?: XOR<TransactionCreateWithoutToWalletInput, TransactionUncheckedCreateWithoutToWalletInput> | TransactionCreateWithoutToWalletInput[] | TransactionUncheckedCreateWithoutToWalletInput[]
+    connectOrCreate?: TransactionCreateOrConnectWithoutToWalletInput | TransactionCreateOrConnectWithoutToWalletInput[]
+    upsert?: TransactionUpsertWithWhereUniqueWithoutToWalletInput | TransactionUpsertWithWhereUniqueWithoutToWalletInput[]
+    createMany?: TransactionCreateManyToWalletInputEnvelope
+    set?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    disconnect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    delete?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    update?: TransactionUpdateWithWhereUniqueWithoutToWalletInput | TransactionUpdateWithWhereUniqueWithoutToWalletInput[]
+    updateMany?: TransactionUpdateManyWithWhereWithoutToWalletInput | TransactionUpdateManyWithWhereWithoutToWalletInput[]
+    deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
+  }
+
   export type InstallmentUpdateManyWithoutWalletNestedInput = {
     create?: XOR<InstallmentCreateWithoutWalletInput, InstallmentUncheckedCreateWithoutWalletInput> | InstallmentCreateWithoutWalletInput[] | InstallmentUncheckedCreateWithoutWalletInput[]
     connectOrCreate?: InstallmentCreateOrConnectWithoutWalletInput | InstallmentCreateOrConnectWithoutWalletInput[]
@@ -11543,6 +11678,20 @@ export namespace Prisma {
     connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
     update?: TransactionUpdateWithWhereUniqueWithoutWalletInput | TransactionUpdateWithWhereUniqueWithoutWalletInput[]
     updateMany?: TransactionUpdateManyWithWhereWithoutWalletInput | TransactionUpdateManyWithWhereWithoutWalletInput[]
+    deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
+  }
+
+  export type TransactionUncheckedUpdateManyWithoutToWalletNestedInput = {
+    create?: XOR<TransactionCreateWithoutToWalletInput, TransactionUncheckedCreateWithoutToWalletInput> | TransactionCreateWithoutToWalletInput[] | TransactionUncheckedCreateWithoutToWalletInput[]
+    connectOrCreate?: TransactionCreateOrConnectWithoutToWalletInput | TransactionCreateOrConnectWithoutToWalletInput[]
+    upsert?: TransactionUpsertWithWhereUniqueWithoutToWalletInput | TransactionUpsertWithWhereUniqueWithoutToWalletInput[]
+    createMany?: TransactionCreateManyToWalletInputEnvelope
+    set?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    disconnect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    delete?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    update?: TransactionUpdateWithWhereUniqueWithoutToWalletInput | TransactionUpdateWithWhereUniqueWithoutToWalletInput[]
+    updateMany?: TransactionUpdateManyWithWhereWithoutToWalletInput | TransactionUpdateManyWithWhereWithoutToWalletInput[]
     deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
   }
 
@@ -11660,6 +11809,12 @@ export namespace Prisma {
     connect?: WalletWhereUniqueInput
   }
 
+  export type WalletCreateNestedOneWithoutToTransactionsInput = {
+    create?: XOR<WalletCreateWithoutToTransactionsInput, WalletUncheckedCreateWithoutToTransactionsInput>
+    connectOrCreate?: WalletCreateOrConnectWithoutToTransactionsInput
+    connect?: WalletWhereUniqueInput
+  }
+
   export type CategoryCreateNestedOneWithoutTransactionsInput = {
     create?: XOR<CategoryCreateWithoutTransactionsInput, CategoryUncheckedCreateWithoutTransactionsInput>
     connectOrCreate?: CategoryCreateOrConnectWithoutTransactionsInput
@@ -11690,6 +11845,16 @@ export namespace Prisma {
     upsert?: WalletUpsertWithoutTransactionsInput
     connect?: WalletWhereUniqueInput
     update?: XOR<XOR<WalletUpdateToOneWithWhereWithoutTransactionsInput, WalletUpdateWithoutTransactionsInput>, WalletUncheckedUpdateWithoutTransactionsInput>
+  }
+
+  export type WalletUpdateOneWithoutToTransactionsNestedInput = {
+    create?: XOR<WalletCreateWithoutToTransactionsInput, WalletUncheckedCreateWithoutToTransactionsInput>
+    connectOrCreate?: WalletCreateOrConnectWithoutToTransactionsInput
+    upsert?: WalletUpsertWithoutToTransactionsInput
+    disconnect?: WalletWhereInput | boolean
+    delete?: WalletWhereInput | boolean
+    connect?: WalletWhereUniqueInput
+    update?: XOR<XOR<WalletUpdateToOneWithWhereWithoutToTransactionsInput, WalletUpdateWithoutToTransactionsInput>, WalletUncheckedUpdateWithoutToTransactionsInput>
   }
 
   export type CategoryUpdateOneWithoutTransactionsNestedInput = {
@@ -12113,6 +12278,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionCreateNestedManyWithoutWalletInput
+    toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
     installments?: InstallmentCreateNestedManyWithoutWalletInput
     fromTransfers?: TransferCreateNestedManyWithoutFromWalletInput
     toTransfers?: TransferCreateNestedManyWithoutToWalletInput
@@ -12134,6 +12300,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
+    toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
     fromTransfers?: TransferUncheckedCreateNestedManyWithoutFromWalletInput
     toTransfers?: TransferUncheckedCreateNestedManyWithoutToWalletInput
@@ -12191,6 +12358,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallet: WalletCreateNestedOneWithoutTransactionsInput
+    toWallet?: WalletCreateNestedOneWithoutToTransactionsInput
     category?: CategoryCreateNestedOneWithoutTransactionsInput
     installment?: InstallmentCreateNestedOneWithoutTransactionsInput
   }
@@ -12198,6 +12366,7 @@ export namespace Prisma {
   export type TransactionUncheckedCreateWithoutUserInput = {
     id?: string
     walletId: string
+    toWalletId?: string | null
     categoryId?: string | null
     type: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
@@ -12393,6 +12562,7 @@ export namespace Prisma {
     id?: StringFilter<"Transaction"> | string
     userId?: StringFilter<"Transaction"> | string
     walletId?: StringFilter<"Transaction"> | string
+    toWalletId?: StringNullableFilter<"Transaction"> | string | null
     categoryId?: StringNullableFilter<"Transaction"> | string | null
     type?: EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
     amount?: DecimalFilter<"Transaction"> | Decimal | DecimalJsLike | number | string
@@ -12516,6 +12686,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutTransactionsInput
+    toWallet?: WalletCreateNestedOneWithoutToTransactionsInput
     category?: CategoryCreateNestedOneWithoutTransactionsInput
     installment?: InstallmentCreateNestedOneWithoutTransactionsInput
   }
@@ -12523,6 +12694,7 @@ export namespace Prisma {
   export type TransactionUncheckedCreateWithoutWalletInput = {
     id?: string
     userId: string
+    toWalletId?: string | null
     categoryId?: string | null
     type: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
@@ -12541,6 +12713,46 @@ export namespace Prisma {
 
   export type TransactionCreateManyWalletInputEnvelope = {
     data: TransactionCreateManyWalletInput | TransactionCreateManyWalletInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TransactionCreateWithoutToWalletInput = {
+    id?: string
+    type: $Enums.TransactionType
+    amount: Decimal | DecimalJsLike | number | string
+    description?: string | null
+    isInstallment?: boolean
+    date: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutTransactionsInput
+    wallet: WalletCreateNestedOneWithoutTransactionsInput
+    category?: CategoryCreateNestedOneWithoutTransactionsInput
+    installment?: InstallmentCreateNestedOneWithoutTransactionsInput
+  }
+
+  export type TransactionUncheckedCreateWithoutToWalletInput = {
+    id?: string
+    userId: string
+    walletId: string
+    categoryId?: string | null
+    type: $Enums.TransactionType
+    amount: Decimal | DecimalJsLike | number | string
+    description?: string | null
+    isInstallment?: boolean
+    installmentId?: string | null
+    date: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TransactionCreateOrConnectWithoutToWalletInput = {
+    where: TransactionWhereUniqueInput
+    create: XOR<TransactionCreateWithoutToWalletInput, TransactionUncheckedCreateWithoutToWalletInput>
+  }
+
+  export type TransactionCreateManyToWalletInputEnvelope = {
+    data: TransactionCreateManyToWalletInput | TransactionCreateManyToWalletInput[]
     skipDuplicates?: boolean
   }
 
@@ -12711,6 +12923,22 @@ export namespace Prisma {
     data: XOR<TransactionUpdateManyMutationInput, TransactionUncheckedUpdateManyWithoutWalletInput>
   }
 
+  export type TransactionUpsertWithWhereUniqueWithoutToWalletInput = {
+    where: TransactionWhereUniqueInput
+    update: XOR<TransactionUpdateWithoutToWalletInput, TransactionUncheckedUpdateWithoutToWalletInput>
+    create: XOR<TransactionCreateWithoutToWalletInput, TransactionUncheckedCreateWithoutToWalletInput>
+  }
+
+  export type TransactionUpdateWithWhereUniqueWithoutToWalletInput = {
+    where: TransactionWhereUniqueInput
+    data: XOR<TransactionUpdateWithoutToWalletInput, TransactionUncheckedUpdateWithoutToWalletInput>
+  }
+
+  export type TransactionUpdateManyWithWhereWithoutToWalletInput = {
+    where: TransactionScalarWhereInput
+    data: XOR<TransactionUpdateManyMutationInput, TransactionUncheckedUpdateManyWithoutToWalletInput>
+  }
+
   export type InstallmentUpsertWithWhereUniqueWithoutWalletInput = {
     where: InstallmentWhereUniqueInput
     update: XOR<InstallmentUpdateWithoutWalletInput, InstallmentUncheckedUpdateWithoutWalletInput>
@@ -12801,6 +13029,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutTransactionsInput
     wallet: WalletCreateNestedOneWithoutTransactionsInput
+    toWallet?: WalletCreateNestedOneWithoutToTransactionsInput
     installment?: InstallmentCreateNestedOneWithoutTransactionsInput
   }
 
@@ -12808,6 +13037,7 @@ export namespace Prisma {
     id?: string
     userId: string
     walletId: string
+    toWalletId?: string | null
     type: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     description?: string | null
@@ -12928,6 +13158,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutWalletsInput
+    toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
     installments?: InstallmentCreateNestedManyWithoutWalletInput
     fromTransfers?: TransferCreateNestedManyWithoutFromWalletInput
     toTransfers?: TransferCreateNestedManyWithoutToWalletInput
@@ -12949,6 +13180,7 @@ export namespace Prisma {
     adminFeeType?: $Enums.AdminFeeType
     createdAt?: Date | string
     updatedAt?: Date | string
+    toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
     fromTransfers?: TransferUncheckedCreateNestedManyWithoutFromWalletInput
     toTransfers?: TransferUncheckedCreateNestedManyWithoutToWalletInput
@@ -12957,6 +13189,55 @@ export namespace Prisma {
   export type WalletCreateOrConnectWithoutTransactionsInput = {
     where: WalletWhereUniqueInput
     create: XOR<WalletCreateWithoutTransactionsInput, WalletUncheckedCreateWithoutTransactionsInput>
+  }
+
+  export type WalletCreateWithoutToTransactionsInput = {
+    id?: string
+    name: string
+    type?: $Enums.WalletType
+    balance?: Decimal | DecimalJsLike | number | string
+    creditLimit?: Decimal | DecimalJsLike | number | string
+    initialBalance?: Decimal | DecimalJsLike | number | string
+    icon?: string | null
+    color?: string | null
+    interestRate?: Decimal | DecimalJsLike | number | string
+    isArchived?: boolean
+    adminFee?: Decimal | DecimalJsLike | number | string
+    adminFeeType?: $Enums.AdminFeeType
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutWalletsInput
+    transactions?: TransactionCreateNestedManyWithoutWalletInput
+    installments?: InstallmentCreateNestedManyWithoutWalletInput
+    fromTransfers?: TransferCreateNestedManyWithoutFromWalletInput
+    toTransfers?: TransferCreateNestedManyWithoutToWalletInput
+  }
+
+  export type WalletUncheckedCreateWithoutToTransactionsInput = {
+    id?: string
+    userId: string
+    name: string
+    type?: $Enums.WalletType
+    balance?: Decimal | DecimalJsLike | number | string
+    creditLimit?: Decimal | DecimalJsLike | number | string
+    initialBalance?: Decimal | DecimalJsLike | number | string
+    icon?: string | null
+    color?: string | null
+    interestRate?: Decimal | DecimalJsLike | number | string
+    isArchived?: boolean
+    adminFee?: Decimal | DecimalJsLike | number | string
+    adminFeeType?: $Enums.AdminFeeType
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
+    installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
+    fromTransfers?: TransferUncheckedCreateNestedManyWithoutFromWalletInput
+    toTransfers?: TransferUncheckedCreateNestedManyWithoutToWalletInput
+  }
+
+  export type WalletCreateOrConnectWithoutToTransactionsInput = {
+    where: WalletWhereUniqueInput
+    create: XOR<WalletCreateWithoutToTransactionsInput, WalletUncheckedCreateWithoutToTransactionsInput>
   }
 
   export type CategoryCreateWithoutTransactionsInput = {
@@ -13099,6 +13380,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutWalletsNestedInput
+    toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUpdateManyWithoutWalletNestedInput
     fromTransfers?: TransferUpdateManyWithoutFromWalletNestedInput
     toTransfers?: TransferUpdateManyWithoutToWalletNestedInput
@@ -13120,6 +13402,62 @@ export namespace Prisma {
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
+    installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
+    fromTransfers?: TransferUncheckedUpdateManyWithoutFromWalletNestedInput
+    toTransfers?: TransferUncheckedUpdateManyWithoutToWalletNestedInput
+  }
+
+  export type WalletUpsertWithoutToTransactionsInput = {
+    update: XOR<WalletUpdateWithoutToTransactionsInput, WalletUncheckedUpdateWithoutToTransactionsInput>
+    create: XOR<WalletCreateWithoutToTransactionsInput, WalletUncheckedCreateWithoutToTransactionsInput>
+    where?: WalletWhereInput
+  }
+
+  export type WalletUpdateToOneWithWhereWithoutToTransactionsInput = {
+    where?: WalletWhereInput
+    data: XOR<WalletUpdateWithoutToTransactionsInput, WalletUncheckedUpdateWithoutToTransactionsInput>
+  }
+
+  export type WalletUpdateWithoutToTransactionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumWalletTypeFieldUpdateOperationsInput | $Enums.WalletType
+    balance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    creditLimit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    initialBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    interestRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isArchived?: BoolFieldUpdateOperationsInput | boolean
+    adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutWalletsNestedInput
+    transactions?: TransactionUpdateManyWithoutWalletNestedInput
+    installments?: InstallmentUpdateManyWithoutWalletNestedInput
+    fromTransfers?: TransferUpdateManyWithoutFromWalletNestedInput
+    toTransfers?: TransferUpdateManyWithoutToWalletNestedInput
+  }
+
+  export type WalletUncheckedUpdateWithoutToTransactionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumWalletTypeFieldUpdateOperationsInput | $Enums.WalletType
+    balance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    creditLimit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    initialBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    interestRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isArchived?: BoolFieldUpdateOperationsInput | boolean
+    adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
     fromTransfers?: TransferUncheckedUpdateManyWithoutFromWalletNestedInput
     toTransfers?: TransferUncheckedUpdateManyWithoutToWalletNestedInput
@@ -13261,6 +13599,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutWalletsInput
     transactions?: TransactionCreateNestedManyWithoutWalletInput
+    toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
     fromTransfers?: TransferCreateNestedManyWithoutFromWalletInput
     toTransfers?: TransferCreateNestedManyWithoutToWalletInput
   }
@@ -13282,6 +13621,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
+    toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
     fromTransfers?: TransferUncheckedCreateNestedManyWithoutFromWalletInput
     toTransfers?: TransferUncheckedCreateNestedManyWithoutToWalletInput
   }
@@ -13302,6 +13642,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutTransactionsInput
     wallet: WalletCreateNestedOneWithoutTransactionsInput
+    toWallet?: WalletCreateNestedOneWithoutToTransactionsInput
     category?: CategoryCreateNestedOneWithoutTransactionsInput
   }
 
@@ -13309,6 +13650,7 @@ export namespace Prisma {
     id?: string
     userId: string
     walletId: string
+    toWalletId?: string | null
     categoryId?: string | null
     type: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
@@ -13394,6 +13736,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutWalletsNestedInput
     transactions?: TransactionUpdateManyWithoutWalletNestedInput
+    toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
     fromTransfers?: TransferUpdateManyWithoutFromWalletNestedInput
     toTransfers?: TransferUpdateManyWithoutToWalletNestedInput
   }
@@ -13415,6 +13758,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
+    toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
     fromTransfers?: TransferUncheckedUpdateManyWithoutFromWalletNestedInput
     toTransfers?: TransferUncheckedUpdateManyWithoutToWalletNestedInput
   }
@@ -13483,6 +13827,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutWalletsInput
     transactions?: TransactionCreateNestedManyWithoutWalletInput
+    toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
     installments?: InstallmentCreateNestedManyWithoutWalletInput
     toTransfers?: TransferCreateNestedManyWithoutToWalletInput
   }
@@ -13504,6 +13849,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
+    toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
     toTransfers?: TransferUncheckedCreateNestedManyWithoutToWalletInput
   }
@@ -13530,6 +13876,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutWalletsInput
     transactions?: TransactionCreateNestedManyWithoutWalletInput
+    toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
     installments?: InstallmentCreateNestedManyWithoutWalletInput
     fromTransfers?: TransferCreateNestedManyWithoutFromWalletInput
   }
@@ -13551,6 +13898,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
+    toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
     fromTransfers?: TransferUncheckedCreateNestedManyWithoutFromWalletInput
   }
@@ -13625,6 +13973,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutWalletsNestedInput
     transactions?: TransactionUpdateManyWithoutWalletNestedInput
+    toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUpdateManyWithoutWalletNestedInput
     toTransfers?: TransferUpdateManyWithoutToWalletNestedInput
   }
@@ -13646,6 +13995,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
+    toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
     toTransfers?: TransferUncheckedUpdateManyWithoutToWalletNestedInput
   }
@@ -13678,6 +14028,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutWalletsNestedInput
     transactions?: TransactionUpdateManyWithoutWalletNestedInput
+    toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUpdateManyWithoutWalletNestedInput
     fromTransfers?: TransferUpdateManyWithoutFromWalletNestedInput
   }
@@ -13699,6 +14050,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
+    toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
     fromTransfers?: TransferUncheckedUpdateManyWithoutFromWalletNestedInput
   }
@@ -13733,6 +14085,7 @@ export namespace Prisma {
   export type TransactionCreateManyUserInput = {
     id?: string
     walletId: string
+    toWalletId?: string | null
     categoryId?: string | null
     type: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
@@ -13791,6 +14144,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUpdateManyWithoutWalletNestedInput
+    toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUpdateManyWithoutWalletNestedInput
     fromTransfers?: TransferUpdateManyWithoutFromWalletNestedInput
     toTransfers?: TransferUpdateManyWithoutToWalletNestedInput
@@ -13812,6 +14166,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
+    toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
     fromTransfers?: TransferUncheckedUpdateManyWithoutFromWalletNestedInput
     toTransfers?: TransferUncheckedUpdateManyWithoutToWalletNestedInput
@@ -13876,6 +14231,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallet?: WalletUpdateOneRequiredWithoutTransactionsNestedInput
+    toWallet?: WalletUpdateOneWithoutToTransactionsNestedInput
     category?: CategoryUpdateOneWithoutTransactionsNestedInput
     installment?: InstallmentUpdateOneWithoutTransactionsNestedInput
   }
@@ -13883,6 +14239,7 @@ export namespace Prisma {
   export type TransactionUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     walletId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -13897,6 +14254,7 @@ export namespace Prisma {
   export type TransactionUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     walletId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -14006,6 +14364,22 @@ export namespace Prisma {
   export type TransactionCreateManyWalletInput = {
     id?: string
     userId: string
+    toWalletId?: string | null
+    categoryId?: string | null
+    type: $Enums.TransactionType
+    amount: Decimal | DecimalJsLike | number | string
+    description?: string | null
+    isInstallment?: boolean
+    installmentId?: string | null
+    date: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TransactionCreateManyToWalletInput = {
+    id?: string
+    userId: string
+    walletId: string
     categoryId?: string | null
     type: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
@@ -14068,6 +14442,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutTransactionsNestedInput
+    toWallet?: WalletUpdateOneWithoutToTransactionsNestedInput
     category?: CategoryUpdateOneWithoutTransactionsNestedInput
     installment?: InstallmentUpdateOneWithoutTransactionsNestedInput
   }
@@ -14075,6 +14450,7 @@ export namespace Prisma {
   export type TransactionUncheckedUpdateWithoutWalletInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -14089,6 +14465,52 @@ export namespace Prisma {
   export type TransactionUncheckedUpdateManyWithoutWalletInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isInstallment?: BoolFieldUpdateOperationsInput | boolean
+    installmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TransactionUpdateWithoutToWalletInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isInstallment?: BoolFieldUpdateOperationsInput | boolean
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutTransactionsNestedInput
+    wallet?: WalletUpdateOneRequiredWithoutTransactionsNestedInput
+    category?: CategoryUpdateOneWithoutTransactionsNestedInput
+    installment?: InstallmentUpdateOneWithoutTransactionsNestedInput
+  }
+
+  export type TransactionUncheckedUpdateWithoutToWalletInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    walletId?: StringFieldUpdateOperationsInput | string
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isInstallment?: BoolFieldUpdateOperationsInput | boolean
+    installmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TransactionUncheckedUpdateManyWithoutToWalletInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    walletId?: StringFieldUpdateOperationsInput | string
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -14229,6 +14651,7 @@ export namespace Prisma {
     id?: string
     userId: string
     walletId: string
+    toWalletId?: string | null
     type: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     description?: string | null
@@ -14250,6 +14673,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutTransactionsNestedInput
     wallet?: WalletUpdateOneRequiredWithoutTransactionsNestedInput
+    toWallet?: WalletUpdateOneWithoutToTransactionsNestedInput
     installment?: InstallmentUpdateOneWithoutTransactionsNestedInput
   }
 
@@ -14257,6 +14681,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     walletId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14271,6 +14696,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     walletId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14285,6 +14711,7 @@ export namespace Prisma {
     id?: string
     userId: string
     walletId: string
+    toWalletId?: string | null
     categoryId?: string | null
     type: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
@@ -14306,6 +14733,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutTransactionsNestedInput
     wallet?: WalletUpdateOneRequiredWithoutTransactionsNestedInput
+    toWallet?: WalletUpdateOneWithoutToTransactionsNestedInput
     category?: CategoryUpdateOneWithoutTransactionsNestedInput
   }
 
@@ -14313,6 +14741,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     walletId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -14327,6 +14756,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     walletId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
