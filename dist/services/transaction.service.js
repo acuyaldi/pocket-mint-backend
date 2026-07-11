@@ -187,7 +187,164 @@ function createTransactionService(db) {
             rethrowCreate(err);
         }
     }
-    return { createTransaction };
+    /**
+     * Update a transaction with reverse-then-apply semantics: reverse the persisted
+     * original effect, update the row, apply the new effect — atomically. Reversal
+     * derives from the stored row, never from request data. Installment rows and
+     * legacy (destination-less) transfers are refused rather than re-balanced.
+     */
+    async function updateTransaction(input) {
+        const { userId, id, type, amount, description, date, categoryId, walletId, toWalletId } = input;
+        if (type && !VALID_TYPES.includes(type)) {
+            throw new transaction_errors_1.TransactionError(`Invalid type. Allowed: ${VALID_TYPES.join(', ')}`, 400, 'BAD_REQUEST');
+        }
+        if (amount !== undefined && (isNaN(Number(amount)) || Number(amount) <= 0)) {
+            throw new transaction_errors_1.TransactionError('amount must be a positive number', 400, 'INVALID_AMOUNT');
+        }
+        let parsedDate;
+        if (date) {
+            try {
+                parsedDate = (0, reportingTime_1.parseBusinessDate)(date, config_1.reportingConfig.timezone);
+            }
+            catch (error) {
+                throw new transaction_errors_1.TransactionError(error instanceof Error ? error.message : 'date must be a valid date', 400, 'BAD_REQUEST');
+            }
+        }
+        const existing = await db.transaction.findFirst({ where: { id, userId } });
+        if (!existing) {
+            throw new transaction_errors_1.TransactionError(`Transaction with id ${id} not found`, 404, 'TRANSACTION_NOT_FOUND');
+        }
+        // Installments are managed as a unit; editing the generated row would desync
+        // grandTotal vs. the stored monthly amount.
+        if (existing.isInstallment) {
+            throw new transaction_errors_1.TransactionError('Transaksi cicilan tidak bisa diubah langsung', 409, 'CONFLICT');
+        }
+        if (input.isInstallment === true) {
+            throw new transaction_errors_1.TransactionError('Tidak bisa mengubah transaksi biasa menjadi cicilan', 400, 'BAD_REQUEST');
+        }
+        // A legacy transfer has no destination to re-balance — refuse rather than drift.
+        if (existing.type === 'TRANSFER' && !existing.toWalletId) {
+            throw new transaction_errors_1.TransactionError('Transfer lama tidak bisa diubah; hapus lalu buat ulang', 409, 'CONFLICT');
+        }
+        const newType = (type ?? existing.type);
+        const newAmount = amount !== undefined ? new client_1.Prisma.Decimal(Number(amount)) : existing.amount;
+        const newWalletId = walletId ?? existing.walletId;
+        const newToWalletId = newType === 'TRANSFER' ? (toWalletId ?? existing.toWalletId ?? null) : null;
+        if (walletId) {
+            const targetWallet = await db.wallet.findFirst({ where: { id: walletId, userId }, select: { id: true } });
+            if (!targetWallet) {
+                throw new transaction_errors_1.TransactionError('Wallet tidak ditemukan', 404, 'WALLET_NOT_FOUND');
+            }
+        }
+        if (newType === 'TRANSFER') {
+            if (!newToWalletId) {
+                throw new transaction_errors_1.TransactionError('toWalletId is required for TRANSFER transactions', 400, 'INVALID_TRANSFER');
+            }
+            if (newToWalletId === newWalletId) {
+                throw new transaction_errors_1.TransactionError('Wallet asal dan tujuan tidak boleh sama', 400, 'INVALID_TRANSFER');
+            }
+            const destWallet = await db.wallet.findFirst({ where: { id: newToWalletId, userId }, select: { id: true } });
+            if (!destWallet) {
+                throw new transaction_errors_1.TransactionError('Wallet tujuan tidak ditemukan', 404, 'WALLET_NOT_FOUND');
+            }
+        }
+        try {
+            return await db.$transaction(async (tx) => {
+                // 1. Reverse the ORIGINAL effect from the persisted row.
+                await (0, transactionBalance_1.applyBalanceDeltas)(tx, (0, transactionBalance_1.reverseBalanceEffect)({
+                    type: existing.type,
+                    amount: existing.amount,
+                    walletId: existing.walletId,
+                    toWalletId: existing.toWalletId,
+                }));
+                // 2. Update the row.
+                const updated = await tx.transaction.update({
+                    where: { id },
+                    data: {
+                        ...(type !== undefined && { type }),
+                        ...(amount !== undefined && { amount: newAmount }),
+                        ...(description !== undefined && { description }),
+                        ...(parsedDate && { date: parsedDate }),
+                        ...(categoryId !== undefined && { categoryId: categoryId || null }),
+                        ...(walletId !== undefined && { walletId }),
+                        toWalletId: newToWalletId,
+                    },
+                    include: transaction_types_1.TRANSACTION_INCLUDE,
+                });
+                // 3. Apply the NEW effect.
+                await (0, transactionBalance_1.applyBalanceDeltas)(tx, (0, transactionBalance_1.computeBalanceEffect)({
+                    type: newType,
+                    amount: newAmount,
+                    walletId: newWalletId,
+                    toWalletId: newToWalletId,
+                }));
+                return updated;
+            });
+        }
+        catch (err) {
+            if (err instanceof transaction_errors_1.TransactionError)
+                throw err;
+            if (err.code === 'P2025') {
+                throw new transaction_errors_1.TransactionError(`Transaction with id ${id} not found`, 404, 'TRANSACTION_NOT_FOUND');
+            }
+            throw err;
+        }
+    }
+    /**
+     * Delete a transaction, reversing its EXACT persisted effect (both transfer
+     * sides; an installment's full grandTotal, not the monthly amount) and removing
+     * the linked installment row. Reversal never trusts request data. Legacy
+     * transfers are refused.
+     */
+    async function deleteTransaction(input) {
+        const { userId, id } = input;
+        const existing = await db.transaction.findFirst({
+            where: { id, userId },
+            include: { installment: { select: { id: true, grandTotal: true } } },
+        });
+        if (!existing) {
+            throw new transaction_errors_1.TransactionError(`Transaction with id ${id} not found`, 404, 'TRANSACTION_NOT_FOUND');
+        }
+        if (existing.type === 'TRANSFER' && !existing.toWalletId) {
+            throw new transaction_errors_1.TransactionError('Transfer lama tidak bisa dihapus otomatis; sesuaikan saldo manual', 409, 'CONFLICT');
+        }
+        try {
+            await db.$transaction(async (tx) => {
+                if (existing.isInstallment) {
+                    await (0, transactionBalance_1.applyBalanceDeltas)(tx, (0, transactionBalance_1.reverseBalanceEffect)({
+                        type: 'EXPENSE',
+                        amount: existing.amount,
+                        walletId: existing.walletId,
+                        isInstallment: true,
+                        installmentGrandTotal: existing.installment?.grandTotal ?? existing.amount,
+                    }));
+                    await tx.transaction.delete({ where: { id } });
+                    if (existing.installmentId) {
+                        await tx.installment.delete({ where: { id: existing.installmentId } });
+                    }
+                }
+                else {
+                    await (0, transactionBalance_1.applyBalanceDeltas)(tx, (0, transactionBalance_1.reverseBalanceEffect)({
+                        type: existing.type,
+                        amount: existing.amount,
+                        walletId: existing.walletId,
+                        toWalletId: existing.toWalletId,
+                    }));
+                    await tx.transaction.delete({ where: { id } });
+                }
+            });
+            return { id };
+        }
+        catch (err) {
+            if (err instanceof transaction_errors_1.TransactionError)
+                throw err;
+            if (err.code === 'P2025') {
+                throw new transaction_errors_1.TransactionError(`Transaction with id ${id} not found`, 404, 'TRANSACTION_NOT_FOUND');
+            }
+            throw err;
+        }
+    }
+    return { createTransaction, updateTransaction, deleteTransaction };
 }
 /** Production instance bound to the shared Prisma singleton. */
 exports.transactionService = createTransactionService(prisma_1.default);
