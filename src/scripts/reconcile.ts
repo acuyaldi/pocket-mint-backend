@@ -1,46 +1,59 @@
 // ============================================================
-// Read-only wallet balance reconciliation
+// Read-only wallet balance reconciliation & audit
 // ------------------------------------------------------------
 // Recomputes each wallet's expected balance from the transaction ledger
-// (opening balance + Σ effects) and reports any drift versus the stored
-// running total. DIAGNOSTIC ONLY — it never writes to the database.
+// (opening balance + Σ effects), classifies any drift, lists legacy
+// (destination-less) transfers, and can emit a read-only repair PLAN.
+// DIAGNOSTIC ONLY — it issues no create/update/delete; it never mutates data.
 //
-//   npx ts-node src/scripts/reconcile.ts <userId>
-//   # or, after build:  node dist/scripts/reconcile.js <userId>
+//   npx ts-node src/scripts/reconcile.ts <userId>            # drift table
+//   npx ts-node src/scripts/reconcile.ts <userId> --audit    # classified audit
+//   npx ts-node src/scripts/reconcile.ts <userId> --plan     # repair proposals
+//   # add --json to any mode for machine-readable output
+//   # or, after build:  node dist/scripts/reconcile.js <userId> --audit
 //
-// A `--json` flag emits machine-readable output. Exit code is 2 when any
-// drift is found, 0 when clean, 1 on usage/error — so CI can gate on it
-// without ever mutating data.
+// Exit code: 2 when any drift/unclassified state is found, 0 when clean,
+// 1 on usage/error — so CI can gate on it without ever writing.
 // ============================================================
 
 import prisma from '../lib/prisma';
 import { Prisma } from '../generated/prisma/client';
-import { reconcileWalletBalances, type LedgerTransaction } from '../domain/transactionBalance';
+import { auditWalletBalances, type AuditTransaction } from '../domain/reconciliation';
+import { buildRepairPlan } from '../domain/repairPlan';
 
 async function main(): Promise<number> {
   const args = process.argv.slice(2);
   const asJson = args.includes('--json');
+  const mode: 'drift' | 'audit' | 'plan' = args.includes('--plan')
+    ? 'plan'
+    : args.includes('--audit')
+      ? 'audit'
+      : 'drift';
   const userId = args.find((a) => !a.startsWith('--'));
 
   if (!userId) {
-    console.error('Usage: reconcile <userId> [--json]');
+    console.error('Usage: reconcile <userId> [--audit | --plan] [--json]');
     return 1;
   }
 
+  // Read-only fetch. Only findMany is used anywhere in this script.
   const [wallets, transactions, installments] = await Promise.all([
     prisma.wallet.findMany({
       where: { userId },
-      select: { id: true, name: true, initialBalance: true, balance: true },
+      select: { id: true, name: true, initialBalance: true, balance: true, createdAt: true },
     }),
     prisma.transaction.findMany({
       where: { userId },
       select: {
+        id: true,
         type: true,
         amount: true,
         walletId: true,
         toWalletId: true,
         isInstallment: true,
         installmentId: true,
+        date: true,
+        createdAt: true,
       },
     }),
     prisma.installment.findMany({
@@ -53,24 +66,96 @@ async function main(): Promise<number> {
     installments.map((i) => [i.id, i.grandTotal])
   );
 
-  const results = reconcileWalletBalances(
-    wallets.map((w) => ({ id: w.id, initialBalance: w.initialBalance, balance: w.balance })),
-    transactions as LedgerTransaction[],
+  const report = auditWalletBalances(
+    wallets.map((w) => ({
+      id: w.id,
+      name: w.name,
+      initialBalance: w.initialBalance,
+      balance: w.balance,
+      createdAt: w.createdAt,
+    })),
+    transactions as AuditTransaction[],
     grandTotalByInstallment
+    // No verified-initial-balance / manual-override hints are passed from the CLI:
+    // those require an operator's out-of-band confirmation, kept out of the audit.
   );
 
-  const nameById = new Map(wallets.map((w) => [w.id, w.name]));
-  const drifted = results.filter((r) => !r.drift.isZero());
+  if (mode === 'plan') {
+    // Without verified initial balances, nothing is auto-apply eligible — by design.
+    const plan = buildRepairPlan(report.wallets);
+    if (asJson) {
+      console.log(JSON.stringify(plan, null, 2));
+    } else {
+      console.log(`Repair plan for user ${userId} — ${plan.length} proposal(s). READ-ONLY: nothing is applied.`);
+      for (const p of plan) {
+        console.log(
+          `  [${p.confidence}] ${p.name ?? p.walletId} (${p.classification}): ` +
+            `current=${p.currentBalance} expected=${p.expectedBalance} diff=${p.difference}` +
+            `${p.autoApplyEligible ? '' : ' — manual review required'}`
+        );
+        console.log(`         reason: ${p.reason}`);
+      }
+      console.log('No balances were changed. Review each proposal before any separate, authorized repair.');
+    }
+    return report.hasDrift ? 2 : 0;
+  }
 
+  if (mode === 'audit') {
+    if (asJson) {
+      console.log(
+        JSON.stringify(
+          {
+            wallets: report.wallets.map((w) => ({
+              walletId: w.walletId,
+              name: w.name,
+              stored: w.stored.toString(),
+              initialBalance: w.initialBalance.toString(),
+              ledgerEffect: w.ledgerEffect.toString(),
+              expected: w.expected.toString(),
+              drift: w.drift.toString(),
+              legacyTransferCount: w.legacyTransferCount,
+              predatesFix: w.predatesFix,
+              classification: w.classification,
+              confidence: w.confidence,
+              reason: w.reason,
+            })),
+            legacyTransfers: report.legacyTransfers,
+          },
+          null,
+          2
+        )
+      );
+    } else {
+      console.log(`Audit for user ${userId} — ${wallets.length} wallet(s), ${transactions.length} transaction(s)`);
+      for (const w of report.wallets) {
+        console.log(
+          `  [${w.classification}/${w.confidence}] ${w.name ?? w.walletId}: ` +
+            `stored=${w.stored.toString()} expected=${w.expected.toString()} drift=${w.drift.toString()}` +
+            `${w.legacyTransferCount ? ` legacyTransfers=${w.legacyTransferCount}` : ''}`
+        );
+        console.log(`       ${w.reason}`);
+      }
+      if (report.legacyTransfers.length > 0) {
+        console.log(`Legacy transfers (no recorded destination) — investigate manually, never auto-repair:`);
+        for (const t of report.legacyTransfers) {
+          console.log(`  tx=${t.id ?? '?'} sourceWallet=${t.walletId} amount=${t.amount} date=${t.date ?? '?'}`);
+        }
+      }
+    }
+    return report.hasDrift ? 2 : 0;
+  }
+
+  // Default: compact drift table (backward-compatible with the Sprint 2A script).
+  const drifted = report.wallets.filter((w) => !w.drift.isZero());
   if (asJson) {
     console.log(
       JSON.stringify(
-        results.map((r) => ({
-          walletId: r.walletId,
-          name: nameById.get(r.walletId) ?? null,
-          stored: r.stored.toString(),
-          expected: r.expected.toString(),
-          drift: r.drift.toString(),
+        report.wallets.map((w) => ({
+          walletId: w.walletId,
+          name: w.name,
+          stored: w.stored.toString(),
+          expected: w.expected.toString(),
+          drift: w.drift.toString(),
         })),
         null,
         2
@@ -78,16 +163,19 @@ async function main(): Promise<number> {
     );
   } else {
     console.log(`Reconciliation for user ${userId} — ${wallets.length} wallet(s), ${transactions.length} transaction(s)`);
-    for (const r of results) {
-      const flag = r.drift.isZero() ? 'OK  ' : 'DRIFT';
+    for (const w of report.wallets) {
+      const flag = w.drift.isZero() ? 'OK  ' : 'DRIFT';
       console.log(
-        `  [${flag}] ${nameById.get(r.walletId) ?? r.walletId}: stored=${r.stored.toString()} expected=${r.expected.toString()} drift=${r.drift.toString()}`
+        `  [${flag}] ${w.name ?? w.walletId}: stored=${w.stored.toString()} expected=${w.expected.toString()} drift=${w.drift.toString()}`
       );
     }
-    console.log(drifted.length === 0 ? 'No drift detected.' : `${drifted.length} wallet(s) drifted — investigate before applying any repair.`);
+    console.log(
+      drifted.length === 0
+        ? 'No drift detected.'
+        : `${drifted.length} wallet(s) drifted — run with --audit to classify, --plan to see repair proposals.`
+    );
   }
-
-  return drifted.length > 0 ? 2 : 0;
+  return report.hasDrift ? 2 : 0;
 }
 
 main()
