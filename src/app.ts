@@ -1,5 +1,4 @@
 import express from 'express';
-import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
@@ -7,6 +6,7 @@ import { router as apiRouter } from './routes';
 import { errorHandler } from './middlewares/error.middleware';
 import { trustProxy, rateLimitConfig } from './config';
 import { generalLimiter, mutationLimiter } from './middleware/rateLimit';
+import { corsMiddleware } from './middleware/cors';
 
 const app = express();
 
@@ -16,7 +16,7 @@ app.set('trust proxy', trustProxy);
 
 // --------------- Middleware ---------------
 app.use(helmet());
-app.use(cors());
+app.use(corsMiddleware);
 app.use(morgan('dev'));
 
 // --------------- Rate limiting (before body parsing to reject early) ---------------

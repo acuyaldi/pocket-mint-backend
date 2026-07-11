@@ -115,6 +115,33 @@ export const rateLimitConfig = {
   mutationMax: int(process.env.RATE_LIMIT_MUTATION_MAX, 60),
 } as const;
 
+// ---------------- CORS ----------------
+
+/** Split a comma-separated origin list; trim whitespace and trailing slashes. */
+function parseOrigins(value: string | undefined): string[] {
+  return (str(value) ?? '')
+    .split(',')
+    .map((o) => o.trim().replace(/\/+$/, ''))
+    .filter((o) => o.length > 0);
+}
+
+const configuredOrigins = parseOrigins(process.env.CORS_ALLOWED_ORIGINS);
+
+/** Dev-only convenience origins. NEVER used when NODE_ENV=production. */
+const devDefaultOrigins = ['http://localhost:3000', 'http://localhost:5173'];
+
+export const corsConfig = {
+  /** Exact origins allowed for browser requests. */
+  allowedOrigins:
+    configuredOrigins.length > 0
+      ? configuredOrigins
+      : isProduction
+        ? []
+        : devDefaultOrigins,
+  /** True when falling back to dev defaults (no explicit allowlist configured). */
+  usingDevDefault: configuredOrigins.length === 0 && !isProduction,
+} as const;
+
 // ---------------- startup validation ----------------
 
 /**
@@ -138,6 +165,16 @@ export function validateConfig(): void {
     const msg =
       'API_KEY is not set — the legacy compatibility auth path cannot validate requests.';
     (isProduction ? fatal : warnings).push(msg);
+  }
+
+  // Production must define an explicit CORS allowlist (never wildcard).
+  if (isProduction && corsConfig.allowedOrigins.length === 0) {
+    fatal.push('CORS_ALLOWED_ORIGINS must list at least one origin in production.');
+  }
+  if (corsConfig.usingDevDefault) {
+    warnings.push(
+      `CORS_ALLOWED_ORIGINS not set — using development defaults (${corsConfig.allowedOrigins.join(', ')}).`
+    );
   }
 
   for (const w of warnings) console.warn(`⚠️  config: ${w}`);

@@ -43,6 +43,12 @@ export declare const rateLimitConfig: {
     /** Stricter cap per window for mutating requests (POST/PUT/PATCH/DELETE). */
     readonly mutationMax: number;
 };
+export declare const corsConfig: {
+    /** Exact origins allowed for browser requests. */
+    readonly allowedOrigins: string[];
+    /** True when falling back to dev defaults (no explicit allowlist configured). */
+    readonly usingDevDefault: boolean;
+};
 /**
  * Validate configuration at startup. Fatal problems throw in production so the
  * process fails fast; in development they are surfaced as warnings so local

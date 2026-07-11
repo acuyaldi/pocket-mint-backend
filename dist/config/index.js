@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.rateLimitConfig = exports.trustProxy = exports.apiKeyConfigured = exports.authConfig = exports.serverConfig = exports.isProduction = void 0;
+exports.corsConfig = exports.rateLimitConfig = exports.trustProxy = exports.apiKeyConfigured = exports.authConfig = exports.serverConfig = exports.isProduction = void 0;
 exports.verifyApiKey = verifyApiKey;
 exports.validateConfig = validateConfig;
 require("dotenv/config");
@@ -105,6 +105,27 @@ exports.rateLimitConfig = {
     /** Stricter cap per window for mutating requests (POST/PUT/PATCH/DELETE). */
     mutationMax: int(process.env.RATE_LIMIT_MUTATION_MAX, 60),
 };
+// ---------------- CORS ----------------
+/** Split a comma-separated origin list; trim whitespace and trailing slashes. */
+function parseOrigins(value) {
+    return (str(value) ?? '')
+        .split(',')
+        .map((o) => o.trim().replace(/\/+$/, ''))
+        .filter((o) => o.length > 0);
+}
+const configuredOrigins = parseOrigins(process.env.CORS_ALLOWED_ORIGINS);
+/** Dev-only convenience origins. NEVER used when NODE_ENV=production. */
+const devDefaultOrigins = ['http://localhost:3000', 'http://localhost:5173'];
+exports.corsConfig = {
+    /** Exact origins allowed for browser requests. */
+    allowedOrigins: configuredOrigins.length > 0
+        ? configuredOrigins
+        : exports.isProduction
+            ? []
+            : devDefaultOrigins,
+    /** True when falling back to dev defaults (no explicit allowlist configured). */
+    usingDevDefault: configuredOrigins.length === 0 && !exports.isProduction,
+};
 // ---------------- startup validation ----------------
 /**
  * Validate configuration at startup. Fatal problems throw in production so the
@@ -122,6 +143,13 @@ function validateConfig() {
     if (!exports.authConfig.requireJwt && !exports.apiKeyConfigured) {
         const msg = 'API_KEY is not set — the legacy compatibility auth path cannot validate requests.';
         (exports.isProduction ? fatal : warnings).push(msg);
+    }
+    // Production must define an explicit CORS allowlist (never wildcard).
+    if (exports.isProduction && exports.corsConfig.allowedOrigins.length === 0) {
+        fatal.push('CORS_ALLOWED_ORIGINS must list at least one origin in production.');
+    }
+    if (exports.corsConfig.usingDevDefault) {
+        warnings.push(`CORS_ALLOWED_ORIGINS not set — using development defaults (${exports.corsConfig.allowedOrigins.join(', ')}).`);
     }
     for (const w of warnings)
         console.warn(`⚠️  config: ${w}`);
