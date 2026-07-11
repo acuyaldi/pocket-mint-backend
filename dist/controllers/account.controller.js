@@ -77,12 +77,16 @@ const createWallet = async (req, res, next) => {
         if (DEBT_TYPES.includes(type) && (creditLimit === undefined || Number(creditLimit) <= 0)) {
             return (0, response_1.sendError)(res, 'creditLimit is required for DEBT wallets (CREDIT_CARD, LOAN_PAYLATER)', 400);
         }
+        const openingBalance = balance !== undefined ? Number(balance) : 0;
         const wallet = await prisma_1.default.wallet.create({
             data: {
                 userId,
                 name,
                 type: type ?? 'CASH',
-                balance: balance !== undefined ? Number(balance) : 0,
+                balance: openingBalance,
+                // Capture the opening balance so the ledger can be reconciled against it
+                // (expected = initialBalance + Σ transaction effects). Previously always 0.
+                initialBalance: openingBalance,
                 creditLimit: creditLimit !== undefined ? Number(creditLimit) : 0,
                 interestRate: interestRate !== undefined ? Number(interestRate) : 0,
                 adminFee: adminFee !== undefined ? Number(adminFee) : 0,
@@ -156,6 +160,16 @@ const deleteWallet = async (req, res, next) => {
         const owned = await prisma_1.default.wallet.findFirst({ where: { id, userId }, select: { id: true } });
         if (!owned) {
             return (0, response_1.sendError)(res, `Wallet with id ${id} not found`, 404);
+        }
+        // Ledger integrity: a wallet on EITHER side of a transfer cannot be deleted,
+        // even with force. Cascade-deleting its transfer rows would leave the OTHER
+        // wallet's balance credited/debited with no counterparty (drift). The caller
+        // must delete those transfers first (which reverses both sides cleanly).
+        const transferCount = await prisma_1.default.transaction.count({
+            where: { userId, type: 'TRANSFER', OR: [{ walletId: id }, { toWalletId: id }] },
+        });
+        if (transferCount > 0) {
+            return (0, response_1.sendError)(res, `Wallet is referenced by ${transferCount} transfer(s). Delete those transfers first to keep balances consistent.`, 409, 'CONFLICT');
         }
         const txCount = await prisma_1.default.transaction.count({ where: { walletId: id, userId } });
         if (txCount > 0 && req.query.force !== 'true') {

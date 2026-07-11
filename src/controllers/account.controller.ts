@@ -81,12 +81,17 @@ export const createWallet = async (req: Request, res: Response, next: NextFuncti
       return sendError(res, 'creditLimit is required for DEBT wallets (CREDIT_CARD, LOAN_PAYLATER)', 400);
     }
 
+    const openingBalance = balance !== undefined ? Number(balance) : 0;
+
     const wallet = await prisma.wallet.create({
       data: {
         userId,
         name,
         type: type ?? 'CASH',
-        balance: balance !== undefined ? Number(balance) : 0,
+        balance: openingBalance,
+        // Capture the opening balance so the ledger can be reconciled against it
+        // (expected = initialBalance + Σ transaction effects). Previously always 0.
+        initialBalance: openingBalance,
         creditLimit: creditLimit !== undefined ? Number(creditLimit) : 0,
         interestRate: interestRate !== undefined ? Number(interestRate) : 0,
         adminFee: adminFee !== undefined ? Number(adminFee) : 0,
@@ -164,6 +169,22 @@ export const deleteWallet = async (req: Request<{ id: string }>, res: Response, 
     const owned = await prisma.wallet.findFirst({ where: { id, userId }, select: { id: true } });
     if (!owned) {
       return sendError(res, `Wallet with id ${id} not found`, 404);
+    }
+
+    // Ledger integrity: a wallet on EITHER side of a transfer cannot be deleted,
+    // even with force. Cascade-deleting its transfer rows would leave the OTHER
+    // wallet's balance credited/debited with no counterparty (drift). The caller
+    // must delete those transfers first (which reverses both sides cleanly).
+    const transferCount = await prisma.transaction.count({
+      where: { userId, type: 'TRANSFER', OR: [{ walletId: id }, { toWalletId: id }] },
+    });
+    if (transferCount > 0) {
+      return sendError(
+        res,
+        `Wallet is referenced by ${transferCount} transfer(s). Delete those transfers first to keep balances consistent.`,
+        409,
+        'CONFLICT'
+      );
     }
 
     const txCount = await prisma.transaction.count({ where: { walletId: id, userId } });
