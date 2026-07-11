@@ -12,7 +12,7 @@ export interface CreateTransactionDto {
   amount: number;
   description?: string;
   note?: string;
-  date?: string; // ISO date string (YYYY-MM-DD). Default: hari ini.
+  date?: string; // YYYY-MM-DD in REPORTING_TIMEZONE, or ISO timestamp with Z/offset. Default: now.
   isInstallment?: boolean; // true = cicilan (khusus wallet DEBT: CREDIT_CARD / LOAN_PAYLATER)
   installmentMonths?: number; // 3, 6, atau 12
   interestRate?: number; // Bunga flat per bulan dalam persen (contoh: 2.95 = 2.95%). Default 0.
@@ -29,7 +29,7 @@ export interface UpdateTransactionDto {
   amount?: number;
   description?: string;
   note?: string;
-  date?: string; // ISO date string (YYYY-MM-DD)
+  date?: string; // YYYY-MM-DD in REPORTING_TIMEZONE, or ISO timestamp with Z/offset
   isInstallment?: boolean;
   installmentMonths?: number;
   currentTerm?: number;
