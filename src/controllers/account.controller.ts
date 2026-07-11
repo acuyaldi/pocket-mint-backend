@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../lib/prisma';
+import { Prisma } from '../generated/prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
 import { getUserNetWorth } from '../utils/financial';
 
@@ -125,9 +126,34 @@ export const updateWallet = async (req: Request<{ id: string }>, res: Response, 
     }
 
     // Ownership check: refuse to touch a wallet that isn't the caller's.
-    const owned = await prisma.wallet.findFirst({ where: { id, userId }, select: { id: true } });
+    const owned = await prisma.wallet.findFirst({ where: { id, userId }, select: { id: true, balance: true } });
     if (!owned) {
       return sendError(res, `Wallet with id ${id} not found`, 404);
+    }
+
+    // Ledger boundary (Sprint 2B): `balance` is ledger state, not editable
+    // metadata. This generic endpoint must never overwrite it — that would
+    // desync the running total from the transaction ledger with no audit trail.
+    // A harmless echo of the *current* balance is tolerated (frontends round-trip
+    // the whole wallet object); any attempt to change it is refused so the caller
+    // records an income/expense/transfer instead. Compared with Decimal (no float
+    // subtraction) and checked before any write so a rejection mutates nothing.
+    if (balance !== undefined) {
+      let requested: Prisma.Decimal;
+      try {
+        requested = new Prisma.Decimal(balance as Prisma.Decimal.Value);
+      } catch {
+        return sendError(res, 'balance must be a valid number', 400, 'INVALID_AMOUNT');
+      }
+      if (!requested.equals(owned.balance)) {
+        return sendError(
+          res,
+          'Wallet balance cannot be changed here. Record an income, expense, or transfer to adjust it through the ledger.',
+          400,
+          'BALANCE_UPDATE_NOT_ALLOWED'
+        );
+      }
+      // Equal to the stored balance → a no-op echo; fall through and never write it.
     }
 
     const wallet = await prisma.wallet.update({
@@ -135,7 +161,7 @@ export const updateWallet = async (req: Request<{ id: string }>, res: Response, 
       data: {
         ...(name !== undefined && { name }),
         ...(type !== undefined && { type }),
-        ...(balance !== undefined && { balance: Number(balance) }),
+        // `balance` intentionally omitted — see the ledger-boundary guard above.
         ...(creditLimit !== undefined && { creditLimit: Number(creditLimit) }),
         ...(interestRate !== undefined && { interestRate: Number(interestRate) }),
         ...(adminFee !== undefined && { adminFee: Number(adminFee) }),

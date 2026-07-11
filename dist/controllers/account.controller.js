@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getWalletSparkline = exports.deleteWallet = exports.updateWallet = exports.createWallet = exports.getAllWallets = void 0;
 const prisma_1 = __importDefault(require("../lib/prisma"));
+const client_1 = require("../generated/prisma/client");
 const response_1 = require("../utils/response");
 const financial_1 = require("../utils/financial");
 const VALID_WALLET_TYPES = ['CASH', 'BANK', 'E_WALLET', 'CREDIT_CARD', 'LOAN_PAYLATER'];
@@ -118,16 +119,36 @@ const updateWallet = async (req, res, next) => {
             return (0, response_1.sendError)(res, `type must be one of: ${VALID_WALLET_TYPES.join(', ')}`, 400);
         }
         // Ownership check: refuse to touch a wallet that isn't the caller's.
-        const owned = await prisma_1.default.wallet.findFirst({ where: { id, userId }, select: { id: true } });
+        const owned = await prisma_1.default.wallet.findFirst({ where: { id, userId }, select: { id: true, balance: true } });
         if (!owned) {
             return (0, response_1.sendError)(res, `Wallet with id ${id} not found`, 404);
+        }
+        // Ledger boundary (Sprint 2B): `balance` is ledger state, not editable
+        // metadata. This generic endpoint must never overwrite it — that would
+        // desync the running total from the transaction ledger with no audit trail.
+        // A harmless echo of the *current* balance is tolerated (frontends round-trip
+        // the whole wallet object); any attempt to change it is refused so the caller
+        // records an income/expense/transfer instead. Compared with Decimal (no float
+        // subtraction) and checked before any write so a rejection mutates nothing.
+        if (balance !== undefined) {
+            let requested;
+            try {
+                requested = new client_1.Prisma.Decimal(balance);
+            }
+            catch {
+                return (0, response_1.sendError)(res, 'balance must be a valid number', 400, 'INVALID_AMOUNT');
+            }
+            if (!requested.equals(owned.balance)) {
+                return (0, response_1.sendError)(res, 'Wallet balance cannot be changed here. Record an income, expense, or transfer to adjust it through the ledger.', 400, 'BALANCE_UPDATE_NOT_ALLOWED');
+            }
+            // Equal to the stored balance → a no-op echo; fall through and never write it.
         }
         const wallet = await prisma_1.default.wallet.update({
             where: { id },
             data: {
                 ...(name !== undefined && { name }),
                 ...(type !== undefined && { type }),
-                ...(balance !== undefined && { balance: Number(balance) }),
+                // `balance` intentionally omitted — see the ledger-boundary guard above.
                 ...(creditLimit !== undefined && { creditLimit: Number(creditLimit) }),
                 ...(interestRate !== undefined && { interestRate: Number(interestRate) }),
                 ...(adminFee !== undefined && { adminFee: Number(adminFee) }),
