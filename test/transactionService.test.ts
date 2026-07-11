@@ -1,0 +1,277 @@
+import { describe, it, expect, vi } from 'vitest';
+import { Prisma } from '../src/generated/prisma/client';
+
+// The service module builds a default instance from the shared Prisma singleton
+// at import time. Stub that singleton so importing the module doesn't construct a
+// real client — every test here injects its own fake via createTransactionService.
+vi.mock('../src/lib/prisma', () => ({ default: {} }));
+
+import { createTransactionService } from '../src/services/transaction.service';
+import { TransactionError } from '../src/services/transaction.errors';
+import type { TransactionPrismaClient } from '../src/services/transaction.types';
+
+const D = (n: number | string) => new Prisma.Decimal(n);
+
+interface FakeOptions {
+  failInstallmentUpdate?: boolean;
+}
+
+/**
+ * Behavior-focused fake Prisma. `$transaction` buffers wallet writes and only
+ * commits them if the callback resolves — so a mid-transaction failure leaves
+ * `committed` empty, proving atomic rollback. Balance writes are recorded as
+ * signed deltas regardless of increment/decrement.
+ */
+function makeDb(opts: FakeOptions = {}) {
+  const committed: { id: string; delta: number }[] = [];
+
+  const makeTx = (buffer: { id: string; delta: number }[]) => ({
+    transaction: {
+      create: vi.fn(async ({ data }: any) => ({ id: 'tx-new', ...data })),
+      update: vi.fn(async ({ where, data }: any) => ({ id: where.id, ...data })),
+      delete: vi.fn(async () => ({ id: 'deleted' })),
+    },
+    wallet: {
+      update: vi.fn(async ({ where, data }: any) => {
+        const inc = data.balance.increment;
+        const dec = data.balance.decrement;
+        const delta = inc !== undefined ? Number(inc.toString()) : -Number(dec.toString());
+        buffer.push({ id: where.id, delta });
+      }),
+    },
+    installment: {
+      create: vi.fn(async ({ data }: any) => ({ id: 'inst-new', ...data })),
+      update: vi.fn(async () => {
+        if (opts.failInstallmentUpdate) throw new Error('boom');
+        return {};
+      }),
+      delete: vi.fn(async () => ({})),
+    },
+  });
+
+  const db = {
+    wallet: { findFirst: vi.fn() },
+    category: { findFirst: vi.fn() },
+    transaction: { findFirst: vi.fn() },
+    installment: {},
+    $transaction: vi.fn(async (cb: (tx: any) => Promise<unknown>) => {
+      const buffer: { id: string; delta: number }[] = [];
+      const result = await cb(makeTx(buffer));
+      committed.push(...buffer);
+      return result;
+    }),
+  };
+
+  const net = (id: string) => committed.filter((c) => c.id === id).reduce((a, c) => a + c.delta, 0);
+  const aggregate = () => committed.reduce((a, c) => a + c.delta, 0);
+  return { db, net, aggregate, committed };
+}
+
+/** wallet.findFirst that returns a wallet only for the listed ids. */
+const ownedWallets = (map: Record<string, { type?: string }>) =>
+  vi.fn(async ({ where }: any) => (map[where.id] ? { id: where.id, ...map[where.id] } : null));
+
+const svc = (db: unknown) => createTransactionService(db as TransactionPrismaClient);
+
+describe('transactionService.createTransaction', () => {
+  it('creates an INCOME and credits the wallet', async () => {
+    const { db, net } = makeDb();
+    db.wallet.findFirst = ownedWallets({ w1: { type: 'CASH' } });
+    const created = await svc(db).createTransaction({ userId: 'u', type: 'INCOME', amount: 100, walletId: 'w1' });
+    expect(created.type).toBe('INCOME');
+    expect(net('w1')).toBe(100);
+  });
+
+  it('creates an EXPENSE and debits the wallet', async () => {
+    const { db, net } = makeDb();
+    db.wallet.findFirst = ownedWallets({ w1: { type: 'CASH' } });
+    await svc(db).createTransaction({ userId: 'u', type: 'EXPENSE', amount: 100, walletId: 'w1' });
+    expect(net('w1')).toBe(-100);
+  });
+
+  it('creates a TRANSFER symmetrically and persists toWalletId', async () => {
+    const { db, net, aggregate } = makeDb();
+    db.wallet.findFirst = ownedWallets({ src: { type: 'CASH' }, dst: {} });
+    const created = await svc(db).createTransaction({ userId: 'u', type: 'TRANSFER', amount: 100, walletId: 'src', toWalletId: 'dst' });
+    expect((created as any).toWalletId).toBe('dst');
+    expect(net('src')).toBe(-100);
+    expect(net('dst')).toBe(100);
+    expect(aggregate()).toBe(0);
+  });
+
+  it('creates an installment and locks the full grandTotal on the wallet', async () => {
+    const { db, net } = makeDb();
+    db.wallet.findFirst = ownedWallets({ cc: { type: 'CREDIT_CARD' } });
+    await svc(db).createTransaction({
+      userId: 'u', type: 'EXPENSE', amount: 300, walletId: 'cc',
+      isInstallment: true, installmentMonths: 3, interestRate: 0,
+    });
+    expect(net('cc')).toBe(-300); // grandTotal, not the monthly 100
+  });
+
+  it('rejects an invalid amount before any write', async () => {
+    const { db, committed } = makeDb();
+    db.wallet.findFirst = ownedWallets({ w1: { type: 'CASH' } });
+    await expect(
+      svc(db).createTransaction({ userId: 'u', type: 'EXPENSE', amount: 0, walletId: 'w1' })
+    ).rejects.toMatchObject({ statusCode: 400 });
+    expect(committed).toHaveLength(0);
+  });
+
+  it('rejects an unowned source wallet', async () => {
+    const { db } = makeDb();
+    db.wallet.findFirst = ownedWallets({}); // nothing owned
+    await expect(
+      svc(db).createTransaction({ userId: 'u', type: 'EXPENSE', amount: 10, walletId: 'w1' })
+    ).rejects.toMatchObject({ statusCode: 404, message: 'Wallet tidak ditemukan' });
+  });
+
+  it('rejects an unowned destination wallet', async () => {
+    const { db, committed } = makeDb();
+    db.wallet.findFirst = ownedWallets({ src: { type: 'CASH' } }); // dst missing
+    await expect(
+      svc(db).createTransaction({ userId: 'u', type: 'TRANSFER', amount: 10, walletId: 'src', toWalletId: 'dst' })
+    ).rejects.toMatchObject({ statusCode: 404, message: 'Wallet tujuan tidak ditemukan' });
+    expect(committed).toHaveLength(0);
+  });
+
+  it('rejects a self-transfer with INVALID_TRANSFER', async () => {
+    const { db } = makeDb();
+    db.wallet.findFirst = ownedWallets({ w1: { type: 'CASH' } });
+    await expect(
+      svc(db).createTransaction({ userId: 'u', type: 'TRANSFER', amount: 10, walletId: 'w1', toWalletId: 'w1' })
+    ).rejects.toMatchObject({ code: 'INVALID_TRANSFER', statusCode: 400 });
+  });
+
+  it('performs every balance write inside one $transaction', async () => {
+    const { db } = makeDb();
+    db.wallet.findFirst = ownedWallets({ w1: { type: 'CASH' } });
+    await svc(db).createTransaction({ userId: 'u', type: 'INCOME', amount: 100, walletId: 'w1' });
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('rolls back all writes when a step inside the transaction fails', async () => {
+    const { db, net, committed } = makeDb({ failInstallmentUpdate: true });
+    db.wallet.findFirst = ownedWallets({ cc: { type: 'CREDIT_CARD' } });
+    await expect(
+      svc(db).createTransaction({
+        userId: 'u', type: 'EXPENSE', amount: 300, walletId: 'cc',
+        isInstallment: true, installmentMonths: 3, interestRate: 0,
+      })
+    ).rejects.toThrow();
+    expect(committed).toHaveLength(0); // wallet decrement was buffered, never committed
+    expect(net('cc')).toBe(0);
+  });
+});
+
+describe('transactionService.updateTransaction', () => {
+  it('reverses the old amount and applies the new one (EXPENSE)', async () => {
+    const { db, net } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'EXPENSE', amount: D(100), walletId: 'w1', toWalletId: null, isInstallment: false,
+    }));
+    await svc(db).updateTransaction({ userId: 'u', id: 't1', amount: 150 });
+    expect(net('w1')).toBe(-50); // +100 reverse, -150 apply
+  });
+
+  it('moves the effect when the source wallet changes', async () => {
+    const { db, net } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'EXPENSE', amount: D(100), walletId: 'w1', toWalletId: null, isInstallment: false,
+    }));
+    db.wallet.findFirst = ownedWallets({ w2: {} });
+    await svc(db).updateTransaction({ userId: 'u', id: 't1', walletId: 'w2' });
+    expect(net('w1')).toBe(100); // reverse original
+    expect(net('w2')).toBe(-100); // apply to new source
+  });
+
+  it('re-balances when a transfer destination changes', async () => {
+    const { db, net } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'TRANSFER', amount: D(100), walletId: 'src', toWalletId: 'dst', isInstallment: false,
+    }));
+    db.wallet.findFirst = ownedWallets({ dst2: {} });
+    await svc(db).updateTransaction({ userId: 'u', id: 't1', toWalletId: 'dst2' });
+    expect(net('src')).toBe(0); // +100 reverse, -100 apply
+    expect(net('dst')).toBe(-100); // reverse the old credit
+    expect(net('dst2')).toBe(100); // credit the new destination
+  });
+
+  it('refuses to edit an installment transaction', async () => {
+    const { db, committed } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'EXPENSE', amount: D(50), walletId: 'w1', toWalletId: null, isInstallment: true,
+    }));
+    await expect(svc(db).updateTransaction({ userId: 'u', id: 't1', amount: 60 }))
+      .rejects.toMatchObject({ statusCode: 409, code: 'CONFLICT' });
+    expect(committed).toHaveLength(0);
+  });
+
+  it('refuses to edit a legacy transfer with no destination', async () => {
+    const { db } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'TRANSFER', amount: D(100), walletId: 'src', toWalletId: null, isInstallment: false,
+    }));
+    await expect(svc(db).updateTransaction({ userId: 'u', id: 't1', amount: 150 }))
+      .rejects.toMatchObject({ statusCode: 409, code: 'CONFLICT' });
+  });
+
+  it('404s for a transaction the caller does not own', async () => {
+    const { db } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => null);
+    await expect(svc(db).updateTransaction({ userId: 'u', id: 'nope', amount: 1 }))
+      .rejects.toMatchObject({ statusCode: 404, code: 'TRANSACTION_NOT_FOUND' });
+  });
+});
+
+describe('transactionService.deleteTransaction', () => {
+  it('refunds an EXPENSE', async () => {
+    const { db, net } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'EXPENSE', amount: D(100), walletId: 'w1', toWalletId: null, isInstallment: false, installment: null,
+    }));
+    const res = await svc(db).deleteTransaction({ userId: 'u', id: 't1' });
+    expect(res).toEqual({ id: 't1' });
+    expect(net('w1')).toBe(100);
+  });
+
+  it('restores both wallets for a TRANSFER', async () => {
+    const { db, net, aggregate } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'TRANSFER', amount: D(100), walletId: 'src', toWalletId: 'dst', isInstallment: false, installment: null,
+    }));
+    await svc(db).deleteTransaction({ userId: 'u', id: 't1' });
+    expect(net('src')).toBe(100);
+    expect(net('dst')).toBe(-100);
+    expect(aggregate()).toBe(0);
+  });
+
+  it('refunds the full grandTotal for an installment', async () => {
+    const { db, net } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'EXPENSE', amount: D(100), walletId: 'cc', toWalletId: null,
+      isInstallment: true, installmentId: 'i1', installment: { id: 'i1', grandTotal: D(600) },
+    }));
+    await svc(db).deleteTransaction({ userId: 'u', id: 't1' });
+    expect(net('cc')).toBe(600);
+  });
+
+  it('refuses to delete a legacy transfer', async () => {
+    const { db, committed } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'TRANSFER', amount: D(100), walletId: 'src', toWalletId: null, isInstallment: false, installment: null,
+    }));
+    await expect(svc(db).deleteTransaction({ userId: 'u', id: 't1' }))
+      .rejects.toMatchObject({ statusCode: 409, code: 'CONFLICT' });
+    expect(committed).toHaveLength(0);
+  });
+
+  it('throws typed TransactionErrors that carry status and code', async () => {
+    const { db } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => null);
+    const err = await svc(db).deleteTransaction({ userId: 'u', id: 'x' }).catch((e) => e);
+    expect(err).toBeInstanceOf(TransactionError);
+    expect(err.statusCode).toBe(404);
+    expect(err.code).toBe('TRANSACTION_NOT_FOUND');
+  });
+});
