@@ -11,6 +11,8 @@ import {
   type FinancialTxType,
 } from '../domain/transactionBalance';
 import { computeInstallmentPlan } from '../domain/installment';
+import { reportingConfig } from '../config';
+import { formatReportingDate, getReportingMonthRange, parseBusinessDate } from '../domain/reportingTime';
 
 const VALID_TYPES: string[] = ['INCOME', 'EXPENSE', 'TRANSFER'];
 const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
@@ -28,12 +30,11 @@ const serialize = <T extends { amount: unknown }>(tx: T) => ({
  */
 function getMonthRange(month?: string, year?: string) {
   const now = new Date();
-  const m = month ? Math.min(Math.max(parseInt(month, 10) || now.getMonth() + 1, 1), 12) : now.getMonth() + 1;
-  const y = year ? parseInt(year, 10) || now.getFullYear() : now.getFullYear();
-
-  const startDate = new Date(y, m - 1, 1, 0, 0, 0, 0);
-  const endDate = new Date(y, m, 0, 23, 59, 59, 999); // last day of month
-  return { startDate, endDate, month: m, year: y };
+  const current = formatReportingDate(now, reportingConfig.timezone).split('-').map(Number);
+  const m = month ? Math.min(Math.max(parseInt(month, 10) || current[1], 1), 12) : current[1];
+  const y = year ? parseInt(year, 10) || current[0] : current[0];
+  const { startInclusive, endExclusive } = getReportingMonthRange({ month: m, year: y }, reportingConfig.timezone);
+  return { startDate: startInclusive, endDate: endExclusive, month: m, year: y };
 }
 
 export class TransactionController {
@@ -64,7 +65,7 @@ export class TransactionController {
           ...(walletId && { walletId }),
           ...(type && { type: type as TransactionType }),
           // Current-month filter
-          date: { gte: startDate, lte: endDate },
+          date: { gte: startDate, lt: endDate },
         },
         include: {
           wallet:   { select: { id: true, name: true, type: true } },
@@ -100,14 +101,14 @@ export class TransactionController {
         where: {
           userId,
           type: { in: ['INCOME', 'EXPENSE'] },
-          date: { gte: startDate, lte: endDate },
+          date: { gte: startDate, lt: endDate },
         },
         _sum: { amount: true },
       });
 
-      const sumFor = (t: string) => {
+      const sumFor = (t: string): Prisma.Decimal => {
         const row = sums.find((s) => s.type === t);
-        return row?._sum.amount ? parseFloat(row._sum.amount.toString()) : 0;
+        return row?._sum.amount ?? new Prisma.Decimal(0);
       };
 
       const income = sumFor('INCOME');
@@ -116,9 +117,9 @@ export class TransactionController {
       sendSuccess(
         res,
         {
-          income,
-          expenses,
-          netSavings: income - expenses,
+          income: Number(income.toString()),
+          expenses: Number(expenses.toString()),
+          netSavings: Number(income.minus(expenses).toString()),
           month: `${year}-${String(month).padStart(2, '0')}`,
         },
         'Monthly summary'
@@ -226,12 +227,11 @@ export class TransactionController {
         return sendError(res, 'Wallet asal dan tujuan tidak boleh sama', 400, 'INVALID_TRANSFER');
       }
 
-      let parsedDate = new Date();
-      if (date) {
-        parsedDate = new Date(date);
-        if (isNaN(parsedDate.getTime())) {
-          return sendError(res, 'date must be a valid date (e.g. YYYY-MM-DD)', 400);
-        }
+      let parsedDate: Date;
+      try {
+        parsedDate = parseBusinessDate(date, reportingConfig.timezone);
+      } catch (error) {
+        return sendError(res, error instanceof Error ? error.message : 'date must be a valid date', 400);
       }
 
       const numAmount = Number(amount);
@@ -433,9 +433,10 @@ export class TransactionController {
 
       let parsedDate: Date | undefined;
       if (date) {
-        parsedDate = new Date(date);
-        if (isNaN(parsedDate.getTime())) {
-          return sendError(res, 'date must be a valid date (e.g. YYYY-MM-DD)', 400);
+        try {
+          parsedDate = parseBusinessDate(date, reportingConfig.timezone);
+        } catch (error) {
+          return sendError(res, error instanceof Error ? error.message : 'date must be a valid date', 400);
         }
       }
 
