@@ -13,6 +13,43 @@ import {
 import { computeInstallmentPlan } from '../domain/installment';
 import { reportingConfig } from '../config';
 import { formatReportingDate, getReportingMonthRange, parseBusinessDate } from '../domain/reportingTime';
+import { transactionService } from '../services/transaction.service';
+import { TransactionError } from '../services/transaction.errors';
+import type { CreateTransactionInput } from '../services/transaction.types';
+
+/**
+ * Forward a service error. Typed operational errors keep the existing response
+ * envelope (status + stable code + safe message); anything unexpected goes to
+ * the central error handler untouched — never a manual 500 here.
+ */
+function forwardTransactionError(err: unknown, res: Response, next: NextFunction): void {
+  if (err instanceof TransactionError) {
+    sendError(res, err.message, err.statusCode, err.code);
+    return;
+  }
+  next(err);
+}
+
+/** Allowlist create fields from the request body into the service input. */
+function mapCreateTransactionRequest(
+  req: Request<unknown, unknown, CreateTransactionDto>,
+  userId: string
+): CreateTransactionInput {
+  const b = req.body;
+  return {
+    userId,
+    type: b.type,
+    amount: b.amount,
+    walletId: b.walletId,
+    toWalletId: b.toWalletId,
+    categoryId: b.categoryId,
+    description: b.description,
+    date: b.date,
+    isInstallment: b.isInstallment,
+    installmentMonths: b.installmentMonths,
+    interestRate: b.interestRate,
+  };
+}
 
 const VALID_TYPES: string[] = ['INCOME', 'EXPENSE', 'TRANSFER'];
 const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
@@ -175,240 +212,19 @@ export class TransactionController {
     next: NextFunction
   ): Promise<void> {
     try {
-      // ---- Inject userId dari middleware ke body ----
-      if ((req as any).userId && !req.body.userId) {
-        req.body.userId = (req as any).userId;
-      }
-
-      const {
-        walletId: bodyWalletId,
-        toWalletId,
-        categoryId,
-        type,
-        amount,
-        description,
-        date,
-        isInstallment,
-        installmentMonths,
-        interestRate,
-      } = req.body;
-
-      // ---- Resolve userId ----
+      // userId is resolved here (HTTP concern); business logic lives in the service.
       const userId =
-        req.body.userId ||
-        (req as any).userId ||
-        (req.query.userId as string | undefined);
+        (req as any).userId || req.body.userId || (req.query.userId as string | undefined);
       if (!userId) {
         return sendError(res, 'userId is required (provide in body or use API key auth)', 400);
       }
 
-      // ---- Resolve walletId: body → first wallet milik user ----
-      let walletId = bodyWalletId;
-      if (!walletId) {
-        const defaultWallet = await prisma.wallet.findFirst({ where: { userId } });
-        if (!defaultWallet) {
-          return sendError(res, 'No wallet found for this user. Create a wallet first.', 400);
-        }
-        walletId = defaultWallet.id;
-      }
-
-      // ---- Validasi field wajib ----
-      if (!type || !VALID_TYPES.includes(type)) {
-        return sendError(res, `type is required and must be one of: ${VALID_TYPES.join(', ')}`, 400);
-      }
-      if (amount === undefined || amount === null || isNaN(Number(amount)) || Number(amount) <= 0) {
-        return sendError(res, 'amount is required and must be a positive number', 400);
-      }
-      if (type === 'TRANSFER' && !toWalletId) {
-        return sendError(res, 'toWalletId is required for TRANSFER transactions', 400);
-      }
-      // A transfer must move value between two distinct wallets (Invariant 4).
-      if (type === 'TRANSFER' && toWalletId === walletId) {
-        return sendError(res, 'Wallet asal dan tujuan tidak boleh sama', 400, 'INVALID_TRANSFER');
-      }
-
-      let parsedDate: Date;
-      try {
-        parsedDate = parseBusinessDate(date, reportingConfig.timezone);
-      } catch (error) {
-        return sendError(res, error instanceof Error ? error.message : 'date must be a valid date', 400);
-      }
-
-      const numAmount = Number(amount);
-
-      // ---- Validate wallet exists AND belongs to the caller ----
-      const wallet = await prisma.wallet.findFirst({ where: { id: walletId, userId } });
-      if (!wallet) {
-        return sendError(res, 'Wallet tidak ditemukan', 404);
-      }
-
-      // ---- Validate transfer destination belongs to the caller ----
-      if (type === 'TRANSFER' && toWalletId) {
-        const toWallet = await prisma.wallet.findFirst({ where: { id: toWalletId, userId }, select: { id: true } });
-        if (!toWallet) {
-          return sendError(res, 'Wallet tujuan tidak ditemukan', 404);
-        }
-      }
-
-      // ---- Validate category exists (if provided) AND belongs to the caller ----
-      if (categoryId) {
-        const category = await prisma.category.findFirst({ where: { id: categoryId, userId } });
-        if (!category) {
-          return sendError(res, 'Kategori tidak ditemukan', 404);
-        }
-      }
-
-      // ─── LAYER 2: Installment transaction ─────────────────────────────
-      const wantsInstallment = Boolean(isInstallment);
-
-      if (wantsInstallment) {
-        // Pre-validation: wallet must be DEBT type
-        const isDebtWallet = CREDIT_WALLET_TYPES.includes(wallet.type);
-        if (!isDebtWallet) {
-          return sendError(res, 'Cicilan hanya tersedia untuk wallet DEBT', 400);
-        }
-
-        // Pre-validation: tenor must be valid
-        if (!installmentMonths || !VALID_TENORS.includes(installmentMonths)) {
-          return sendError(res, 'Tenor cicilan tidak valid', 400);
-        }
-
-        // Type must be EXPENSE for installments
-        if (type !== 'EXPENSE') {
-          return sendError(res, 'Cicilan hanya tersedia untuk tipe EXPENSE', 400);
-        }
-
-        // ---- Validate & parse interest rate ----
-        const parsedInterestRate = interestRate !== undefined && interestRate !== null
-          ? Number(interestRate)
-          : 0;
-        if (parsedInterestRate < 0) {
-          return sendError(res, 'Bunga tidak boleh negatif', 400);
-        }
-        if (parsedInterestRate > 100) {
-          return sendError(res, 'Bunga tidak valid', 400);
-        }
-
-        // ---- Interest calculations (Decimal-safe, no floating point) ----
-        // grand_total is the source of truth locked on the wallet; monthly_amount
-        // is the rounded display value. See src/domain/installment.ts for the
-        // scale/rounding and remainder policy.
-        const interestRateDecimal = new Prisma.Decimal(parsedInterestRate);
-        const plan = computeInstallmentPlan({
-          principal: new Prisma.Decimal(numAmount),
-          interestRatePctPerMonth: interestRateDecimal,
-          months: installmentMonths,
-        });
-        const { totalAmount, totalInterest, grandTotal, monthlyAmount } = plan;
-
-        try {
-          const transaction = await prisma.$transaction(async (tx) => {
-            // a. Create installment record with interest fields
-            const installment = await tx.installment.create({
-              data: {
-                userId,
-                walletId,
-                totalAmount,
-                interestRate: interestRateDecimal,
-                totalInterest,
-                grandTotal,
-                installmentMonths,
-                currentTerm: 1,
-                monthlyAmount,
-                status: 'ACTIVE',
-                startDate: parsedDate,
-                description: description ?? null,
-                balanceDeducted: false,
-              },
-            });
-
-            // b. Create 1 transaction record for this month's expense report
-            const created = await tx.transaction.create({
-              data: {
-                userId,
-                walletId,
-                categoryId: categoryId ?? null,
-                type: 'EXPENSE' as TransactionType,
-                amount: monthlyAmount,
-                description: description ?? null,
-                date: parsedDate,
-                isInstallment: true,
-                installmentId: installment.id,
-              },
-              include: {
-                wallet: { select: { id: true, name: true, type: true } },
-                category: { select: { id: true, name: true, type: true } },
-              },
-            });
-
-            // c. Deduct wallet.balance by grand_total (full debt including interest)
-            await tx.wallet.update({
-              where: { id: walletId },
-              data: { balance: { decrement: grandTotal } },
-            });
-
-            // d. Mark installment as balance_deducted = true
-            await tx.installment.update({
-              where: { id: installment.id },
-              data: { balanceDeducted: true },
-            });
-
-            return created;
-          });
-
-          return sendSuccess(res, serialize(transaction), 'Transaction created successfully', 201);
-        } catch (txErr) {
-          logger.error('installment transaction failed', {
-            message: txErr instanceof Error ? txErr.message : String(txErr),
-          });
-          return sendError(res, 'Transaksi gagal', 500);
-        }
-      }
-
-      // ─── LAYER 1: Regular transaction ──────────────────────────────────
-      const amountDecimal = new Prisma.Decimal(numAmount);
-      const destWalletId = type === 'TRANSFER' ? toWalletId! : null;
-
-      const transaction = await prisma.$transaction(async (tx) => {
-        const created = await tx.transaction.create({
-          data: {
-            userId,
-            walletId,
-            toWalletId: destWalletId,
-            categoryId: categoryId ?? null,
-            type: type as TransactionType,
-            amount: amountDecimal,
-            description: description ?? null,
-            date: parsedDate,
-            isInstallment: false,
-          },
-          include: {
-            wallet: { select: { id: true, name: true, type: true } },
-            category: { select: { id: true, name: true, type: true } },
-          },
-        });
-
-        // Balance effect derived from one source of truth (transfer-symmetric,
-        // atomic increments) so it can be reversed exactly on update/delete.
-        await applyBalanceDeltas(
-          tx,
-          computeBalanceEffect({
-            type: type as FinancialTxType,
-            amount: amountDecimal,
-            walletId,
-            toWalletId: destWalletId,
-          })
-        );
-
-        return created;
-      });
-
-      sendSuccess(res, serialize(transaction), 'Transaction created successfully', 201);
+      const created = await transactionService.createTransaction(
+        mapCreateTransactionRequest(req, userId)
+      );
+      sendSuccess(res, serialize(created), 'Transaction created successfully', 201);
     } catch (err) {
-      if ((err as { code?: string }).code === 'P2003') {
-        return sendError(res, 'Invalid userId, walletId, toWalletId, or categoryId (related record not found)', 400);
-      }
-      next(err);
+      forwardTransactionError(err, res, next);
     }
   }
 
