@@ -66,9 +66,10 @@ client-supplied `userId` (header, query, or body) can therefore never become
 authoritative — the identity is always the value auth resolved.
 
 **Deprecated mirrors.** `requireUser` still sets `req.userId` / `req.authMethod`
-as `@deprecated` mirrors, used only by not-yet-migrated readers (rate-limit
-keying in `middleware/rateLimit.ts`, the installment controller). New code must
-read `req.auth`.
+as `@deprecated` mirrors. Since Sprint 3G migrated the installment controller, the
+**only** remaining real reader is rate-limit keying in `middleware/rateLimit.ts`
+(`keyByUserOrIp`); removing the mirror is deferred until that limiter reads
+`req.auth`, which depends on middleware ordering. New code must read `req.auth`.
 
 ### Auth middleware contract
 
