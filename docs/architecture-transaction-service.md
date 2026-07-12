@@ -9,9 +9,11 @@ logic out of the controller and into a service layer, now split along a
 - **Sprint 3B** extracted the **read** path (list / all-time / summary) into
   `transaction-query.service.ts`.
 
-Wallets, dashboard, installment listing, and auth are **not** yet on this pattern
-and still hold their logic in their controllers. Do not assume the whole project
-follows this architecture.
+Wallet **mutations** followed in **Sprint 3C** — see
+[`architecture-wallet-service.md`](architecture-wallet-service.md) — but wallet
+**reads** (list, sparkline), dashboard, installment listing, and auth are **not**
+yet on this pattern and still hold their logic in their controllers. Do not assume
+the whole project follows this architecture.
 
 ## Layers
 
