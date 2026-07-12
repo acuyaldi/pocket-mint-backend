@@ -1,5 +1,11 @@
 # Transaction Service Architecture (Sprints 3A + 3B)
 
+> **Sprint 3F update:** the controller now reads identity via
+> `getAuthenticatedUserId(req)` (`req.auth`), parses query params through the
+> scalar helpers, and forwards errors via the shared `forwardError` (the local
+> `forwardTransactionError` was removed). See
+> [`architecture-http-boundary.md`](architecture-http-boundary.md).
+
 The transaction module is the **first** part of the codebase to move its business
 logic out of the controller and into a service layer, now split along a
 **command / query** seam:

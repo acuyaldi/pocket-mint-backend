@@ -1,5 +1,11 @@
 # Wallet Command & Query Service Architecture (Sprints 3C–3D)
 
+> **Sprint 3F update:** the controller now reads identity via
+> `getAuthenticatedUserId(req)` (`req.auth`) — the `resolveUserId` body/query
+> fallback was removed — parses `?force` via `scalarBooleanTrue`, and forwards
+> errors via the shared `forwardError` (the local `forwardWalletError` was
+> removed). See [`architecture-http-boundary.md`](architecture-http-boundary.md).
+
 Sprint 3C moved the **wallet mutation** logic (create / update / delete) out of
 `account.controller.ts` into a dedicated command service. **Sprint 3D** completes
 the split by moving the **wallet reads** — the list handler (`getAllWallets`), the

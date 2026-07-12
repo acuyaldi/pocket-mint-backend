@@ -1,5 +1,10 @@
 # Dashboard Query Service Architecture (Sprint 3E)
 
+> **Sprint 3F update:** identity is now read via `getAuthenticatedUserId(req)`
+> (`req.auth`, replacing the local `resolveUserId`) and errors flow through the
+> shared `forwardError`. See
+> [`architecture-http-boundary.md`](architecture-http-boundary.md).
+
 Sprint 3E moves the **dashboard read** out of `dashboard.controller.ts` into a
 dedicated **query service**, following the same incremental pattern the
 transaction (Sprints 3A/3B) and wallet (Sprints 3C/3D) modules established. The
