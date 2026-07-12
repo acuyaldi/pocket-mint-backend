@@ -11,8 +11,10 @@ transaction module established in Sprints 3A/3B (see
 After 3D the wallet controller is a thin HTTP boundary: it holds **no** direct
 Prisma access, no reporting-time/effect math, and no `Prisma.Decimal` reporting
 calculation. Both paths — command and query — own their own narrow injected Prisma
-surface. Dashboard, `getUserNetWorth` (still used by the dashboard controller),
-installment listing, and reconciliation are untouched.
+surface. Installment listing and reconciliation are untouched. (The dashboard read
+was later extracted in Sprint 3E — see
+[`architecture-dashboard-service.md`](architecture-dashboard-service.md) — which
+also removed the now-unused `getUserNetWorth` helper.)
 
 ```mermaid
 flowchart TD
