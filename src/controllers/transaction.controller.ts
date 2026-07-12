@@ -1,15 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import prisma from '../lib/prisma';
-import { Prisma } from '../generated/prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
 import { CreateTransactionDto, UpdateTransactionDto, ListTransactionQuery } from '../models/transaction.model';
-import { reportingConfig } from '../config';
-import { formatReportingDate, getReportingMonthRange } from '../domain/reportingTime';
 import { transactionService } from '../services/transaction.service';
 import { transactionQueryService } from '../services/transaction-query.service';
 import { TransactionError } from '../services/transaction.errors';
 import type { CreateTransactionInput, UpdateTransactionInput } from '../services/transaction.types';
-import type { ListTransactionsInput } from '../services/transaction-query.types';
+import type { ListTransactionsInput, TransactionSummaryResult } from '../services/transaction-query.types';
 
 /**
  * Forward a service error. Typed operational errors keep the existing response
@@ -97,15 +93,23 @@ const serialize = <T extends { amount: unknown }>(tx: T) => ({
 });
 
 /**
- * Build date range for a given month/year (defaults to current month).
+ * Parse the summary `month=YYYY-MM` query into service input. A missing or
+ * malformed value yields `{}` so the query service falls back to the current
+ * reporting month — exactly as before.
  */
-function getMonthRange(month?: string, year?: string) {
-  const now = new Date();
-  const current = formatReportingDate(now, reportingConfig.timezone).split('-').map(Number);
-  const m = month ? Math.min(Math.max(parseInt(month, 10) || current[1], 1), 12) : current[1];
-  const y = year ? parseInt(year, 10) || current[0] : current[0];
-  const { startInclusive, endExclusive } = getReportingMonthRange({ month: m, year: y }, reportingConfig.timezone);
-  return { startDate: startInclusive, endDate: endExclusive, month: m, year: y };
+function mapSummaryQuery(query: { month?: string }): { month?: number; year?: number } {
+  const match = /^(\d{4})-(\d{2})$/.exec(query.month ?? '');
+  return match ? { year: parseInt(match[1], 10), month: parseInt(match[2], 10) } : {};
+}
+
+/** Serialize the summary's Decimal totals into the existing numeric response. */
+function serializeSummary(result: TransactionSummaryResult) {
+  return {
+    income: Number(result.income.toString()),
+    expenses: Number(result.expenses.toString()),
+    netSavings: Number(result.netSavings.toString()),
+    month: result.month,
+  };
 }
 
 export class TransactionController {
@@ -139,41 +143,13 @@ export class TransactionController {
   ): Promise<void> {
     try {
       const userId = (req as any).userId as string;
-
-      // month param is YYYY-MM; fall back to current month when absent/invalid
-      const match = /^(\d{4})-(\d{2})$/.exec(req.query.month ?? '');
-      const { startDate, endDate, month, year } = getMonthRange(match?.[2], match?.[1]);
-
-      const sums = await prisma.transaction.groupBy({
-        by: ['type'],
-        where: {
-          userId,
-          type: { in: ['INCOME', 'EXPENSE'] },
-          date: { gte: startDate, lt: endDate },
-        },
-        _sum: { amount: true },
+      const result = await transactionQueryService.getSummary({
+        userId,
+        ...mapSummaryQuery(req.query),
       });
-
-      const sumFor = (t: string): Prisma.Decimal => {
-        const row = sums.find((s) => s.type === t);
-        return row?._sum.amount ?? new Prisma.Decimal(0);
-      };
-
-      const income = sumFor('INCOME');
-      const expenses = sumFor('EXPENSE');
-
-      sendSuccess(
-        res,
-        {
-          income: Number(income.toString()),
-          expenses: Number(expenses.toString()),
-          netSavings: Number(income.minus(expenses).toString()),
-          month: `${year}-${String(month).padStart(2, '0')}`,
-        },
-        'Monthly summary'
-      );
+      sendSuccess(res, serializeSummary(result), 'Monthly summary');
     } catch (err) {
-      next(err);
+      forwardTransactionError(err, res, next);
     }
   }
 
