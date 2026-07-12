@@ -12,6 +12,7 @@ import { WalletError } from '../services/wallet.errors';
 import type {
   CreateWalletInput,
   UpdateWalletInput,
+  DeleteWalletInput,
   DecimalInput,
   WalletType,
   AdminFeeType,
@@ -101,6 +102,18 @@ function mapUpdateWalletRequest(walletId: string, userId: string, body: UpdateWa
     color: body.color,
     isArchived: body.isArchived,
   };
+}
+
+/**
+ * Map the delete request into service input. `force` is normalized exactly as
+ * before: active only when the query string is literally `'true'`.
+ */
+function mapDeleteWalletRequest(
+  walletId: string,
+  userId: string,
+  query: { force?: string }
+): DeleteWalletInput {
+  return { userId, walletId, force: query.force === 'true' };
 }
 
 /** Serialized net worth snapshot, recomputed after every wallet mutation. */
@@ -197,44 +210,14 @@ export const updateWallet = async (req: Request<{ id: string }>, res: Response, 
  */
 export const deleteWallet = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
     const userId = (req as any).userId as string;
+    const result = await walletService.deleteWallet(mapDeleteWalletRequest(req.params.id, userId, req.query));
 
-    // Ownership check: refuse to delete a wallet that isn't the caller's.
-    const owned = await prisma.wallet.findFirst({ where: { id, userId }, select: { id: true } });
-    if (!owned) {
-      return sendError(res, `Wallet with id ${id} not found`, 404);
-    }
-
-    // Ledger integrity: a wallet on EITHER side of a transfer cannot be deleted,
-    // even with force. Cascade-deleting its transfer rows would leave the OTHER
-    // wallet's balance credited/debited with no counterparty (drift). The caller
-    // must delete those transfers first (which reverses both sides cleanly).
-    const transferCount = await prisma.transaction.count({
-      where: { userId, type: 'TRANSFER', OR: [{ walletId: id }, { toWalletId: id }] },
-    });
-    if (transferCount > 0) {
-      return sendError(
-        res,
-        `Wallet is referenced by ${transferCount} transfer(s). Delete those transfers first to keep balances consistent.`,
-        409,
-        'CONFLICT'
-      );
-    }
-
-    const txCount = await prisma.transaction.count({ where: { walletId: id, userId } });
-    if (txCount > 0 && req.query.force !== 'true') {
-      return sendError(res, `Wallet has ${txCount} transactions. Pass ?force=true to delete anyway.`, 409);
-    }
-
-    const deleted = await prisma.wallet.delete({ where: { id } });
-
-    sendSuccess(res, { id, netWorth: await netWorthSnapshot(deleted.userId) }, `Wallet ${id} deleted successfully`);
+    // Ownership was verified in the service, so the caller owns the deleted wallet;
+    // the reporting snapshot reflects the state after deletion.
+    sendSuccess(res, { id: result.id, netWorth: await netWorthSnapshot(userId) }, `Wallet ${result.id} deleted successfully`);
   } catch (err) {
-    if ((err as { code?: string }).code === 'P2025') {
-      return sendError(res, `Wallet with id ${req.params.id} not found`, 404);
-    }
-    next(err);
+    forwardWalletError(err, res, next);
   }
 };
 

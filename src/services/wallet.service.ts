@@ -23,6 +23,8 @@ import { WalletError } from './wallet.errors';
 import type {
   CreateWalletInput,
   DecimalInput,
+  DeleteWalletInput,
+  DeleteWalletResult,
   UpdateWalletInput,
   Wallet,
   WalletPrismaClient,
@@ -169,7 +171,55 @@ export function createWalletService(db: WalletPrismaClient) {
     }
   }
 
-  return { createWallet, updateWallet };
+  /**
+   * Delete a wallet the caller owns. Two integrity gates precede the write:
+   *   1. A wallet on EITHER side of a transfer (`walletId` or `toWalletId`) is
+   *      refused even with `force` — cascading its transfer rows would leave the
+   *      counterparty balance credited/debited with no other side (Sprint 2A).
+   *   2. A wallet with plain income/expense history is refused unless `force`.
+   * Only after both pass is the single `wallet.delete` issued (transactions
+   * cascade via the schema). No unrelated wallet is ever mutated.
+   */
+  async function deleteWallet(input: DeleteWalletInput): Promise<DeleteWalletResult> {
+    const { userId, walletId, force } = input;
+
+    // Ownership check: refuse to delete a wallet that isn't the caller's.
+    const owned = await db.wallet.findFirst({ where: { id: walletId, userId }, select: { id: true } });
+    if (!owned) {
+      throw new WalletError(`Wallet with id ${walletId} not found`, 404, 'NOT_FOUND');
+    }
+
+    // Gate 1: transfer references on either side block deletion, even with force.
+    const transferCount = await db.transaction.count({
+      where: { userId, type: 'TRANSFER', OR: [{ walletId }, { toWalletId: walletId }] },
+    });
+    if (transferCount > 0) {
+      throw new WalletError(
+        `Wallet is referenced by ${transferCount} transfer(s). Delete those transfers first to keep balances consistent.`,
+        409,
+        'CONFLICT'
+      );
+    }
+
+    // Gate 2: plain transaction history blocks deletion unless force is set.
+    const txCount = await db.transaction.count({ where: { walletId, userId } });
+    if (txCount > 0 && !force) {
+      throw new WalletError(`Wallet has ${txCount} transactions. Pass ?force=true to delete anyway.`, 409, 'CONFLICT');
+    }
+
+    try {
+      await db.wallet.delete({ where: { id: walletId } });
+      return { id: walletId };
+    } catch (err) {
+      if (err instanceof WalletError) throw err;
+      if ((err as { code?: string }).code === 'P2025') {
+        throw new WalletError(`Wallet with id ${walletId} not found`, 404, 'NOT_FOUND');
+      }
+      throw err;
+    }
+  }
+
+  return { createWallet, updateWallet, deleteWallet };
 }
 
 /** Production instance bound to the shared Prisma singleton. */
