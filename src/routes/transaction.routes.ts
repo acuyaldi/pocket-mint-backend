@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { TransactionController } from '../controllers/transaction.controller';
 import { requireUser } from '../middleware/apiKeyAuth';
+import { mutationLimiter } from '../middleware/rateLimit';
 
 const transactionRouter = Router();
 
@@ -13,10 +14,9 @@ transactionRouter.get('/all', requireUser, TransactionController.getAllTime);
 // GET /api/v1/transactions/summary?month=YYYY-MM — monthly P&L
 transactionRouter.get('/summary', requireUser, TransactionController.summary);
 
-transactionRouter.put('/:id', requireUser, TransactionController.update);
-transactionRouter.delete('/:id', requireUser, TransactionController.delete);
-
-// POST with user auth middleware
-transactionRouter.post('/', requireUser, TransactionController.create);
+// Mutating routes: authenticate first so the mutation limiter keys by user id.
+transactionRouter.put('/:id', requireUser, mutationLimiter, TransactionController.update);
+transactionRouter.delete('/:id', requireUser, mutationLimiter, TransactionController.delete);
+transactionRouter.post('/', requireUser, mutationLimiter, TransactionController.create);
 
 export { transactionRouter };

@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import { router as apiRouter } from './routes';
 import { errorHandler } from './middlewares/error.middleware';
 import { trustProxy, rateLimitConfig } from './config';
-import { generalLimiter, mutationLimiter } from './middleware/rateLimit';
+import { generalLimiter } from './middleware/rateLimit';
 import { corsMiddleware } from './middleware/cors';
 
 const app = express();
@@ -19,10 +19,14 @@ app.use(helmet());
 app.use(corsMiddleware);
 app.use(morgan('dev'));
 
-// --------------- Rate limiting (before body parsing to reject early) ---------------
+// --------------- Rate limiting ---------------
+// PRE-AUTH layer: the general limiter runs before body parsing and before
+// authentication, keying by IP to protect the auth machinery (token / API-key
+// verification). The stricter POST-AUTH mutation limiter is applied per-route
+// AFTER `requireUser` (see the route modules) so it can key by the verified
+// user id; it is not mounted globally here.
 if (rateLimitConfig.enabled) {
   app.use('/api', generalLimiter);
-  app.use('/api', mutationLimiter);
 }
 
 app.use(express.json());
