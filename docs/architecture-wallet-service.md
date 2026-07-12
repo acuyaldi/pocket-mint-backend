@@ -1,26 +1,32 @@
-# Wallet Command Service Architecture (Sprint 3C)
+# Wallet Command & Query Service Architecture (Sprints 3C–3D)
 
-Sprint 3C moves the **wallet mutation** logic (create / update / delete) out of
-`account.controller.ts` into a dedicated command service, following the same
-incremental pattern the transaction module established in Sprints 3A/3B (see
+Sprint 3C moved the **wallet mutation** logic (create / update / delete) out of
+`account.controller.ts` into a dedicated command service. **Sprint 3D** completes
+the split by moving the **wallet reads** — the list handler (`getAllWallets`), the
+net-worth snapshot, and the seven-day sparkline (`getWalletSparkline`) — into a
+dedicated **query service**, following the same incremental pattern the
+transaction module established in Sprints 3A/3B (see
 [`architecture-transaction-service.md`](architecture-transaction-service.md)).
 
-Only the **command** (mutation) path is extracted. Wallet **reads** — the list
-handler (`getAllWallets`) and the sparkline (`getWalletSparkline`) — deliberately
-stay in the controller and still query Prisma directly; they are a later sprint.
-Dashboard, net-worth reporting, and reconciliation are also untouched.
+After 3D the wallet controller is a thin HTTP boundary: it holds **no** direct
+Prisma access, no reporting-time/effect math, and no `Prisma.Decimal` reporting
+calculation. Both paths — command and query — own their own narrow injected Prisma
+surface. Dashboard, `getUserNetWorth` (still used by the dashboard controller),
+installment listing, and reconciliation are untouched.
 
 ```mermaid
 flowchart TD
     Route --> WalletController
     WalletController --> WalletCommandService[Wallet Command Service]
-    WalletCommandService --> Prisma
-    WalletCommandService --> ApplicationErrors[WalletError]
-    WalletController --> ResponseHelpers
-    WalletController --> ReadPath[getAllWallets / sparkline → Prisma directly]
+    WalletController --> WalletQueryService[Wallet Query Service]
 
-    TransactionController --> TransactionCommandService
-    TransactionController --> TransactionQueryService
+    WalletCommandService --> Prisma
+    WalletQueryService --> Prisma
+    WalletQueryService --> ReportingTime[getRollingDayRanges]
+    WalletQueryService --> ReportingEffect[getWalletReportingEffect]
+    WalletQueryService --> WalletClassification[calculateNetWorth / classifyWalletForNetWorth]
+
+    WalletController --> ResponseHelpers
 ```
 
 ## What moved, what stayed
@@ -37,9 +43,13 @@ flowchart TD
 | authenticated `userId` resolution | create/update/delete | **controller** (HTTP) |
 | request field allowlisting | — (raw `req.body`) | **controller** mappers |
 | `force` query normalization | delete | **controller** mapper |
-| net-worth snapshot (reporting) | all mutations | **controller** (out of scope) |
+| net-worth snapshot **aggregation** (reporting) | controller (`getUserNetWorth`) | **query service** (`getNetWorth`) |
+| net-worth snapshot **serialization** | controller | **controller** (`serializeNetWorth`) |
 | response envelope `{ ...wallet, netWorth }` | all mutations | **controller** |
-| `getAllWallets`, `getWalletSparkline` (reads) | controller + Prisma | **unchanged** |
+| wallet listing `findMany` + ordering + archived inclusion | controller (`getAllWallets`) | **query service** (`listWallets`) |
+| list serialization + `sisa_limit` / `outstanding_debt` | controller | **controller** (`serializeWallet`) |
+| sparkline ownership check + tx query + reconstruction | controller (`getWalletSparkline`) | **query service** (`getWalletSparkline`) |
+| sparkline serialization (Decimal → number \| null) | controller | **controller** (`serializeSparkline`) |
 
 ## Wallet controller — `src/controllers/account.controller.ts`
 
@@ -55,10 +65,30 @@ After extraction the three mutation handlers are thin HTTP adapters. Each:
 - appends the reporting net-worth snapshot and sends the existing success envelope
 - forwards errors via `forwardWalletError`
 
-The mutation handlers run no Prisma queries, no business validation, no Decimal
-comparison, no transfer-reference query, and return no manual `500`. The read
-handlers (`getAllWallets`, `getWalletSparkline`) still use Prisma — the static
-architecture check targets the **mutation** handlers only, not the whole file.
+The two **read** handlers are equally thin after 3D: resolve `userId`, call one
+query-service method, serialize at the boundary, forward errors. `getAllWallets`
+maps rows through `serializeWallet`; `getWalletSparkline` through
+`serializeSparkline`. Neither touches Prisma.
+
+The whole file now runs **no** direct Prisma query — the static architecture check
+covers the entire controller, not just the mutation handlers. The only tokens the
+scan tolerates are `parseFloat`/`Number(...)` **inside the three serializers**
+(`serializeWallet`, `serializeNetWorth`, `serializeSparkline`) — the single,
+intentional Decimal → number response boundary.
+
+### Serialization boundary
+
+The query service returns Decimals (and `null` for pre-creation sparkline days);
+the controller converts to the existing numeric API shape at exactly one place:
+
+```text
+Query service → Decimal / Decimal-or-null result
+Controller serializer (serializeWallet / serializeNetWorth / serializeSparkline)
+sendSuccess
+```
+
+No `.toNumber()`/`parseFloat` runs inside a query-service calculation; `null` is
+never coerced to `0`.
 
 ## Wallet command service — `src/services/wallet.service.ts`
 
@@ -110,6 +140,59 @@ createWalletService(db); // default singleton: walletService, bound to shared pr
 behavior fake (`test/walletService.test.ts`); the controller boundary is tested
 with the service mocked (`test/walletControllerBoundary.test.ts`). No DI framework.
 
+## Wallet query service — `src/services/wallet-query.service.ts` (Sprint 3D)
+
+`createWalletQueryService(db)` returns `{ listWallets, getNetWorth, getWalletSparkline }`.
+It **orchestrates** reads; the arithmetic stays in the domain/util modules it
+reuses. It owns:
+
+- **listWallets** — ownership-scoped `findMany` (`where: { userId }`), ordered
+  `createdAt` **asc**, archived wallets **included** (no `isArchived` filter),
+  relations/fields unchanged. Returns raw Prisma wallets (Decimals intact).
+- **getNetWorth** — ownership-scoped read of `type` + `balance`, then the shared
+  Decimal-safe `calculateNetWorth` (`utils/financial`). Product rule preserved
+  exactly: `totalAset` = asset balances, `totalUtang` = |debt balances|,
+  `netWorth` = **asset total only** (debt is reported separately, never
+  subtracted). Assets = `CASH`/`BANK`/`E_WALLET`; debt = `CREDIT_CARD`/
+  `LOAN_PAYLATER`. Used by the three mutation responses (the reporting snapshot).
+- **getWalletSparkline** — ownership check (`findFirst({ id, userId })`, typed
+  `404` `NOT_FOUND` otherwise), then the seven-day reconstruction moved verbatim.
+  Sprint 2C semantics preserved: exactly seven reporting-calendar days
+  (today−6 … today) in `REPORTING_TIMEZONE` via `getRollingDayRanges`; both
+  transfer sides queried (`walletId` **OR** `toWalletId`) with a half-open
+  `[gte, lt)` window and stable `date/createdAt/id` ordering (no row limit — every
+  relevant row is fetched); the stored balance walked backward through
+  `getWalletReportingEffect` (income/expense source, transfer out/in, installment
+  `grandTotal` — the type switch is **not** reimplemented); empty days carry
+  forward; a day ending before `createdAt` is `null` (never `0`); future-dated
+  effects (after `now`) are reversed out so they never inflate a realized close. A
+  legacy transfer (null destination) affects **only** its known source side; the
+  destination is never inferred — a metadata-free `logger.warn` is emitted, no
+  repair is attempted (reconciliation is untouched). An optional `now` test clock
+  makes the window deterministic; production passes none.
+
+Like the command service it imports no Express types, reads no `req`/headers,
+sends no HTTP responses, constructs no Prisma client, and performs **no writes**
+(its `Pick` exposes only reads). It returns typed results (`Wallet[]`,
+`WalletTotals`, `WalletSparklinePoint[]` — Decimals intact) or throws `WalletError`.
+
+```ts
+export type WalletQueryPrismaClient = Pick<PrismaClient, 'wallet' | 'transaction'>;
+createWalletQueryService(db); // default singleton: walletQueryService, bound to shared prisma
+```
+
+`wallet.findMany`/`findFirst` serve listing + net-worth + ownership;
+`transaction.findMany` serves the sparkline. Tests inject a behavior fake
+(`test/walletQueryService.test.ts`); the read controller boundary is tested with
+the query service mocked (`test/walletQueryControllerBoundary.test.ts`).
+
+### No wallet-detail endpoint
+
+There is **no** `GET /wallets/:id`. The wallet routes are `GET /`,
+`GET /:id/sparkline`, `POST /`, `PUT /:id`, `DELETE /:id`. No single-wallet detail
+read exists, so none was invented; `getWallet` is intentionally absent from the
+query service.
+
 ## Typed errors
 
 `WalletError` mirrors `TransactionError` (status + stable code + safe message,
@@ -136,21 +219,28 @@ per user" rule coupled to wallet mutations, so none was moved into the service.
 `isArchived` exists but is a plain metadata boolean with no atomic multi-wallet
 rule.
 
-## Why wallet reads and a repository are deferred
+## Why a repository is still deferred
 
-- **Reads** (list, sparkline) stay in the controller because they involve
-  reporting-time bucketing (`getRollingDayRanges`, `getWalletReportingEffect`) that
-  is out of this sprint's scope; extracting a `wallet-query.service.ts` is a
-  separate, later decision — exactly as transaction reads were split out in 3B only
-  after 3A.
-- A **repository** is still not justified: the command service uses the injected
-  Prisma `Pick` directly, no other service duplicates wallet data access, and the
-  narrow `Pick` already makes it fully testable with fakes. Add one only when
-  multiple services share the same queries or a second backend becomes realistic.
+A **repository** is not justified even now that both wallet paths are extracted:
+
+- the command and query services each use their own narrow injected Prisma `Pick`
+  directly, and both are already fully testable with fakes (no repository needed
+  to mock persistence);
+- no other service duplicates wallet data access — there is no proven shared
+  persistence logic to hoist;
+- there is only one persistence backend, so an abstraction over Prisma buys
+  nothing today.
+
+Reevaluate after the **dashboard** service is extracted: if it re-derives the same
+wallet reads (net-worth, classification), a shared read seam may finally be worth
+it. Until then, adding a repository would be speculative indirection.
 
 ## Project status
 
 The **transaction** module is fully command/query split (3A + 3B). The **wallet**
-module now has its **mutation** path on the command-service pattern (3C); wallet
-reads, dashboard, installment listing, and auth still hold logic in their
-controllers. Do not assume the whole project follows this architecture yet.
+module is now **also** fully command/query split (3C + 3D): mutations in
+`wallet.service.ts`, reads in `wallet-query.service.ts`, and `account.controller.ts`
+reduced to an HTTP boundary with no direct Prisma. **Dashboard**, installment
+listing, and auth still hold logic in their controllers — do not assume the whole
+project follows this architecture yet. Dashboard is the recommended next target;
+it still calls `getUserNetWorth` directly and is deliberately untouched here.
