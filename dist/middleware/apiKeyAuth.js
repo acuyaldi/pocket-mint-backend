@@ -35,20 +35,16 @@ function unauthorized(res, reason) {
 }
 /**
  * Publish the resolved, trusted identity as the canonical `req.auth` context for
- * downstream controllers, then continue.
+ * downstream readers, then continue.
  *
- * `req.auth` is the single authoritative source (controllers read it via
- * `getAuthenticatedUserId`). The request body and query are intentionally NOT
- * mutated any more — a user id can never be smuggled in or read from them.
- *
- * `req.userId` / `req.authMethod` are retained ONLY as deprecated mirrors for
- * readers not yet migrated to `req.auth` (rate-limit keying, the installment
- * controller); new code must never read them.
+ * `req.auth` is the SOLE authoritative representation of request identity:
+ * controllers read it via `getAuthenticatedUserId` and the post-auth rate
+ * limiter keys from `req.auth.userId`. The request body and query are
+ * intentionally NOT mutated — a user id can never be smuggled in or read from
+ * them. No deprecated `req.userId` / `req.authMethod` mirrors are written.
  */
 function injectUser(req, userId, method, next) {
     req.auth = { userId, method };
-    req.userId = userId; // @deprecated mirror — see req.auth
-    req.authMethod = method; // @deprecated mirror — see req.auth
     next();
 }
 /**

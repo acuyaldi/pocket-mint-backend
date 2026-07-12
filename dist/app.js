@@ -19,10 +19,14 @@ app.set('trust proxy', config_1.trustProxy);
 app.use((0, helmet_1.default)());
 app.use(cors_1.corsMiddleware);
 app.use((0, morgan_1.default)('dev'));
-// --------------- Rate limiting (before body parsing to reject early) ---------------
+// --------------- Rate limiting ---------------
+// PRE-AUTH layer: the general limiter runs before body parsing and before
+// authentication, keying by IP to protect the auth machinery (token / API-key
+// verification). The stricter POST-AUTH mutation limiter is applied per-route
+// AFTER `requireUser` (see the route modules) so it can key by the verified
+// user id; it is not mounted globally here.
 if (config_1.rateLimitConfig.enabled) {
     app.use('/api', rateLimit_1.generalLimiter);
-    app.use('/api', rateLimit_1.mutationLimiter);
 }
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
