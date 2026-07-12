@@ -65,11 +65,13 @@ existing status code).
 client-supplied `userId` (header, query, or body) can therefore never become
 authoritative — the identity is always the value auth resolved.
 
-**Deprecated mirrors.** `requireUser` still sets `req.userId` / `req.authMethod`
-as `@deprecated` mirrors. Since Sprint 3G migrated the installment controller, the
-**only** remaining real reader is rate-limit keying in `middleware/rateLimit.ts`
-(`keyByUserOrIp`); removing the mirror is deferred until that limiter reads
-`req.auth`, which depends on middleware ordering. New code must read `req.auth`.
+**No mirrors (Sprint 3H).** The deprecated `req.userId` / `req.authMethod`
+request mirrors have been **removed**. Sprint 3G migrated the installment
+controller and Sprint 3H migrated the last reader — rate-limit keying — to
+`req.auth`, so `requireUser` now writes `req.auth` and nothing else. `req.auth`
+is the sole trusted representation of request identity; `src/types/express.d.ts`
+no longer declares the mirror properties. See
+[Rate limiting](#rate-limiting-sprint-3h) below.
 
 ### Auth middleware contract
 
@@ -86,6 +88,51 @@ The decision logic itself (bearer-token-is-authoritative, no fallback, JWT-only
 mode, legacy compat) is unchanged from the security sprints — 3F only changed how
 the *result* is published. Covered by `test/auth.test.ts` (decisions) and
 `test/authContext.test.ts` (the context contract).
+
+## Rate limiting (Sprint 3H)
+
+Rate limiting is **two layers**, split around authentication. This is required
+because `requireUser` runs *per route* (inside the router), so a limiter mounted
+globally on `/api` necessarily executes **before** any identity is resolved.
+
+```mermaid
+flowchart LR
+    Request --> PreAuthLimiter[general limiter: IP-keyed]
+    PreAuthLimiter --> AuthMiddleware[requireUser]
+    AuthMiddleware --> AuthContext[req.auth]
+    AuthContext --> MutationLimiter[mutation limiter: user-keyed]
+    MutationLimiter --> Controller
+```
+
+| Limiter | Where it runs | Key | Purpose |
+| --- | --- | --- | --- |
+| **general** (`generalLimiter`) | globally on `/api`, **before** auth | `ip:<normalized>` | caps all traffic and protects the token / API-key verification path itself |
+| **mutation** (`mutationLimiter`) | per mutating route, **after** `requireUser` | `user:<req.auth.userId>`, IP fallback | stricter cap on writes, partitioned per verified user |
+
+**Why user-keying is safe here.** The mutation limiter runs only *after* a
+successful auth decision, so `req.auth.userId` is a verified identity (a JWT
+`sub` or a resolved legacy user). It is read via `getAuthenticatedUserId` — the
+same helper controllers use. The self-asserted `x-user-id` header and any
+body/query `userId` are **never** consulted, so a client cannot select another
+user's bucket. On routes that resolve no user (the API-key-only `/users/sync`),
+`req.auth` is absent and the limiter falls back to `ip:` — writes there are still
+capped, just by IP.
+
+**Namespacing & normalization.** Keys are prefixed (`ip:` vs `user:`) so a user
+id that happens to look like an IP can never collide with a real IP bucket. IP
+keys go through `express-rate-limit`'s `ipKeyGenerator`, which collapses IPv6
+into a subnet; `req.ip` derivation is governed by the unchanged
+`app.set('trust proxy', trustProxy)` config (defaults to *not* trusting
+`X-Forwarded-For`). Keys carry **no** token, API key, or email.
+
+**Preserved.** Windows, `RATE_LIMIT_MAX` / `RATE_LIMIT_MUTATION_MAX`, the
+`RATE_LIMIT_ENABLED` switch (the mutation limiter honors it via `skip`), standard
+`RateLimit-*` headers, the `429` JSON envelope, `OPTIONS`/`GET`/`HEAD` skips, and
+the per-instance in-memory store are all unchanged. The store remains
+per-process; a shared store (Redis) is still the future scale-out step. The one
+intended behavior refinement: authenticated writes are now partitioned per user
+instead of per IP, so users behind a shared NAT no longer share a write budget.
+Covered by `test/rateLimitAuth.test.ts` and `test/httpSecurity.test.ts`.
 
 ## Responsibilities
 
@@ -193,8 +240,9 @@ runs on all these routes) and is covered by `test/httpBoundaryGuards.test.ts`.
 | File | Role |
 | --- | --- |
 | `src/http/authContext.ts` | `AuthContext`, `getAuthContext`, `getAuthenticatedUserId` |
-| `src/types/express.d.ts` | `req.auth` declaration merge + deprecated mirrors |
+| `src/types/express.d.ts` | `req.auth` declaration merge (no deprecated mirrors) |
 | `src/http/queryParsers.ts` | `scalarString` / `scalarInt` / `scalarBooleanTrue` |
 | `src/http/forwardError.ts` | `forwardError` / `isOperationalError` |
-| `src/middleware/apiKeyAuth.ts` | `requireUser` publishes `req.auth` |
+| `src/middleware/apiKeyAuth.ts` | `requireUser` publishes `req.auth` (only) |
+| `src/middleware/rateLimit.ts` | `generalLimiter` (IP), `mutationLimiter` (user/IP), `ipKey` / `userOrIpKey` |
 | `src/controllers/*.controller.ts` | thin HTTP adapters using the above |
