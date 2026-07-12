@@ -1,18 +1,9 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getWalletSparkline = exports.deleteWallet = exports.updateWallet = exports.createWallet = exports.getAllWallets = void 0;
-const prisma_1 = __importDefault(require("../lib/prisma"));
-const client_1 = require("../generated/prisma/client");
 const response_1 = require("../utils/response");
-const financial_1 = require("../utils/financial");
-const config_1 = require("../config");
-const reportingTime_1 = require("../domain/reportingTime");
-const reportingEffect_1 = require("../domain/reportingEffect");
-const logger_1 = require("../utils/logger");
 const wallet_service_1 = require("../services/wallet.service");
+const wallet_query_service_1 = require("../services/wallet-query.service");
 const wallet_errors_1 = require("../services/wallet.errors");
 const DEBT_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
 /**
@@ -75,14 +66,50 @@ function mapUpdateWalletRequest(walletId, userId, body) {
 function mapDeleteWalletRequest(walletId, userId, query) {
     return { userId, walletId, force: query.force === 'true' };
 }
-/** Serialized net worth snapshot, recomputed after every wallet mutation. */
-async function netWorthSnapshot(userId) {
-    const { totalAset, totalUtang, netWorth } = await (0, financial_1.getUserNetWorth)(userId);
+/**
+ * Serialize the query service's Decimal net-worth totals into the existing
+ * numeric response. The reporting snapshot is fetched from the wallet query
+ * service (reads) and appended to every mutation response, exactly as before.
+ */
+function serializeNetWorth(totals) {
     return {
-        totalAset: parseFloat(totalAset.toString()),
-        totalUtang: parseFloat(totalUtang.toString()),
-        netWorth: parseFloat(netWorth.toString()),
+        totalAset: parseFloat(totals.totalAset.toString()),
+        totalUtang: parseFloat(totals.totalUtang.toString()),
+        netWorth: parseFloat(totals.netWorth.toString()),
     };
+}
+/** Fetch + serialize the caller's net-worth snapshot (the mutation-response reporting field). */
+async function netWorthSnapshot(userId) {
+    return serializeNetWorth(await wallet_query_service_1.walletQueryService.getNetWorth({ userId }));
+}
+/**
+ * Serialize one wallet for the list response: Decimal → number (parseFloat, as
+ * before) plus the DEBT-only computed fields. `sisa_limit` and `outstanding_debt`
+ * are `null` for asset wallets. This is the single response boundary — the query
+ * service returns raw Decimals and never converts.
+ */
+function serializeWallet(w) {
+    const balance = parseFloat(w.balance.toString());
+    const creditLimit = parseFloat(w.creditLimit.toString());
+    const isDebt = DEBT_TYPES.includes(w.type);
+    return {
+        ...w,
+        balance,
+        creditLimit,
+        initialBalance: parseFloat(w.initialBalance.toString()),
+        interestRate: parseFloat(w.interestRate.toString()),
+        adminFee: parseFloat(w.adminFee.toString()),
+        // Computed fields for DEBT wallets
+        sisa_limit: isDebt ? creditLimit + balance : null,
+        outstanding_debt: isDebt ? Math.abs(balance) : null,
+    };
+}
+/** Serialize sparkline points: Decimal → number, preserving pre-creation `null` (never 0). */
+function serializeSparkline(points) {
+    return points.map((point) => ({
+        date: point.date,
+        balance: point.balance === null ? null : Number(point.balance.toString()),
+    }));
 }
 /**
  * GET /api/v1/wallets
@@ -96,30 +123,11 @@ const getAllWallets = async (req, res, next) => {
         if (!userId) {
             return (0, response_1.sendError)(res, 'Unauthorized', 401);
         }
-        const wallets = await prisma_1.default.wallet.findMany({
-            where: { userId },
-            orderBy: { createdAt: 'asc' },
-        });
-        const serialized = wallets.map((w) => {
-            const balance = parseFloat(w.balance.toString());
-            const creditLimit = parseFloat(w.creditLimit.toString());
-            const isDebt = DEBT_TYPES.includes(w.type);
-            return {
-                ...w,
-                balance,
-                creditLimit,
-                initialBalance: parseFloat(w.initialBalance.toString()),
-                interestRate: parseFloat(w.interestRate.toString()),
-                adminFee: parseFloat(w.adminFee.toString()),
-                // Computed fields for DEBT wallets
-                sisa_limit: isDebt ? creditLimit + balance : null,
-                outstanding_debt: isDebt ? Math.abs(balance) : null,
-            };
-        });
-        (0, response_1.sendSuccess)(res, serialized, 'Fetched wallets');
+        const wallets = await wallet_query_service_1.walletQueryService.listWallets({ userId });
+        (0, response_1.sendSuccess)(res, wallets.map(serializeWallet), 'Fetched wallets');
     }
     catch (err) {
-        next(err);
+        forwardWalletError(err, res, next);
     }
 };
 exports.getAllWallets = getAllWallets;
@@ -182,60 +190,12 @@ exports.deleteWallet = deleteWallet;
  */
 const getWalletSparkline = async (req, res, next) => {
     try {
-        const { id } = req.params;
         const userId = req.userId;
-        // Verify wallet exists AND belongs to the caller
-        const wallet = await prisma_1.default.wallet.findFirst({
-            where: { id, userId },
-            select: { id: true, balance: true, createdAt: true },
-        });
-        if (!wallet) {
-            return (0, response_1.sendError)(res, 'Wallet not found', 404);
-        }
-        const now = new Date();
-        const buckets = (0, reportingTime_1.getRollingDayRanges)(now, 7, config_1.reportingConfig.timezone);
-        // Every realized transaction that can affect one of the seven day closes.
-        const recentTx = await prisma_1.default.transaction.findMany({
-            where: {
-                userId,
-                OR: [{ walletId: id }, { toWalletId: id }],
-                date: { gte: buckets[0].startInclusive, lt: buckets[6].endExclusive },
-            },
-            orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
-            select: {
-                id: true, type: true, amount: true, walletId: true, toWalletId: true,
-                isInstallment: true, date: true, createdAt: true,
-                installment: { select: { grandTotal: true } },
-            },
-        });
-        if (recentTx.some((tx) => tx.type === 'TRANSFER' && tx.toWalletId === null)) {
-            logger_1.logger.warn('wallet sparkline includes legacy transfer with unknown destination', { walletId: id });
-        }
-        let runningBalance = new client_1.Prisma.Decimal(wallet.balance);
-        let transactionIndex = 0;
-        const newestFirst = [];
-        for (let bucketIndex = buckets.length - 1; bucketIndex >= 0; bucketIndex--) {
-            const bucket = buckets[bucketIndex];
-            const closingBoundary = bucketIndex === buckets.length - 1 ? now : bucket.endExclusive;
-            while (transactionIndex < recentTx.length &&
-                (bucketIndex === buckets.length - 1
-                    ? recentTx[transactionIndex].date.getTime() > closingBoundary.getTime()
-                    : recentTx[transactionIndex].date.getTime() >= closingBoundary.getTime())) {
-                runningBalance = runningBalance.minus((0, reportingEffect_1.getWalletReportingEffect)(recentTx[transactionIndex], id));
-                transactionIndex++;
-            }
-            newestFirst.push({
-                date: bucket.label,
-                balance: bucket.endExclusive.getTime() <= wallet.createdAt.getTime()
-                    ? null
-                    : Number(runningBalance.toString()),
-            });
-        }
-        const points = newestFirst.reverse();
-        (0, response_1.sendSuccess)(res, points, 'Sparkline data');
+        const points = await wallet_query_service_1.walletQueryService.getWalletSparkline({ userId, walletId: req.params.id });
+        (0, response_1.sendSuccess)(res, serializeSparkline(points), 'Sparkline data');
     }
     catch (err) {
-        next(err);
+        forwardWalletError(err, res, next);
     }
 };
 exports.getWalletSparkline = getWalletSparkline;
