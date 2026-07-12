@@ -20,7 +20,7 @@ function buildApp(): Express {
   const app = express();
   app.use(express.json());
   app.use((req, _res, next) => {
-    (req as unknown as { userId: string }).userId = USER;
+    (req as unknown as { auth: { userId: string; method: string } }).auth = { userId: USER, method: 'jwt' };
     next();
   });
   app.delete('/wallets/:id', deleteWallet);

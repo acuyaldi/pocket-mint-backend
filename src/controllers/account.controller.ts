@@ -1,8 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
+import type { ParsedQs } from 'qs';
 import { sendSuccess, sendError } from '../utils/response';
 import { walletService } from '../services/wallet.service';
 import { walletQueryService } from '../services/wallet-query.service';
 import { WalletError } from '../services/wallet.errors';
+import { getAuthenticatedUserId } from '../http/authContext';
+import { scalarBooleanTrue } from '../http/queryParsers';
 import type {
   CreateWalletInput,
   UpdateWalletInput,
@@ -26,16 +29,6 @@ function forwardWalletError(err: unknown, res: Response, next: NextFunction): vo
     return;
   }
   next(err);
-}
-
-/**
- * Resolve the authoritative user id (HTTP concern). `requireUser` injects
- * `req.userId`, which always wins; the body/query fallbacks preserve the prior
- * create behavior for callers without the middleware. The mapper never reads a
- * body `userId`, so a client cannot inject another user's id when authenticated.
- */
-function resolveUserId(req: Request): string | undefined {
-  return (req as any).userId || req.body?.userId || (req.query?.userId as string | undefined);
 }
 
 /** Allowlisted create-wallet request body (no `userId` — that is resolved separately). */
@@ -106,9 +99,9 @@ function mapUpdateWalletRequest(walletId: string, userId: string, body: UpdateWa
 function mapDeleteWalletRequest(
   walletId: string,
   userId: string,
-  query: { force?: string }
+  query: ParsedQs
 ): DeleteWalletInput {
-  return { userId, walletId, force: query.force === 'true' };
+  return { userId, walletId, force: scalarBooleanTrue(query.force) };
 }
 
 /**
@@ -168,8 +161,8 @@ function serializeSparkline(points: WalletSparklinePoint[]) {
  */
 export const getAllWallets = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // userId disuntik oleh requireUser — jangan hardcode, create/list harus user yang sama
-    const userId = (req as any).userId as string;
+    // Identity comes only from the canonical auth context (set by requireUser).
+    const userId = getAuthenticatedUserId(req);
     if (!userId) {
       return sendError(res, 'Unauthorized', 401);
     }
@@ -186,9 +179,14 @@ export const getAllWallets = async (req: Request, res: Response, next: NextFunct
  * POST /api/v1/wallets
  * Create a new wallet for the user.
  */
-export const createWallet = async (req: Request, res: Response, next: NextFunction) => {
+export const createWallet = async (
+  req: Request<unknown, unknown, CreateWalletBody>,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const userId = resolveUserId(req);
+    // Identity is the authenticated caller only — never the request body/query.
+    const userId = getAuthenticatedUserId(req);
     if (!userId) {
       return sendError(res, 'userId is required', 400);
     }
@@ -206,9 +204,16 @@ export const createWallet = async (req: Request, res: Response, next: NextFuncti
  * PUT /api/v1/wallets/:id
  * Update wallet details.
  */
-export const updateWallet = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+export const updateWallet = async (
+  req: Request<{ id: string }, unknown, UpdateWalletBody>,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const userId = (req as any).userId as string;
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return sendError(res, 'Unauthorized', 401);
+    }
     const wallet = await walletService.updateWallet(mapUpdateWalletRequest(req.params.id, userId, req.body));
 
     sendSuccess(res, { ...wallet, netWorth: await netWorthSnapshot(wallet.userId) }, 'Wallet updated successfully');
@@ -224,7 +229,10 @@ export const updateWallet = async (req: Request<{ id: string }>, res: Response, 
  */
 export const deleteWallet = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).userId as string;
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return sendError(res, 'Unauthorized', 401);
+    }
     const result = await walletService.deleteWallet(mapDeleteWalletRequest(req.params.id, userId, req.query));
 
     // Ownership was verified in the service, so the caller owns the deleted wallet;
@@ -246,7 +254,10 @@ export const getWalletSparkline = async (
   next: NextFunction
 ) => {
   try {
-    const userId = (req as any).userId as string;
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return sendError(res, 'Unauthorized', 401);
+    }
     const points = await walletQueryService.getWalletSparkline({ userId, walletId: req.params.id });
 
     sendSuccess(res, serializeSparkline(points), 'Sparkline data');

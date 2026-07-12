@@ -2,11 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { sendError } from '../utils/response';
 import { dashboardQueryService } from '../services/dashboard-query.service';
 import type { DashboardSummaryResult } from '../services/dashboard-query.types';
-
-/** userId is injected by requireUser — never taken from the client. */
-function resolveUserId(req: Request): string | undefined {
-  return (req as unknown as { userId?: string }).userId;
-}
+import { getAuthenticatedUserId } from '../http/authContext';
 
 /**
  * Serialize the service's Decimal totals into the existing numeric response.
@@ -28,7 +24,7 @@ function serializeDashboardSummary(result: DashboardSummaryResult) {
  */
 export const getDashboardSummary = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = resolveUserId(req);
+    const userId = getAuthenticatedUserId(req);
     if (!userId) {
       return sendError(res, 'Unauthorized', 401);
     }
