@@ -10,6 +10,7 @@ const response_1 = require("../utils/response");
 const config_1 = require("../config");
 const reportingTime_1 = require("../domain/reportingTime");
 const transaction_service_1 = require("../services/transaction.service");
+const transaction_query_service_1 = require("../services/transaction-query.service");
 const transaction_errors_1 = require("../services/transaction.errors");
 /**
  * Forward a service error. Typed operational errors keep the existing response
@@ -56,9 +57,28 @@ function mapUpdateTransactionRequest(req, userId) {
         isInstallment: b.isInstallment,
     };
 }
-// Still used by the read endpoints (getAll/getAllTime) to validate the `type`
-// filter. Mutation-side type/tenor/wallet rules now live in the service.
-const VALID_TYPES = ['INCOME', 'EXPENSE', 'TRANSFER'];
+/** Parse an optional integer query param; empty/non-numeric → undefined. */
+function toInt(value) {
+    if (value === undefined)
+        return undefined;
+    const n = parseInt(value, 10);
+    return Number.isNaN(n) ? undefined : n;
+}
+/**
+ * Allowlist + parse the supported list filters from the HTTP query into service
+ * input. Type validation and month/year/limit normalization happen in the query
+ * service; this only extracts and coerces. `userId`/`allTime` are set by the
+ * caller so a client can never smuggle them in.
+ */
+function mapListTransactionQuery(query) {
+    return {
+        walletId: query.walletId,
+        type: query.type,
+        month: toInt(query.month),
+        year: toInt(query.year),
+        limit: toInt(query.limit),
+    };
+}
 // Decimal (Prisma) → number agar JSON-nya bersih buat frontend
 const serialize = (tx) => ({
     ...tx,
@@ -82,32 +102,14 @@ class TransactionController {
         try {
             // userId is injected by requireUser — always scope to the caller, never trust query.
             const userId = req.userId;
-            const { walletId, type, limit, month, year } = req.query;
-            if (type && !VALID_TYPES.includes(type)) {
-                return (0, response_1.sendError)(res, `Invalid type. Allowed: ${VALID_TYPES.join(', ')}`, 400);
-            }
-            const take = limit ? Math.min(Math.max(parseInt(limit, 10) || 0, 0), 200) : undefined;
-            // Auto-filter to current month
-            const { startDate, endDate } = getMonthRange(month, year);
-            const transactions = await prisma_1.default.transaction.findMany({
-                where: {
-                    userId,
-                    ...(walletId && { walletId }),
-                    ...(type && { type: type }),
-                    // Current-month filter
-                    date: { gte: startDate, lt: endDate },
-                },
-                include: {
-                    wallet: { select: { id: true, name: true, type: true } },
-                    category: { select: { id: true, name: true, type: true } },
-                },
-                orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
-                ...(take && { take }),
+            const transactions = await transaction_query_service_1.transactionQueryService.listTransactions({
+                userId,
+                ...mapListTransactionQuery(req.query),
             });
             (0, response_1.sendSuccess)(res, transactions.map(serialize), 'Retrieved transactions (current month)');
         }
         catch (err) {
-            next(err);
+            forwardTransactionError(err, res, next);
         }
     }
     // GET /api/v1/transactions/summary?month=YYYY-MM
@@ -150,28 +152,15 @@ class TransactionController {
         try {
             // userId is injected by requireUser — always scope to the caller, never trust query.
             const userId = req.userId;
-            const { walletId, type, limit } = req.query;
-            if (type && !VALID_TYPES.includes(type)) {
-                return (0, response_1.sendError)(res, `Invalid type. Allowed: ${VALID_TYPES.join(', ')}`, 400);
-            }
-            const take = limit ? Math.min(Math.max(parseInt(limit, 10) || 0, 0), 200) : undefined;
-            const transactions = await prisma_1.default.transaction.findMany({
-                where: {
-                    userId,
-                    ...(walletId && { walletId }),
-                    ...(type && { type: type }),
-                },
-                include: {
-                    wallet: { select: { id: true, name: true, type: true } },
-                    category: { select: { id: true, name: true, type: true } },
-                },
-                orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
-                ...(take && { take }),
+            const transactions = await transaction_query_service_1.transactionQueryService.listTransactions({
+                userId,
+                allTime: true,
+                ...mapListTransactionQuery(req.query),
             });
             (0, response_1.sendSuccess)(res, transactions.map(serialize), 'Retrieved all transactions');
         }
         catch (err) {
-            next(err);
+            forwardTransactionError(err, res, next);
         }
     }
     // POST /api/v1/transactions
