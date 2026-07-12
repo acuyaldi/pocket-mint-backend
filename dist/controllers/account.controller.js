@@ -12,8 +12,69 @@ const config_1 = require("../config");
 const reportingTime_1 = require("../domain/reportingTime");
 const reportingEffect_1 = require("../domain/reportingEffect");
 const logger_1 = require("../utils/logger");
-const VALID_WALLET_TYPES = ['CASH', 'BANK', 'E_WALLET', 'CREDIT_CARD', 'LOAN_PAYLATER'];
+const wallet_service_1 = require("../services/wallet.service");
+const wallet_errors_1 = require("../services/wallet.errors");
 const DEBT_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
+/**
+ * Forward a wallet service error. Typed operational WalletErrors keep the
+ * existing response envelope (status + stable code + safe message); anything
+ * unexpected goes to the central error handler untouched — never a manual 500.
+ */
+function forwardWalletError(err, res, next) {
+    if (err instanceof wallet_errors_1.WalletError) {
+        (0, response_1.sendError)(res, err.message, err.statusCode, err.code);
+        return;
+    }
+    next(err);
+}
+/**
+ * Resolve the authoritative user id (HTTP concern). `requireUser` injects
+ * `req.userId`, which always wins; the body/query fallbacks preserve the prior
+ * create behavior for callers without the middleware. The mapper never reads a
+ * body `userId`, so a client cannot inject another user's id when authenticated.
+ */
+function resolveUserId(req) {
+    return req.userId || req.body?.userId || req.query?.userId;
+}
+/** Map allowlisted create fields from the request body into the service input. */
+function mapCreateWalletRequest(body, userId) {
+    return {
+        userId,
+        name: body.name,
+        type: body.type,
+        balance: body.balance,
+        creditLimit: body.creditLimit,
+        interestRate: body.interestRate,
+        adminFee: body.adminFee,
+        adminFeeType: body.adminFeeType,
+        icon: body.icon,
+        color: body.color,
+    };
+}
+/** Map allowlisted update fields (plus route id + authenticated user) into service input. */
+function mapUpdateWalletRequest(walletId, userId, body) {
+    return {
+        userId,
+        walletId,
+        name: body.name,
+        type: body.type,
+        balance: body.balance,
+        creditLimit: body.creditLimit,
+        interestRate: body.interestRate,
+        adminFee: body.adminFee,
+        adminFeeType: body.adminFeeType,
+        icon: body.icon,
+        color: body.color,
+        isArchived: body.isArchived,
+    };
+}
+/**
+ * Map the delete request into service input. `force` is normalized exactly as
+ * before: active only when the query string is literally `'true'`.
+ */
+function mapDeleteWalletRequest(walletId, userId, query) {
+    return { userId, walletId, force: query.force === 'true' };
+}
 /** Serialized net worth snapshot, recomputed after every wallet mutation. */
 async function netWorthSnapshot(userId) {
     const { totalAset, totalUtang, netWorth } = await (0, financial_1.getUserNetWorth)(userId);
@@ -68,45 +129,16 @@ exports.getAllWallets = getAllWallets;
  */
 const createWallet = async (req, res, next) => {
     try {
-        const userId = req.userId || req.body.userId || req.query.userId;
+        const userId = resolveUserId(req);
         if (!userId) {
             return (0, response_1.sendError)(res, 'userId is required', 400);
         }
-        const { name, type, balance, creditLimit, interestRate, adminFee, adminFeeType, icon, color } = req.body;
-        if (!name || typeof name !== 'string') {
-            return (0, response_1.sendError)(res, 'name is required and must be a string', 400);
-        }
-        if (type && !VALID_WALLET_TYPES.includes(type)) {
-            return (0, response_1.sendError)(res, `type must be one of: ${VALID_WALLET_TYPES.join(', ')}`, 400);
-        }
-        if (DEBT_TYPES.includes(type) && (creditLimit === undefined || Number(creditLimit) <= 0)) {
-            return (0, response_1.sendError)(res, 'creditLimit is required for DEBT wallets (CREDIT_CARD, LOAN_PAYLATER)', 400);
-        }
-        const openingBalance = balance !== undefined ? Number(balance) : 0;
-        const wallet = await prisma_1.default.wallet.create({
-            data: {
-                userId,
-                name,
-                type: type ?? 'CASH',
-                balance: openingBalance,
-                // Capture the opening balance so the ledger can be reconciled against it
-                // (expected = initialBalance + Σ transaction effects). Previously always 0.
-                initialBalance: openingBalance,
-                creditLimit: creditLimit !== undefined ? Number(creditLimit) : 0,
-                interestRate: interestRate !== undefined ? Number(interestRate) : 0,
-                adminFee: adminFee !== undefined ? Number(adminFee) : 0,
-                ...(adminFeeType !== undefined && { adminFeeType }),
-                icon: icon ?? null,
-                color: color ?? null,
-            },
-        });
+        const wallet = await wallet_service_1.walletService.createWallet(mapCreateWalletRequest(req.body, userId));
+        // net-worth snapshot (reporting) is appended here; the service owns no response shaping.
         (0, response_1.sendSuccess)(res, { ...wallet, netWorth: await netWorthSnapshot(userId) }, 'Wallet created successfully', 201);
     }
     catch (err) {
-        if (err.code === 'P2003') {
-            return (0, response_1.sendError)(res, 'Invalid userId (user not found)', 400);
-        }
-        next(err);
+        forwardWalletError(err, res, next);
     }
 };
 exports.createWallet = createWallet;
@@ -116,59 +148,12 @@ exports.createWallet = createWallet;
  */
 const updateWallet = async (req, res, next) => {
     try {
-        const { id } = req.params;
         const userId = req.userId;
-        const { name, type, balance, creditLimit, interestRate, adminFee, adminFeeType, icon, color, isArchived } = req.body;
-        if (type && !VALID_WALLET_TYPES.includes(type)) {
-            return (0, response_1.sendError)(res, `type must be one of: ${VALID_WALLET_TYPES.join(', ')}`, 400);
-        }
-        // Ownership check: refuse to touch a wallet that isn't the caller's.
-        const owned = await prisma_1.default.wallet.findFirst({ where: { id, userId }, select: { id: true, balance: true } });
-        if (!owned) {
-            return (0, response_1.sendError)(res, `Wallet with id ${id} not found`, 404);
-        }
-        // Ledger boundary (Sprint 2B): `balance` is ledger state, not editable
-        // metadata. This generic endpoint must never overwrite it — that would
-        // desync the running total from the transaction ledger with no audit trail.
-        // A harmless echo of the *current* balance is tolerated (frontends round-trip
-        // the whole wallet object); any attempt to change it is refused so the caller
-        // records an income/expense/transfer instead. Compared with Decimal (no float
-        // subtraction) and checked before any write so a rejection mutates nothing.
-        if (balance !== undefined) {
-            let requested;
-            try {
-                requested = new client_1.Prisma.Decimal(balance);
-            }
-            catch {
-                return (0, response_1.sendError)(res, 'balance must be a valid number', 400, 'INVALID_AMOUNT');
-            }
-            if (!requested.equals(owned.balance)) {
-                return (0, response_1.sendError)(res, 'Wallet balance cannot be changed here. Record an income, expense, or transfer to adjust it through the ledger.', 400, 'BALANCE_UPDATE_NOT_ALLOWED');
-            }
-            // Equal to the stored balance → a no-op echo; fall through and never write it.
-        }
-        const wallet = await prisma_1.default.wallet.update({
-            where: { id },
-            data: {
-                ...(name !== undefined && { name }),
-                ...(type !== undefined && { type }),
-                // `balance` intentionally omitted — see the ledger-boundary guard above.
-                ...(creditLimit !== undefined && { creditLimit: Number(creditLimit) }),
-                ...(interestRate !== undefined && { interestRate: Number(interestRate) }),
-                ...(adminFee !== undefined && { adminFee: Number(adminFee) }),
-                ...(adminFeeType !== undefined && { adminFeeType }),
-                ...(icon !== undefined && { icon }),
-                ...(color !== undefined && { color }),
-                ...(isArchived !== undefined && { isArchived }),
-            },
-        });
+        const wallet = await wallet_service_1.walletService.updateWallet(mapUpdateWalletRequest(req.params.id, userId, req.body));
         (0, response_1.sendSuccess)(res, { ...wallet, netWorth: await netWorthSnapshot(wallet.userId) }, 'Wallet updated successfully');
     }
     catch (err) {
-        if (err.code === 'P2025') {
-            return (0, response_1.sendError)(res, `Wallet with id ${req.params.id} not found`, 404);
-        }
-        next(err);
+        forwardWalletError(err, res, next);
     }
 };
 exports.updateWallet = updateWallet;
@@ -179,35 +164,14 @@ exports.updateWallet = updateWallet;
  */
 const deleteWallet = async (req, res, next) => {
     try {
-        const { id } = req.params;
         const userId = req.userId;
-        // Ownership check: refuse to delete a wallet that isn't the caller's.
-        const owned = await prisma_1.default.wallet.findFirst({ where: { id, userId }, select: { id: true } });
-        if (!owned) {
-            return (0, response_1.sendError)(res, `Wallet with id ${id} not found`, 404);
-        }
-        // Ledger integrity: a wallet on EITHER side of a transfer cannot be deleted,
-        // even with force. Cascade-deleting its transfer rows would leave the OTHER
-        // wallet's balance credited/debited with no counterparty (drift). The caller
-        // must delete those transfers first (which reverses both sides cleanly).
-        const transferCount = await prisma_1.default.transaction.count({
-            where: { userId, type: 'TRANSFER', OR: [{ walletId: id }, { toWalletId: id }] },
-        });
-        if (transferCount > 0) {
-            return (0, response_1.sendError)(res, `Wallet is referenced by ${transferCount} transfer(s). Delete those transfers first to keep balances consistent.`, 409, 'CONFLICT');
-        }
-        const txCount = await prisma_1.default.transaction.count({ where: { walletId: id, userId } });
-        if (txCount > 0 && req.query.force !== 'true') {
-            return (0, response_1.sendError)(res, `Wallet has ${txCount} transactions. Pass ?force=true to delete anyway.`, 409);
-        }
-        const deleted = await prisma_1.default.wallet.delete({ where: { id } });
-        (0, response_1.sendSuccess)(res, { id, netWorth: await netWorthSnapshot(deleted.userId) }, `Wallet ${id} deleted successfully`);
+        const result = await wallet_service_1.walletService.deleteWallet(mapDeleteWalletRequest(req.params.id, userId, req.query));
+        // Ownership was verified in the service, so the caller owns the deleted wallet;
+        // the reporting snapshot reflects the state after deletion.
+        (0, response_1.sendSuccess)(res, { id: result.id, netWorth: await netWorthSnapshot(userId) }, `Wallet ${result.id} deleted successfully`);
     }
     catch (err) {
-        if (err.code === 'P2025') {
-            return (0, response_1.sendError)(res, `Wallet with id ${req.params.id} not found`, 404);
-        }
-        next(err);
+        forwardWalletError(err, res, next);
     }
 };
 exports.deleteWallet = deleteWallet;
