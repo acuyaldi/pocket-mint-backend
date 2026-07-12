@@ -1,5 +1,4 @@
 import { Prisma } from '../generated/prisma/client';
-import prisma from '../lib/prisma';
 
 export function classifyWalletForNetWorth(type: string): 'ASSET' | 'DEBT' {
   switch (type) {
@@ -46,20 +45,4 @@ export function calculateNetWorth(wallets: WalletInput[]) {
     totalUtang,
     netWorth,
   };
-}
-
-/**
- * Mengambil data wallet dari database dan menghitung net worth untuk seorang user.
- * Diproteksi dengan filter userId untuk keamanan data.
- */
-export async function getUserNetWorth(userId: string) {
-  const wallets = await prisma.wallet.findMany({
-    where: { userId },
-    select: {
-      type: true,
-      balance: true,
-    },
-  });
-
-  return calculateNetWorth(wallets);
 }
