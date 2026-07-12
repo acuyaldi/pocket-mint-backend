@@ -1,98 +1,166 @@
-# Transaction Service Architecture (Sprint 3A)
+# Transaction Service Architecture (Sprints 3A + 3B)
 
-This is the **first incremental extraction** of business logic into a service
-layer. It applies to the **transaction mutation** path only (create / update /
-delete). Wallets, dashboard, installment listing, auth, and the transaction
-read/summary endpoints are **not** yet on this pattern and still hold their logic
-in their controllers. Do not assume the whole project follows this architecture.
+The transaction module is the **first** part of the codebase to move its business
+logic out of the controller and into a service layer, now split along a
+**command / query** seam:
+
+- **Sprint 3A** extracted the **mutation** path (create / update / delete) into
+  `transaction.service.ts`.
+- **Sprint 3B** extracted the **read** path (list / all-time / summary) into
+  `transaction-query.service.ts`.
+
+Wallets, dashboard, installment listing, and auth are **not** yet on this pattern
+and still hold their logic in their controllers. Do not assume the whole project
+follows this architecture.
 
 ## Layers
 
 ```mermaid
 flowchart TD
     Route --> Controller
-    Controller --> TransactionService
-    TransactionService --> DomainHelpers
-    TransactionService --> Prisma
-    TransactionService --> ApplicationErrors
+    Controller --> CommandService[Transaction Service]
+    Controller --> QueryService[Transaction Query Service]
+    CommandService --> DomainHelpers
+    QueryService --> ReportingHelpers
+    CommandService --> Prisma
+    QueryService --> Prisma
     Controller --> ResponseHelpers
 ```
 
+Dependency direction is one-way: routes → controller → services → domain helpers →
+Prisma. Nothing in a service points back at Express, and the two services never
+call each other.
+
 ### Controller — `src/controllers/transaction.controller.ts`
 
-HTTP boundary only, for the mutation handlers:
+A thin HTTP adapter for **both** paths. Each handler:
 
 - reads route params, query, body, and the authenticated `userId`
-- maps an **allowlist** of body fields into a service input
-  (`mapCreateTransactionRequest`, `mapUpdateTransactionRequest`) — never
-  `data: req.body`
+- maps an **allowlist** of inputs into typed service input
+  (`mapCreateTransactionRequest`, `mapUpdateTransactionRequest`,
+  `mapListTransactionQuery`, `mapSummaryQuery`) — never `data: req.body` or a raw
+  `req.query`
 - calls exactly one service method
-- serializes the returned record into the existing success envelope
-  (`sendSuccess`, with the `serialize` Decimal→number helper)
+- serializes the returned record(s) into the existing success envelope
+  (`serialize` for transaction rows, `serializeSummary` for the summary — the one
+  Decimal→number boundary)
 - forwards errors via `forwardTransactionError`
 
-It does **not** run Prisma queries, open `$transaction`, compute balance effects,
-decide business rules, or return manual `500`s. (The read/summary handlers —
-`getAll`, `getAllTime`, `summary` — still query Prisma directly; extracting them
-is deferred.)
+It does **not** run Prisma queries, open `$transaction`, build `where` objects,
+compute balance effects or reporting ranges, run Decimal aggregation, decide
+ownership filters, or return manual `500`s. A static scan of the controller finds
+no `prisma.`, `findMany`, `groupBy`, `Prisma.Decimal`, `getReportingMonthRange`, or
+reporting-config references.
 
-### Service — `src/services/transaction.service.ts`
+### Command service — `src/services/transaction.service.ts`
 
-Owns the business behavior:
+Owns the **mutation** behavior: business validation (type, amount, tenor, interest,
+transfer shape), ownership of the transaction and every source/destination wallet
+and category, default-wallet resolution, business-date normalization, installment
+state, the self-transfer / legacy-transfer / installment-edit refusals, the single
+`$transaction` boundary per mutation, and reverse-then-apply orchestration. Returns
+typed domain records; throws typed `TransactionError`s.
 
-- business validation (type, amount, tenor, interest, transfer shape)
-- ownership of the transaction and every source/destination wallet and category
-- default-wallet resolution, business-date normalization, installment state
-- self-transfer, legacy-transfer, and installment-edit refusals
-- the **single `$transaction` boundary** per mutation, and reverse-then-apply
-  orchestration
-- returns typed domain records; throws typed `TransactionError`s
+### Query service — `src/services/transaction-query.service.ts`
 
-It imports **no Express types**, calls no `sendSuccess`/`sendError`, reads no
-headers or `req`, and never constructs its own Prisma client.
+Owns the **read** behavior:
 
-### Domain helpers (reused, unchanged)
+- ownership-scoped listing (`listTransactions`) and monthly P&L (`getSummary`),
+  each requiring an authenticated `userId`
+- filter normalization (type validation, limit clamping, month/year
+  defaulting/clamping) that **reproduces the controller's prior lenient semantics**
+  so the public API is byte-for-byte unchanged
+- a single Prisma `where` per query, with the wallet filter combined **in the same
+  `where` as `userId`** so a wallet the caller does not own simply yields zero rows
+  (cross-user data is impossible; no separate ownership lookup needed)
+- reporting-period orchestration through the existing helpers (see below)
+- Decimal-exact aggregation and net-savings
 
-The service orchestrates; these calculate:
+It performs **no** mutations, opens **no** write transaction, imports no Express
+types, reads no `req`/headers, and never constructs its own Prisma client.
+
+#### Why the summary aggregates in the database
+
+`getSummary` uses Prisma `groupBy` on `type` summing the persisted `amount`. This
+is exact and readable because the reporting rules fall out of the query itself:
+TRANSFERs are excluded by the `type IN (INCOME, EXPENSE)` filter (they net to zero —
+Invariant 4), and an installment expense contributes its persisted **monthly**
+`amount` — precisely the aggregate cash-flow effect (`getAggregateCashFlowEffect`
+uses `amount`, not the wallet-locking `grandTotal`). Net savings is computed with
+Decimal `.minus()`, so there is no float drift, `NaN`, or `Infinity`. In-memory
+reporting-effect aggregation would fetch every row for the identical result, so DB
+aggregation is preferred here.
+
+### Domain / reporting helpers (reused, unchanged)
+
+The services orchestrate; these calculate:
 
 - `domain/transactionBalance.ts` — `computeBalanceEffect`, `reverseBalanceEffect`,
-  `applyBalanceDeltas` (balance-effect source of truth)
+  `applyBalanceDeltas` (mutation balance-effect source of truth)
 - `domain/installment.ts` — `computeInstallmentPlan` (Decimal-safe plan)
-- `domain/reportingTime.ts` — `parseBusinessDate` (business-date normalization)
-
-## Prisma transaction ownership
-
-The service opens one `$transaction` per financial mutation and passes the
-transaction-scoped client to `applyBalanceDeltas` and the row writes, so all
-balance updates and the row change commit or roll back together (atomic
-increments/decrements, no read-modify-write, no partial mutation, no retries).
-The controller never opens a transaction.
+- `domain/reportingTime.ts` — `parseBusinessDate` (mutations) and
+  `formatReportingDate` + `getReportingMonthRange` (query reporting windows). No
+  server-local `Date` month math lives in the services.
 
 ## Dependency injection
 
-`createTransactionService(db: TransactionPrismaClient)` takes a **narrow Pick** of
-the Prisma client (`transaction | wallet | installment | category | $transaction`).
-Production binds the shared singleton (`export const transactionService`); tests
-inject a fake — no DI framework, and **no repository layer** (that is deferred
-until the service boundary stabilizes; a pass-through repository would only mirror
-Prisma without adding value).
+Each service is a factory over a **narrow Prisma `Pick`**, with a default singleton
+for production and injectable fakes for tests — no DI framework:
+
+```ts
+createTransactionService(db)       // 'transaction'|'wallet'|'installment'|'category'|'$transaction'
+createTransactionQueryService(db)  // 'transaction' only (reads: findMany + groupBy)
+```
+
+The query service's surface is deliberately read-only — it has no `$transaction`
+and no wallet/category write access, so it *cannot* mutate.
+
+## Serialization boundary
+
+Services return typed domain results with `Decimal` values intact. Conversion to
+the numeric JSON response happens in exactly one place — the controller
+(`serialize` / `serializeSummary`). Neither service calls `.toNumber()` or
+`parseFloat` on business values.
+
+## Why this is not full CQRS
+
+This is a **practical** command/query split, not CQRS infrastructure. There is one
+database, one Prisma schema, one consistency model, and no separate read model,
+event sourcing, message bus, or write/read replicas. The only thing that is
+"separated" is the code: commands live in one service, queries in another, so each
+file stays small and single-purpose. Reads observe writes immediately through the
+same tables.
+
+## Why a repository layer is still deferred
+
+The query service uses an injected Prisma `Pick` directly rather than a
+`TransactionRepository`. A repository is worth adding only once (a) multiple
+services duplicate the same query logic, (b) persistence testing is painful, (c)
+query complexity justifies the abstraction, or (d) a second persistence backend
+becomes realistic. None hold today: a pass-through repository would only mirror
+Prisma without adding value, and the narrow `Pick` already makes the services fully
+testable with fakes.
 
 ## Error propagation
 
-The service throws `TransactionError` (status + stable code + safe message) for
-operational failures and maps known Prisma codes (`P2003` → 400, `P2025` → 404) to
-typed errors so no Prisma internals leak. The controller's `forwardTransactionError`
-translates a `TransactionError` into the existing error envelope and forwards any
-**unexpected** error to the central error handler — never a manual `500`.
+Both services throw `TransactionError` (status + stable code + safe message) for
+operational failures and map known Prisma codes (`P2003` → 400, `P2025` → 404) to
+typed errors so no Prisma internals leak. The query service reuses the same
+`TransactionError` type (e.g. an invalid `type` filter → `400 BAD_REQUEST`). The
+controller's `forwardTransactionError` translates a `TransactionError` into the
+existing envelope and forwards any **unexpected** error to the central error
+handler — never a manual `500`.
 
 ## How future modules should follow this
 
 1. Define `*.types.ts` (Express-free inputs/outputs, a narrow Prisma `Pick`) and
-   reuse the shared typed-error approach.
-2. Move validation, ownership, business rules, and the `$transaction` boundary
-   into a `createXService(db)` factory with a default singleton instance.
-3. Reduce the controller to: extract HTTP input → map (allowlist) → call service →
-   serialize → forward errors.
-4. Keep domain calculations in `domain/`; the service orchestrates them.
-5. Add service-level unit tests (injected fake) plus thin controller-boundary
-   tests. Defer a repository layer until multiple services need the same queries.
+   reuse the shared typed-error approach. Split reads and writes into separate
+   `*.types.ts` / `*-query.types.ts` when both are non-trivial.
+2. Move validation, ownership, business rules, and the `$transaction` boundary into
+   a `createXService(db)` command factory; move ownership-scoped reads, filters, and
+   aggregates into a `createXQueryService(db)` factory. Give each a default singleton.
+3. Reduce the controller to: extract HTTP input → map (allowlist) → call one service
+   method → serialize → forward errors.
+4. Keep domain/reporting calculations in `domain/`; the services orchestrate them.
+5. Add service-level unit tests (injected fake) plus thin controller-boundary tests.
+   Defer a repository layer until multiple services need the same queries.
