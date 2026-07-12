@@ -3,9 +3,9 @@ import type { ParsedQs } from 'qs';
 import { sendSuccess, sendError } from '../utils/response';
 import { walletService } from '../services/wallet.service';
 import { walletQueryService } from '../services/wallet-query.service';
-import { WalletError } from '../services/wallet.errors';
 import { getAuthenticatedUserId } from '../http/authContext';
 import { scalarBooleanTrue } from '../http/queryParsers';
+import { forwardError } from '../http/forwardError';
 import type {
   CreateWalletInput,
   UpdateWalletInput,
@@ -17,19 +17,6 @@ import type {
 import type { Wallet, WalletTotals, WalletSparklinePoint } from '../services/wallet-query.types';
 
 const DEBT_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
-
-/**
- * Forward a wallet service error. Typed operational WalletErrors keep the
- * existing response envelope (status + stable code + safe message); anything
- * unexpected goes to the central error handler untouched — never a manual 500.
- */
-function forwardWalletError(err: unknown, res: Response, next: NextFunction): void {
-  if (err instanceof WalletError) {
-    sendError(res, err.message, err.statusCode, err.code);
-    return;
-  }
-  next(err);
-}
 
 /** Allowlisted create-wallet request body (no `userId` — that is resolved separately). */
 interface CreateWalletBody {
@@ -171,7 +158,7 @@ export const getAllWallets = async (req: Request, res: Response, next: NextFunct
 
     sendSuccess(res, wallets.map(serializeWallet), 'Fetched wallets');
   } catch (err) {
-    forwardWalletError(err, res, next);
+    forwardError(err, res, next);
   }
 };
 
@@ -196,7 +183,7 @@ export const createWallet = async (
     // net-worth snapshot (reporting) is appended here; the service owns no response shaping.
     sendSuccess(res, { ...wallet, netWorth: await netWorthSnapshot(userId) }, 'Wallet created successfully', 201);
   } catch (err) {
-    forwardWalletError(err, res, next);
+    forwardError(err, res, next);
   }
 };
 
@@ -218,7 +205,7 @@ export const updateWallet = async (
 
     sendSuccess(res, { ...wallet, netWorth: await netWorthSnapshot(wallet.userId) }, 'Wallet updated successfully');
   } catch (err) {
-    forwardWalletError(err, res, next);
+    forwardError(err, res, next);
   }
 };
 
@@ -239,7 +226,7 @@ export const deleteWallet = async (req: Request<{ id: string }>, res: Response, 
     // the reporting snapshot reflects the state after deletion.
     sendSuccess(res, { id: result.id, netWorth: await netWorthSnapshot(userId) }, `Wallet ${result.id} deleted successfully`);
   } catch (err) {
-    forwardWalletError(err, res, next);
+    forwardError(err, res, next);
   }
 };
 
@@ -262,6 +249,6 @@ export const getWalletSparkline = async (
 
     sendSuccess(res, serializeSparkline(points), 'Sparkline data');
   } catch (err) {
-    forwardWalletError(err, res, next);
+    forwardError(err, res, next);
   }
 };

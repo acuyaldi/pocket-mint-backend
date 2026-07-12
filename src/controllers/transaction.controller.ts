@@ -5,24 +5,11 @@ import { sendSuccess, sendError } from '../utils/response';
 import { CreateTransactionDto, UpdateTransactionDto, type TransactionType } from '../models/transaction.model';
 import { transactionService } from '../services/transaction.service';
 import { transactionQueryService } from '../services/transaction-query.service';
-import { TransactionError } from '../services/transaction.errors';
 import type { CreateTransactionInput, UpdateTransactionInput } from '../services/transaction.types';
 import type { ListTransactionsInput, TransactionSummaryResult } from '../services/transaction-query.types';
 import { getAuthenticatedUserId } from '../http/authContext';
 import { scalarInt, scalarString } from '../http/queryParsers';
-
-/**
- * Forward a service error. Typed operational errors keep the existing response
- * envelope (status + stable code + safe message); anything unexpected goes to
- * the central error handler untouched — never a manual 500 here.
- */
-function forwardTransactionError(err: unknown, res: Response, next: NextFunction): void {
-  if (err instanceof TransactionError) {
-    sendError(res, err.message, err.statusCode, err.code);
-    return;
-  }
-  next(err);
-}
+import { forwardError } from '../http/forwardError';
 
 /** Allowlist create fields from the request body into the service input. */
 function mapCreateTransactionRequest(
@@ -129,7 +116,7 @@ export class TransactionController {
       });
       sendSuccess(res, transactions.map(serialize), 'Retrieved transactions (current month)');
     } catch (err) {
-      forwardTransactionError(err, res, next);
+      forwardError(err, res, next);
     }
   }
 
@@ -148,7 +135,7 @@ export class TransactionController {
       });
       sendSuccess(res, serializeSummary(result), 'Monthly summary');
     } catch (err) {
-      forwardTransactionError(err, res, next);
+      forwardError(err, res, next);
     }
   }
 
@@ -167,7 +154,7 @@ export class TransactionController {
       });
       sendSuccess(res, transactions.map(serialize), 'Retrieved all transactions');
     } catch (err) {
-      forwardTransactionError(err, res, next);
+      forwardError(err, res, next);
     }
   }
 
@@ -191,7 +178,7 @@ export class TransactionController {
       );
       sendSuccess(res, serialize(created), 'Transaction created successfully', 201);
     } catch (err) {
-      forwardTransactionError(err, res, next);
+      forwardError(err, res, next);
     }
   }
 
@@ -213,7 +200,7 @@ export class TransactionController {
       );
       sendSuccess(res, serialize(updated), 'Transaction updated successfully');
     } catch (err) {
-      forwardTransactionError(err, res, next);
+      forwardError(err, res, next);
     }
   }
 
@@ -233,7 +220,7 @@ export class TransactionController {
       const result = await transactionService.deleteTransaction({ userId, id: req.params.id });
       sendSuccess(res, result, `Transaction ${result.id} deleted successfully`);
     } catch (err) {
-      forwardTransactionError(err, res, next);
+      forwardError(err, res, next);
     }
   }
 }

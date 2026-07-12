@@ -3,6 +3,7 @@ import { sendError } from '../utils/response';
 import { dashboardQueryService } from '../services/dashboard-query.service';
 import type { DashboardSummaryResult } from '../services/dashboard-query.types';
 import { getAuthenticatedUserId } from '../http/authContext';
+import { forwardError } from '../http/forwardError';
 
 /**
  * Serialize the service's Decimal totals into the existing numeric response.
@@ -32,7 +33,8 @@ export const getDashboardSummary = async (req: Request, res: Response, next: Nex
     const result = await dashboardQueryService.getSummary({ userId });
     return res.status(200).json(serializeDashboardSummary(result));
   } catch (err) {
-    // Delegate to the central error handler (safe envelope + redacted logging).
-    next(err);
+    // No operational errors are thrown on this read path, so this always
+    // delegates to the central error handler (safe envelope + redacted logging).
+    forwardError(err, res, next);
   }
 };
