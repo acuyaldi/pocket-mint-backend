@@ -1,10 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-/**
- * Authentication method resolved for a request.
- *  - `jwt`             : identity proven by a verified Supabase JWT (`sub`).
- *  - `legacy-api-key`  : DEPRECATED shared API key + self-asserted `x-user-id`.
- */
-export type AuthMethod = 'jwt' | 'legacy-api-key';
+import type { AuthMethod } from '../http/authContext';
+export type { AuthMethod };
 /**
  * API-key gate ONLY — does not resolve a user.
  * Used by endpoints that run before the user exists in the backend
@@ -28,9 +24,9 @@ export declare function apiKeyAuth(req: Request, res: Response, next: NextFuncti
  *        caller and exists only so the frontend can migrate to Bearer tokens
  *        without a breaking change. Remove once migration completes.
  *
- * The resolved id is injected into req.userId / req.body.userId /
- * req.query.userId, overwriting any client-supplied value so downstream
- * controllers can never be handed a spoofed userId.
+ * The resolved id is published as the canonical `req.auth` context; the request
+ * body and query are never mutated, so downstream controllers can never be
+ * handed a spoofed userId (a client-supplied body/query `userId` is ignored).
  *
  * SECURITY: this NEVER falls back to a shared/default user.
  */

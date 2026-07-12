@@ -3,10 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDashboardSummary = void 0;
 const response_1 = require("../utils/response");
 const dashboard_query_service_1 = require("../services/dashboard-query.service");
-/** userId is injected by requireUser — never taken from the client. */
-function resolveUserId(req) {
-    return req.userId;
-}
+const authContext_1 = require("../http/authContext");
+const forwardError_1 = require("../http/forwardError");
 /**
  * Serialize the service's Decimal totals into the existing numeric response.
  * This is the single response boundary (Decimal → number via parseFloat, exactly
@@ -26,7 +24,7 @@ function serializeDashboardSummary(result) {
  */
 const getDashboardSummary = async (req, res, next) => {
     try {
-        const userId = resolveUserId(req);
+        const userId = (0, authContext_1.getAuthenticatedUserId)(req);
         if (!userId) {
             return (0, response_1.sendError)(res, 'Unauthorized', 401);
         }
@@ -34,8 +32,9 @@ const getDashboardSummary = async (req, res, next) => {
         return res.status(200).json(serializeDashboardSummary(result));
     }
     catch (err) {
-        // Delegate to the central error handler (safe envelope + redacted logging).
-        next(err);
+        // No operational errors are thrown on this read path, so this always
+        // delegates to the central error handler (safe envelope + redacted logging).
+        (0, forwardError_1.forwardError)(err, res, next);
     }
 };
 exports.getDashboardSummary = getDashboardSummary;

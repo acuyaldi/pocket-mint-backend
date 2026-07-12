@@ -33,14 +33,22 @@ function unauthorized(res, reason) {
         error: { code: 'UNAUTHORIZED', message: 'Invalid or missing authentication credentials' },
     });
 }
-/** Inject the resolved, trusted user id for downstream controllers, then continue. */
+/**
+ * Publish the resolved, trusted identity as the canonical `req.auth` context for
+ * downstream controllers, then continue.
+ *
+ * `req.auth` is the single authoritative source (controllers read it via
+ * `getAuthenticatedUserId`). The request body and query are intentionally NOT
+ * mutated any more — a user id can never be smuggled in or read from them.
+ *
+ * `req.userId` / `req.authMethod` are retained ONLY as deprecated mirrors for
+ * readers not yet migrated to `req.auth` (rate-limit keying, the installment
+ * controller); new code must never read them.
+ */
 function injectUser(req, userId, method, next) {
-    req.userId = userId;
-    req.authMethod = method;
-    if (!req.body)
-        req.body = {};
-    req.body.userId = userId;
-    req.query.userId = userId;
+    req.auth = { userId, method };
+    req.userId = userId; // @deprecated mirror — see req.auth
+    req.authMethod = method; // @deprecated mirror — see req.auth
     next();
 }
 /**
@@ -71,9 +79,9 @@ function apiKeyAuth(req, res, next) {
  *        caller and exists only so the frontend can migrate to Bearer tokens
  *        without a breaking change. Remove once migration completes.
  *
- * The resolved id is injected into req.userId / req.body.userId /
- * req.query.userId, overwriting any client-supplied value so downstream
- * controllers can never be handed a spoofed userId.
+ * The resolved id is published as the canonical `req.auth` context; the request
+ * body and query are never mutated, so downstream controllers can never be
+ * handed a spoofed userId (a client-supplied body/query `userId` is ignored).
  *
  * SECURITY: this NEVER falls back to a shared/default user.
  */

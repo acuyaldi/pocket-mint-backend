@@ -1,4 +1,30 @@
 import { Request, Response, NextFunction } from 'express';
+import type { DecimalInput, WalletType, AdminFeeType } from '../services/wallet.types';
+/** Allowlisted create-wallet request body (no `userId` — that is resolved separately). */
+interface CreateWalletBody {
+    name?: string;
+    type?: WalletType;
+    balance?: DecimalInput;
+    creditLimit?: DecimalInput;
+    interestRate?: DecimalInput;
+    adminFee?: DecimalInput;
+    adminFeeType?: AdminFeeType;
+    icon?: string | null;
+    color?: string | null;
+}
+/** Allowlisted update-wallet request body. `userId`/`walletId` come from auth + route. */
+interface UpdateWalletBody {
+    name?: string;
+    type?: WalletType;
+    balance?: DecimalInput;
+    creditLimit?: DecimalInput | null;
+    interestRate?: DecimalInput;
+    adminFee?: DecimalInput;
+    adminFeeType?: AdminFeeType;
+    icon?: string | null;
+    color?: string | null;
+    isArchived?: boolean;
+}
 /**
  * GET /api/v1/wallets
  * Returns list of wallets for the authenticated user,
@@ -9,14 +35,14 @@ export declare const getAllWallets: (req: Request, res: Response, next: NextFunc
  * POST /api/v1/wallets
  * Create a new wallet for the user.
  */
-export declare const createWallet: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+export declare const createWallet: (req: Request<unknown, unknown, CreateWalletBody>, res: Response, next: NextFunction) => Promise<void>;
 /**
  * PUT /api/v1/wallets/:id
  * Update wallet details.
  */
 export declare const updateWallet: (req: Request<{
     id: string;
-}>, res: Response, next: NextFunction) => Promise<void>;
+}, unknown, UpdateWalletBody>, res: Response, next: NextFunction) => Promise<void>;
 /**
  * DELETE /api/v1/wallets/:id
  * Hard delete with transaction check: refuses when the wallet has transaction
@@ -33,4 +59,5 @@ export declare const deleteWallet: (req: Request<{
 export declare const getWalletSparkline: (req: Request<{
     id: string;
 }>, res: Response, next: NextFunction) => Promise<void>;
+export {};
 //# sourceMappingURL=account.controller.d.ts.map

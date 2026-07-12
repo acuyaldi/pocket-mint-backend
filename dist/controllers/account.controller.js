@@ -4,29 +4,10 @@ exports.getWalletSparkline = exports.deleteWallet = exports.updateWallet = expor
 const response_1 = require("../utils/response");
 const wallet_service_1 = require("../services/wallet.service");
 const wallet_query_service_1 = require("../services/wallet-query.service");
-const wallet_errors_1 = require("../services/wallet.errors");
+const authContext_1 = require("../http/authContext");
+const queryParsers_1 = require("../http/queryParsers");
+const forwardError_1 = require("../http/forwardError");
 const DEBT_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
-/**
- * Forward a wallet service error. Typed operational WalletErrors keep the
- * existing response envelope (status + stable code + safe message); anything
- * unexpected goes to the central error handler untouched — never a manual 500.
- */
-function forwardWalletError(err, res, next) {
-    if (err instanceof wallet_errors_1.WalletError) {
-        (0, response_1.sendError)(res, err.message, err.statusCode, err.code);
-        return;
-    }
-    next(err);
-}
-/**
- * Resolve the authoritative user id (HTTP concern). `requireUser` injects
- * `req.userId`, which always wins; the body/query fallbacks preserve the prior
- * create behavior for callers without the middleware. The mapper never reads a
- * body `userId`, so a client cannot inject another user's id when authenticated.
- */
-function resolveUserId(req) {
-    return req.userId || req.body?.userId || req.query?.userId;
-}
 /** Map allowlisted create fields from the request body into the service input. */
 function mapCreateWalletRequest(body, userId) {
     return {
@@ -64,7 +45,7 @@ function mapUpdateWalletRequest(walletId, userId, body) {
  * before: active only when the query string is literally `'true'`.
  */
 function mapDeleteWalletRequest(walletId, userId, query) {
-    return { userId, walletId, force: query.force === 'true' };
+    return { userId, walletId, force: (0, queryParsers_1.scalarBooleanTrue)(query.force) };
 }
 /**
  * Serialize the query service's Decimal net-worth totals into the existing
@@ -118,8 +99,8 @@ function serializeSparkline(points) {
  */
 const getAllWallets = async (req, res, next) => {
     try {
-        // userId disuntik oleh requireUser — jangan hardcode, create/list harus user yang sama
-        const userId = req.userId;
+        // Identity comes only from the canonical auth context (set by requireUser).
+        const userId = (0, authContext_1.getAuthenticatedUserId)(req);
         if (!userId) {
             return (0, response_1.sendError)(res, 'Unauthorized', 401);
         }
@@ -127,7 +108,7 @@ const getAllWallets = async (req, res, next) => {
         (0, response_1.sendSuccess)(res, wallets.map(serializeWallet), 'Fetched wallets');
     }
     catch (err) {
-        forwardWalletError(err, res, next);
+        (0, forwardError_1.forwardError)(err, res, next);
     }
 };
 exports.getAllWallets = getAllWallets;
@@ -137,7 +118,8 @@ exports.getAllWallets = getAllWallets;
  */
 const createWallet = async (req, res, next) => {
     try {
-        const userId = resolveUserId(req);
+        // Identity is the authenticated caller only — never the request body/query.
+        const userId = (0, authContext_1.getAuthenticatedUserId)(req);
         if (!userId) {
             return (0, response_1.sendError)(res, 'userId is required', 400);
         }
@@ -146,7 +128,7 @@ const createWallet = async (req, res, next) => {
         (0, response_1.sendSuccess)(res, { ...wallet, netWorth: await netWorthSnapshot(userId) }, 'Wallet created successfully', 201);
     }
     catch (err) {
-        forwardWalletError(err, res, next);
+        (0, forwardError_1.forwardError)(err, res, next);
     }
 };
 exports.createWallet = createWallet;
@@ -156,12 +138,15 @@ exports.createWallet = createWallet;
  */
 const updateWallet = async (req, res, next) => {
     try {
-        const userId = req.userId;
+        const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+        if (!userId) {
+            return (0, response_1.sendError)(res, 'Unauthorized', 401);
+        }
         const wallet = await wallet_service_1.walletService.updateWallet(mapUpdateWalletRequest(req.params.id, userId, req.body));
         (0, response_1.sendSuccess)(res, { ...wallet, netWorth: await netWorthSnapshot(wallet.userId) }, 'Wallet updated successfully');
     }
     catch (err) {
-        forwardWalletError(err, res, next);
+        (0, forwardError_1.forwardError)(err, res, next);
     }
 };
 exports.updateWallet = updateWallet;
@@ -172,14 +157,17 @@ exports.updateWallet = updateWallet;
  */
 const deleteWallet = async (req, res, next) => {
     try {
-        const userId = req.userId;
+        const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+        if (!userId) {
+            return (0, response_1.sendError)(res, 'Unauthorized', 401);
+        }
         const result = await wallet_service_1.walletService.deleteWallet(mapDeleteWalletRequest(req.params.id, userId, req.query));
         // Ownership was verified in the service, so the caller owns the deleted wallet;
         // the reporting snapshot reflects the state after deletion.
         (0, response_1.sendSuccess)(res, { id: result.id, netWorth: await netWorthSnapshot(userId) }, `Wallet ${result.id} deleted successfully`);
     }
     catch (err) {
-        forwardWalletError(err, res, next);
+        (0, forwardError_1.forwardError)(err, res, next);
     }
 };
 exports.deleteWallet = deleteWallet;
@@ -190,12 +178,15 @@ exports.deleteWallet = deleteWallet;
  */
 const getWalletSparkline = async (req, res, next) => {
     try {
-        const userId = req.userId;
+        const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+        if (!userId) {
+            return (0, response_1.sendError)(res, 'Unauthorized', 401);
+        }
         const points = await wallet_query_service_1.walletQueryService.getWalletSparkline({ userId, walletId: req.params.id });
         (0, response_1.sendSuccess)(res, serializeSparkline(points), 'Sparkline data');
     }
     catch (err) {
-        forwardWalletError(err, res, next);
+        (0, forwardError_1.forwardError)(err, res, next);
     }
 };
 exports.getWalletSparkline = getWalletSparkline;

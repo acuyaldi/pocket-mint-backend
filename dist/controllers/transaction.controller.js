@@ -4,19 +4,9 @@ exports.TransactionController = void 0;
 const response_1 = require("../utils/response");
 const transaction_service_1 = require("../services/transaction.service");
 const transaction_query_service_1 = require("../services/transaction-query.service");
-const transaction_errors_1 = require("../services/transaction.errors");
-/**
- * Forward a service error. Typed operational errors keep the existing response
- * envelope (status + stable code + safe message); anything unexpected goes to
- * the central error handler untouched — never a manual 500 here.
- */
-function forwardTransactionError(err, res, next) {
-    if (err instanceof transaction_errors_1.TransactionError) {
-        (0, response_1.sendError)(res, err.message, err.statusCode, err.code);
-        return;
-    }
-    next(err);
-}
+const authContext_1 = require("../http/authContext");
+const queryParsers_1 = require("../http/queryParsers");
+const forwardError_1 = require("../http/forwardError");
 /** Allowlist create fields from the request body into the service input. */
 function mapCreateTransactionRequest(req, userId) {
     const b = req.body;
@@ -50,26 +40,23 @@ function mapUpdateTransactionRequest(req, userId) {
         isInstallment: b.isInstallment,
     };
 }
-/** Parse an optional integer query param; empty/non-numeric → undefined. */
-function toInt(value) {
-    if (value === undefined)
-        return undefined;
-    const n = parseInt(value, 10);
-    return Number.isNaN(n) ? undefined : n;
-}
 /**
- * Allowlist + parse the supported list filters from the HTTP query into service
- * input. Type validation and month/year/limit normalization happen in the query
- * service; this only extracts and coerces. `userId`/`allTime` are set by the
- * caller so a client can never smuggle them in.
+ * Allowlist + parse the supported list filters from the raw HTTP query into
+ * service input. Each value is reduced to a safe scalar first (an array/object
+ * shape can never reach the service or Prisma). Type validation and
+ * month/year/limit normalization happen in the query service; this only extracts
+ * and coerces. `userId`/`allTime` are set by the caller so a client can never
+ * smuggle them in.
  */
 function mapListTransactionQuery(query) {
     return {
-        walletId: query.walletId,
-        type: query.type,
-        month: toInt(query.month),
-        year: toInt(query.year),
-        limit: toInt(query.limit),
+        walletId: (0, queryParsers_1.scalarString)(query.walletId),
+        // The service validates `type` against the allowed values; here we only
+        // guarantee it is a scalar string (not an array/object).
+        type: (0, queryParsers_1.scalarString)(query.type),
+        month: (0, queryParsers_1.scalarInt)(query.month),
+        year: (0, queryParsers_1.scalarInt)(query.year),
+        limit: (0, queryParsers_1.scalarInt)(query.limit),
     };
 }
 // Decimal (Prisma) → number agar JSON-nya bersih buat frontend
@@ -78,12 +65,12 @@ const serialize = (tx) => ({
     amount: parseFloat(tx.amount.toString()),
 });
 /**
- * Parse the summary `month=YYYY-MM` query into service input. A missing or
- * malformed value yields `{}` so the query service falls back to the current
- * reporting month — exactly as before.
+ * Parse the summary `month=YYYY-MM` query into service input. A missing,
+ * non-scalar, or malformed value yields `{}` so the query service falls back to
+ * the current reporting month — exactly as before.
  */
 function mapSummaryQuery(query) {
-    const match = /^(\d{4})-(\d{2})$/.exec(query.month ?? '');
+    const match = /^(\d{4})-(\d{2})$/.exec((0, queryParsers_1.scalarString)(query.month) ?? '');
     return match ? { year: parseInt(match[1], 10), month: parseInt(match[2], 10) } : {};
 }
 /** Serialize the summary's Decimal totals into the existing numeric response. */
@@ -100,8 +87,11 @@ class TransactionController {
     // Auto-filters to current month unless month/year explicitly provided.
     static async getAll(req, res, next) {
         try {
-            // userId is injected by requireUser — always scope to the caller, never trust query.
-            const userId = req.userId;
+            // Identity comes only from the canonical auth context — never the query.
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId) {
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            }
             const transactions = await transaction_query_service_1.transactionQueryService.listTransactions({
                 userId,
                 ...mapListTransactionQuery(req.query),
@@ -109,7 +99,7 @@ class TransactionController {
             (0, response_1.sendSuccess)(res, transactions.map(serialize), 'Retrieved transactions (current month)');
         }
         catch (err) {
-            forwardTransactionError(err, res, next);
+            (0, forwardError_1.forwardError)(err, res, next);
         }
     }
     // GET /api/v1/transactions/summary?month=YYYY-MM
@@ -117,7 +107,10 @@ class TransactionController {
     // (defaults to current month). Filters on `date`, same as getAll.
     static async summary(req, res, next) {
         try {
-            const userId = req.userId;
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId) {
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            }
             const result = await transaction_query_service_1.transactionQueryService.getSummary({
                 userId,
                 ...mapSummaryQuery(req.query),
@@ -125,14 +118,17 @@ class TransactionController {
             (0, response_1.sendSuccess)(res, serializeSummary(result), 'Monthly summary');
         }
         catch (err) {
-            forwardTransactionError(err, res, next);
+            (0, forwardError_1.forwardError)(err, res, next);
         }
     }
     // GET /api/v1/transactions/all — no month filter, returns everything
     static async getAllTime(req, res, next) {
         try {
-            // userId is injected by requireUser — always scope to the caller, never trust query.
-            const userId = req.userId;
+            // Identity comes only from the canonical auth context — never the query.
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId) {
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            }
             const transactions = await transaction_query_service_1.transactionQueryService.listTransactions({
                 userId,
                 allTime: true,
@@ -141,7 +137,7 @@ class TransactionController {
             (0, response_1.sendSuccess)(res, transactions.map(serialize), 'Retrieved all transactions');
         }
         catch (err) {
-            forwardTransactionError(err, res, next);
+            (0, forwardError_1.forwardError)(err, res, next);
         }
     }
     // POST /api/v1/transactions
@@ -149,8 +145,8 @@ class TransactionController {
     // Layer 2: installment transactions (isInstallment: true) — Model A architecture
     static async create(req, res, next) {
         try {
-            // userId is resolved here (HTTP concern); business logic lives in the service.
-            const userId = req.userId || req.body.userId || req.query.userId;
+            // Identity is the authenticated caller only — never the request body/query.
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
             if (!userId) {
                 return (0, response_1.sendError)(res, 'userId is required (provide in body or use API key auth)', 400);
             }
@@ -158,7 +154,7 @@ class TransactionController {
             (0, response_1.sendSuccess)(res, serialize(created), 'Transaction created successfully', 201);
         }
         catch (err) {
-            forwardTransactionError(err, res, next);
+            (0, forwardError_1.forwardError)(err, res, next);
         }
     }
     // PUT /api/v1/transactions/:id
@@ -166,12 +162,15 @@ class TransactionController {
     // both sides of a transfer included — atomically (Invariants 1–4).
     static async update(req, res, next) {
         try {
-            const userId = req.userId;
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId) {
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            }
             const updated = await transaction_service_1.transactionService.updateTransaction(mapUpdateTransactionRequest(req, userId));
             (0, response_1.sendSuccess)(res, serialize(updated), 'Transaction updated successfully');
         }
         catch (err) {
-            forwardTransactionError(err, res, next);
+            (0, forwardError_1.forwardError)(err, res, next);
         }
     }
     // DELETE /api/v1/transactions/:id
@@ -179,12 +178,15 @@ class TransactionController {
     // full grandTotal, not just the monthly amount) and removes the row atomically.
     static async delete(req, res, next) {
         try {
-            const userId = req.userId;
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId) {
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            }
             const result = await transaction_service_1.transactionService.deleteTransaction({ userId, id: req.params.id });
             (0, response_1.sendSuccess)(res, result, `Transaction ${result.id} deleted successfully`);
         }
         catch (err) {
-            forwardTransactionError(err, res, next);
+            (0, forwardError_1.forwardError)(err, res, next);
         }
     }
 }
