@@ -7,9 +7,70 @@ import { reportingConfig } from '../config';
 import { getRollingDayRanges } from '../domain/reportingTime';
 import { getWalletReportingEffect } from '../domain/reportingEffect';
 import { logger } from '../utils/logger';
+import { walletService } from '../services/wallet.service';
+import { WalletError } from '../services/wallet.errors';
+import type {
+  CreateWalletInput,
+  DecimalInput,
+  WalletType,
+  AdminFeeType,
+} from '../services/wallet.types';
 
-const VALID_WALLET_TYPES = ['CASH', 'BANK', 'E_WALLET', 'CREDIT_CARD', 'LOAN_PAYLATER'];
 const DEBT_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
+// Still used by the not-yet-extracted update handler; removed once update moves.
+const VALID_WALLET_TYPES = ['CASH', 'BANK', 'E_WALLET', 'CREDIT_CARD', 'LOAN_PAYLATER'];
+
+/**
+ * Forward a wallet service error. Typed operational WalletErrors keep the
+ * existing response envelope (status + stable code + safe message); anything
+ * unexpected goes to the central error handler untouched — never a manual 500.
+ */
+function forwardWalletError(err: unknown, res: Response, next: NextFunction): void {
+  if (err instanceof WalletError) {
+    sendError(res, err.message, err.statusCode, err.code);
+    return;
+  }
+  next(err);
+}
+
+/**
+ * Resolve the authoritative user id (HTTP concern). `requireUser` injects
+ * `req.userId`, which always wins; the body/query fallbacks preserve the prior
+ * create behavior for callers without the middleware. The mapper never reads a
+ * body `userId`, so a client cannot inject another user's id when authenticated.
+ */
+function resolveUserId(req: Request): string | undefined {
+  return (req as any).userId || req.body?.userId || (req.query?.userId as string | undefined);
+}
+
+/** Allowlisted create-wallet request body (no `userId` — that is resolved separately). */
+interface CreateWalletBody {
+  name?: string;
+  type?: WalletType;
+  balance?: DecimalInput;
+  creditLimit?: DecimalInput;
+  interestRate?: DecimalInput;
+  adminFee?: DecimalInput;
+  adminFeeType?: AdminFeeType;
+  icon?: string | null;
+  color?: string | null;
+}
+
+/** Map allowlisted create fields from the request body into the service input. */
+function mapCreateWalletRequest(body: CreateWalletBody, userId: string): CreateWalletInput {
+  return {
+    userId,
+    name: body.name as string,
+    type: body.type,
+    balance: body.balance,
+    creditLimit: body.creditLimit,
+    interestRate: body.interestRate,
+    adminFee: body.adminFee,
+    adminFeeType: body.adminFeeType,
+    icon: body.icon,
+    color: body.color,
+  };
+}
 
 /** Serialized net worth snapshot, recomputed after every wallet mutation. */
 async function netWorthSnapshot(userId: string) {
@@ -69,49 +130,17 @@ export const getAllWallets = async (req: Request, res: Response, next: NextFunct
  */
 export const createWallet = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = (req as any).userId || req.body.userId || (req.query.userId as string | undefined);
+    const userId = resolveUserId(req);
     if (!userId) {
       return sendError(res, 'userId is required', 400);
     }
 
-    const { name, type, balance, creditLimit, interestRate, adminFee, adminFeeType, icon, color } = req.body;
+    const wallet = await walletService.createWallet(mapCreateWalletRequest(req.body, userId));
 
-    if (!name || typeof name !== 'string') {
-      return sendError(res, 'name is required and must be a string', 400);
-    }
-    if (type && !VALID_WALLET_TYPES.includes(type)) {
-      return sendError(res, `type must be one of: ${VALID_WALLET_TYPES.join(', ')}`, 400);
-    }
-    if (DEBT_TYPES.includes(type) && (creditLimit === undefined || Number(creditLimit) <= 0)) {
-      return sendError(res, 'creditLimit is required for DEBT wallets (CREDIT_CARD, LOAN_PAYLATER)', 400);
-    }
-
-    const openingBalance = balance !== undefined ? Number(balance) : 0;
-
-    const wallet = await prisma.wallet.create({
-      data: {
-        userId,
-        name,
-        type: type ?? 'CASH',
-        balance: openingBalance,
-        // Capture the opening balance so the ledger can be reconciled against it
-        // (expected = initialBalance + Σ transaction effects). Previously always 0.
-        initialBalance: openingBalance,
-        creditLimit: creditLimit !== undefined ? Number(creditLimit) : 0,
-        interestRate: interestRate !== undefined ? Number(interestRate) : 0,
-        adminFee: adminFee !== undefined ? Number(adminFee) : 0,
-        ...(adminFeeType !== undefined && { adminFeeType }),
-        icon: icon ?? null,
-        color: color ?? null,
-      },
-    });
-
+    // net-worth snapshot (reporting) is appended here; the service owns no response shaping.
     sendSuccess(res, { ...wallet, netWorth: await netWorthSnapshot(userId) }, 'Wallet created successfully', 201);
   } catch (err) {
-    if ((err as { code?: string }).code === 'P2003') {
-      return sendError(res, 'Invalid userId (user not found)', 400);
-    }
-    next(err);
+    forwardWalletError(err, res, next);
   }
 };
 
