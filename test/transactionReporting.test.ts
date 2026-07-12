@@ -11,7 +11,7 @@ import { TransactionController } from '../src/controllers/transaction.controller
 
 function app() {
   const value = express();
-  value.use((req, _res, next) => { (req as any).userId = 'user-1'; next(); });
+  value.use((req, _res, next) => { (req as any).auth = { userId: 'user-1', method: 'jwt' }; next(); });
   value.get('/transactions', TransactionController.getAll);
   value.get('/transactions/summary', TransactionController.summary);
   return value;

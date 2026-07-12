@@ -30,7 +30,8 @@ function buildApp(injectUser = true): Express {
   app.use(express.json());
   if (injectUser) {
     app.use((req, _res, next) => {
-      (req as unknown as { userId: string }).userId = USER;
+      // Simulate requireUser publishing the canonical auth context.
+      (req as unknown as { auth: { userId: string; method: string } }).auth = { userId: USER, method: 'jwt' };
       next();
     });
   }

@@ -1,11 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
+import type { ParsedQs } from 'qs';
+import { Prisma } from '../generated/prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
-import { CreateTransactionDto, UpdateTransactionDto, ListTransactionQuery } from '../models/transaction.model';
+import { CreateTransactionDto, UpdateTransactionDto, type TransactionType } from '../models/transaction.model';
 import { transactionService } from '../services/transaction.service';
 import { transactionQueryService } from '../services/transaction-query.service';
 import { TransactionError } from '../services/transaction.errors';
 import type { CreateTransactionInput, UpdateTransactionInput } from '../services/transaction.types';
 import type { ListTransactionsInput, TransactionSummaryResult } from '../services/transaction-query.types';
+import { getAuthenticatedUserId } from '../http/authContext';
+import { scalarInt, scalarString } from '../http/queryParsers';
 
 /**
  * Forward a service error. Typed operational errors keep the existing response
@@ -61,44 +65,41 @@ function mapUpdateTransactionRequest(
   };
 }
 
-/** Parse an optional integer query param; empty/non-numeric → undefined. */
-function toInt(value: string | undefined): number | undefined {
-  if (value === undefined) return undefined;
-  const n = parseInt(value, 10);
-  return Number.isNaN(n) ? undefined : n;
-}
-
 /**
- * Allowlist + parse the supported list filters from the HTTP query into service
- * input. Type validation and month/year/limit normalization happen in the query
- * service; this only extracts and coerces. `userId`/`allTime` are set by the
- * caller so a client can never smuggle them in.
+ * Allowlist + parse the supported list filters from the raw HTTP query into
+ * service input. Each value is reduced to a safe scalar first (an array/object
+ * shape can never reach the service or Prisma). Type validation and
+ * month/year/limit normalization happen in the query service; this only extracts
+ * and coerces. `userId`/`allTime` are set by the caller so a client can never
+ * smuggle them in.
  */
 function mapListTransactionQuery(
-  query: ListTransactionQuery
+  query: ParsedQs
 ): Omit<ListTransactionsInput, 'userId' | 'allTime'> {
   return {
-    walletId: query.walletId,
-    type: query.type,
-    month: toInt(query.month),
-    year: toInt(query.year),
-    limit: toInt(query.limit),
+    walletId: scalarString(query.walletId),
+    // The service validates `type` against the allowed values; here we only
+    // guarantee it is a scalar string (not an array/object).
+    type: scalarString(query.type) as TransactionType | undefined,
+    month: scalarInt(query.month),
+    year: scalarInt(query.year),
+    limit: scalarInt(query.limit),
   };
 }
 
 // Decimal (Prisma) → number agar JSON-nya bersih buat frontend
-const serialize = <T extends { amount: unknown }>(tx: T) => ({
+const serialize = <T extends { amount: Prisma.Decimal }>(tx: T) => ({
   ...tx,
-  amount: parseFloat((tx.amount as any).toString()),
+  amount: parseFloat(tx.amount.toString()),
 });
 
 /**
- * Parse the summary `month=YYYY-MM` query into service input. A missing or
- * malformed value yields `{}` so the query service falls back to the current
- * reporting month — exactly as before.
+ * Parse the summary `month=YYYY-MM` query into service input. A missing,
+ * non-scalar, or malformed value yields `{}` so the query service falls back to
+ * the current reporting month — exactly as before.
  */
-function mapSummaryQuery(query: { month?: string }): { month?: number; year?: number } {
-  const match = /^(\d{4})-(\d{2})$/.exec(query.month ?? '');
+function mapSummaryQuery(query: ParsedQs): { month?: number; year?: number } {
+  const match = /^(\d{4})-(\d{2})$/.exec(scalarString(query.month) ?? '');
   return match ? { year: parseInt(match[1], 10), month: parseInt(match[2], 10) } : {};
 }
 
@@ -115,14 +116,13 @@ function serializeSummary(result: TransactionSummaryResult) {
 export class TransactionController {
   // GET /api/v1/transactions
   // Auto-filters to current month unless month/year explicitly provided.
-  static async getAll(
-    req: Request<unknown, unknown, unknown, ListTransactionQuery>,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
+  static async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // userId is injected by requireUser — always scope to the caller, never trust query.
-      const userId = (req as any).userId as string;
+      // Identity comes only from the canonical auth context — never the query.
+      const userId = getAuthenticatedUserId(req);
+      if (!userId) {
+        return sendError(res, 'Unauthorized', 401);
+      }
       const transactions = await transactionQueryService.listTransactions({
         userId,
         ...mapListTransactionQuery(req.query),
@@ -136,13 +136,12 @@ export class TransactionController {
   // GET /api/v1/transactions/summary?month=YYYY-MM
   // Monthly P&L: income, expenses, netSavings for the given calendar month
   // (defaults to current month). Filters on `date`, same as getAll.
-  static async summary(
-    req: Request<unknown, unknown, unknown, { month?: string }>,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
+  static async summary(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = (req as any).userId as string;
+      const userId = getAuthenticatedUserId(req);
+      if (!userId) {
+        return sendError(res, 'Unauthorized', 401);
+      }
       const result = await transactionQueryService.getSummary({
         userId,
         ...mapSummaryQuery(req.query),
@@ -154,14 +153,13 @@ export class TransactionController {
   }
 
   // GET /api/v1/transactions/all — no month filter, returns everything
-  static async getAllTime(
-    req: Request<unknown, unknown, unknown, ListTransactionQuery>,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
+  static async getAllTime(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // userId is injected by requireUser — always scope to the caller, never trust query.
-      const userId = (req as any).userId as string;
+      // Identity comes only from the canonical auth context — never the query.
+      const userId = getAuthenticatedUserId(req);
+      if (!userId) {
+        return sendError(res, 'Unauthorized', 401);
+      }
       const transactions = await transactionQueryService.listTransactions({
         userId,
         allTime: true,
@@ -182,9 +180,8 @@ export class TransactionController {
     next: NextFunction
   ): Promise<void> {
     try {
-      // userId is resolved here (HTTP concern); business logic lives in the service.
-      const userId =
-        (req as any).userId || req.body.userId || (req.query.userId as string | undefined);
+      // Identity is the authenticated caller only — never the request body/query.
+      const userId = getAuthenticatedUserId(req);
       if (!userId) {
         return sendError(res, 'userId is required (provide in body or use API key auth)', 400);
       }
@@ -207,7 +204,10 @@ export class TransactionController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const userId = (req as any).userId as string;
+      const userId = getAuthenticatedUserId(req);
+      if (!userId) {
+        return sendError(res, 'Unauthorized', 401);
+      }
       const updated = await transactionService.updateTransaction(
         mapUpdateTransactionRequest(req, userId)
       );
@@ -226,7 +226,10 @@ export class TransactionController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const userId = (req as any).userId as string;
+      const userId = getAuthenticatedUserId(req);
+      if (!userId) {
+        return sendError(res, 'Unauthorized', 401);
+      }
       const result = await transactionService.deleteTransaction({ userId, id: req.params.id });
       sendSuccess(res, result, `Transaction ${result.id} deleted successfully`);
     } catch (err) {

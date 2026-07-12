@@ -28,7 +28,8 @@ const USER = 'user-1';
 function buildApp(): Express {
   const app = express();
   app.use((req, _res, next) => {
-    (req as unknown as { userId: string }).userId = USER;
+    // Simulate requireUser publishing the canonical auth context.
+    (req as unknown as { auth: { userId: string; method: string } }).auth = { userId: USER, method: 'jwt' };
     next();
   });
   app.get('/tx', TransactionController.getAll);
