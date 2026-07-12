@@ -1,13 +1,8 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.classifyWalletForNetWorth = classifyWalletForNetWorth;
 exports.calculateNetWorth = calculateNetWorth;
-exports.getUserNetWorth = getUserNetWorth;
 const client_1 = require("../generated/prisma/client");
-const prisma_1 = __importDefault(require("../lib/prisma"));
 function classifyWalletForNetWorth(type) {
     switch (type) {
         case 'CASH':
@@ -45,19 +40,5 @@ function calculateNetWorth(wallets) {
         totalUtang,
         netWorth,
     };
-}
-/**
- * Mengambil data wallet dari database dan menghitung net worth untuk seorang user.
- * Diproteksi dengan filter userId untuk keamanan data.
- */
-async function getUserNetWorth(userId) {
-    const wallets = await prisma_1.default.wallet.findMany({
-        where: { userId },
-        select: {
-            type: true,
-            balance: true,
-        },
-    });
-    return calculateNetWorth(wallets);
 }
 //# sourceMappingURL=financial.js.map

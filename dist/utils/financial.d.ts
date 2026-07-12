@@ -13,13 +13,4 @@ export declare function calculateNetWorth(wallets: WalletInput[]): {
     totalUtang: Prisma.Decimal;
     netWorth: Prisma.Decimal;
 };
-/**
- * Mengambil data wallet dari database dan menghitung net worth untuk seorang user.
- * Diproteksi dengan filter userId untuk keamanan data.
- */
-export declare function getUserNetWorth(userId: string): Promise<{
-    totalAset: Prisma.Decimal;
-    totalUtang: Prisma.Decimal;
-    netWorth: Prisma.Decimal;
-}>;
 //# sourceMappingURL=financial.d.ts.map
