@@ -3,13 +3,11 @@ import prisma from '../lib/prisma';
 import { verifySupabaseJwt } from '../utils/supabaseJwt';
 import { authConfig, verifyApiKey } from '../config';
 import { logger, recordLegacyAuthUsage } from '../utils/logger';
+import type { AuthMethod } from '../http/authContext';
 
-/**
- * Authentication method resolved for a request.
- *  - `jwt`             : identity proven by a verified Supabase JWT (`sub`).
- *  - `legacy-api-key`  : DEPRECATED shared API key + self-asserted `x-user-id`.
- */
-export type AuthMethod = 'jwt' | 'legacy-api-key';
+// Re-exported for backwards compatibility; the canonical definition (with
+// `AuthContext`) now lives in src/http/authContext.ts.
+export type { AuthMethod };
 
 /** Normalize a header value that may arrive as string | string[] | undefined. */
 function headerValue(v: string | string[] | undefined): string | undefined {
@@ -37,13 +35,22 @@ function unauthorized(res: Response, reason: string): void {
   });
 }
 
-/** Inject the resolved, trusted user id for downstream controllers, then continue. */
+/**
+ * Publish the resolved, trusted identity as the canonical `req.auth` context for
+ * downstream controllers, then continue.
+ *
+ * `req.auth` is the single authoritative source (controllers read it via
+ * `getAuthenticatedUserId`). The request body and query are intentionally NOT
+ * mutated any more — a user id can never be smuggled in or read from them.
+ *
+ * `req.userId` / `req.authMethod` are retained ONLY as deprecated mirrors for
+ * readers not yet migrated to `req.auth` (rate-limit keying, the installment
+ * controller); new code must never read them.
+ */
 function injectUser(req: Request, userId: string, method: AuthMethod, next: NextFunction): void {
-  (req as any).userId = userId;
-  (req as any).authMethod = method;
-  if (!req.body) req.body = {};
-  req.body.userId = userId;
-  (req.query as any).userId = userId;
+  req.auth = { userId, method };
+  req.userId = userId; // @deprecated mirror — see req.auth
+  req.authMethod = method; // @deprecated mirror — see req.auth
   next();
 }
 
@@ -76,9 +83,9 @@ export function apiKeyAuth(req: Request, res: Response, next: NextFunction) {
  *        caller and exists only so the frontend can migrate to Bearer tokens
  *        without a breaking change. Remove once migration completes.
  *
- * The resolved id is injected into req.userId / req.body.userId /
- * req.query.userId, overwriting any client-supplied value so downstream
- * controllers can never be handed a spoofed userId.
+ * The resolved id is published as the canonical `req.auth` context; the request
+ * body and query are never mutated, so downstream controllers can never be
+ * handed a spoofed userId (a client-supplied body/query `userId` is ignored).
  *
  * SECURITY: this NEVER falls back to a shared/default user.
  */
