@@ -18,10 +18,12 @@
 // ============================================================
 
 import prisma from '../lib/prisma';
+import { Prisma } from '../generated/prisma/client';
 import { WalletError } from './wallet.errors';
 import type {
   CreateWalletInput,
   DecimalInput,
+  UpdateWalletInput,
   Wallet,
   WalletPrismaClient,
 } from './wallet.types';
@@ -98,7 +100,76 @@ export function createWalletService(db: WalletPrismaClient) {
     }
   }
 
-  return { createWallet };
+  /**
+   * Update wallet metadata only. Loads the wallet scoped to the caller (404 on a
+   * missing/unowned wallet, unchanged). Enforces the Sprint 2B ledger boundary:
+   * `balance` is never written here — an unchanged echo is tolerated, any change
+   * is refused with BALANCE_UPDATE_NOT_ALLOWED, and a malformed value with
+   * INVALID_AMOUNT. Comparison is Decimal-exact (no float subtraction). Only
+   * allowlisted fields reach Prisma; omitted fields (`undefined`) are left as-is
+   * while explicit `null` is written where the column is nullable.
+   */
+  async function updateWallet(input: UpdateWalletInput): Promise<Wallet> {
+    const { userId, walletId, name, type, balance, creditLimit, interestRate, adminFee, adminFeeType, icon, color, isArchived } = input;
+
+    if (type && !VALID_WALLET_TYPES.includes(type)) {
+      throw new WalletError(`type must be one of: ${VALID_WALLET_TYPES.join(', ')}`, 400, 'BAD_REQUEST');
+    }
+
+    // Ownership check: refuse to touch a wallet that isn't the caller's.
+    const owned = await db.wallet.findFirst({ where: { id: walletId, userId }, select: { id: true, balance: true } });
+    if (!owned) {
+      throw new WalletError(`Wallet with id ${walletId} not found`, 404, 'NOT_FOUND');
+    }
+
+    // Ledger boundary (Sprint 2B): `balance` is ledger state, not editable
+    // metadata. A harmless echo of the *current* balance is tolerated; any
+    // attempt to change it is refused so the caller records an income/expense/
+    // transfer instead. Compared with Decimal (no float subtraction) and checked
+    // before any write so a rejection mutates nothing.
+    if (balance !== undefined) {
+      let requested: Prisma.Decimal;
+      try {
+        requested = new Prisma.Decimal(balance as Prisma.Decimal.Value);
+      } catch {
+        throw new WalletError('balance must be a valid number', 400, 'INVALID_AMOUNT');
+      }
+      if (!requested.equals(owned.balance)) {
+        throw new WalletError(
+          'Wallet balance cannot be changed here. Record an income, expense, or transfer to adjust it through the ledger.',
+          400,
+          'BALANCE_UPDATE_NOT_ALLOWED'
+        );
+      }
+      // Equal to the stored balance → a no-op echo; fall through and never write it.
+    }
+
+    try {
+      return await db.wallet.update({
+        where: { id: walletId },
+        data: {
+          ...(name !== undefined && { name }),
+          ...(type !== undefined && { type }),
+          // `balance` intentionally omitted — see the ledger-boundary guard above.
+          ...(creditLimit !== undefined && { creditLimit: Number(creditLimit) }),
+          ...(interestRate !== undefined && { interestRate: Number(interestRate) }),
+          ...(adminFee !== undefined && { adminFee: Number(adminFee) }),
+          ...(adminFeeType !== undefined && { adminFeeType }),
+          ...(icon !== undefined && { icon }),
+          ...(color !== undefined && { color }),
+          ...(isArchived !== undefined && { isArchived }),
+        },
+      });
+    } catch (err) {
+      if (err instanceof WalletError) throw err;
+      if ((err as { code?: string }).code === 'P2025') {
+        throw new WalletError(`Wallet with id ${walletId} not found`, 404, 'NOT_FOUND');
+      }
+      throw err;
+    }
+  }
+
+  return { createWallet, updateWallet };
 }
 
 /** Production instance bound to the shared Prisma singleton. */

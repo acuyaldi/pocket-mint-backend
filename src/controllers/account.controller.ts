@@ -11,14 +11,13 @@ import { walletService } from '../services/wallet.service';
 import { WalletError } from '../services/wallet.errors';
 import type {
   CreateWalletInput,
+  UpdateWalletInput,
   DecimalInput,
   WalletType,
   AdminFeeType,
 } from '../services/wallet.types';
 
 const DEBT_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
-// Still used by the not-yet-extracted update handler; removed once update moves.
-const VALID_WALLET_TYPES = ['CASH', 'BANK', 'E_WALLET', 'CREDIT_CARD', 'LOAN_PAYLATER'];
 
 /**
  * Forward a wallet service error. Typed operational WalletErrors keep the
@@ -69,6 +68,38 @@ function mapCreateWalletRequest(body: CreateWalletBody, userId: string): CreateW
     adminFeeType: body.adminFeeType,
     icon: body.icon,
     color: body.color,
+  };
+}
+
+/** Allowlisted update-wallet request body. `userId`/`walletId` come from auth + route. */
+interface UpdateWalletBody {
+  name?: string;
+  type?: WalletType;
+  balance?: DecimalInput;
+  creditLimit?: DecimalInput | null;
+  interestRate?: DecimalInput;
+  adminFee?: DecimalInput;
+  adminFeeType?: AdminFeeType;
+  icon?: string | null;
+  color?: string | null;
+  isArchived?: boolean;
+}
+
+/** Map allowlisted update fields (plus route id + authenticated user) into service input. */
+function mapUpdateWalletRequest(walletId: string, userId: string, body: UpdateWalletBody): UpdateWalletInput {
+  return {
+    userId,
+    walletId,
+    name: body.name,
+    type: body.type,
+    balance: body.balance,
+    creditLimit: body.creditLimit,
+    interestRate: body.interestRate,
+    adminFee: body.adminFee,
+    adminFeeType: body.adminFeeType,
+    icon: body.icon,
+    color: body.color,
+    isArchived: body.isArchived,
   };
 }
 
@@ -150,67 +181,12 @@ export const createWallet = async (req: Request, res: Response, next: NextFuncti
  */
 export const updateWallet = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
     const userId = (req as any).userId as string;
-    const { name, type, balance, creditLimit, interestRate, adminFee, adminFeeType, icon, color, isArchived } = req.body;
-
-    if (type && !VALID_WALLET_TYPES.includes(type)) {
-      return sendError(res, `type must be one of: ${VALID_WALLET_TYPES.join(', ')}`, 400);
-    }
-
-    // Ownership check: refuse to touch a wallet that isn't the caller's.
-    const owned = await prisma.wallet.findFirst({ where: { id, userId }, select: { id: true, balance: true } });
-    if (!owned) {
-      return sendError(res, `Wallet with id ${id} not found`, 404);
-    }
-
-    // Ledger boundary (Sprint 2B): `balance` is ledger state, not editable
-    // metadata. This generic endpoint must never overwrite it — that would
-    // desync the running total from the transaction ledger with no audit trail.
-    // A harmless echo of the *current* balance is tolerated (frontends round-trip
-    // the whole wallet object); any attempt to change it is refused so the caller
-    // records an income/expense/transfer instead. Compared with Decimal (no float
-    // subtraction) and checked before any write so a rejection mutates nothing.
-    if (balance !== undefined) {
-      let requested: Prisma.Decimal;
-      try {
-        requested = new Prisma.Decimal(balance as Prisma.Decimal.Value);
-      } catch {
-        return sendError(res, 'balance must be a valid number', 400, 'INVALID_AMOUNT');
-      }
-      if (!requested.equals(owned.balance)) {
-        return sendError(
-          res,
-          'Wallet balance cannot be changed here. Record an income, expense, or transfer to adjust it through the ledger.',
-          400,
-          'BALANCE_UPDATE_NOT_ALLOWED'
-        );
-      }
-      // Equal to the stored balance → a no-op echo; fall through and never write it.
-    }
-
-    const wallet = await prisma.wallet.update({
-      where: { id },
-      data: {
-        ...(name !== undefined && { name }),
-        ...(type !== undefined && { type }),
-        // `balance` intentionally omitted — see the ledger-boundary guard above.
-        ...(creditLimit !== undefined && { creditLimit: Number(creditLimit) }),
-        ...(interestRate !== undefined && { interestRate: Number(interestRate) }),
-        ...(adminFee !== undefined && { adminFee: Number(adminFee) }),
-        ...(adminFeeType !== undefined && { adminFeeType }),
-        ...(icon !== undefined && { icon }),
-        ...(color !== undefined && { color }),
-        ...(isArchived !== undefined && { isArchived }),
-      },
-    });
+    const wallet = await walletService.updateWallet(mapUpdateWalletRequest(req.params.id, userId, req.body));
 
     sendSuccess(res, { ...wallet, netWorth: await netWorthSnapshot(wallet.userId) }, 'Wallet updated successfully');
   } catch (err) {
-    if ((err as { code?: string }).code === 'P2025') {
-      return sendError(res, `Wallet with id ${req.params.id} not found`, 404);
-    }
-    next(err);
+    forwardWalletError(err, res, next);
   }
 };
 
