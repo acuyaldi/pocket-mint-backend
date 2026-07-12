@@ -1,13 +1,14 @@
 // ============================================================
 // Express Request augmentation — authenticated request context
 // ------------------------------------------------------------
-// Declaration merging makes the canonical `req.auth` (and the deprecated legacy
-// mirrors) visible on every Express `Request` without a bespoke request subtype
-// at each controller signature. `requireUser` is the ONLY writer; controllers
-// read `req.auth` via the helpers in src/http/authContext.ts.
+// Declaration merging makes the canonical `req.auth` visible on every Express
+// `Request` without a bespoke request subtype at each controller signature.
+// `requireUser` is the ONLY writer; readers (controllers, the post-auth rate
+// limiter) access it via the helpers in src/http/authContext.ts. `req.auth` is
+// the sole trusted representation of request identity — no legacy mirrors exist.
 // ============================================================
 
-import type { AuthContext, AuthMethod } from '../http/authContext';
+import type { AuthContext } from '../http/authContext';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -18,19 +19,6 @@ declare global {
        * successful auth decision. `undefined` on unauthenticated requests.
        */
       auth?: AuthContext;
-
-      /**
-       * @deprecated Legacy mirror of `auth.userId`. Retained ONLY for readers
-       * not yet migrated to `req.auth` (rate-limit keying, installment
-       * controller). New code MUST use `req.auth` / `getAuthenticatedUserId`.
-       */
-      userId?: string;
-
-      /**
-       * @deprecated Legacy mirror of `auth.method`. Retained only for
-       * backwards compatibility; read `req.auth.method` instead.
-       */
-      authMethod?: AuthMethod;
     }
   }
 }

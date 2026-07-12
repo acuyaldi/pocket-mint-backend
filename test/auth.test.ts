@@ -22,8 +22,9 @@ async function buildApp(overrides: Record<string, string | undefined> = {}): Pro
   const { requireUser } = await import('../src/middleware/apiKeyAuth');
   const app = express();
   app.use(express.json());
+  // Echo the canonical auth context so tests can prove what requireUser set.
   app.all('/protected', requireUser, (req, res) =>
-    res.json({ userId: (req as { userId?: string }).userId, method: (req as { authMethod?: string }).authMethod })
+    res.json({ userId: req.auth?.userId, method: req.auth?.method })
   );
   return app;
 }
