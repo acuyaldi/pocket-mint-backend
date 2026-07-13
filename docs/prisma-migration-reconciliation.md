@@ -136,11 +136,23 @@ will list the three repo migrations (fresh DBs will not carry the legacy `_init`
 
 > Validation status in this workspace: the two equivalence proofs in §4 ran, plus
 > `prisma validate`, `prisma generate`, `tsc`, `npm run build`, and the full
-> `vitest` suite (305 tests) — all green. A **live** `migrate deploy` against a
-> throwaway Postgres was **not** run here (no Docker/psql/local Postgres in the
-> sandbox). Run the block above once against a disposable Postgres to confirm
-> end-to-end before relying on fresh provisioning. **Never** point it at a shared
-> database.
+> `vitest` suite (305 tests) — all green.
+>
+> **The live disposable replay is now complete.** All three migrations were applied
+> in order from an empty throwaway PostgreSQL 18.4 (ephemeral local instance,
+> database `pocket_mint_migration_test`, credentials never committed). Results:
+> `_prisma_migrations` recorded all three as finished with none rolled back;
+> `prisma migrate status` reported *Database schema is up to date*; and
+> `prisma migrate diff` (migrated DB → `schema.prisma`) returned **No difference
+> detected**. Structural spot-checks passed: `users.password` absent,
+> `transactions.to_wallet_id` present with `transactions_to_wallet_id_idx` and an
+> `ON DELETE SET NULL` FK, Decimal `(15,2)`/`(5,2)` precision intact, all five
+> enums and every `@@index` present. Application-level smoke tests passed too
+> (passwordless user sync + idempotency, asset/debt wallets, income/expense/transfer
+> with persisted `to_wallet_id`, transfer update+delete, installment create +
+> reversal, invalid-FK rejection, destination-wallet `SET NULL`, source-wallet
+> `CASCADE`). The disposable database was stopped and removed afterward. **Never**
+> point the block above at a shared database.
 
 ---
 
@@ -256,8 +268,13 @@ Every shared-database command is left for a human to run after review:
 - `prisma migrate resolve --applied 20260710000000_baseline` (staging, then prod)
 - `prisma migrate deploy` (staging, then prod)
 - the live `prisma migrate diff` re-check against each target
-- a live `prisma migrate deploy` against a disposable Postgres to confirm fresh
-  provisioning end-to-end
+
+Completed since the original draft (no shared database touched):
+
+- ~~a live `prisma migrate deploy` against a disposable Postgres to confirm fresh
+  provisioning end-to-end~~ — **done** (see §6 validation status). Fresh
+  provisioning replays cleanly end-to-end on an empty throwaway PostgreSQL, with an
+  empty final schema diff and passing application smoke tests.
 
 The reconstructed baseline itself, `prisma validate`/`generate`, typecheck,
 build, and the test suite were completed in-repo with no database mutation.
