@@ -8,10 +8,8 @@ export declare const reportingConfig: {
     readonly timezone: string;
 };
 export declare const authConfig: {
-    /** True once the frontend migration is complete; disables the legacy path entirely. */
-    readonly requireJwt: boolean;
     readonly jwt: {
-        /** Legacy HS256 shared secret (Supabase "JWT Secret"). */
+        /** HS256 shared secret (Supabase Project Settings > API > JWT Secret). */
         readonly secret: string | undefined;
         /** Base URL used to derive the JWKS endpoint for asymmetric signing keys. */
         readonly supabaseUrl: string | undefined;
@@ -23,14 +21,6 @@ export declare const authConfig: {
         readonly configured: boolean;
     };
 };
-/**
- * Constant-time comparison of a candidate API key against the configured key.
- * Length is compared first (an unavoidable, acceptable leak); the byte
- * comparison itself is timing-safe.
- */
-export declare function verifyApiKey(candidate: string | undefined): boolean;
-/** True when a legacy API key is configured at all. */
-export declare const apiKeyConfigured: boolean;
 export declare const trustProxy: number | boolean;
 /**
  * Rate-limiting configuration. NOTE: the default limiter store is in-memory and

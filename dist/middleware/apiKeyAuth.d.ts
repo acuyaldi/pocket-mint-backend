@@ -1,34 +1,27 @@
 import { Request, Response, NextFunction } from 'express';
-import type { AuthMethod } from '../http/authContext';
-export type { AuthMethod };
 /**
- * API-key gate ONLY — does not resolve a user.
- * Used by endpoints that run before the user exists in the backend
- * (e.g. POST /users/sync during signup).
- */
-export declare function apiKeyAuth(req: Request, res: Response, next: NextFunction): void;
-/**
- * API-key gate + authenticated-user resolution.
+ * Gate for user-scoped routes: require a verified JWT AND an existing local
+ * user row for the verified `sub`. Publishes `req.auth = { userId }`.
  *
- * Authentication decision tree (strict — the order below is the contract):
+ * Decision tree (the order is the contract):
+ *   1. No `Authorization: Bearer <token>` → 401 (`missing_bearer`).
+ *   2. Token present but invalid/expired/wrong-aud/iss/signature → 401
+ *      (`invalid_token`). Never falls back to any other identity source.
+ *   3. Verified `sub` has no local user row → 401 (`unknown_user`).
+ *   4. Otherwise publish the canonical `req.auth` context and continue.
  *
- *   1. An `Authorization: Bearer <token>` was supplied → treated as a JWT login.
- *        - verify it → success: identity is the verified `sub` claim.
- *        - failure (invalid/expired/unverifiable) → 401. NEVER falls back to
- *          the legacy header path. A bearer token is authoritative; any
- *          `x-user-id` on the same request is ignored.
- *   2. No bearer token and AUTH_REQUIRE_JWT=true → 401 (legacy path disabled).
- *   3. No bearer token and compatibility mode (AUTH_REQUIRE_JWT=false):
- *        DEPRECATED legacy path — validate the shared API key, then resolve the
- *        self-asserted `x-user-id` / `x-user-email` header. This trusts the
- *        caller and exists only so the frontend can migrate to Bearer tokens
- *        without a breaking change. Remove once migration completes.
- *
- * The resolved id is published as the canonical `req.auth` context; the request
- * body and query are never mutated, so downstream controllers can never be
- * handed a spoofed userId (a client-supplied body/query `userId` is ignored).
- *
- * SECURITY: this NEVER falls back to a shared/default user.
+ * SECURITY: this NEVER falls back to a shared/default user and never reads
+ * `x-user-id`, a body/query `userId`, or an API key.
  */
 export declare function requireUser(req: Request, res: Response, next: NextFunction): Promise<void>;
+/**
+ * Gate for the identity-bootstrap route (`POST /users/sync`): require a verified
+ * JWT but do NOT require a pre-existing local user row — this is the endpoint
+ * that CREATES that row. Publishes `req.auth = { userId: <verified sub>, email }`
+ * so the controller can provision/return exactly the caller's own local user.
+ *
+ * A verified user can therefore only ever sync themselves; the verified `sub` is
+ * the authority and any `supabaseId` in the body is ignored downstream.
+ */
+export declare function requireVerifiedJwt(req: Request, res: Response, next: NextFunction): Promise<void>;
 //# sourceMappingURL=apiKeyAuth.d.ts.map

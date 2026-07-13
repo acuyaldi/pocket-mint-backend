@@ -1,10 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.corsConfig = exports.rateLimitConfig = exports.trustProxy = exports.apiKeyConfigured = exports.authConfig = exports.reportingConfig = exports.serverConfig = exports.isProduction = void 0;
-exports.verifyApiKey = verifyApiKey;
+exports.corsConfig = exports.rateLimitConfig = exports.trustProxy = exports.authConfig = exports.reportingConfig = exports.serverConfig = exports.isProduction = void 0;
 exports.validateConfig = validateConfig;
 require("dotenv/config");
-const crypto_1 = require("crypto");
 const reportingTime_1 = require("../domain/reportingTime");
 /**
  * Centralized, typed configuration.
@@ -56,17 +54,18 @@ exports.reportingConfig = {
     timezone: (0, reportingTime_1.assertValidTimeZone)(str(process.env.REPORTING_TIMEZONE) ?? 'Asia/Jakarta'),
 };
 // ---------------- auth ----------------
-const apiKey = str(process.env.API_KEY);
-const requireJwt = bool(process.env.AUTH_REQUIRE_JWT, false);
+//
+// Authentication is JWT-only. A verified Supabase access token
+// (`Authorization: Bearer <token>`) is the SOLE way to prove identity — there is
+// no shared API key and no self-asserted `x-user-id` path. Configure at least
+// one JWT verification key source below or all authentication fails at runtime.
 const supabaseUrl = str(process.env.SUPABASE_URL)?.replace(/\/+$/, '');
 const jwtSecret = str(process.env.SUPABASE_JWT_SECRET);
 const jwtAudience = str(process.env.SUPABASE_JWT_AUD) ?? 'authenticated';
 const jwtIssuer = str(process.env.SUPABASE_JWT_ISSUER) ?? (supabaseUrl ? `${supabaseUrl}/auth/v1` : undefined);
 exports.authConfig = {
-    /** True once the frontend migration is complete; disables the legacy path entirely. */
-    requireJwt,
     jwt: {
-        /** Legacy HS256 shared secret (Supabase "JWT Secret"). */
+        /** HS256 shared secret (Supabase Project Settings > API > JWT Secret). */
         secret: jwtSecret,
         /** Base URL used to derive the JWKS endpoint for asymmetric signing keys. */
         supabaseUrl,
@@ -78,22 +77,6 @@ exports.authConfig = {
         configured: Boolean(jwtSecret || supabaseUrl),
     },
 };
-/**
- * Constant-time comparison of a candidate API key against the configured key.
- * Length is compared first (an unavoidable, acceptable leak); the byte
- * comparison itself is timing-safe.
- */
-function verifyApiKey(candidate) {
-    if (!apiKey || !candidate)
-        return false;
-    const a = Buffer.from(candidate);
-    const b = Buffer.from(apiKey);
-    if (a.length !== b.length)
-        return false;
-    return (0, crypto_1.timingSafeEqual)(a, b);
-}
-/** True when a legacy API key is configured at all. */
-exports.apiKeyConfigured = Boolean(apiKey);
 // ---------------- network / rate limiting ----------------
 exports.trustProxy = parseTrustProxy(process.env.TRUST_PROXY);
 /**
@@ -140,13 +123,12 @@ exports.corsConfig = {
 function validateConfig() {
     const fatal = [];
     const warnings = [];
-    // JWT-only mode with no way to verify a JWT bricks all authentication.
-    if (exports.authConfig.requireJwt && !exports.authConfig.jwt.configured) {
-        fatal.push('AUTH_REQUIRE_JWT=true but no JWT verification is configured. Set SUPABASE_JWT_SECRET or SUPABASE_URL.');
-    }
-    // The legacy compatibility path needs an API key to function.
-    if (!exports.authConfig.requireJwt && !exports.apiKeyConfigured) {
-        const msg = 'API_KEY is not set — the legacy compatibility auth path cannot validate requests.';
+    // Authentication is JWT-only: with no verification key source, every request
+    // fails 401 (verification can never silently disable itself into an open
+    // door). Fatal in production; a warning in development so local work is not
+    // blocked before secrets are wired up.
+    if (!exports.authConfig.jwt.configured) {
+        const msg = 'No JWT verification configured — set SUPABASE_JWT_SECRET or SUPABASE_URL. All authentication will fail until one is set.';
         (exports.isProduction ? fatal : warnings).push(msg);
     }
     // Production must define an explicit CORS allowlist (never wildcard).

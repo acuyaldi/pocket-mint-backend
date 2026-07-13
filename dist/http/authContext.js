@@ -10,12 +10,7 @@
 // `req.auth` declaration-merge that makes this type visible on every Request.
 // ============================================================
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAuthContext = getAuthContext;
 exports.getAuthenticatedUserId = getAuthenticatedUserId;
-/** The canonical context, or `undefined` when the request was never authenticated. */
-function getAuthContext(req) {
-    return req.auth;
-}
 /**
  * The authenticated user id, or `undefined` when absent. Pure read — never
  * inspects headers, never verifies a token, never sends a response. Each

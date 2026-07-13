@@ -20,15 +20,16 @@ function ipKey(req) {
     return `ip:${(0, express_rate_limit_1.ipKeyGenerator)(req.ip ?? '')}`;
 }
 /**
- * Key for the POST-AUTH mutation limiter. It runs AFTER `requireUser`, so the
- * canonical `req.auth` context is populated for authenticated routes: writes are
- * partitioned per verified user (`user:<id>`), which correctly separates users
- * behind a shared NAT/IP. Falls back to the client IP when no auth context is
- * present (e.g. the API-key-only `/users/sync` route, which resolves no user).
+ * Key for the POST-AUTH mutation limiter. It runs AFTER a JWT auth gate
+ * (`requireUser` or `requireVerifiedJwt`), so the canonical `req.auth` context
+ * is populated: writes are partitioned per verified user (`user:<id>`), which
+ * correctly separates users behind a shared NAT/IP. Falls back to the client IP
+ * only as a defensive default if it is ever mounted without a preceding auth
+ * gate.
  *
- * Only the trusted `req.auth.userId` (set from a verified JWT `sub` or a
- * resolved legacy user) is ever used — never the self-asserted `x-user-id`
- * header and never a body/query `userId`. Keys carry no token or API key.
+ * Only the trusted `req.auth.userId` (set from a verified JWT `sub`) is ever
+ * used — never a self-asserted `x-user-id` header and never a body/query
+ * `userId`. Keys carry no token.
  */
 function userOrIpKey(req) {
     const userId = (0, authContext_1.getAuthenticatedUserId)(req);

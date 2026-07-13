@@ -25,9 +25,10 @@ exports.corsOptions = {
         return callback(null, allowed.has(origin.replace(/\/+$/, '')));
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    // Only headers the app actually uses. x-user-id/x-user-email are kept only
-    // while the legacy compatibility auth path is supported.
-    allowedHeaders: ['Authorization', 'Content-Type', 'x-api-key', 'x-user-id', 'x-user-email'],
+    // Only headers the app actually uses. Identity travels exclusively in
+    // `Authorization: Bearer <jwt>`; the retired legacy identity headers
+    // (x-api-key / x-user-id / x-user-email) are no longer accepted.
+    allowedHeaders: ['Authorization', 'Content-Type'],
     credentials: false,
     optionsSuccessStatus: 204,
 };
