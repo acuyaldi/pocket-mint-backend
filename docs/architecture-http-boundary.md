@@ -37,16 +37,23 @@ flowchart LR
 ## Canonical authenticated request context
 
 There is exactly **one** authoritative source of "who is calling": `req.auth`,
-an `AuthContext` published by `requireUser` after a successful auth decision.
+an `AuthContext` published by a JWT auth gate after a successful verification.
 
 ```ts
 // src/http/authContext.ts
 export interface AuthContext {
   userId: string;
-  email?: string;
-  method: 'jwt' | 'legacy-api-key';
+  email?: string; // verified `email` claim; set only where a consumer needs it (/users/sync)
 }
 ```
+
+Authentication is **JWT-only** (Sprint 3I): the legacy shared-API-key +
+self-asserted `x-user-id` path was removed. Two gates publish `req.auth`:
+`requireUser` (verifies the JWT **and** requires an existing local user row —
+user-scoped data routes) and `requireVerifiedJwt` (verifies the JWT only, no
+pre-existing row — the `/users/sync` bootstrap). Both derive identity solely
+from the verified `sub` claim. There is a single authentication method, so
+`AuthContext` carries no `method` discriminator.
 
 `req.auth` is added to every Express `Request` by declaration merging
 (`src/types/express.d.ts`), so no controller needs a bespoke request subtype or a
@@ -79,15 +86,16 @@ After `requireUser` calls `next()` (i.e. auth succeeded), it guarantees:
 
 | Guarantee | Detail |
 | --- | --- |
-| `req.auth.userId` | the trusted, resolved user id |
-| `req.auth.method` | `'jwt'` for a verified Supabase JWT, `'legacy-api-key'` for the deprecated compat path |
-| No secrets in context | `req.auth` carries **no** raw token and **no** API key |
-| Fail-closed | a failed auth returns 401 and the downstream controller never runs, so no context leaks |
+| `req.auth.userId` | the trusted user id (the verified JWT `sub`) |
+| No secrets in context | `req.auth` carries **no** raw token and **no** claims object |
+| Fail-closed | a failed auth returns one uniform 401 and the downstream controller never runs, so no context leaks |
 
-The decision logic itself (bearer-token-is-authoritative, no fallback, JWT-only
-mode, legacy compat) is unchanged from the security sprints — 3F only changed how
-the *result* is published. Covered by `test/auth.test.ts` (decisions) and
-`test/authContext.test.ts` (the context contract).
+The decision logic is **JWT-only** (Sprint 3I): a `Bearer` token is verified
+(signature, expiry, audience, and — when configured — issuer); the verified
+`sub` is the identity; there is no API-key, `x-user-id`, or body/query fallback,
+and every failure returns the same 401 body. Covered by `test/auth.test.ts`
+(decision tree), `test/authContext.test.ts` (context contract), and
+`test/userSync.test.ts` (bootstrap gate).
 
 ## Rate limiting (Sprint 3H)
 
@@ -106,17 +114,17 @@ flowchart LR
 
 | Limiter | Where it runs | Key | Purpose |
 | --- | --- | --- | --- |
-| **general** (`generalLimiter`) | globally on `/api`, **before** auth | `ip:<normalized>` | caps all traffic and protects the token / API-key verification path itself |
-| **mutation** (`mutationLimiter`) | per mutating route, **after** `requireUser` | `user:<req.auth.userId>`, IP fallback | stricter cap on writes, partitioned per verified user |
+| **general** (`generalLimiter`) | globally on `/api`, **before** auth | `ip:<normalized>` | caps all traffic and protects the JWT verification path itself |
+| **mutation** (`mutationLimiter`) | per mutating route, **after** a JWT auth gate | `user:<req.auth.userId>`, IP fallback | stricter cap on writes, partitioned per verified user |
 
 **Why user-keying is safe here.** The mutation limiter runs only *after* a
-successful auth decision, so `req.auth.userId` is a verified identity (a JWT
-`sub` or a resolved legacy user). It is read via `getAuthenticatedUserId` — the
-same helper controllers use. The self-asserted `x-user-id` header and any
-body/query `userId` are **never** consulted, so a client cannot select another
-user's bucket. On routes that resolve no user (the API-key-only `/users/sync`),
-`req.auth` is absent and the limiter falls back to `ip:` — writes there are still
-capped, just by IP.
+successful JWT auth gate (`requireUser` or `requireVerifiedJwt`), so
+`req.auth.userId` is a verified identity (the JWT `sub`). It is read via
+`getAuthenticatedUserId` — the same helper controllers use. The self-asserted
+`x-user-id` header and any body/query `userId` are **never** consulted, so a
+client cannot select another user's bucket. `/users/sync` now authenticates via
+`requireVerifiedJwt`, so its writes are user-keyed too; the IP fallback remains
+only as a defensive default.
 
 **Namespacing & normalization.** Keys are prefixed (`ip:` vs `user:`) so a user
 id that happens to look like an IP can never collide with a real IP bucket. IP
@@ -243,6 +251,6 @@ runs on all these routes) and is covered by `test/httpBoundaryGuards.test.ts`.
 | `src/types/express.d.ts` | `req.auth` declaration merge (no deprecated mirrors) |
 | `src/http/queryParsers.ts` | `scalarString` / `scalarInt` / `scalarBooleanTrue` |
 | `src/http/forwardError.ts` | `forwardError` / `isOperationalError` |
-| `src/middleware/apiKeyAuth.ts` | `requireUser` publishes `req.auth` (only) |
+| `src/middleware/apiKeyAuth.ts` | JWT-only gates `requireUser` / `requireVerifiedJwt` publish `req.auth` |
 | `src/middleware/rateLimit.ts` | `generalLimiter` (IP), `mutationLimiter` (user/IP), `ipKey` / `userOrIpKey` |
 | `src/controllers/*.controller.ts` | thin HTTP adapters using the above |
