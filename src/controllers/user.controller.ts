@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import prisma from "../lib/prisma";
 import { sendSuccess, sendError } from "../utils/response";
+import { getAuthenticatedUserId } from "../http/authContext";
 
 /**
  * Explicit response projection for a user. Using a fixed `select` (never
@@ -19,9 +20,15 @@ const userSelect = {
 export class UserController {
   /**
    * POST /api/v1/users/sync
-   * Sync a Supabase Auth user into the Prisma `users` table.
-   * If the user (by email) already exists, return the existing record.
-   * Protected by apiKeyAuth middleware.
+   * Provision (or return) the local `users` row for the AUTHENTICATED caller.
+   *
+   * Identity is the verified JWT `sub` (published as `req.auth.userId` by
+   * `requireVerifiedJwt`) — it is the sole authority for the local row's `id`.
+   * A `supabaseId` in the body is ignored, so a caller can only ever sync
+   * THEMSELVES. Email prefers the verified `email` claim, falling back to the
+   * body only when the token carries none. Idempotent: a known user is a no-op
+   * (200); an unknown one is created (201). `password` and any other unexpected
+   * field are ignored — credentials are owned by Supabase Auth, never stored.
    */
   static async sync(
     req: Request,
@@ -29,31 +36,34 @@ export class UserController {
     next: NextFunction
   ): Promise<void> {
     try {
-      // `password` (and any other unexpected field) is intentionally ignored:
-      // credentials are owned by Supabase Auth and never stored here.
-      const { supabaseId, email, name } = req.body;
+      const userId = getAuthenticatedUserId(req);
+      if (!userId) {
+        // Defensive: requireVerifiedJwt guarantees this, but never trust a
+        // missing identity to fall through to a write.
+        return sendError(res, "Invalid or missing authentication credentials", 401);
+      }
+
+      const { email: bodyEmail, name } = req.body ?? {};
+      const email = req.auth?.email ?? bodyEmail;
 
       if (!email || !name) {
         return sendError(res, "email and name are required", 400);
       }
 
-      // Check if user already exists by email
+      // Look up by the verified identity (the JWT `sub` == local User.id), never
+      // by a client-supplied id or email — so one user can never adopt another's
+      // row.
       const existing = await prisma.user.findUnique({
-        where: { email },
+        where: { id: userId },
         select: userSelect,
       });
       if (existing) {
         return sendSuccess(res, existing, "User already exists");
       }
 
-      // Create new user in Prisma. The local row references the verified
-      // Supabase identity via `id` (the JWT `sub`); no password is persisted.
+      // Create the local row keyed to the verified Supabase identity.
       const user = await prisma.user.create({
-        data: {
-          id: supabaseId ?? undefined, // Use Supabase UID if provided
-          email,
-          name,
-        },
+        data: { id: userId, email, name },
         select: userSelect,
       });
 
