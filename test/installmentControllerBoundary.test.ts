@@ -26,7 +26,7 @@ function buildApp(injectUser = true): Express {
   if (injectUser) {
     app.use((req, _res, next) => {
       // Simulate requireUser publishing the canonical auth context.
-      (req as unknown as { auth: { userId: string; method: string } }).auth = { userId: USER, method: 'jwt' };
+      (req as unknown as { auth: { userId: string } }).auth = { userId: USER };
       next();
     });
   }

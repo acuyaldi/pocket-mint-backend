@@ -37,7 +37,7 @@ function buildApp(withAuth: boolean): Express {
   app.use(express.json());
   if (withAuth) {
     app.use((req, _res, next) => {
-      (req as unknown as { auth: { userId: string; method: string } }).auth = { userId: USER, method: 'jwt' };
+      (req as unknown as { auth: { userId: string } }).auth = { userId: USER };
       next();
     });
   }

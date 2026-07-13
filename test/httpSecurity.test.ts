@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import express, { type Express } from 'express';
 import request from 'supertest';
-import { API_KEY, SECRET, applyEnv } from './helpers';
+import { SECRET, applyEnv } from './helpers';
 
 // ---------------- rate limiting ----------------
 
@@ -98,17 +98,21 @@ describe('CORS', () => {
     expect(res.status).toBe(200);
   });
 
-  it('handles preflight and allows the required headers/methods', async () => {
+  it('handles preflight and allows Authorization + Content-Type, but not retired identity headers', async () => {
     const app = await buildCorsApp();
     const res = await request(app)
       .options('/api/ping')
       .set('Origin', 'https://app.example.com')
       .set('Access-Control-Request-Method', 'POST')
-      .set('Access-Control-Request-Headers', 'authorization,content-type,x-user-id');
+      .set('Access-Control-Request-Headers', 'authorization,content-type');
     expect(res.status).toBe(204);
     const allowHeaders = (res.headers['access-control-allow-headers'] || '').toLowerCase();
-    for (const h of ['authorization', 'content-type', 'x-user-id', 'x-api-key']) {
+    for (const h of ['authorization', 'content-type']) {
       expect(allowHeaders).toContain(h);
+    }
+    // The retired legacy identity headers must no longer be advertised as allowed.
+    for (const h of ['x-user-id', 'x-user-email', 'x-api-key']) {
+      expect(allowHeaders).not.toContain(h);
     }
     const allowMethods = (res.headers['access-control-allow-methods'] || '').toUpperCase();
     for (const m of ['GET', 'POST', 'PUT', 'DELETE']) expect(allowMethods).toContain(m);
@@ -128,10 +132,8 @@ async function loadConfig(env: Record<string, string | undefined>) {
   vi.resetModules();
   applyEnv({
     NODE_ENV: 'production',
-    API_KEY,
     SUPABASE_JWT_SECRET: SECRET,
     SUPABASE_URL: undefined,
-    AUTH_REQUIRE_JWT: undefined,
     CORS_ALLOWED_ORIGINS: 'https://app.example.com',
     ...env,
   });
@@ -149,12 +151,19 @@ describe('validateConfig (production)', () => {
     expect(() => validateConfig()).toThrow(/CORS_ALLOWED_ORIGINS/);
   });
 
-  it('throws when AUTH_REQUIRE_JWT=true but no JWT verification is configured', async () => {
+  it('throws when no JWT verification is configured (auth would be permanently unusable)', async () => {
     const { validateConfig } = await loadConfig({
-      AUTH_REQUIRE_JWT: 'true',
       SUPABASE_JWT_SECRET: undefined,
       SUPABASE_URL: undefined,
     });
-    expect(() => validateConfig()).toThrow(/AUTH_REQUIRE_JWT/);
+    expect(() => validateConfig()).toThrow(/JWT verification/);
+  });
+
+  it('accepts SUPABASE_URL (JWKS) as the sole JWT verification source', async () => {
+    const { validateConfig } = await loadConfig({
+      SUPABASE_JWT_SECRET: undefined,
+      SUPABASE_URL: 'https://proj.supabase.co',
+    });
+    expect(() => validateConfig()).not.toThrow();
   });
 });

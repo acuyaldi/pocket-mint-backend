@@ -15,7 +15,7 @@ import { getWalletSparkline } from '../src/controllers/account.controller';
 
 function app() {
   const value = express();
-  value.use((req, _res, next) => { (req as any).auth = { userId: 'user-1', method: 'jwt' }; next(); });
+  value.use((req, _res, next) => { (req as any).auth = { userId: 'user-1' }; next(); });
   value.get('/wallets/:id/sparkline', getWalletSparkline);
   return value;
 }

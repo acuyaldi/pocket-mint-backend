@@ -22,7 +22,7 @@ function buildApp(): Express {
   const app = express();
   app.use(express.json());
   app.use((req, _res, next) => {
-    (req as unknown as { auth: { userId: string; method: string } }).auth = { userId: USER, method: 'jwt' };
+    (req as unknown as { auth: { userId: string } }).auth = { userId: USER };
     next();
   });
   app.put('/wallets/:id', updateWallet);

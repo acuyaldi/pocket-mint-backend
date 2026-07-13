@@ -1,7 +1,6 @@
 import { SignJWT } from 'jose';
 
 export const SECRET = 'test-jwt-secret-abcdefghijklmnopqrstuvwxyz-0123';
-export const API_KEY = 'test-api-key-abcdef123456';
 export const ISSUER = 'https://proj.supabase.co/auth/v1';
 
 const key = new TextEncoder().encode(SECRET);
@@ -16,7 +15,12 @@ export function mint(claims: Record<string, unknown>, exp: string | number = '1h
 }
 
 /** Standard set of valid Supabase-style claims for user `u1`. */
-export const validClaims = { sub: 'u1', aud: 'authenticated', iss: ISSUER } as const;
+export const validClaims = {
+  sub: 'u1',
+  aud: 'authenticated',
+  iss: ISSUER,
+  email: 'u1@example.com',
+} as const;
 
 /**
  * Apply env overrides, deleting any key whose value is `undefined`.

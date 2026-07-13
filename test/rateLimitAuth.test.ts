@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import express, { Router, type Express, type Request } from 'express';
 import request from 'supertest';
-import { API_KEY, SECRET, ISSUER, mint, validClaims, applyEnv } from './helpers';
+import { SECRET, ISSUER, mint, validClaims, applyEnv } from './helpers';
 
 // prisma is mocked for the whole file; findUnique behavior is set per test.
 const { findUnique } = vi.hoisted(() => ({ findUnique: vi.fn() }));
@@ -20,11 +20,9 @@ async function buildApp(
   vi.resetModules();
   applyEnv({
     NODE_ENV: 'development',
-    API_KEY,
     SUPABASE_JWT_SECRET: SECRET,
     SUPABASE_JWT_ISSUER: ISSUER,
     SUPABASE_URL: undefined,
-    AUTH_REQUIRE_JWT: undefined,
     RATE_LIMIT_ENABLED: 'true',
     RATE_LIMIT_MAX: '100', // general cap high so the mutation cap is what bites
     RATE_LIMIT_MUTATION_MAX: '2',
@@ -61,10 +59,10 @@ async function buildApp(
   return { app, hits: () => hits };
 }
 
-/** Resolve any looked-up user by echoing the queried id/email as the row id. */
+/** Resolve any looked-up user by echoing the queried id as the row id. */
 function resolveAnyUser() {
-  findUnique.mockImplementation((args?: { where?: { id?: string; email?: string } }) =>
-    Promise.resolve({ id: args?.where?.id ?? args?.where?.email ?? 'unknown' })
+  findUnique.mockImplementation((args?: { where?: { id?: string } }) =>
+    Promise.resolve({ id: args?.where?.id ?? 'unknown' })
   );
 }
 
@@ -146,18 +144,6 @@ describe('post-auth mutation limiter — key generation', () => {
     expect((await spoof(3)).status).toBe(429);
   });
 
-  it('keys the legacy API-key path by the resolved user id', async () => {
-    resolveAnyUser();
-    const { app } = await buildApp();
-    const post = (userId: string) =>
-      request(app).post('/api/thing').set('x-api-key', API_KEY).set('x-user-id', userId);
-
-    expect((await post('legacyA')).status).toBe(200);
-    expect((await post('legacyA')).status).toBe(200);
-    expect((await post('legacyA')).status).toBe(429); // legacyA over the cap
-    expect((await post('legacyB')).status).toBe(200); // distinct resolved user
-  });
-
   it('does not throttle mutations when RATE_LIMIT_ENABLED=false', async () => {
     resolveAnyUser();
     const { app } = await buildApp({ RATE_LIMIT_ENABLED: 'false' });
@@ -175,7 +161,7 @@ describe('post-auth mutation limiter — key generation', () => {
 describe('rate-limit key generators (unit)', () => {
   it('userOrIpKey uses user:<id> when auth context is present', async () => {
     const { userOrIpKey } = await import('../src/middleware/rateLimit');
-    const key = userOrIpKey({ auth: { userId: 'u1', method: 'jwt' } } as unknown as Request);
+    const key = userOrIpKey({ auth: { userId: 'u1' } } as unknown as Request);
     expect(key).toBe('user:u1');
   });
 
@@ -195,7 +181,7 @@ describe('rate-limit key generators (unit)', () => {
   it('never leaks a token or API key into the key even when headers carry them', async () => {
     const { userOrIpKey } = await import('../src/middleware/rateLimit');
     const key = userOrIpKey({
-      auth: { userId: 'u1', method: 'jwt' },
+      auth: { userId: 'u1' },
       headers: { authorization: 'Bearer super-secret-token', 'x-api-key': 'super-secret-key' },
     } as unknown as Request);
     expect(key).toBe('user:u1');
