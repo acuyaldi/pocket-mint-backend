@@ -10,22 +10,16 @@
 // ============================================================
 
 /**
- * How a request's identity was proven.
- *  - `jwt`            : a verified Supabase JWT (`sub` claim).
- *  - `legacy-api-key` : DEPRECATED shared API key + self-asserted `x-user-id`.
- */
-export type AuthMethod = 'jwt' | 'legacy-api-key';
-
-/**
- * The authenticated caller. Populated only after a successful auth decision.
- * Deliberately carries NO token and NO API key — only the resolved, trusted
- * identity plus the method used to prove it (for logging/metrics). `email` is
- * optional and populated only when the auth path knows it.
+ * The authenticated caller. Populated only after a verified-JWT auth decision.
+ * Deliberately carries NO token and NO raw claims — only the resolved, trusted
+ * identity. `email` is the verified `email` claim, populated only where a
+ * consumer needs it (the `/users/sync` bootstrap); user-scoped data routes read
+ * `userId` alone. There is a single authentication method (verified JWT), so no
+ * `method` discriminator is stored.
  */
 export interface AuthContext {
   userId: string;
   email?: string;
-  method: AuthMethod;
 }
 
 /**
@@ -35,11 +29,6 @@ export interface AuthContext {
  * `any` cast at the call site.
  */
 type WithAuth = { auth?: AuthContext };
-
-/** The canonical context, or `undefined` when the request was never authenticated. */
-export function getAuthContext(req: WithAuth): AuthContext | undefined {
-  return req.auth;
-}
 
 /**
  * The authenticated user id, or `undefined` when absent. Pure read — never

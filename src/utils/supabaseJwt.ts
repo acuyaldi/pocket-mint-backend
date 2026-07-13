@@ -9,11 +9,17 @@ import { authConfig } from '../config';
  *  - Modern asymmetric signing keys    -> JWKS derived from SUPABASE_URL
  *
  * All configuration comes from the central `authConfig` (no direct env reads).
- * When neither key source is configured, verification is disabled and callers
- * fall back to the legacy header-based identity path (see `requireUser`).
+ * When neither key source is configured, verification is disabled and every
+ * token is rejected — there is no non-JWT identity path to fall back to.
  */
 
 const { secret, supabaseUrl, audience, issuer } = authConfig.jwt;
+
+/** A successfully verified identity: the `sub` claim plus, when present, `email`. */
+export interface VerifiedIdentity {
+  sub: string;
+  email?: string;
+}
 
 const hsKey = secret ? new TextEncoder().encode(secret) : null;
 const jwks = supabaseUrl
@@ -30,11 +36,12 @@ const verifyOptions: JWTVerifyOptions = {
 };
 
 /**
- * Verify a Supabase access token and return the authenticated user's id
- * (the `sub` claim, which equals the backend `User.id`). Returns null for any
- * invalid, expired, wrong-audience/issuer, or unverifiable token — never throws.
+ * Verify a Supabase access token and return the authenticated identity: the
+ * `sub` claim (which equals the backend `User.id`) plus the verified `email`
+ * claim when present. Returns null for any invalid, expired,
+ * wrong-audience/issuer, or unverifiable token — never throws.
  */
-export async function verifySupabaseJwt(token: string): Promise<string | null> {
+export async function verifySupabaseJwt(token: string): Promise<VerifiedIdentity | null> {
   try {
     let payload: JWTPayload;
     if (jwks) {
@@ -44,7 +51,10 @@ export async function verifySupabaseJwt(token: string): Promise<string | null> {
     } else {
       return null;
     }
-    return typeof payload.sub === 'string' && payload.sub.length > 0 ? payload.sub : null;
+    if (typeof payload.sub !== 'string' || payload.sub.length === 0) return null;
+    const email =
+      typeof payload.email === 'string' && payload.email.length > 0 ? payload.email : undefined;
+    return { sub: payload.sub, email };
   } catch {
     return null;
   }

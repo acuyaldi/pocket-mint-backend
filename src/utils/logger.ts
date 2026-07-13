@@ -93,29 +93,3 @@ export const logger = {
   warn: (message: string, meta?: Record<string, unknown>) => emit('warn', message, meta),
   error: (message: string, meta?: Record<string, unknown>) => emit('error', message, meta),
 };
-
-// ---------------- legacy-auth deprecation signal ----------------
-
-const LEGACY_WARN_INTERVAL_MS = 5 * 60_000;
-let lastLegacyWarnAt = 0;
-let legacyOccurrences = 0;
-
-/**
- * Record a use of the deprecated legacy (API-key + `x-user-id`) auth path.
- * Emits a throttled warning (at most once per interval) so the owner can see
- * that legacy auth is still in use — without flooding logs on every request
- * and without logging any user identity or secret.
- */
-export function recordLegacyAuthUsage(): void {
-  legacyOccurrences += 1;
-  const now = Date.now();
-  if (now - lastLegacyWarnAt < LEGACY_WARN_INTERVAL_MS) return;
-
-  logger.warn('deprecated legacy auth path used (API key + x-user-id)', {
-    authMethod: 'legacy-api-key',
-    occurrencesSinceLastWarning: legacyOccurrences,
-    action: 'Migrate clients to Authorization: Bearer <supabase-jwt>, then set AUTH_REQUIRE_JWT=true',
-  });
-  lastLegacyWarnAt = now;
-  legacyOccurrences = 0;
-}

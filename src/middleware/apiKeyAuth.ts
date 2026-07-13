@@ -1,18 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../lib/prisma';
 import { verifySupabaseJwt } from '../utils/supabaseJwt';
-import { authConfig, verifyApiKey } from '../config';
-import { logger, recordLegacyAuthUsage } from '../utils/logger';
-import type { AuthMethod } from '../http/authContext';
+import { logger } from '../utils/logger';
 
-// Re-exported for backwards compatibility; the canonical definition (with
-// `AuthContext`) now lives in src/http/authContext.ts.
-export type { AuthMethod };
-
-/** Normalize a header value that may arrive as string | string[] | undefined. */
-function headerValue(v: string | string[] | undefined): string | undefined {
-  return Array.isArray(v) ? v[0] : v;
-}
+// ============================================================
+// Authentication middleware — verified Supabase JWT only.
+// ------------------------------------------------------------
+// A valid `Authorization: Bearer <supabase-access-token>` is the SOLE way to
+// prove identity. There is no shared API key, no `x-user-id` self-assertion, and
+// no body/query identity. Every failure returns one uniform 401. The verified
+// `sub` claim is published as the canonical `req.auth` context; the request body
+// and query are never mutated, so a spoofed userId can never reach a controller.
+// ============================================================
 
 /** Extract a Bearer token from an Authorization header, if present. */
 function bearerToken(header: string | undefined): string | undefined {
@@ -23,9 +22,9 @@ function bearerToken(header: string | undefined): string | undefined {
 
 /**
  * Uniform 401 for every authentication failure. The external body never reveals
- * WHICH check failed (invalid key vs expired token vs unknown user vs wrong
- * issuer/audience) — that only aids attackers. The specific `reason` is a safe
- * internal code logged server-side; no token, key, or user id is ever logged.
+ * WHICH check failed (missing token vs expired vs wrong issuer/audience vs
+ * unknown user) — that only aids attackers. The specific `reason` is a safe
+ * internal code logged server-side; no token, claim, or user id is ever logged.
  */
 function unauthorized(res: Response, reason: string): void {
   logger.warn('authentication failed', { reason });
@@ -35,111 +34,81 @@ function unauthorized(res: Response, reason: string): void {
   });
 }
 
+type VerifyResult =
+  | { ok: true; sub: string; email?: string }
+  | { ok: false; reason: string };
+
 /**
- * Publish the resolved, trusted identity as the canonical `req.auth` context for
- * downstream readers, then continue.
- *
- * `req.auth` is the SOLE authoritative representation of request identity:
- * controllers read it via `getAuthenticatedUserId` and the post-auth rate
- * limiter keys from `req.auth.userId`. The request body and query are
- * intentionally NOT mutated — a user id can never be smuggled in or read from
- * them. No deprecated `req.userId` / `req.authMethod` mirrors are written.
+ * Verify the request's Bearer token. Returns the verified `sub`/`email` on
+ * success, or a safe internal reason on failure. Does NOT touch the response —
+ * the caller decides how to react. A missing bearer and an invalid bearer are
+ * distinct internal reasons but map to the same external 401.
  */
-function injectUser(req: Request, userId: string, method: AuthMethod, next: NextFunction): void {
-  req.auth = { userId, method };
-  next();
+async function verifyBearer(req: Request): Promise<VerifyResult> {
+  const token = bearerToken(req.headers.authorization);
+  if (!token) return { ok: false, reason: 'missing_bearer' };
+  const identity = await verifySupabaseJwt(token);
+  if (!identity) return { ok: false, reason: 'invalid_token' };
+  return { ok: true, sub: identity.sub, email: identity.email };
 }
 
 /**
- * API-key gate ONLY — does not resolve a user.
- * Used by endpoints that run before the user exists in the backend
- * (e.g. POST /users/sync during signup).
- */
-export function apiKeyAuth(req: Request, res: Response, next: NextFunction) {
-  if (!verifyApiKey(headerValue(req.headers['x-api-key']))) {
-    return unauthorized(res, 'invalid_api_key');
-  }
-  next();
-}
-
-/**
- * API-key gate + authenticated-user resolution.
+ * Gate for user-scoped routes: require a verified JWT AND an existing local
+ * user row for the verified `sub`. Publishes `req.auth = { userId }`.
  *
- * Authentication decision tree (strict — the order below is the contract):
+ * Decision tree (the order is the contract):
+ *   1. No `Authorization: Bearer <token>` → 401 (`missing_bearer`).
+ *   2. Token present but invalid/expired/wrong-aud/iss/signature → 401
+ *      (`invalid_token`). Never falls back to any other identity source.
+ *   3. Verified `sub` has no local user row → 401 (`unknown_user`).
+ *   4. Otherwise publish the canonical `req.auth` context and continue.
  *
- *   1. An `Authorization: Bearer <token>` was supplied → treated as a JWT login.
- *        - verify it → success: identity is the verified `sub` claim.
- *        - failure (invalid/expired/unverifiable) → 401. NEVER falls back to
- *          the legacy header path. A bearer token is authoritative; any
- *          `x-user-id` on the same request is ignored.
- *   2. No bearer token and AUTH_REQUIRE_JWT=true → 401 (legacy path disabled).
- *   3. No bearer token and compatibility mode (AUTH_REQUIRE_JWT=false):
- *        DEPRECATED legacy path — validate the shared API key, then resolve the
- *        self-asserted `x-user-id` / `x-user-email` header. This trusts the
- *        caller and exists only so the frontend can migrate to Bearer tokens
- *        without a breaking change. Remove once migration completes.
- *
- * The resolved id is published as the canonical `req.auth` context; the request
- * body and query are never mutated, so downstream controllers can never be
- * handed a spoofed userId (a client-supplied body/query `userId` is ignored).
- *
- * SECURITY: this NEVER falls back to a shared/default user.
+ * SECURITY: this NEVER falls back to a shared/default user and never reads
+ * `x-user-id`, a body/query `userId`, or an API key.
  */
 export async function requireUser(req: Request, res: Response, next: NextFunction) {
   try {
-    const token = bearerToken(req.headers.authorization);
+    const result = await verifyBearer(req);
+    if (!result.ok) return unauthorized(res, result.reason);
 
-    // 1. Bearer token present → JWT login attempt, authoritative, no fallback.
-    if (token) {
-      const verifiedUserId = await verifySupabaseJwt(token);
-      if (!verifiedUserId) {
-        return unauthorized(res, 'invalid_token');
-      }
-      const user = await prisma.user.findUnique({
-        where: { id: verifiedUserId },
-        select: { id: true },
-      });
-      if (!user) {
-        return unauthorized(res, 'unknown_user');
-      }
-      return injectUser(req, user.id, 'jwt', next);
-    }
+    const user = await prisma.user.findUnique({
+      where: { id: result.sub },
+      select: { id: true },
+    });
+    if (!user) return unauthorized(res, 'unknown_user');
 
-    // 2. No bearer token and JWT-only mode → reject.
-    if (authConfig.requireJwt) {
-      return unauthorized(res, 'missing_bearer');
-    }
-
-    // 3. DEPRECATED legacy compatibility path: API key + self-asserted identity.
-    if (!verifyApiKey(headerValue(req.headers['x-api-key']))) {
-      return unauthorized(res, 'invalid_api_key');
-    }
-
-    const headerUserId = headerValue(req.headers['x-user-id']);
-    const headerEmail = headerValue(req.headers['x-user-email']);
-    if (!headerUserId && !headerEmail) {
-      return unauthorized(res, 'missing_identity');
-    }
-
-    let user: { id: string } | null = null;
-    if (headerUserId) {
-      user = await prisma.user.findUnique({ where: { id: headerUserId }, select: { id: true } });
-    }
-    if (!user && headerEmail) {
-      user = await prisma.user.findUnique({ where: { email: headerEmail }, select: { id: true } });
-    }
-    if (!user) {
-      return unauthorized(res, 'unknown_user');
-    }
-
-    recordLegacyAuthUsage();
-    return injectUser(req, user.id, 'legacy-api-key', next);
+    req.auth = { userId: user.id };
+    next();
   } catch (err) {
     // Unexpected failure during auth resolution is an internal error, not an
     // auth decision — hand it to the central handler (generic 500 + safe log).
     logger.error('requireUser unexpected error', {
       message: err instanceof Error ? err.message : String(err),
     });
-    return next(err);
+    next(err);
+  }
+}
+
+/**
+ * Gate for the identity-bootstrap route (`POST /users/sync`): require a verified
+ * JWT but do NOT require a pre-existing local user row — this is the endpoint
+ * that CREATES that row. Publishes `req.auth = { userId: <verified sub>, email }`
+ * so the controller can provision/return exactly the caller's own local user.
+ *
+ * A verified user can therefore only ever sync themselves; the verified `sub` is
+ * the authority and any `supabaseId` in the body is ignored downstream.
+ */
+export async function requireVerifiedJwt(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await verifyBearer(req);
+    if (!result.ok) return unauthorized(res, result.reason);
+
+    req.auth = { userId: result.sub, email: result.email };
+    next();
+  } catch (err) {
+    logger.error('requireVerifiedJwt unexpected error', {
+      message: err instanceof Error ? err.message : String(err),
+    });
+    next(err);
   }
 }
