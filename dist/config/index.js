@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.corsConfig = exports.rateLimitConfig = exports.trustProxy = exports.authConfig = exports.reportingConfig = exports.serverConfig = exports.isProduction = void 0;
+exports.corsConfig = exports.rateLimitConfig = exports.trustProxy = exports.databaseConfig = exports.authConfig = exports.reportingConfig = exports.serverConfig = exports.isProduction = void 0;
 exports.validateConfig = validateConfig;
 require("dotenv/config");
 const reportingTime_1 = require("../domain/reportingTime");
@@ -77,6 +77,33 @@ exports.authConfig = {
         configured: Boolean(jwtSecret || supabaseUrl),
     },
 };
+// ---------------- database ----------------
+//
+// Runtime PostgreSQL connection. DATABASE_URL is the SOLE connection source and
+// is NEVER logged (the logger redacts any `databaseurl`/`connectionstring` key).
+// Pool sizing is PROCESS-LOCAL: total server-side connections equal
+// (pool.max × running application instances), so keep that product under the
+// database provider's connection limit when scaling horizontally.
+exports.databaseConfig = {
+    /**
+     * Runtime connection string. Prefer a pooler-compatible URL (e.g. Supabase
+     * transaction pooler) in constrained/serverless environments; use a direct
+     * URL for `prisma migrate` (see DIRECT_URL and the deployment runbook).
+     */
+    url: str(process.env.DATABASE_URL),
+    pool: {
+        /** Max connections held by THIS process's pool. Conservative default. */
+        max: int(process.env.DB_POOL_MAX, 10),
+        /** Idle connection lifetime before the pool closes it (ms). */
+        idleTimeoutMs: int(process.env.DB_IDLE_TIMEOUT_MS, 10000),
+        /**
+         * Max time to wait to acquire a connection before failing (ms). Bounds
+         * startup/request hangs when the database is unreachable; `pg` defaults to
+         * 0 (wait forever), which we deliberately override.
+         */
+        connectionTimeoutMs: int(process.env.DB_CONNECTION_TIMEOUT_MS, 10000),
+    },
+};
 // ---------------- network / rate limiting ----------------
 exports.trustProxy = parseTrustProxy(process.env.TRUST_PROXY);
 /**
@@ -129,6 +156,14 @@ function validateConfig() {
     // blocked before secrets are wired up.
     if (!exports.authConfig.jwt.configured) {
         const msg = 'No JWT verification configured — set SUPABASE_JWT_SECRET or SUPABASE_URL. All authentication will fail until one is set.';
+        (exports.isProduction ? fatal : warnings).push(msg);
+    }
+    // Runtime database connection is required. Without it the Prisma adapter
+    // cannot be constructed and every DB-backed request fails. Fatal in
+    // production; a warning in development so local work is not blocked before
+    // the connection string is wired up. The URL itself is never printed.
+    if (!exports.databaseConfig.url) {
+        const msg = 'DATABASE_URL is not set — the application cannot connect to PostgreSQL.';
         (exports.isProduction ? fatal : warnings).push(msg);
     }
     // Production must define an explicit CORS allowlist (never wildcard).

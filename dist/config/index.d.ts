@@ -21,6 +21,26 @@ export declare const authConfig: {
         readonly configured: boolean;
     };
 };
+export declare const databaseConfig: {
+    /**
+     * Runtime connection string. Prefer a pooler-compatible URL (e.g. Supabase
+     * transaction pooler) in constrained/serverless environments; use a direct
+     * URL for `prisma migrate` (see DIRECT_URL and the deployment runbook).
+     */
+    readonly url: string | undefined;
+    readonly pool: {
+        /** Max connections held by THIS process's pool. Conservative default. */
+        readonly max: number;
+        /** Idle connection lifetime before the pool closes it (ms). */
+        readonly idleTimeoutMs: number;
+        /**
+         * Max time to wait to acquire a connection before failing (ms). Bounds
+         * startup/request hangs when the database is unreachable; `pg` defaults to
+         * 0 (wait forever), which we deliberately override.
+         */
+        readonly connectionTimeoutMs: number;
+    };
+};
 export declare const trustProxy: number | boolean;
 /**
  * Rate-limiting configuration. NOTE: the default limiter store is in-memory and
