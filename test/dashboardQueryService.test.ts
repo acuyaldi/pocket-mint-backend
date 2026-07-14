@@ -66,10 +66,21 @@ describe('dashboardQueryService.getSummary', () => {
     expect(totals.totalUtang.toString()).toBe('1300.5');
   });
 
-  it('reports netWorth as the asset total only (debt never subtracted)', async () => {
+  it('reports netWorth as assets minus outstanding debt (PD-001), negative allowed', async () => {
     const db = makeDb({ wallets: MIXED });
     const totals = await svc(db).getSummary({ userId: 'u1' });
-    expect(totals.netWorth.toString()).toBe('350.75');
+    expect(totals.netWorth.toString()).toBe('-949.75');
+    expect(totals.netWorth.toString()).toBe(totals.totalAset.minus(totals.totalUtang).toString());
+  });
+
+  it('equals totalAset when there is no debt (PD-001 zero-debt case)', async () => {
+    const db = makeDb({ wallets: [
+      { type: 'CASH', balance: D('100.50') },
+      { type: 'BANK', balance: D('200.00') },
+    ] });
+    const totals = await svc(db).getSummary({ userId: 'u1' });
+    expect(totals.totalUtang.toString()).toBe('0');
+    expect(totals.netWorth.toString()).toBe('300.5');
     expect(totals.netWorth.toString()).toBe(totals.totalAset.toString());
   });
 

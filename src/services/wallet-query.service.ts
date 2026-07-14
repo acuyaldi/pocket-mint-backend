@@ -56,9 +56,9 @@ export function createWalletQueryService(db: WalletQueryPrismaClient) {
   /**
    * Net-worth snapshot for the caller, ownership-scoped. Delegates the arithmetic
    * to the shared Decimal-safe `calculateNetWorth` helper (no float summation
-   * here), preserving the product rule exactly: `totalAset` = asset balances,
-   * `totalUtang` = |debt balances|, `netWorth` = asset total only (debt reported
-   * separately, never subtracted). Returns Decimals; the controller serializes.
+   * here), preserving the product rule (PD-001) exactly: `totalAset` = asset
+   * balances, `totalUtang` = |debt balances|, `netWorth` = totalAset − totalUtang
+   * (may be negative). Returns Decimals; the controller serializes.
    */
   async function getNetWorth(input: GetNetWorthInput): Promise<WalletTotals> {
     const wallets = await db.wallet.findMany({

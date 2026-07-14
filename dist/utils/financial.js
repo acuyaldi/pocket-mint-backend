@@ -19,6 +19,12 @@ function classifyWalletForNetWorth(type) {
 /**
  * Menghitung net worth, total aset, dan total utang dari array wallet.
  * Menggunakan Prisma.Decimal untuk presisi finansial.
+ *
+ * PD-001 (Approved): Net Worth = Total Assets − Total Outstanding Debt,
+ * evaluated over the same wallet snapshot (one Reporting Cutoff). May be
+ * negative; never clamped. Installment debt is already locked into the debt
+ * wallet's outstanding balance at creation, so it is counted exactly once
+ * here — no separate installment term may be subtracted again.
  */
 function calculateNetWorth(wallets) {
     let totalAset = new client_1.Prisma.Decimal(0);
@@ -32,9 +38,7 @@ function calculateNetWorth(wallets) {
             totalUtang = totalUtang.plus(w.balance.abs());
         }
     }
-    // Net worth = total aset saja. Utang (paylater/pinjaman) tidak mengurangi
-    // net worth — aset baru berkurang saat transaksi pembayaran cicilan terjadi.
-    const netWorth = totalAset;
+    const netWorth = totalAset.minus(totalUtang);
     return {
         totalAset,
         totalUtang,
