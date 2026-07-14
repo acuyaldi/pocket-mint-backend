@@ -222,6 +222,40 @@ describe('transactionService.updateTransaction', () => {
     await expect(svc(db).updateTransaction({ userId: 'u', id: 'nope', amount: 1 }))
       .rejects.toMatchObject({ statusCode: 404, code: 'TRANSACTION_NOT_FOUND' });
   });
+
+  it("rejects another user's categoryId before any write", async () => {
+    const { db, committed } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'EXPENSE', amount: D(100), walletId: 'w1', toWalletId: null, isInstallment: false,
+    }));
+    db.category.findFirst = vi.fn(async () => null); // not found under { id, userId }
+    await expect(svc(db).updateTransaction({ userId: 'u', id: 't1', categoryId: 'cat-of-other-user' }))
+      .rejects.toMatchObject({ statusCode: 404, code: 'NOT_FOUND', message: 'Kategori tidak ditemukan' });
+    expect(db.category.findFirst).toHaveBeenCalledWith({ where: { id: 'cat-of-other-user', userId: 'u' } });
+    expect(db.$transaction).not.toHaveBeenCalled();
+    expect(committed).toHaveLength(0);
+  });
+
+  it('accepts an owned categoryId and persists it', async () => {
+    const { db } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'EXPENSE', amount: D(100), walletId: 'w1', toWalletId: null, isInstallment: false,
+    }));
+    db.category.findFirst = vi.fn(async ({ where }: any) => ({ id: where.id, userId: where.userId }));
+    const updated = await svc(db).updateTransaction({ userId: 'u', id: 't1', categoryId: 'c1' });
+    expect((updated as any).categoryId).toBe('c1');
+  });
+
+  it('clears the category without an ownership lookup', async () => {
+    const { db } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'EXPENSE', amount: D(100), walletId: 'w1', toWalletId: null, isInstallment: false,
+    }));
+    db.category.findFirst = vi.fn();
+    const updated = await svc(db).updateTransaction({ userId: 'u', id: 't1', categoryId: '' });
+    expect((updated as any).categoryId).toBeNull();
+    expect(db.category.findFirst).not.toHaveBeenCalled();
+  });
 });
 
 describe('transactionService.deleteTransaction', () => {

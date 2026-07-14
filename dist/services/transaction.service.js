@@ -248,6 +248,14 @@ function createTransactionService(db) {
                 throw new transaction_errors_1.TransactionError('Wallet tujuan tidak ditemukan', 404, 'WALLET_NOT_FOUND');
             }
         }
+        // Same ownership invariant as create: a newly assigned category must belong
+        // to the caller. Clearing (empty/null) stays exempt — it references nothing.
+        if (categoryId) {
+            const category = await db.category.findFirst({ where: { id: categoryId, userId } });
+            if (!category) {
+                throw new transaction_errors_1.TransactionError('Kategori tidak ditemukan', 404, 'NOT_FOUND');
+            }
+        }
         try {
             return await db.$transaction(async (tx) => {
                 // 1. Reverse the ORIGINAL effect from the persisted row.
