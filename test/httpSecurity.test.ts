@@ -134,6 +134,8 @@ async function loadConfig(env: Record<string, string | undefined>) {
     NODE_ENV: 'production',
     SUPABASE_JWT_SECRET: SECRET,
     SUPABASE_URL: undefined,
+    // Set explicitly: CI has no .env, so nothing else provides a value there.
+    DATABASE_URL: 'postgresql://user:password@localhost:5432/pocket_mint_test',
     CORS_ALLOWED_ORIGINS: 'https://app.example.com',
     ...env,
   });
@@ -144,6 +146,11 @@ describe('validateConfig (production)', () => {
   it('passes with a complete production configuration', async () => {
     const { validateConfig } = await loadConfig({});
     expect(() => validateConfig()).not.toThrow();
+  });
+
+  it('throws when DATABASE_URL is missing in production', async () => {
+    const { validateConfig } = await loadConfig({ DATABASE_URL: undefined });
+    expect(() => validateConfig()).toThrow(/DATABASE_URL/);
   });
 
   it('throws when the CORS allowlist is empty in production', async () => {
