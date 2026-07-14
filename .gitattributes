@@ -1,0 +1,9 @@
+# Normalize line endings: store LF in the repository, compare text with LF.
+#
+# Required for CI's `git diff --exit-code` artifact check: @prisma/client ships
+# runtime/client.d.ts and runtime/index-browser.d.ts with CRLF inside the npm
+# package, and `prisma generate` copies them byte-for-byte into
+# src/generated/prisma (then the build copies them into dist/). Without this
+# attribute, Linux CI (core.autocrlf=false) sees those CRLF working-tree files
+# as fully rewritten relative to the LF blobs in the index.
+* text=auto
