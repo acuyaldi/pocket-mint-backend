@@ -48,13 +48,13 @@ describe('net worth classification', () => {
     expect(['CREDIT_CARD', 'LOAN_PAYLATER'].map(classifyWalletForNetWorth)).toEqual(['DEBT', 'DEBT']);
   });
 
-  it('retains the product rule that net worth equals assets', () => {
+  it('calculates net worth as assets minus outstanding debt (PD-001)', () => {
     const result = calculateNetWorth([
       { type: 'BANK', balance: D('100.10') },
       { type: 'CREDIT_CARD', balance: D('-20.05') },
     ]);
     expect(result.totalAset.toString()).toBe('100.1');
     expect(result.totalUtang.toString()).toBe('20.05');
-    expect(result.netWorth.toString()).toBe('100.1');
+    expect(result.netWorth.toString()).toBe('80.05');
   });
 });

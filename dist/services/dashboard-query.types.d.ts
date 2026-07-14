@@ -17,10 +17,10 @@ export interface GetDashboardSummaryInput {
 /**
  * Dashboard summary carrying exact `Decimal` values. Serialization to numbers is
  * the controller's job (the single response boundary); the service never calls
- * `.toNumber()` / `parseFloat`. Product rule (unchanged, delegated to
+ * `.toNumber()` / `parseFloat`. Product rule (PD-001, delegated to
  * `calculateNetWorth`): `totalAset` = CASH/BANK/E_WALLET balances; `totalUtang` =
- * |CREDIT_CARD/LOAN_PAYLATER balances|; `netWorth` is the asset total only (debt
- * is reported separately in `totalUtang`, never subtracted). Structurally
+ * |CREDIT_CARD/LOAN_PAYLATER balances|; `netWorth` = `totalAset` − `totalUtang`
+ * (may be negative; components stay separately reported). Structurally
  * identical to the wallet query service's `WalletTotals`, kept as its own type so
  * the dashboard contract is self-contained.
  */

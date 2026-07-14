@@ -32,10 +32,10 @@ export function createDashboardQueryService(db: DashboardQueryPrismaClient) {
    * Net-worth dashboard summary for the caller, ownership-scoped. Reads every
    * wallet the user owns (archived included, as before — no `isArchived` filter)
    * selecting only `type` + `balance`, and delegates the Decimal arithmetic to
-   * `calculateNetWorth`. Product rule preserved verbatim: `totalAset` = asset
-   * balances, `totalUtang` = |debt balances|, `netWorth` = asset total only. A
-   * user with no wallets yields Decimal zeros (a valid, zeroed summary). Returns
-   * Decimals; the controller serializes at the response boundary.
+   * `calculateNetWorth`. Product rule (PD-001): `totalAset` = asset balances,
+   * `totalUtang` = |debt balances|, `netWorth` = totalAset − totalUtang (may be
+   * negative). A user with no wallets yields Decimal zeros (a valid, zeroed
+   * summary). Returns Decimals; the controller serializes at the response boundary.
    */
   async function getSummary(input: GetDashboardSummaryInput): Promise<DashboardSummaryResult> {
     const wallets = await db.wallet.findMany({

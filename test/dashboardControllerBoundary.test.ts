@@ -40,8 +40,10 @@ beforeEach(() => {
 
 describe('dashboard summary controller — boundary', () => {
   it('maps userId, calls getSummary once, serializes Decimals to the bare snake_case object, 200', async () => {
+    // Service-produced PD-001 values: netWorth = totalAset − totalUtang, negative
+    // preserved through serialization (never clamped or relabeled).
     h.queryService.getSummary.mockResolvedValue({
-      totalAset: D('350.75'), totalUtang: D('1300.5'), netWorth: D('350.75'),
+      totalAset: D('350.75'), totalUtang: D('1300.5'), netWorth: D('-949.75'),
     });
 
     const res = await request(buildApp()).get('/dashboard/summary');
@@ -50,7 +52,7 @@ describe('dashboard summary controller — boundary', () => {
     expect(h.queryService.getSummary).toHaveBeenCalledTimes(1);
     expect(h.queryService.getSummary).toHaveBeenCalledWith({ userId: USER });
     // Bare object, no success envelope, snake_case field names, numeric values.
-    expect(res.body).toEqual({ total_aset: 350.75, total_utang: 1300.5, net_worth: 350.75 });
+    expect(res.body).toEqual({ total_aset: 350.75, total_utang: 1300.5, net_worth: -949.75 });
     expect(res.body.success).toBeUndefined();
     // The handler must never touch the database directly.
     expect(h.prismaMock.wallet.findMany).not.toHaveBeenCalled();

@@ -28,9 +28,9 @@ export interface GetWalletSparklineInput {
 }
 /**
  * Net-worth totals carrying exact `Decimal` values (serialization to numbers is
- * the controller's job — one clear boundary). Product rule (unchanged): assets =
+ * the controller's job — one clear boundary). Product rule (PD-001): assets =
  * CASH/BANK/E_WALLET balances; debt = |CREDIT_CARD/LOAN_PAYLATER balances|;
- * `netWorth` is the asset total only (debt is reported separately, not subtracted).
+ * `netWorth` = assets − debt (may be negative; components stay separately reported).
  */
 export interface WalletTotals {
     totalAset: Prisma.Decimal;
