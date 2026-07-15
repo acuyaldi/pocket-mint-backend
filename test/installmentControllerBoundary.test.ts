@@ -9,13 +9,15 @@ const D = (n: number | string) => new Prisma.Decimal(n);
 // mock prisma so we can assert the handler never touches the database directly.
 const h = vi.hoisted(() => ({
   queryService: { listInstallments: vi.fn() },
+  paymentService: { payInstallment: vi.fn() },
   prismaMock: { installment: { findMany: vi.fn() } },
 }));
 
 vi.mock('../src/services/installment-query.service', () => ({ installmentQueryService: h.queryService }));
+vi.mock('../src/services/installment-payment.service', () => ({ installmentPaymentService: h.paymentService }));
 vi.mock('../src/lib/prisma', () => ({ default: h.prismaMock }));
 
-import { getInstallments, getPaylaterRates } from '../src/controllers/installment.controller';
+import { getInstallments, getPaylaterRates, payInstallment } from '../src/controllers/installment.controller';
 import { InstallmentError } from '../src/services/installment.errors';
 import { errorHandler } from '../src/middlewares/error.middleware';
 
@@ -30,8 +32,10 @@ function buildApp(injectUser = true): Express {
       next();
     });
   }
+  app.use(express.json());
   app.get('/installments', getInstallments);
   app.get('/installments/rates', getPaylaterRates);
+  app.post('/installments/:id/pay', payInstallment);
   app.use(errorHandler);
   return app;
 }
@@ -145,5 +149,71 @@ describe('installment controllers — boundary', () => {
     expect(res.body.message).toBe('Retrieved paylater rates');
     expect(res.body.data).toContainEqual({ match: 'kredivo', name: 'Kredivo', rate: 2.6, adminFee: 0 });
     expect(h.prismaMock.installment.findMany).not.toHaveBeenCalled();
+  });
+
+  it('payInstallment: maps auth, route id, and allowlisted body into the payment service', async () => {
+    h.paymentService.payInstallment.mockResolvedValue({
+      installment: {
+        ...makeRow({ currentTerm: 2, status: 'ACTIVE' }),
+        userId: USER,
+        wallet: { id: 'w1', name: 'Kredivo', type: 'LOAN_PAYLATER' },
+      },
+      transaction: {
+        id: 'tx-pay',
+        userId: USER,
+        walletId: 'asset-1',
+        toWalletId: 'w1',
+        type: 'TRANSFER',
+        amount: D(362833.33),
+        description: 'Pembayaran cicilan — Laptop',
+        note: null,
+        date: new Date('2026-07-15T00:00:00.000Z'),
+        isInstallment: false,
+        installmentMonths: null,
+        interestRate: null,
+        currentTerm: null,
+        installmentId: null,
+        categoryId: null,
+        createdAt: new Date('2026-07-15T00:00:00.000Z'),
+        updatedAt: new Date('2026-07-15T00:00:00.000Z'),
+        wallet: { id: 'asset-1', name: 'BCA Debit', type: 'BANK' },
+        toWallet: { id: 'w1', name: 'Kredivo', type: 'LOAN_PAYLATER' },
+      },
+    });
+
+    const res = await request(buildApp())
+      .post('/installments/inst-1/pay')
+      .send({
+        sourceWalletId: 'asset-1',
+        amount: 362833.33,
+        date: '2026-07-15',
+        ignored: 'field',
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe('Installment payment recorded');
+    expect(h.paymentService.payInstallment).toHaveBeenCalledWith({
+      userId: USER,
+      installmentId: 'inst-1',
+      sourceWalletId: 'asset-1',
+      amount: 362833.33,
+      date: '2026-07-15',
+    });
+    expect(res.body.data.installment.currentTerm).toBe(2);
+    expect(res.body.data.transaction.amount).toBe(362833.33);
+  });
+
+  it('payInstallment: forwards typed payment errors through the central handler', async () => {
+    h.paymentService.payInstallment.mockRejectedValue(
+      new InstallmentError('Saldo rekening sumber tidak cukup', 400, 'INSUFFICIENT_FUNDS'),
+    );
+
+    const res = await request(buildApp())
+      .post('/installments/inst-1/pay')
+      .send({ sourceWalletId: 'asset-1', amount: 362833.33 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INSUFFICIENT_FUNDS');
+    expect(res.body.error.message).toBe('Saldo rekening sumber tidak cukup');
   });
 });
