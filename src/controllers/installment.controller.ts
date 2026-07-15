@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { sendSuccess, sendError } from '../utils/response';
 import { installmentQueryService } from '../services/installment-query.service';
+import { installmentPaymentService } from '../services/installment-payment.service';
 import type { InstallmentListItem } from '../services/installment-query.types';
+import type { PayInstallmentResult } from '../services/installment-payment.types';
 import { getAuthenticatedUserId } from '../http/authContext';
 import { scalarString } from '../http/queryParsers';
 import { forwardError } from '../http/forwardError';
@@ -44,6 +46,16 @@ function serializeInstallment(inst: InstallmentListItem) {
   };
 }
 
+function serializePayment(result: PayInstallmentResult) {
+  return {
+    installment: serializeInstallment(result.installment),
+    transaction: {
+      ...result.transaction,
+      amount: parseFloat(result.transaction.amount.toString()),
+    },
+  };
+}
+
 /**
  * GET /api/v1/installments/rates
  * Static paylater provider rates (bunga %/bulan + biaya admin %). No identity and
@@ -75,6 +87,31 @@ export async function getInstallments(req: Request, res: Response, next: NextFun
     });
 
     return sendSuccess(res, installments.map(serializeInstallment), 'Retrieved installments');
+  } catch (err) {
+    return forwardError(err, res, next);
+  }
+}
+
+export async function payInstallment(
+  req: Request<{ id: string }, unknown, { sourceWalletId?: string; amount?: number | string; date?: string }>,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return sendError(res, 'Unauthorized', 401);
+    }
+
+    const paid = await installmentPaymentService.payInstallment({
+      userId,
+      installmentId: req.params.id,
+      sourceWalletId: req.body.sourceWalletId ?? '',
+      amount: req.body.amount ?? '',
+      date: req.body.date,
+    });
+
+    return sendSuccess(res, serializePayment(paid), 'Installment payment recorded');
   } catch (err) {
     return forwardError(err, res, next);
   }

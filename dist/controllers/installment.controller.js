@@ -2,8 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPaylaterRates = getPaylaterRates;
 exports.getInstallments = getInstallments;
+exports.payInstallment = payInstallment;
 const response_1 = require("../utils/response");
 const installment_query_service_1 = require("../services/installment-query.service");
+const installment_payment_service_1 = require("../services/installment-payment.service");
 const authContext_1 = require("../http/authContext");
 const queryParsers_1 = require("../http/queryParsers");
 const forwardError_1 = require("../http/forwardError");
@@ -43,6 +45,15 @@ function serializeInstallment(inst) {
         balanceDeducted: inst.balanceDeducted,
     };
 }
+function serializePayment(result) {
+    return {
+        installment: serializeInstallment(result.installment),
+        transaction: {
+            ...result.transaction,
+            amount: parseFloat(result.transaction.amount.toString()),
+        },
+    };
+}
 /**
  * GET /api/v1/installments/rates
  * Static paylater provider rates (bunga %/bulan + biaya admin %). No identity and
@@ -71,6 +82,25 @@ async function getInstallments(req, res, next) {
             status: (0, queryParsers_1.scalarString)(req.query.status),
         });
         return (0, response_1.sendSuccess)(res, installments.map(serializeInstallment), 'Retrieved installments');
+    }
+    catch (err) {
+        return (0, forwardError_1.forwardError)(err, res, next);
+    }
+}
+async function payInstallment(req, res, next) {
+    try {
+        const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+        if (!userId) {
+            return (0, response_1.sendError)(res, 'Unauthorized', 401);
+        }
+        const paid = await installment_payment_service_1.installmentPaymentService.payInstallment({
+            userId,
+            installmentId: req.params.id,
+            sourceWalletId: req.body.sourceWalletId ?? '',
+            amount: req.body.amount ?? '',
+            date: req.body.date,
+        });
+        return (0, response_1.sendSuccess)(res, serializePayment(paid), 'Installment payment recorded');
     }
     catch (err) {
         return (0, forwardError_1.forwardError)(err, res, next);

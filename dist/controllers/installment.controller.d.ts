@@ -15,4 +15,11 @@ export declare function getPaylaterRates(_req: Request, res: Response): void;
  * central handler). The service — never this handler — touches Prisma.
  */
 export declare function getInstallments(req: Request, res: Response, next: NextFunction): Promise<void>;
+export declare function payInstallment(req: Request<{
+    id: string;
+}, unknown, {
+    sourceWalletId?: string;
+    amount?: number | string;
+    date?: string;
+}>, res: Response, next: NextFunction): Promise<void>;
 //# sourceMappingURL=installment.controller.d.ts.map
