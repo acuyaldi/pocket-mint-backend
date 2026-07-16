@@ -117,10 +117,19 @@ export function createTransactionService(db: TransactionPrismaClient) {
       }
     }
 
+    if (type === 'TRANSFER' && categoryId) {
+      throw new TransactionError('Transfer tidak menggunakan kategori', 400, 'BAD_REQUEST');
+    }
+    if (type !== 'TRANSFER' && !categoryId) {
+      throw new TransactionError('categoryId wajib diisi untuk pemasukan dan pengeluaran', 400, 'BAD_REQUEST');
+    }
     if (categoryId) {
       const category = await db.category.findFirst({ where: { id: categoryId, userId } });
       if (!category) {
         throw new TransactionError('Kategori tidak ditemukan', 404, 'NOT_FOUND');
+      }
+      if (category.type !== type) {
+        throw new TransactionError('Tipe kategori tidak sesuai dengan tipe transaksi', 400, 'BAD_REQUEST');
       }
     }
 
@@ -352,12 +361,21 @@ export function createTransactionService(db: TransactionPrismaClient) {
       }
     }
 
-    // Same ownership invariant as create: a newly assigned category must belong
-    // to the caller. Clearing (empty/null) stays exempt — it references nothing.
+    if (newType === 'TRANSFER' && categoryId) {
+      throw new TransactionError('Transfer tidak menggunakan kategori', 400, 'BAD_REQUEST');
+    }
+    if (newType !== 'TRANSFER' && categoryId !== undefined && !categoryId) {
+      throw new TransactionError('categoryId wajib diisi untuk pemasukan dan pengeluaran', 400, 'BAD_REQUEST');
+    }
+
+    // Same ownership and type invariant as create.
     if (categoryId) {
       const category = await db.category.findFirst({ where: { id: categoryId, userId } });
       if (!category) {
         throw new TransactionError('Kategori tidak ditemukan', 404, 'NOT_FOUND');
+      }
+      if (category.type !== newType) {
+        throw new TransactionError('Tipe kategori tidak sesuai dengan tipe transaksi', 400, 'BAD_REQUEST');
       }
     }
 
@@ -381,7 +399,9 @@ export function createTransactionService(db: TransactionPrismaClient) {
             ...(amount !== undefined && { amount: newAmount }),
             ...(description !== undefined && { description }),
             ...(parsedDate && { date: parsedDate }),
-            ...(categoryId !== undefined && { categoryId: categoryId || null }),
+            ...(newType === 'TRANSFER'
+              ? { categoryId: null }
+              : categoryId !== undefined && { categoryId }),
             ...(walletId !== undefined && { walletId }),
             toWalletId: newToWalletId,
           },

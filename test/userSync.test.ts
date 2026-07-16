@@ -4,8 +4,15 @@ import request from 'supertest';
 import { SECRET, ISSUER, mint, validClaims, applyEnv } from './helpers';
 
 // prisma is mocked; create/findUnique behaviour is set per test.
-const { create, findUnique } = vi.hoisted(() => ({ create: vi.fn(), findUnique: vi.fn() }));
+const { create, findUnique, ensureDefaultCategories } = vi.hoisted(() => ({
+  create: vi.fn(),
+  findUnique: vi.fn(),
+  ensureDefaultCategories: vi.fn(),
+}));
 vi.mock('../src/lib/prisma', () => ({ default: { user: { create, findUnique } } }));
+vi.mock('../src/services/category.service', () => ({
+  categoryService: { ensureDefaultCategories },
+}));
 
 /** A row as Prisma returns it under the controller's fixed `userSelect`. */
 const SAFE_USER = {
@@ -41,6 +48,8 @@ async function buildApp(overrides: Record<string, string | undefined> = {}): Pro
 beforeEach(() => {
   create.mockReset();
   findUnique.mockReset();
+  ensureDefaultCategories.mockReset();
+  ensureDefaultCategories.mockResolvedValue(undefined);
 });
 
 describe('POST /users/sync — verified-JWT bootstrap identity', () => {
@@ -75,6 +84,18 @@ describe('POST /users/sync — verified-JWT bootstrap identity', () => {
     expect(res.body).toEqual({ success: true, data: SAFE_USER, message: 'User already exists' });
     expect(create).not.toHaveBeenCalled();
     expect(findUnique.mock.calls[0][0]).toEqual({ where: { id: 'u1' }, select: expect.any(Object) });
+    expect(ensureDefaultCategories).toHaveBeenCalledWith('u1');
+  });
+
+  it('creates default categories for a newly synchronized user', async () => {
+    findUnique.mockResolvedValue(null);
+    create.mockResolvedValue(SAFE_USER);
+    const app = await buildApp();
+    const token = await mint(validClaims);
+
+    await request(app).post('/sync').set('Authorization', `Bearer ${token}`).send({ name: 'A' });
+
+    expect(ensureDefaultCategories).toHaveBeenCalledWith('u1');
   });
 
   it('ignores a body supabaseId — a caller can never sync another user', async () => {

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import prisma from "../lib/prisma";
 import { sendSuccess, sendError } from "../utils/response";
 import { getAuthenticatedUserId } from "../http/authContext";
+import { categoryService } from "../services/category.service";
 
 /**
  * Explicit response projection for a user. Using a fixed `select` (never
@@ -58,6 +59,7 @@ export class UserController {
         select: userSelect,
       });
       if (existing) {
+        await categoryService.ensureDefaultCategories(userId);
         return sendSuccess(res, existing, "User already exists");
       }
 
@@ -66,6 +68,8 @@ export class UserController {
         data: { id: userId, email, name },
         select: userSelect,
       });
+
+      await categoryService.ensureDefaultCategories(userId);
 
       sendSuccess(res, user, "User synced successfully", 201);
     } catch (err) {

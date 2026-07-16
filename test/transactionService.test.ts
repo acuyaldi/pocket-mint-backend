@@ -59,7 +59,13 @@ function makeDb(opts: FakeOptions = {}) {
 
   const db = {
     wallet: { findFirst: vi.fn() },
-    category: { findFirst: vi.fn() },
+    category: {
+      findFirst: vi.fn(async ({ where }: any) => ({
+        id: where.id,
+        userId: where.userId,
+        type: String(where.id).includes('income') ? 'INCOME' : 'EXPENSE',
+      })),
+    },
     transaction: { findFirst: vi.fn() },
     installment: {},
     $transaction: vi.fn(async (cb: (tx: any) => Promise<unknown>) => {
@@ -79,9 +85,54 @@ function makeDb(opts: FakeOptions = {}) {
 const ownedWallets = (map: Record<string, Record<string, unknown>>) =>
   vi.fn(async ({ where }: any) => (map[where.id] ? { id: where.id, ...map[where.id] } : null));
 
-const svc = (db: unknown) => createTransactionService(db as TransactionPrismaClient);
+const svc = (db: unknown) => {
+  const service = createTransactionService(db as TransactionPrismaClient);
+  return {
+    ...service,
+    createTransaction: (input: Parameters<typeof service.createTransaction>[0]) =>
+      service.createTransaction({
+        ...input,
+        ...(input.type !== 'TRANSFER' && !input.categoryId
+          ? { categoryId: input.type === 'INCOME' ? 'cat-income' : 'cat-expense' }
+          : {}),
+      }),
+  };
+};
 
 describe('transactionService.createTransaction', () => {
+  it('requires a category for income and expense', async () => {
+    const { db, committed } = makeDb();
+    db.wallet.findFirst = ownedWallets({ cash: { type: 'CASH', balance: D(1000) } });
+
+    await expect(createTransactionService(db as TransactionPrismaClient).createTransaction({
+      userId: 'u', type: 'EXPENSE', amount: 100, walletId: 'cash',
+    })).rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
+    expect(committed).toHaveLength(0);
+  });
+
+  it('requires the category type to match the transaction type', async () => {
+    const { db, committed } = makeDb();
+    db.wallet.findFirst = ownedWallets({ cash: { type: 'CASH', balance: D(1000) } });
+    db.category.findFirst = vi.fn(async () => ({ id: 'income-cat', userId: 'u', type: 'INCOME' }));
+
+    await expect(createTransactionService(db as TransactionPrismaClient).createTransaction({
+      userId: 'u', type: 'EXPENSE', amount: 100, walletId: 'cash', categoryId: 'income-cat',
+    })).rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
+    expect(committed).toHaveLength(0);
+  });
+
+  it('rejects a category on transfers', async () => {
+    const { db, committed } = makeDb();
+    db.wallet.findFirst = ownedWallets({
+      src: { type: 'BANK', balance: D(1000) }, dst: { type: 'LOAN', balance: D(-500) },
+    });
+
+    await expect(createTransactionService(db as TransactionPrismaClient).createTransaction({
+      userId: 'u', type: 'TRANSFER', amount: 100, walletId: 'src', toWalletId: 'dst', categoryId: 'cat-expense',
+    })).rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
+    expect(committed).toHaveLength(0);
+  });
+
   it('creates an INCOME and credits the wallet', async () => {
     const { db, net } = makeDb();
     db.wallet.findFirst = ownedWallets({ w1: { type: 'CASH' } });
@@ -388,20 +439,32 @@ describe('transactionService.updateTransaction', () => {
     db.transaction.findFirst = vi.fn(async () => ({
       id: 't1', type: 'EXPENSE', amount: D(100), walletId: 'w1', toWalletId: null, isInstallment: false,
     }));
-    db.category.findFirst = vi.fn(async ({ where }: any) => ({ id: where.id, userId: where.userId }));
+    db.category.findFirst = vi.fn(async ({ where }: any) => ({ id: where.id, userId: where.userId, type: 'EXPENSE' }));
     const updated = await svc(db).updateTransaction({ userId: 'u', id: 't1', categoryId: 'c1' });
     expect((updated as any).categoryId).toBe('c1');
   });
 
-  it('clears the category without an ownership lookup', async () => {
+  it('rejects clearing the required category on an expense', async () => {
     const { db } = makeDb();
     db.transaction.findFirst = vi.fn(async () => ({
       id: 't1', type: 'EXPENSE', amount: D(100), walletId: 'w1', toWalletId: null, isInstallment: false,
     }));
     db.category.findFirst = vi.fn();
-    const updated = await svc(db).updateTransaction({ userId: 'u', id: 't1', categoryId: '' });
-    expect((updated as any).categoryId).toBeNull();
+    await expect(svc(db).updateTransaction({ userId: 'u', id: 't1', categoryId: '' }))
+      .rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
     expect(db.category.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('rejects an update category whose type does not match the transaction', async () => {
+    const { db } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'EXPENSE', amount: D(100), walletId: 'w1', toWalletId: null, isInstallment: false,
+    }));
+    db.category.findFirst = vi.fn(async () => ({ id: 'income-cat', userId: 'u', type: 'INCOME' }));
+
+    await expect(svc(db).updateTransaction({ userId: 'u', id: 't1', categoryId: 'income-cat' }))
+      .rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
+    expect(db.$transaction).not.toHaveBeenCalled();
   });
 });
 
