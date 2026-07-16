@@ -53,7 +53,8 @@ export namespace $Enums {
   BANK: 'BANK',
   E_WALLET: 'E_WALLET',
   CREDIT_CARD: 'CREDIT_CARD',
-  LOAN_PAYLATER: 'LOAN_PAYLATER'
+  PAYLATER: 'PAYLATER',
+  LOAN: 'LOAN'
 };
 
 export type WalletType = (typeof WalletType)[keyof typeof WalletType]
@@ -92,6 +93,14 @@ export const InstallmentStatus: {
 
 export type InstallmentStatus = (typeof InstallmentStatus)[keyof typeof InstallmentStatus]
 
+
+export const BillKind: {
+  FULL: 'FULL',
+  INSTALLMENT: 'INSTALLMENT'
+};
+
+export type BillKind = (typeof BillKind)[keyof typeof BillKind]
+
 }
 
 export type WalletType = $Enums.WalletType
@@ -113,6 +122,10 @@ export const AdminFeeType: typeof $Enums.AdminFeeType
 export type InstallmentStatus = $Enums.InstallmentStatus
 
 export const InstallmentStatus: typeof $Enums.InstallmentStatus
+
+export type BillKind = $Enums.BillKind
+
+export const BillKind: typeof $Enums.BillKind
 
 /**
  * ##  Prisma Client ʲˢ
@@ -2804,6 +2817,8 @@ export namespace Prisma {
     initialBalance: Decimal | null
     interestRate: Decimal | null
     adminFee: Decimal | null
+    cutoffDay: number | null
+    paymentDueDay: number | null
   }
 
   export type WalletSumAggregateOutputType = {
@@ -2812,6 +2827,8 @@ export namespace Prisma {
     initialBalance: Decimal | null
     interestRate: Decimal | null
     adminFee: Decimal | null
+    cutoffDay: number | null
+    paymentDueDay: number | null
   }
 
   export type WalletMinAggregateOutputType = {
@@ -2828,6 +2845,8 @@ export namespace Prisma {
     isArchived: boolean | null
     adminFee: Decimal | null
     adminFeeType: $Enums.AdminFeeType | null
+    cutoffDay: number | null
+    paymentDueDay: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -2846,6 +2865,8 @@ export namespace Prisma {
     isArchived: boolean | null
     adminFee: Decimal | null
     adminFeeType: $Enums.AdminFeeType | null
+    cutoffDay: number | null
+    paymentDueDay: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -2864,6 +2885,8 @@ export namespace Prisma {
     isArchived: number
     adminFee: number
     adminFeeType: number
+    cutoffDay: number
+    paymentDueDay: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -2876,6 +2899,8 @@ export namespace Prisma {
     initialBalance?: true
     interestRate?: true
     adminFee?: true
+    cutoffDay?: true
+    paymentDueDay?: true
   }
 
   export type WalletSumAggregateInputType = {
@@ -2884,6 +2909,8 @@ export namespace Prisma {
     initialBalance?: true
     interestRate?: true
     adminFee?: true
+    cutoffDay?: true
+    paymentDueDay?: true
   }
 
   export type WalletMinAggregateInputType = {
@@ -2900,6 +2927,8 @@ export namespace Prisma {
     isArchived?: true
     adminFee?: true
     adminFeeType?: true
+    cutoffDay?: true
+    paymentDueDay?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -2918,6 +2947,8 @@ export namespace Prisma {
     isArchived?: true
     adminFee?: true
     adminFeeType?: true
+    cutoffDay?: true
+    paymentDueDay?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -2936,6 +2967,8 @@ export namespace Prisma {
     isArchived?: true
     adminFee?: true
     adminFeeType?: true
+    cutoffDay?: true
+    paymentDueDay?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -3041,6 +3074,8 @@ export namespace Prisma {
     isArchived: boolean
     adminFee: Decimal
     adminFeeType: $Enums.AdminFeeType
+    cutoffDay: number | null
+    paymentDueDay: number | null
     createdAt: Date
     updatedAt: Date
     _count: WalletCountAggregateOutputType | null
@@ -3078,6 +3113,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: boolean
     adminFeeType?: boolean
+    cutoffDay?: boolean
+    paymentDueDay?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -3103,6 +3140,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: boolean
     adminFeeType?: boolean
+    cutoffDay?: boolean
+    paymentDueDay?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -3122,6 +3161,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: boolean
     adminFeeType?: boolean
+    cutoffDay?: boolean
+    paymentDueDay?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -3141,11 +3182,13 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: boolean
     adminFeeType?: boolean
+    cutoffDay?: boolean
+    paymentDueDay?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type WalletOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "type" | "balance" | "creditLimit" | "initialBalance" | "icon" | "color" | "interestRate" | "isArchived" | "adminFee" | "adminFeeType" | "createdAt" | "updatedAt", ExtArgs["result"]["wallet"]>
+  export type WalletOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "type" | "balance" | "creditLimit" | "initialBalance" | "icon" | "color" | "interestRate" | "isArchived" | "adminFee" | "adminFeeType" | "cutoffDay" | "paymentDueDay" | "createdAt" | "updatedAt", ExtArgs["result"]["wallet"]>
   export type WalletInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     transactions?: boolean | Wallet$transactionsArgs<ExtArgs>
@@ -3186,6 +3229,8 @@ export namespace Prisma {
       isArchived: boolean
       adminFee: Prisma.Decimal
       adminFeeType: $Enums.AdminFeeType
+      cutoffDay: number | null
+      paymentDueDay: number | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["wallet"]>
@@ -3630,6 +3675,8 @@ export namespace Prisma {
     readonly isArchived: FieldRef<"Wallet", 'Boolean'>
     readonly adminFee: FieldRef<"Wallet", 'Decimal'>
     readonly adminFeeType: FieldRef<"Wallet", 'AdminFeeType'>
+    readonly cutoffDay: FieldRef<"Wallet", 'Int'>
+    readonly paymentDueDay: FieldRef<"Wallet", 'Int'>
     readonly createdAt: FieldRef<"Wallet", 'DateTime'>
     readonly updatedAt: FieldRef<"Wallet", 'DateTime'>
   }
@@ -6615,6 +6662,7 @@ export namespace Prisma {
     installmentMonths: number | null
     currentTerm: number | null
     monthlyAmount: Decimal | null
+    paidTerms: number | null
   }
 
   export type InstallmentSumAggregateOutputType = {
@@ -6627,6 +6675,7 @@ export namespace Prisma {
     installmentMonths: number | null
     currentTerm: number | null
     monthlyAmount: Decimal | null
+    paidTerms: number | null
   }
 
   export type InstallmentMinAggregateOutputType = {
@@ -6643,6 +6692,9 @@ export namespace Prisma {
     installmentMonths: number | null
     currentTerm: number | null
     monthlyAmount: Decimal | null
+    kind: $Enums.BillKind | null
+    paidTerms: number | null
+    nextDueDate: Date | null
     status: $Enums.InstallmentStatus | null
     startDate: Date | null
     description: string | null
@@ -6665,6 +6717,9 @@ export namespace Prisma {
     installmentMonths: number | null
     currentTerm: number | null
     monthlyAmount: Decimal | null
+    kind: $Enums.BillKind | null
+    paidTerms: number | null
+    nextDueDate: Date | null
     status: $Enums.InstallmentStatus | null
     startDate: Date | null
     description: string | null
@@ -6687,6 +6742,9 @@ export namespace Prisma {
     installmentMonths: number
     currentTerm: number
     monthlyAmount: number
+    kind: number
+    paidTerms: number
+    nextDueDate: number
     status: number
     startDate: number
     description: number
@@ -6707,6 +6765,7 @@ export namespace Prisma {
     installmentMonths?: true
     currentTerm?: true
     monthlyAmount?: true
+    paidTerms?: true
   }
 
   export type InstallmentSumAggregateInputType = {
@@ -6719,6 +6778,7 @@ export namespace Prisma {
     installmentMonths?: true
     currentTerm?: true
     monthlyAmount?: true
+    paidTerms?: true
   }
 
   export type InstallmentMinAggregateInputType = {
@@ -6735,6 +6795,9 @@ export namespace Prisma {
     installmentMonths?: true
     currentTerm?: true
     monthlyAmount?: true
+    kind?: true
+    paidTerms?: true
+    nextDueDate?: true
     status?: true
     startDate?: true
     description?: true
@@ -6757,6 +6820,9 @@ export namespace Prisma {
     installmentMonths?: true
     currentTerm?: true
     monthlyAmount?: true
+    kind?: true
+    paidTerms?: true
+    nextDueDate?: true
     status?: true
     startDate?: true
     description?: true
@@ -6779,6 +6845,9 @@ export namespace Prisma {
     installmentMonths?: true
     currentTerm?: true
     monthlyAmount?: true
+    kind?: true
+    paidTerms?: true
+    nextDueDate?: true
     status?: true
     startDate?: true
     description?: true
@@ -6888,6 +6957,9 @@ export namespace Prisma {
     installmentMonths: number
     currentTerm: number
     monthlyAmount: Decimal
+    kind: $Enums.BillKind
+    paidTerms: number
+    nextDueDate: Date
     status: $Enums.InstallmentStatus
     startDate: Date
     description: string | null
@@ -6929,6 +7001,9 @@ export namespace Prisma {
     installmentMonths?: boolean
     currentTerm?: boolean
     monthlyAmount?: boolean
+    kind?: boolean
+    paidTerms?: boolean
+    nextDueDate?: boolean
     status?: boolean
     startDate?: boolean
     description?: boolean
@@ -6955,6 +7030,9 @@ export namespace Prisma {
     installmentMonths?: boolean
     currentTerm?: boolean
     monthlyAmount?: boolean
+    kind?: boolean
+    paidTerms?: boolean
+    nextDueDate?: boolean
     status?: boolean
     startDate?: boolean
     description?: boolean
@@ -6979,6 +7057,9 @@ export namespace Prisma {
     installmentMonths?: boolean
     currentTerm?: boolean
     monthlyAmount?: boolean
+    kind?: boolean
+    paidTerms?: boolean
+    nextDueDate?: boolean
     status?: boolean
     startDate?: boolean
     description?: boolean
@@ -7003,6 +7084,9 @@ export namespace Prisma {
     installmentMonths?: boolean
     currentTerm?: boolean
     monthlyAmount?: boolean
+    kind?: boolean
+    paidTerms?: boolean
+    nextDueDate?: boolean
     status?: boolean
     startDate?: boolean
     description?: boolean
@@ -7011,7 +7095,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type InstallmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "walletId" | "totalAmount" | "interestRate" | "totalInterest" | "adminFee" | "adminFeeType" | "totalAdminFee" | "grandTotal" | "installmentMonths" | "currentTerm" | "monthlyAmount" | "status" | "startDate" | "description" | "balanceDeducted" | "createdAt" | "updatedAt", ExtArgs["result"]["installment"]>
+  export type InstallmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "walletId" | "totalAmount" | "interestRate" | "totalInterest" | "adminFee" | "adminFeeType" | "totalAdminFee" | "grandTotal" | "installmentMonths" | "currentTerm" | "monthlyAmount" | "kind" | "paidTerms" | "nextDueDate" | "status" | "startDate" | "description" | "balanceDeducted" | "createdAt" | "updatedAt", ExtArgs["result"]["installment"]>
   export type InstallmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     wallet?: boolean | WalletDefaultArgs<ExtArgs>
@@ -7048,6 +7132,9 @@ export namespace Prisma {
       installmentMonths: number
       currentTerm: number
       monthlyAmount: Prisma.Decimal
+      kind: $Enums.BillKind
+      paidTerms: number
+      nextDueDate: Date
       status: $Enums.InstallmentStatus
       startDate: Date
       description: string | null
@@ -7493,6 +7580,9 @@ export namespace Prisma {
     readonly installmentMonths: FieldRef<"Installment", 'Int'>
     readonly currentTerm: FieldRef<"Installment", 'Int'>
     readonly monthlyAmount: FieldRef<"Installment", 'Decimal'>
+    readonly kind: FieldRef<"Installment", 'BillKind'>
+    readonly paidTerms: FieldRef<"Installment", 'Int'>
+    readonly nextDueDate: FieldRef<"Installment", 'DateTime'>
     readonly status: FieldRef<"Installment", 'InstallmentStatus'>
     readonly startDate: FieldRef<"Installment", 'DateTime'>
     readonly description: FieldRef<"Installment", 'String'>
@@ -9134,6 +9224,8 @@ export namespace Prisma {
     isArchived: 'isArchived',
     adminFee: 'adminFee',
     adminFeeType: 'adminFeeType',
+    cutoffDay: 'cutoffDay',
+    paymentDueDay: 'paymentDueDay',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -9188,6 +9280,9 @@ export namespace Prisma {
     installmentMonths: 'installmentMonths',
     currentTerm: 'currentTerm',
     monthlyAmount: 'monthlyAmount',
+    kind: 'kind',
+    paidTerms: 'paidTerms',
+    nextDueDate: 'nextDueDate',
     status: 'status',
     startDate: 'startDate',
     description: 'description',
@@ -9320,6 +9415,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Int'
+   */
+  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+  /**
+   * Reference to a field of type 'Int[]'
+   */
+  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+  /**
    * Reference to a field of type 'CategoryType'
    */
   export type EnumCategoryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CategoryType'>
@@ -9348,16 +9457,16 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'Int'
+   * Reference to a field of type 'BillKind'
    */
-  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+  export type EnumBillKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BillKind'>
     
 
 
   /**
-   * Reference to a field of type 'Int[]'
+   * Reference to a field of type 'BillKind[]'
    */
-  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+  export type ListEnumBillKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BillKind[]'>
     
 
 
@@ -9481,6 +9590,8 @@ export namespace Prisma {
     isArchived?: BoolFilter<"Wallet"> | boolean
     adminFee?: DecimalFilter<"Wallet"> | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFilter<"Wallet"> | $Enums.AdminFeeType
+    cutoffDay?: IntNullableFilter<"Wallet"> | number | null
+    paymentDueDay?: IntNullableFilter<"Wallet"> | number | null
     createdAt?: DateTimeFilter<"Wallet"> | Date | string
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -9505,6 +9616,8 @@ export namespace Prisma {
     isArchived?: SortOrder
     adminFee?: SortOrder
     adminFeeType?: SortOrder
+    cutoffDay?: SortOrderInput | SortOrder
+    paymentDueDay?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
@@ -9532,6 +9645,8 @@ export namespace Prisma {
     isArchived?: BoolFilter<"Wallet"> | boolean
     adminFee?: DecimalFilter<"Wallet"> | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFilter<"Wallet"> | $Enums.AdminFeeType
+    cutoffDay?: IntNullableFilter<"Wallet"> | number | null
+    paymentDueDay?: IntNullableFilter<"Wallet"> | number | null
     createdAt?: DateTimeFilter<"Wallet"> | Date | string
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -9556,6 +9671,8 @@ export namespace Prisma {
     isArchived?: SortOrder
     adminFee?: SortOrder
     adminFeeType?: SortOrder
+    cutoffDay?: SortOrderInput | SortOrder
+    paymentDueDay?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: WalletCountOrderByAggregateInput
@@ -9582,6 +9699,8 @@ export namespace Prisma {
     isArchived?: BoolWithAggregatesFilter<"Wallet"> | boolean
     adminFee?: DecimalWithAggregatesFilter<"Wallet"> | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeWithAggregatesFilter<"Wallet"> | $Enums.AdminFeeType
+    cutoffDay?: IntNullableWithAggregatesFilter<"Wallet"> | number | null
+    paymentDueDay?: IntNullableWithAggregatesFilter<"Wallet"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"Wallet"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Wallet"> | Date | string
   }
@@ -9786,6 +9905,9 @@ export namespace Prisma {
     installmentMonths?: IntFilter<"Installment"> | number
     currentTerm?: IntFilter<"Installment"> | number
     monthlyAmount?: DecimalFilter<"Installment"> | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFilter<"Installment"> | $Enums.BillKind
+    paidTerms?: IntFilter<"Installment"> | number
+    nextDueDate?: DateTimeFilter<"Installment"> | Date | string
     status?: EnumInstallmentStatusFilter<"Installment"> | $Enums.InstallmentStatus
     startDate?: DateTimeFilter<"Installment"> | Date | string
     description?: StringNullableFilter<"Installment"> | string | null
@@ -9811,6 +9933,9 @@ export namespace Prisma {
     installmentMonths?: SortOrder
     currentTerm?: SortOrder
     monthlyAmount?: SortOrder
+    kind?: SortOrder
+    paidTerms?: SortOrder
+    nextDueDate?: SortOrder
     status?: SortOrder
     startDate?: SortOrder
     description?: SortOrderInput | SortOrder
@@ -9839,6 +9964,9 @@ export namespace Prisma {
     installmentMonths?: IntFilter<"Installment"> | number
     currentTerm?: IntFilter<"Installment"> | number
     monthlyAmount?: DecimalFilter<"Installment"> | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFilter<"Installment"> | $Enums.BillKind
+    paidTerms?: IntFilter<"Installment"> | number
+    nextDueDate?: DateTimeFilter<"Installment"> | Date | string
     status?: EnumInstallmentStatusFilter<"Installment"> | $Enums.InstallmentStatus
     startDate?: DateTimeFilter<"Installment"> | Date | string
     description?: StringNullableFilter<"Installment"> | string | null
@@ -9864,6 +9992,9 @@ export namespace Prisma {
     installmentMonths?: SortOrder
     currentTerm?: SortOrder
     monthlyAmount?: SortOrder
+    kind?: SortOrder
+    paidTerms?: SortOrder
+    nextDueDate?: SortOrder
     status?: SortOrder
     startDate?: SortOrder
     description?: SortOrderInput | SortOrder
@@ -9894,6 +10025,9 @@ export namespace Prisma {
     installmentMonths?: IntWithAggregatesFilter<"Installment"> | number
     currentTerm?: IntWithAggregatesFilter<"Installment"> | number
     monthlyAmount?: DecimalWithAggregatesFilter<"Installment"> | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindWithAggregatesFilter<"Installment"> | $Enums.BillKind
+    paidTerms?: IntWithAggregatesFilter<"Installment"> | number
+    nextDueDate?: DateTimeWithAggregatesFilter<"Installment"> | Date | string
     status?: EnumInstallmentStatusWithAggregatesFilter<"Installment"> | $Enums.InstallmentStatus
     startDate?: DateTimeWithAggregatesFilter<"Installment"> | Date | string
     description?: StringNullableWithAggregatesFilter<"Installment"> | string | null
@@ -10076,6 +10210,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutWalletsInput
@@ -10100,6 +10236,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
@@ -10122,6 +10260,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutWalletsNestedInput
@@ -10146,6 +10286,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
@@ -10169,6 +10311,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -10186,6 +10330,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -10204,6 +10350,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -10407,6 +10555,9 @@ export namespace Prisma {
     installmentMonths: number
     currentTerm?: number
     monthlyAmount: Decimal | DecimalJsLike | number | string
+    kind?: $Enums.BillKind
+    paidTerms?: number
+    nextDueDate: Date | string
     status?: $Enums.InstallmentStatus
     startDate: Date | string
     description?: string | null
@@ -10432,6 +10583,9 @@ export namespace Prisma {
     installmentMonths: number
     currentTerm?: number
     monthlyAmount: Decimal | DecimalJsLike | number | string
+    kind?: $Enums.BillKind
+    paidTerms?: number
+    nextDueDate: Date | string
     status?: $Enums.InstallmentStatus
     startDate: Date | string
     description?: string | null
@@ -10453,6 +10607,9 @@ export namespace Prisma {
     installmentMonths?: IntFieldUpdateOperationsInput | number
     currentTerm?: IntFieldUpdateOperationsInput | number
     monthlyAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFieldUpdateOperationsInput | $Enums.BillKind
+    paidTerms?: IntFieldUpdateOperationsInput | number
+    nextDueDate?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10478,6 +10635,9 @@ export namespace Prisma {
     installmentMonths?: IntFieldUpdateOperationsInput | number
     currentTerm?: IntFieldUpdateOperationsInput | number
     monthlyAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFieldUpdateOperationsInput | $Enums.BillKind
+    paidTerms?: IntFieldUpdateOperationsInput | number
+    nextDueDate?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10501,6 +10661,9 @@ export namespace Prisma {
     installmentMonths: number
     currentTerm?: number
     monthlyAmount: Decimal | DecimalJsLike | number | string
+    kind?: $Enums.BillKind
+    paidTerms?: number
+    nextDueDate: Date | string
     status?: $Enums.InstallmentStatus
     startDate: Date | string
     description?: string | null
@@ -10521,6 +10684,9 @@ export namespace Prisma {
     installmentMonths?: IntFieldUpdateOperationsInput | number
     currentTerm?: IntFieldUpdateOperationsInput | number
     monthlyAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFieldUpdateOperationsInput | $Enums.BillKind
+    paidTerms?: IntFieldUpdateOperationsInput | number
+    nextDueDate?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10543,6 +10709,9 @@ export namespace Prisma {
     installmentMonths?: IntFieldUpdateOperationsInput | number
     currentTerm?: IntFieldUpdateOperationsInput | number
     monthlyAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFieldUpdateOperationsInput | $Enums.BillKind
+    paidTerms?: IntFieldUpdateOperationsInput | number
+    nextDueDate?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -10828,6 +10997,17 @@ export namespace Prisma {
     not?: NestedEnumAdminFeeTypeFilter<$PrismaModel> | $Enums.AdminFeeType
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
   export type UserScalarRelationFilter = {
     is?: UserWhereInput
     isNot?: UserWhereInput
@@ -10847,6 +11027,8 @@ export namespace Prisma {
     isArchived?: SortOrder
     adminFee?: SortOrder
     adminFeeType?: SortOrder
+    cutoffDay?: SortOrder
+    paymentDueDay?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -10857,6 +11039,8 @@ export namespace Prisma {
     initialBalance?: SortOrder
     interestRate?: SortOrder
     adminFee?: SortOrder
+    cutoffDay?: SortOrder
+    paymentDueDay?: SortOrder
   }
 
   export type WalletMaxOrderByAggregateInput = {
@@ -10873,6 +11057,8 @@ export namespace Prisma {
     isArchived?: SortOrder
     adminFee?: SortOrder
     adminFeeType?: SortOrder
+    cutoffDay?: SortOrder
+    paymentDueDay?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -10891,6 +11077,8 @@ export namespace Prisma {
     isArchived?: SortOrder
     adminFee?: SortOrder
     adminFeeType?: SortOrder
+    cutoffDay?: SortOrder
+    paymentDueDay?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -10901,6 +11089,8 @@ export namespace Prisma {
     initialBalance?: SortOrder
     interestRate?: SortOrder
     adminFee?: SortOrder
+    cutoffDay?: SortOrder
+    paymentDueDay?: SortOrder
   }
 
   export type EnumWalletTypeWithAggregatesFilter<$PrismaModel = never> = {
@@ -10945,6 +11135,22 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumAdminFeeTypeFilter<$PrismaModel>
     _max?: NestedEnumAdminFeeTypeFilter<$PrismaModel>
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type EnumCategoryTypeFilter<$PrismaModel = never> = {
@@ -11107,6 +11313,13 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
+  export type EnumBillKindFilter<$PrismaModel = never> = {
+    equals?: $Enums.BillKind | EnumBillKindFieldRefInput<$PrismaModel>
+    in?: $Enums.BillKind[] | ListEnumBillKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BillKind[] | ListEnumBillKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumBillKindFilter<$PrismaModel> | $Enums.BillKind
+  }
+
   export type EnumInstallmentStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.InstallmentStatus | EnumInstallmentStatusFieldRefInput<$PrismaModel>
     in?: $Enums.InstallmentStatus[] | ListEnumInstallmentStatusFieldRefInput<$PrismaModel>
@@ -11128,6 +11341,9 @@ export namespace Prisma {
     installmentMonths?: SortOrder
     currentTerm?: SortOrder
     monthlyAmount?: SortOrder
+    kind?: SortOrder
+    paidTerms?: SortOrder
+    nextDueDate?: SortOrder
     status?: SortOrder
     startDate?: SortOrder
     description?: SortOrder
@@ -11146,6 +11362,7 @@ export namespace Prisma {
     installmentMonths?: SortOrder
     currentTerm?: SortOrder
     monthlyAmount?: SortOrder
+    paidTerms?: SortOrder
   }
 
   export type InstallmentMaxOrderByAggregateInput = {
@@ -11162,6 +11379,9 @@ export namespace Prisma {
     installmentMonths?: SortOrder
     currentTerm?: SortOrder
     monthlyAmount?: SortOrder
+    kind?: SortOrder
+    paidTerms?: SortOrder
+    nextDueDate?: SortOrder
     status?: SortOrder
     startDate?: SortOrder
     description?: SortOrder
@@ -11184,6 +11404,9 @@ export namespace Prisma {
     installmentMonths?: SortOrder
     currentTerm?: SortOrder
     monthlyAmount?: SortOrder
+    kind?: SortOrder
+    paidTerms?: SortOrder
+    nextDueDate?: SortOrder
     status?: SortOrder
     startDate?: SortOrder
     description?: SortOrder
@@ -11202,6 +11425,7 @@ export namespace Prisma {
     installmentMonths?: SortOrder
     currentTerm?: SortOrder
     monthlyAmount?: SortOrder
+    paidTerms?: SortOrder
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -11218,6 +11442,16 @@ export namespace Prisma {
     _sum?: NestedIntFilter<$PrismaModel>
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type EnumBillKindWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BillKind | EnumBillKindFieldRefInput<$PrismaModel>
+    in?: $Enums.BillKind[] | ListEnumBillKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BillKind[] | ListEnumBillKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumBillKindWithAggregatesFilter<$PrismaModel> | $Enums.BillKind
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBillKindFilter<$PrismaModel>
+    _max?: NestedEnumBillKindFilter<$PrismaModel>
   }
 
   export type EnumInstallmentStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -11589,6 +11823,14 @@ export namespace Prisma {
     set?: $Enums.AdminFeeType
   }
 
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type UserUpdateOneRequiredWithoutWalletsNestedInput = {
     create?: XOR<UserCreateWithoutWalletsInput, UserUncheckedCreateWithoutWalletsInput>
     connectOrCreate?: UserCreateOrConnectWithoutWalletsInput
@@ -11911,6 +12153,10 @@ export namespace Prisma {
     divide?: number
   }
 
+  export type EnumBillKindFieldUpdateOperationsInput = {
+    set?: $Enums.BillKind
+  }
+
   export type EnumInstallmentStatusFieldUpdateOperationsInput = {
     set?: $Enums.InstallmentStatus
   }
@@ -12184,6 +12430,33 @@ export namespace Prisma {
     _max?: NestedEnumAdminFeeTypeFilter<$PrismaModel>
   }
 
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type NestedEnumCategoryTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.CategoryType | EnumCategoryTypeFieldRefInput<$PrismaModel>
     in?: $Enums.CategoryType[] | ListEnumCategoryTypeFieldRefInput<$PrismaModel>
@@ -12216,6 +12489,13 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumTransactionTypeFilter<$PrismaModel>
     _max?: NestedEnumTransactionTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumBillKindFilter<$PrismaModel = never> = {
+    equals?: $Enums.BillKind | EnumBillKindFieldRefInput<$PrismaModel>
+    in?: $Enums.BillKind[] | ListEnumBillKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BillKind[] | ListEnumBillKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumBillKindFilter<$PrismaModel> | $Enums.BillKind
   }
 
   export type NestedEnumInstallmentStatusFilter<$PrismaModel = never> = {
@@ -12252,6 +12532,16 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
+  export type NestedEnumBillKindWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BillKind | EnumBillKindFieldRefInput<$PrismaModel>
+    in?: $Enums.BillKind[] | ListEnumBillKindFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BillKind[] | ListEnumBillKindFieldRefInput<$PrismaModel>
+    not?: NestedEnumBillKindWithAggregatesFilter<$PrismaModel> | $Enums.BillKind
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBillKindFilter<$PrismaModel>
+    _max?: NestedEnumBillKindFilter<$PrismaModel>
+  }
+
   export type NestedEnumInstallmentStatusWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.InstallmentStatus | EnumInstallmentStatusFieldRefInput<$PrismaModel>
     in?: $Enums.InstallmentStatus[] | ListEnumInstallmentStatusFieldRefInput<$PrismaModel>
@@ -12275,6 +12565,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionCreateNestedManyWithoutWalletInput
@@ -12297,6 +12589,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
@@ -12400,6 +12694,9 @@ export namespace Prisma {
     installmentMonths: number
     currentTerm?: number
     monthlyAmount: Decimal | DecimalJsLike | number | string
+    kind?: $Enums.BillKind
+    paidTerms?: number
+    nextDueDate: Date | string
     status?: $Enums.InstallmentStatus
     startDate: Date | string
     description?: string | null
@@ -12423,6 +12720,9 @@ export namespace Prisma {
     installmentMonths: number
     currentTerm?: number
     monthlyAmount: Decimal | DecimalJsLike | number | string
+    kind?: $Enums.BillKind
+    paidTerms?: number
+    nextDueDate: Date | string
     status?: $Enums.InstallmentStatus
     startDate: Date | string
     description?: string | null
@@ -12505,6 +12805,8 @@ export namespace Prisma {
     isArchived?: BoolFilter<"Wallet"> | boolean
     adminFee?: DecimalFilter<"Wallet"> | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFilter<"Wallet"> | $Enums.AdminFeeType
+    cutoffDay?: IntNullableFilter<"Wallet"> | number | null
+    paymentDueDay?: IntNullableFilter<"Wallet"> | number | null
     createdAt?: DateTimeFilter<"Wallet"> | Date | string
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
   }
@@ -12607,6 +12909,9 @@ export namespace Prisma {
     installmentMonths?: IntFilter<"Installment"> | number
     currentTerm?: IntFilter<"Installment"> | number
     monthlyAmount?: DecimalFilter<"Installment"> | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFilter<"Installment"> | $Enums.BillKind
+    paidTerms?: IntFilter<"Installment"> | number
+    nextDueDate?: DateTimeFilter<"Installment"> | Date | string
     status?: EnumInstallmentStatusFilter<"Installment"> | $Enums.InstallmentStatus
     startDate?: DateTimeFilter<"Installment"> | Date | string
     description?: StringNullableFilter<"Installment"> | string | null
@@ -12768,6 +13073,9 @@ export namespace Prisma {
     installmentMonths: number
     currentTerm?: number
     monthlyAmount: Decimal | DecimalJsLike | number | string
+    kind?: $Enums.BillKind
+    paidTerms?: number
+    nextDueDate: Date | string
     status?: $Enums.InstallmentStatus
     startDate: Date | string
     description?: string | null
@@ -12791,6 +13099,9 @@ export namespace Prisma {
     installmentMonths: number
     currentTerm?: number
     monthlyAmount: Decimal | DecimalJsLike | number | string
+    kind?: $Enums.BillKind
+    paidTerms?: number
+    nextDueDate: Date | string
     status?: $Enums.InstallmentStatus
     startDate: Date | string
     description?: string | null
@@ -13155,6 +13466,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutWalletsInput
@@ -13178,6 +13491,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
@@ -13204,6 +13519,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutWalletsInput
@@ -13227,6 +13544,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
@@ -13279,6 +13598,9 @@ export namespace Prisma {
     installmentMonths: number
     currentTerm?: number
     monthlyAmount: Decimal | DecimalJsLike | number | string
+    kind?: $Enums.BillKind
+    paidTerms?: number
+    nextDueDate: Date | string
     status?: $Enums.InstallmentStatus
     startDate: Date | string
     description?: string | null
@@ -13303,6 +13625,9 @@ export namespace Prisma {
     installmentMonths: number
     currentTerm?: number
     monthlyAmount: Decimal | DecimalJsLike | number | string
+    kind?: $Enums.BillKind
+    paidTerms?: number
+    nextDueDate: Date | string
     status?: $Enums.InstallmentStatus
     startDate: Date | string
     description?: string | null
@@ -13377,6 +13702,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutWalletsNestedInput
@@ -13400,6 +13727,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
@@ -13432,6 +13761,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutWalletsNestedInput
@@ -13455,6 +13786,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
@@ -13519,6 +13852,9 @@ export namespace Prisma {
     installmentMonths?: IntFieldUpdateOperationsInput | number
     currentTerm?: IntFieldUpdateOperationsInput | number
     monthlyAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFieldUpdateOperationsInput | $Enums.BillKind
+    paidTerms?: IntFieldUpdateOperationsInput | number
+    nextDueDate?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13543,6 +13879,9 @@ export namespace Prisma {
     installmentMonths?: IntFieldUpdateOperationsInput | number
     currentTerm?: IntFieldUpdateOperationsInput | number
     monthlyAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFieldUpdateOperationsInput | $Enums.BillKind
+    paidTerms?: IntFieldUpdateOperationsInput | number
+    nextDueDate?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13595,6 +13934,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutWalletsInput
@@ -13618,6 +13959,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
@@ -13732,6 +14075,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutWalletsNestedInput
@@ -13755,6 +14100,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
@@ -13823,6 +14170,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutWalletsInput
@@ -13846,6 +14195,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
@@ -13872,6 +14223,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutWalletsInput
@@ -13895,6 +14248,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
@@ -13969,6 +14324,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutWalletsNestedInput
@@ -13992,6 +14349,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
@@ -14024,6 +14383,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutWalletsNestedInput
@@ -14047,6 +14408,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
@@ -14068,6 +14431,8 @@ export namespace Prisma {
     isArchived?: boolean
     adminFee?: Decimal | DecimalJsLike | number | string
     adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -14110,6 +14475,9 @@ export namespace Prisma {
     installmentMonths: number
     currentTerm?: number
     monthlyAmount: Decimal | DecimalJsLike | number | string
+    kind?: $Enums.BillKind
+    paidTerms?: number
+    nextDueDate: Date | string
     status?: $Enums.InstallmentStatus
     startDate: Date | string
     description?: string | null
@@ -14141,6 +14509,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUpdateManyWithoutWalletNestedInput
@@ -14163,6 +14533,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
@@ -14185,6 +14557,8 @@ export namespace Prisma {
     isArchived?: BoolFieldUpdateOperationsInput | boolean
     adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -14278,6 +14652,9 @@ export namespace Prisma {
     installmentMonths?: IntFieldUpdateOperationsInput | number
     currentTerm?: IntFieldUpdateOperationsInput | number
     monthlyAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFieldUpdateOperationsInput | $Enums.BillKind
+    paidTerms?: IntFieldUpdateOperationsInput | number
+    nextDueDate?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14301,6 +14678,9 @@ export namespace Prisma {
     installmentMonths?: IntFieldUpdateOperationsInput | number
     currentTerm?: IntFieldUpdateOperationsInput | number
     monthlyAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFieldUpdateOperationsInput | $Enums.BillKind
+    paidTerms?: IntFieldUpdateOperationsInput | number
+    nextDueDate?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14323,6 +14703,9 @@ export namespace Prisma {
     installmentMonths?: IntFieldUpdateOperationsInput | number
     currentTerm?: IntFieldUpdateOperationsInput | number
     monthlyAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFieldUpdateOperationsInput | $Enums.BillKind
+    paidTerms?: IntFieldUpdateOperationsInput | number
+    nextDueDate?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14404,6 +14787,9 @@ export namespace Prisma {
     installmentMonths: number
     currentTerm?: number
     monthlyAmount: Decimal | DecimalJsLike | number | string
+    kind?: $Enums.BillKind
+    paidTerms?: number
+    nextDueDate: Date | string
     status?: $Enums.InstallmentStatus
     startDate: Date | string
     description?: string | null
@@ -14534,6 +14920,9 @@ export namespace Prisma {
     installmentMonths?: IntFieldUpdateOperationsInput | number
     currentTerm?: IntFieldUpdateOperationsInput | number
     monthlyAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFieldUpdateOperationsInput | $Enums.BillKind
+    paidTerms?: IntFieldUpdateOperationsInput | number
+    nextDueDate?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14557,6 +14946,9 @@ export namespace Prisma {
     installmentMonths?: IntFieldUpdateOperationsInput | number
     currentTerm?: IntFieldUpdateOperationsInput | number
     monthlyAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFieldUpdateOperationsInput | $Enums.BillKind
+    paidTerms?: IntFieldUpdateOperationsInput | number
+    nextDueDate?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14579,6 +14971,9 @@ export namespace Prisma {
     installmentMonths?: IntFieldUpdateOperationsInput | number
     currentTerm?: IntFieldUpdateOperationsInput | number
     monthlyAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    kind?: EnumBillKindFieldUpdateOperationsInput | $Enums.BillKind
+    paidTerms?: IntFieldUpdateOperationsInput | number
+    nextDueDate?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null

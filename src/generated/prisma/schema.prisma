@@ -46,7 +46,8 @@ enum WalletType {
   BANK
   E_WALLET
   CREDIT_CARD
-  LOAN_PAYLATER
+  PAYLATER
+  LOAN
 }
 
 model Wallet {
@@ -69,6 +70,8 @@ model Wallet {
   // PERCENT → nilai dalam persen (contoh: 1.5 = 1.5%)
   adminFeeType   AdminFeeType @default(FLAT) @map("admin_fee_type")
   // Tipe kalkulasi biaya admin
+  cutoffDay      Int?         @map("cutoff_day")
+  paymentDueDay  Int?         @map("payment_due_day")
   createdAt      DateTime     @default(now()) @map("created_at")
   updatedAt      DateTime     @updatedAt @map("updated_at")
 
@@ -172,6 +175,11 @@ enum InstallmentStatus {
   CANCELLED
 }
 
+enum BillKind {
+  FULL
+  INSTALLMENT
+}
+
 model Installment {
   id                String            @id @default(cuid())
   userId            String            @map("user_id")
@@ -194,6 +202,9 @@ model Installment {
   installmentMonths Int               @map("installment_months")
   currentTerm       Int               @default(1) @map("current_term")
   monthlyAmount     Decimal           @map("monthly_amount") @db.Decimal(15, 2)
+  kind              BillKind          @default(INSTALLMENT)
+  paidTerms         Int               @default(0) @map("paid_terms")
+  nextDueDate       DateTime          @map("next_due_date")
   status            InstallmentStatus @default(ACTIVE)
   startDate         DateTime          @map("start_date")
   description       String?

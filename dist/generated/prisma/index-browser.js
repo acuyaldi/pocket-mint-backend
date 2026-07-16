@@ -143,6 +143,8 @@ exports.Prisma.WalletScalarFieldEnum = {
   isArchived: 'isArchived',
   adminFee: 'adminFee',
   adminFeeType: 'adminFeeType',
+  cutoffDay: 'cutoffDay',
+  paymentDueDay: 'paymentDueDay',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -188,6 +190,9 @@ exports.Prisma.InstallmentScalarFieldEnum = {
   installmentMonths: 'installmentMonths',
   currentTerm: 'currentTerm',
   monthlyAmount: 'monthlyAmount',
+  kind: 'kind',
+  paidTerms: 'paidTerms',
+  nextDueDate: 'nextDueDate',
   status: 'status',
   startDate: 'startDate',
   description: 'description',
@@ -226,7 +231,8 @@ exports.WalletType = exports.$Enums.WalletType = {
   BANK: 'BANK',
   E_WALLET: 'E_WALLET',
   CREDIT_CARD: 'CREDIT_CARD',
-  LOAN_PAYLATER: 'LOAN_PAYLATER'
+  PAYLATER: 'PAYLATER',
+  LOAN: 'LOAN'
 };
 
 exports.AdminFeeType = exports.$Enums.AdminFeeType = {
@@ -243,6 +249,11 @@ exports.TransactionType = exports.$Enums.TransactionType = {
   INCOME: 'INCOME',
   EXPENSE: 'EXPENSE',
   TRANSFER: 'TRANSFER'
+};
+
+exports.BillKind = exports.$Enums.BillKind = {
+  FULL: 'FULL',
+  INSTALLMENT: 'INSTALLMENT'
 };
 
 exports.InstallmentStatus = exports.$Enums.InstallmentStatus = {

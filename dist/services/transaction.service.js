@@ -129,6 +129,7 @@ function createTransactionService(db) {
                             installmentMonths,
                             currentTerm: 1,
                             monthlyAmount,
+                            nextDueDate: parsedDate,
                             status: 'ACTIVE',
                             startDate: parsedDate,
                             description: input.description ?? null,

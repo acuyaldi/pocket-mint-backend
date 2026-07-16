@@ -46,40 +46,43 @@ enum WalletType {
   BANK
   E_WALLET
   CREDIT_CARD
-  LOAN_PAYLATER
+  PAYLATER
+  LOAN
 }
 
 model Wallet {
-  id             String     @id @default(cuid())
-  userId         String     @map("user_id")
+  id             String       @id @default(cuid())
+  userId         String       @map("user_id")
   name           String
-  type           WalletType @default(CASH)
-  balance        Decimal    @default(0) @db.Decimal(15, 2)
-  creditLimit    Decimal    @default(0) @map("credit_limit") @db.Decimal(15, 2)
-  initialBalance Decimal    @default(0) @map("initial_balance") @db.Decimal(15, 2)
+  type           WalletType   @default(CASH)
+  balance        Decimal      @default(0) @db.Decimal(15, 2)
+  creditLimit    Decimal      @default(0) @map("credit_limit") @db.Decimal(15, 2)
+  initialBalance Decimal      @default(0) @map("initial_balance") @db.Decimal(15, 2)
   icon           String?
   color          String?
-  interestRate   Decimal    @default(0) @map("interest_rate") @db.Decimal(5, 2)
+  interestRate   Decimal      @default(0) @map("interest_rate") @db.Decimal(5, 2)
   // Bunga flat per bulan dalam persen (contoh: 2.95 = 2.95%)
   // Default 0 untuk wallet tipe ASSET
-  isArchived     Boolean    @default(false) @map("is_archived")
-  adminFee       Decimal    @default(0) @map("admin_fee") @db.Decimal(15, 2)
+  isArchived     Boolean      @default(false) @map("is_archived")
+  adminFee       Decimal      @default(0) @map("admin_fee") @db.Decimal(15, 2)
   // Biaya admin default untuk wallet ini
   // FLAT    → nilai dalam Rupiah (contoh: 45000)
   // PERCENT → nilai dalam persen (contoh: 1.5 = 1.5%)
   adminFeeType   AdminFeeType @default(FLAT) @map("admin_fee_type")
   // Tipe kalkulasi biaya admin
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
+  cutoffDay      Int?         @map("cutoff_day")
+  paymentDueDay  Int?         @map("payment_due_day")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
 
   // Relations
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions   Transaction[] @relation("WalletTransactions")
   // Transfers whose destination is this wallet (Transaction.toWalletId).
   toTransactions Transaction[] @relation("WalletToTransactions")
-  installments Installment[]
-  fromTransfers Transfer[]   @relation("FromWallet")
-  toTransfers   Transfer[]   @relation("ToWallet")
+  installments   Installment[]
+  fromTransfers  Transfer[]    @relation("FromWallet")
+  toTransfers    Transfer[]    @relation("ToWallet")
 
   @@index([userId])
   @@map("wallets")
@@ -172,34 +175,42 @@ enum InstallmentStatus {
   CANCELLED
 }
 
+enum BillKind {
+  FULL
+  INSTALLMENT
+}
+
 model Installment {
-  id               String            @id @default(cuid())
-  userId           String            @map("user_id")
-  walletId         String            @map("wallet_id")
-  totalAmount      Decimal           @map("total_amount") @db.Decimal(15, 2)
-  interestRate     Decimal           @default(0) @map("interest_rate") @db.Decimal(5, 2)
+  id                String            @id @default(cuid())
+  userId            String            @map("user_id")
+  walletId          String            @map("wallet_id")
+  totalAmount       Decimal           @map("total_amount") @db.Decimal(15, 2)
+  interestRate      Decimal           @default(0) @map("interest_rate") @db.Decimal(5, 2)
   // Snapshot bunga saat transaksi cicilan dibuat
-  totalInterest    Decimal           @default(0) @map("total_interest") @db.Decimal(15, 2)
+  totalInterest     Decimal           @default(0) @map("total_interest") @db.Decimal(15, 2)
   // Total bunga = amount × (interest_rate/100) × installmentMonths
-  adminFee         Decimal           @default(0) @map("admin_fee") @db.Decimal(15, 2)
+  adminFee          Decimal           @default(0) @map("admin_fee") @db.Decimal(15, 2)
   // Snapshot nilai admin_fee saat transaksi dibuat
-  adminFeeType     AdminFeeType      @default(FLAT) @map("admin_fee_type")
+  adminFeeType      AdminFeeType      @default(FLAT) @map("admin_fee_type")
   // Snapshot tipe admin fee saat transaksi dibuat
-  totalAdminFee    Decimal           @default(0) @map("total_admin_fee") @db.Decimal(15, 2)
+  totalAdminFee     Decimal           @default(0) @map("total_admin_fee") @db.Decimal(15, 2)
   // Hasil kalkulasi aktual:
   // FLAT    → sama dengan admin_fee
   // PERCENT → amount × (admin_fee / 100)
-  grandTotal       Decimal           @default(0) @map("grand_total") @db.Decimal(15, 2)
+  grandTotal        Decimal           @default(0) @map("grand_total") @db.Decimal(15, 2)
   // Total yang harus dibayar = amount + total_interest + total_admin_fee
-  installmentMonths Int              @map("installment_months")
-  currentTerm      Int               @default(1) @map("current_term")
-  monthlyAmount    Decimal           @map("monthly_amount") @db.Decimal(15, 2)
-  status           InstallmentStatus @default(ACTIVE)
-  startDate        DateTime          @map("start_date")
-  description      String?
-  balanceDeducted  Boolean           @default(false) @map("balance_deducted")
-  createdAt        DateTime          @default(now()) @map("created_at")
-  updatedAt        DateTime          @updatedAt @map("updated_at")
+  installmentMonths Int               @map("installment_months")
+  currentTerm       Int               @default(1) @map("current_term")
+  monthlyAmount     Decimal           @map("monthly_amount") @db.Decimal(15, 2)
+  kind              BillKind          @default(INSTALLMENT)
+  paidTerms         Int               @default(0) @map("paid_terms")
+  nextDueDate       DateTime          @map("next_due_date")
+  status            InstallmentStatus @default(ACTIVE)
+  startDate         DateTime          @map("start_date")
+  description       String?
+  balanceDeducted   Boolean           @default(false) @map("balance_deducted")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
 
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -234,5 +245,3 @@ model Transfer {
   @@index([toWalletId])
   @@map("transfers")
 }
-
-

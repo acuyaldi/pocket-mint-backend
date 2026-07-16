@@ -150,6 +150,7 @@ export function createTransactionService(db: TransactionPrismaClient) {
               installmentMonths,
               currentTerm: 1,
               monthlyAmount,
+              nextDueDate: parsedDate,
               status: 'ACTIVE',
               startDate: parsedDate,
               description: input.description ?? null,
