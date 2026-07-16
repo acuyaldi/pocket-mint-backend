@@ -45,7 +45,7 @@ describe('wallet reporting effects', () => {
 describe('net worth classification', () => {
   it('classifies every wallet type explicitly', () => {
     expect(['CASH', 'BANK', 'E_WALLET'].map(classifyWalletForNetWorth)).toEqual(['ASSET', 'ASSET', 'ASSET']);
-    expect(['CREDIT_CARD', 'LOAN_PAYLATER'].map(classifyWalletForNetWorth)).toEqual(['DEBT', 'DEBT']);
+    expect(['CREDIT_CARD', 'PAYLATER', 'LOAN'].map(classifyWalletForNetWorth)).toEqual(['DEBT', 'DEBT', 'DEBT']);
   });
 
   it('calculates net worth as assets minus outstanding debt (PD-001)', () => {

@@ -67,10 +67,12 @@ describe('wallet read controllers — boundary', () => {
     expect(w).toMatchObject({ id: 'w1', balance: 100.25, creditLimit: 0, initialBalance: 100.25 });
     expect(w.sisa_limit).toBeNull(); // asset wallet
     expect(w.outstanding_debt).toBeNull();
+    expect(w.remainingCredit).toBeNull();
+    expect(w.outstanding).toBeNull();
     expectPrismaUntouched();
   });
 
-  it('getAllWallets: computes sisa_limit and outstanding_debt for a DEBT wallet', async () => {
+  it('getAllWallets: computes remaining credit and outstanding for a credit wallet', async () => {
     h.queryService.listWallets.mockResolvedValue([
       { id: 'cc', type: 'CREDIT_CARD', balance: D('-300.50'), creditLimit: D('1000'), initialBalance: D('0'), interestRate: D('2.95'), adminFee: D('0') },
     ]);
@@ -80,6 +82,21 @@ describe('wallet read controllers — boundary', () => {
     const w = res.body.data[0];
     expect(w.sisa_limit).toBe(699.5); // creditLimit + balance = 1000 + (-300.50)
     expect(w.outstanding_debt).toBe(300.5); // abs(balance)
+    expect(w.remainingCredit).toBe(699.5);
+    expect(w.outstanding).toBe(300.5);
+  });
+
+  it('getAllWallets: reports loan outstanding without a credit remainder', async () => {
+    h.queryService.listWallets.mockResolvedValue([
+      { id: 'loan', type: 'LOAN', balance: D('-5000'), creditLimit: D('0'), initialBalance: D('-5000'), interestRate: D('0'), adminFee: D('0') },
+    ]);
+
+    const res = await request(buildApp()).get('/wallets');
+    const w = res.body.data[0];
+
+    expect(w.outstanding).toBe(5000);
+    expect(w.remainingCredit).toBeNull();
+    expect(w.sisa_limit).toBeNull();
   });
 
   it('getAllWallets: 401 when no authenticated user, service not called', async () => {

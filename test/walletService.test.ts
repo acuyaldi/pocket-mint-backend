@@ -45,10 +45,54 @@ describe('walletService.createWallet', () => {
     expect(createData(db)).toMatchObject({ userId: 'u', name: 'Cash', type: 'CASH', balance: 0, initialBalance: 0 });
   });
 
-  it('creates a debt wallet with its creditLimit', async () => {
+  it('creates a credit card at zero balance with its billing metadata', async () => {
     const db = makeDb();
-    await svc(db).createWallet({ userId: 'u', name: 'CC', type: 'CREDIT_CARD', creditLimit: 1_000_000 });
-    expect(createData(db)).toMatchObject({ type: 'CREDIT_CARD', creditLimit: 1_000_000 });
+    await svc(db).createWallet({
+      userId: 'u',
+      name: 'CC',
+      type: 'CREDIT_CARD',
+      balance: -250_000,
+      creditLimit: 1_000_000,
+      cutoffDay: 20,
+      paymentDueDay: 5,
+    });
+    expect(createData(db)).toMatchObject({
+      type: 'CREDIT_CARD',
+      balance: 0,
+      initialBalance: 0,
+      creditLimit: 1_000_000,
+      cutoffDay: 20,
+      paymentDueDay: 5,
+    });
+  });
+
+  it('creates paylater with a positive limit and no opening outstanding', async () => {
+    const db = makeDb();
+    await svc(db).createWallet({
+      userId: 'u',
+      name: 'Paylater',
+      type: 'PAYLATER',
+      creditLimit: 500_000,
+    });
+    expect(createData(db)).toMatchObject({
+      type: 'PAYLATER',
+      balance: 0,
+      initialBalance: 0,
+      creditLimit: 500_000,
+    });
+  });
+
+  it('creates a loan from one positive principal and stores negative liability', async () => {
+    const db = makeDb();
+    await svc(db).createWallet({ userId: 'u', name: 'Motor', type: 'LOAN', principal: 12_000_000 });
+    expect(createData(db)).toMatchObject({
+      type: 'LOAN',
+      balance: -12_000_000,
+      initialBalance: -12_000_000,
+      creditLimit: 0,
+      cutoffDay: null,
+      paymentDueDay: null,
+    });
   });
 
   it('copies the opening balance into initialBalance (Sprint 2A)', async () => {
@@ -71,10 +115,48 @@ describe('walletService.createWallet', () => {
     expect(db.wallet.create).not.toHaveBeenCalled();
   });
 
-  it('requires a positive creditLimit for a debt wallet', async () => {
+  it('requires a positive creditLimit for credit products', async () => {
     const db = makeDb();
-    await expect(svc(db).createWallet({ userId: 'u', name: 'Loan', type: 'LOAN_PAYLATER' }))
+    await expect(svc(db).createWallet({ userId: 'u', name: 'Paylater', type: 'PAYLATER' }))
       .rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
+    expect(db.wallet.create).not.toHaveBeenCalled();
+  });
+
+  it('requires a positive principal for a loan', async () => {
+    const db = makeDb();
+    await expect(svc(db).createWallet({ userId: 'u', name: 'Loan', type: 'LOAN', principal: 0 }))
+      .rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
+    expect(db.wallet.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects credit-only metadata for a loan', async () => {
+    const db = makeDb();
+    await expect(svc(db).createWallet({
+      userId: 'u',
+      name: 'Loan',
+      type: 'LOAN',
+      principal: 1_000_000,
+      creditLimit: 2_000_000,
+    })).rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
+    expect(db.wallet.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects a negative opening balance for an asset wallet', async () => {
+    const db = makeDb();
+    await expect(svc(db).createWallet({ userId: 'u', name: 'Cash', type: 'CASH', balance: -1 }))
+      .rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
+    expect(db.wallet.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects billing days outside 1 through 31', async () => {
+    const db = makeDb();
+    await expect(svc(db).createWallet({
+      userId: 'u',
+      name: 'CC',
+      type: 'CREDIT_CARD',
+      creditLimit: 1_000_000,
+      cutoffDay: 32,
+    })).rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
     expect(db.wallet.create).not.toHaveBeenCalled();
   });
 
@@ -110,6 +192,20 @@ describe('walletService.updateWallet', () => {
     db.wallet.findFirst = owned();
     await svc(db).updateWallet({ userId: 'u', walletId: 'w1', name: 'New', color: '#000' });
     expect(updateData(db)).toEqual({ name: 'New', color: '#000' });
+    expect(updateData(db)).not.toHaveProperty('balance');
+  });
+
+  it('updates credit metadata without writing ledger balance', async () => {
+    const db = makeDb();
+    db.wallet.findFirst = vi.fn(async () => ({ id: 'w1', type: 'CREDIT_CARD', balance: D(-1000) }));
+    await svc(db).updateWallet({
+      userId: 'u',
+      walletId: 'w1',
+      creditLimit: 2_000_000,
+      cutoffDay: 18,
+      paymentDueDay: 3,
+    });
+    expect(updateData(db)).toEqual({ creditLimit: 2_000_000, cutoffDay: 18, paymentDueDay: 3 });
     expect(updateData(db)).not.toHaveProperty('balance');
   });
 
@@ -154,11 +250,12 @@ describe('walletService.updateWallet', () => {
     expect(updateData(db)).toEqual({ icon: null, color: null });
   });
 
-  it('coerces an explicit null creditLimit to 0 (preserved behavior)', async () => {
+  it('rejects clearing a required credit limit', async () => {
     const db = makeDb();
     db.wallet.findFirst = owned();
-    await svc(db).updateWallet({ userId: 'u', walletId: 'w1', creditLimit: null });
-    expect(updateData(db)).toEqual({ creditLimit: 0 });
+    await expect(svc(db).updateWallet({ userId: 'u', walletId: 'w1', creditLimit: null }))
+      .rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
+    expect(db.wallet.update).not.toHaveBeenCalled();
   });
 
   it('404s for a wallet the caller does not own, without writing', async () => {

@@ -49,7 +49,7 @@ export interface GetWalletSparklineInput {
 /**
  * Net-worth totals carrying exact `Decimal` values (serialization to numbers is
  * the controller's job — one clear boundary). Product rule (PD-001): assets =
- * CASH/BANK/E_WALLET balances; debt = |CREDIT_CARD/LOAN_PAYLATER balances|;
+ * CASH/BANK/E_WALLET balances; debt = |CREDIT_CARD/PAYLATER/LOAN balances|;
  * `netWorth` = assets − debt (may be negative; components stay separately reported).
  */
 export interface WalletTotals {

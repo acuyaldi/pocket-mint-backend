@@ -79,7 +79,7 @@ describe('walletQueryService.getNetWorth', () => {
     { type: 'BANK', balance: D('200.00') },
     { type: 'E_WALLET', balance: D('50.25') },
     { type: 'CREDIT_CARD', balance: D('-300.00') },
-    { type: 'LOAN_PAYLATER', balance: D('-1000.50') },
+    { type: 'PAYLATER', balance: D('-1000.50') },
   ];
 
   it('scopes to userId and selects only type + balance', async () => {

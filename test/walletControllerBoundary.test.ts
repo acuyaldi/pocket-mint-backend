@@ -77,6 +77,25 @@ describe('wallet mutation controllers — boundary', () => {
     expectPrismaMutationsUntouched();
   });
 
+  it('create: forwards principal and billing-cycle fields', async () => {
+    h.service.createWallet.mockResolvedValue({ id: 'w2', name: 'Card', balance: D(0) });
+
+    await request(buildApp()).post('/wallets').send({
+      name: 'Card',
+      type: 'CREDIT_CARD',
+      creditLimit: 10_000_000,
+      principal: 999,
+      cutoffDay: 20,
+      paymentDueDay: 5,
+    });
+
+    expect(h.service.createWallet).toHaveBeenCalledWith(expect.objectContaining({
+      principal: 999,
+      cutoffDay: 20,
+      paymentDueDay: 5,
+    }));
+  });
+
   it('create: 400 when no authenticated user can be resolved, service not called', async () => {
     const res = await request(buildApp(false)).post('/wallets').send({ name: 'X' });
 

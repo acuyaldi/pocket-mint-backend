@@ -16,14 +16,18 @@ import type {
 } from '../services/wallet.types';
 import type { Wallet, WalletTotals, WalletSparklinePoint } from '../services/wallet-query.types';
 
-const DEBT_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
+const CREDIT_TYPES = ['CREDIT_CARD', 'PAYLATER'];
+const LIABILITY_TYPES = ['CREDIT_CARD', 'PAYLATER', 'LOAN'];
 
 /** Allowlisted create-wallet request body (no `userId` — that is resolved separately). */
 interface CreateWalletBody {
   name?: string;
   type?: WalletType;
   balance?: DecimalInput;
+  principal?: DecimalInput;
   creditLimit?: DecimalInput;
+  cutoffDay?: number | null;
+  paymentDueDay?: number | null;
   interestRate?: DecimalInput;
   adminFee?: DecimalInput;
   adminFeeType?: AdminFeeType;
@@ -38,7 +42,10 @@ function mapCreateWalletRequest(body: CreateWalletBody, userId: string): CreateW
     name: body.name as string,
     type: body.type,
     balance: body.balance,
+    principal: body.principal,
     creditLimit: body.creditLimit,
+    cutoffDay: body.cutoffDay,
+    paymentDueDay: body.paymentDueDay,
     interestRate: body.interestRate,
     adminFee: body.adminFee,
     adminFeeType: body.adminFeeType,
@@ -53,6 +60,8 @@ interface UpdateWalletBody {
   type?: WalletType;
   balance?: DecimalInput;
   creditLimit?: DecimalInput | null;
+  cutoffDay?: number | null;
+  paymentDueDay?: number | null;
   interestRate?: DecimalInput;
   adminFee?: DecimalInput;
   adminFeeType?: AdminFeeType;
@@ -70,6 +79,8 @@ function mapUpdateWalletRequest(walletId: string, userId: string, body: UpdateWa
     type: body.type,
     balance: body.balance,
     creditLimit: body.creditLimit,
+    cutoffDay: body.cutoffDay,
+    paymentDueDay: body.paymentDueDay,
     interestRate: body.interestRate,
     adminFee: body.adminFee,
     adminFeeType: body.adminFeeType,
@@ -118,7 +129,10 @@ async function netWorthSnapshot(userId: string) {
 function serializeWallet(w: Wallet) {
   const balance = parseFloat(w.balance.toString());
   const creditLimit = parseFloat(w.creditLimit.toString());
-  const isDebt = DEBT_TYPES.includes(w.type);
+  const isCredit = CREDIT_TYPES.includes(w.type);
+  const isLiability = LIABILITY_TYPES.includes(w.type);
+  const outstanding = isLiability ? Math.abs(Math.min(balance, 0)) : null;
+  const remainingCredit = isCredit ? Math.max(creditLimit - Math.abs(Math.min(balance, 0)), 0) : null;
 
   return {
     ...w,
@@ -127,9 +141,11 @@ function serializeWallet(w: Wallet) {
     initialBalance: parseFloat(w.initialBalance.toString()),
     interestRate: parseFloat(w.interestRate.toString()),
     adminFee: parseFloat(w.adminFee.toString()),
-    // Computed fields for DEBT wallets
-    sisa_limit: isDebt ? creditLimit + balance : null,
-    outstanding_debt: isDebt ? Math.abs(balance) : null,
+    outstanding,
+    remainingCredit,
+    // Compatibility aliases for existing clients during the UI migration.
+    sisa_limit: remainingCredit,
+    outstanding_debt: outstanding,
   };
 }
 
