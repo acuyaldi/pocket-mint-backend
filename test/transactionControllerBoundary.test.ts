@@ -73,6 +73,25 @@ describe('transaction mutation controllers — boundary', () => {
     expectPrismaUntouched();
   });
 
+  it('create: forwards bill mode and first due date', async () => {
+    h.service.createTransaction.mockResolvedValue({ id: 't2', amount: D(200), type: 'EXPENSE' });
+
+    await request(buildApp()).post('/tx').send({
+      type: 'EXPENSE',
+      amount: 200,
+      walletId: 'cc',
+      billingMode: 'INSTALLMENT',
+      installmentMonths: 2,
+      firstDueDate: '2026-08-05',
+    });
+
+    expect(h.service.createTransaction).toHaveBeenCalledWith(expect.objectContaining({
+      billingMode: 'INSTALLMENT',
+      installmentMonths: 2,
+      firstDueDate: '2026-08-05',
+    }));
+  });
+
   it('update: maps id + userId and calls updateTransaction once, 200', async () => {
     h.service.updateTransaction.mockResolvedValue({ id: 't9', amount: D(50), type: 'EXPENSE' });
 

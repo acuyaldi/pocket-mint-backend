@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import express, { type Express } from 'express';
 import request from 'supertest';
 import { Prisma } from '../src/generated/prisma/client';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const D = (n: number | string) => new Prisma.Decimal(n);
 
@@ -47,6 +49,9 @@ function makeRow(over: Record<string, unknown> = {}) {
     description: 'Laptop',
     walletId: 'w1',
     monthlyAmount: D('362833.33'),
+    kind: 'INSTALLMENT',
+    paidTerms: 0,
+    nextDueDate: new Date('2099-08-05T00:00:00.000Z'),
     currentTerm: 1,
     installmentMonths: 3,
     totalAmount: D('1000000'),
@@ -56,7 +61,8 @@ function makeRow(over: Record<string, unknown> = {}) {
     status: 'ACTIVE',
     startDate: new Date('2026-07-01T00:00:00.000Z'),
     balanceDeducted: true,
-    wallet: { id: 'w1', name: 'Kredivo', type: 'LOAN_PAYLATER' },
+    wallet: { id: 'w1', name: 'Kredivo', type: 'PAYLATER' },
+    transactions: [{ id: 'tx-purchase', type: 'EXPENSE', createdAt: new Date('2026-07-01T00:00:00.000Z') }],
     ...over,
   };
 }
@@ -77,12 +83,18 @@ describe('installment controllers — boundary', () => {
     expect(h.queryService.listInstallments).toHaveBeenCalledTimes(1);
     expect(h.queryService.listInstallments).toHaveBeenCalledWith({ userId: USER, status: 'ACTIVE' });
 
-    expect(res.body.data[0]).toEqual({
+    expect(res.body.data[0]).toMatchObject({
       id: 'inst-1',
+      transactionId: 'tx-purchase',
+      kind: 'INSTALLMENT',
       description: 'Laptop',
       walletId: 'w1',
       walletName: 'Kredivo',
-      walletType: 'LOAN_PAYLATER',
+      walletType: 'PAYLATER',
+      amountPerTerm: 362833.33,
+      totalTerms: 3,
+      paidTerms: 0,
+      nextDueDate: '2099-08-05T00:00:00.000Z',
       monthlyAmount: 362833.33,
       currentTerm: 1,
       installmentMonths: 3,
@@ -96,6 +108,12 @@ describe('installment controllers — boundary', () => {
     });
     // The handler must never touch the database directly.
     expect(h.prismaMock.installment.findMany).not.toHaveBeenCalled();
+  });
+
+  it('mounts the same bill router at /v1/bills and /v1/installments', () => {
+    const routes = readFileSync(join(process.cwd(), 'src', 'routes', 'index.ts'), 'utf8');
+    expect(routes).toContain("router.use('/v1/bills', installmentRouter)");
+    expect(routes).toContain("router.use('/v1/installments', installmentRouter)");
   });
 
   it('getInstallments: passes status undefined when the query param is absent', async () => {
@@ -156,7 +174,7 @@ describe('installment controllers — boundary', () => {
       installment: {
         ...makeRow({ currentTerm: 2, status: 'ACTIVE' }),
         userId: USER,
-        wallet: { id: 'w1', name: 'Kredivo', type: 'LOAN_PAYLATER' },
+        wallet: { id: 'w1', name: 'Kredivo', type: 'PAYLATER' },
       },
       transaction: {
         id: 'tx-pay',
@@ -177,7 +195,7 @@ describe('installment controllers — boundary', () => {
         createdAt: new Date('2026-07-15T00:00:00.000Z'),
         updatedAt: new Date('2026-07-15T00:00:00.000Z'),
         wallet: { id: 'asset-1', name: 'BCA Debit', type: 'BANK' },
-        toWallet: { id: 'w1', name: 'Kredivo', type: 'LOAN_PAYLATER' },
+        toWallet: { id: 'w1', name: 'Kredivo', type: 'PAYLATER' },
       },
     });
 

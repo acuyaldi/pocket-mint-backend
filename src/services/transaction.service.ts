@@ -15,8 +15,9 @@
 import prisma from '../lib/prisma';
 import { Prisma } from '../generated/prisma/client';
 import { reportingConfig } from '../config';
-import { parseBusinessDate } from '../domain/reportingTime';
+import { formatReportingDate, parseBusinessDate } from '../domain/reportingTime';
 import { computeInstallmentPlan } from '../domain/installment';
+import { calculateFirstDueDate } from '../domain/billingCycle';
 import {
   applyBalanceDeltas,
   computeBalanceEffect,
@@ -35,8 +36,7 @@ import {
 } from './transaction.types';
 
 const VALID_TYPES = ['INCOME', 'EXPENSE', 'TRANSFER'];
-const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
-const VALID_TENORS = [3, 6, 12];
+const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'PAYLATER'];
 
 /** Map a Prisma FK violation to the same 400 the controller used to return. */
 function rethrowCreate(err: unknown): never {
@@ -113,21 +113,29 @@ export function createTransactionService(db: TransactionPrismaClient) {
       }
     }
 
+    const isCreditExpense = type === 'EXPENSE' && CREDIT_WALLET_TYPES.includes(wallet.type);
+    if (type === 'EXPENSE' && wallet.type === 'LOAN') {
+      throw new TransactionError('Pinjaman tidak dapat digunakan sebagai sumber pengeluaran', 400, 'BAD_REQUEST');
+    }
+    if (input.billingMode !== undefined && !isCreditExpense) {
+      throw new TransactionError('Mode tagihan hanya tersedia untuk kartu kredit dan paylater', 400, 'BAD_REQUEST');
+    }
+
     try {
       // ─── Installment (Model A: one Installment ↔ one Transaction) ──────────
-      if (input.isInstallment) {
-        if (!CREDIT_WALLET_TYPES.includes(wallet.type)) {
-          throw new TransactionError('Cicilan hanya tersedia untuk wallet DEBT', 400, 'BAD_REQUEST');
+      if (isCreditExpense) {
+        const billingMode = input.billingMode ?? (input.isInstallment ? 'INSTALLMENT' : 'FULL');
+        const installmentMonths = billingMode === 'FULL' ? 1 : input.installmentMonths;
+        if (!installmentMonths || !Number.isInteger(installmentMonths) || installmentMonths < 1 || installmentMonths > 120) {
+          throw new TransactionError('Tenor tagihan tidak valid', 400, 'BAD_REQUEST');
         }
-        const { installmentMonths } = input;
-        if (!installmentMonths || !VALID_TENORS.includes(installmentMonths)) {
-          throw new TransactionError('Tenor cicilan tidak valid', 400, 'BAD_REQUEST');
-        }
-        if (type !== 'EXPENSE') {
-          throw new TransactionError('Cicilan hanya tersedia untuk tipe EXPENSE', 400, 'BAD_REQUEST');
+        if (billingMode === 'INSTALLMENT' && installmentMonths < 2) {
+          throw new TransactionError('Cicilan harus memiliki minimal 2 termin', 400, 'BAD_REQUEST');
         }
         const parsedInterestRate =
-          input.interestRate !== undefined && input.interestRate !== null ? Number(input.interestRate) : 0;
+          billingMode === 'INSTALLMENT' && input.interestRate !== undefined && input.interestRate !== null
+            ? Number(input.interestRate)
+            : 0;
         if (parsedInterestRate < 0) throw new TransactionError('Bunga tidak boleh negatif', 400, 'BAD_REQUEST');
         if (parsedInterestRate > 100) throw new TransactionError('Bunga tidak valid', 400, 'BAD_REQUEST');
 
@@ -137,6 +145,43 @@ export function createTransactionService(db: TransactionPrismaClient) {
           interestRatePctPerMonth: interestRateDecimal,
           months: installmentMonths,
         });
+
+        let firstDueDate: string;
+        if (wallet.cutoffDay && wallet.paymentDueDay) {
+          firstDueDate = calculateFirstDueDate({
+            transactionDate: formatReportingDate(parsedDate, reportingConfig.timezone),
+            cutoffDay: wallet.cutoffDay,
+            paymentDueDay: wallet.paymentDueDay,
+            timeZone: 'Asia/Jakarta',
+          });
+        } else if (input.firstDueDate) {
+          firstDueDate = input.firstDueDate;
+        } else {
+          throw new TransactionError(
+            'firstDueDate wajib diisi jika cutoff atau tanggal jatuh tempo belum diatur',
+            400,
+            'BAD_REQUEST',
+          );
+        }
+
+        let nextDueDate: Date;
+        try {
+          nextDueDate = parseBusinessDate(firstDueDate, reportingConfig.timezone);
+        } catch (error) {
+          throw new TransactionError(
+            error instanceof Error ? error.message : 'firstDueDate tidak valid',
+            400,
+            'BAD_REQUEST',
+          );
+        }
+
+        const balance = new Prisma.Decimal(wallet.balance ?? 0);
+        const limit = new Prisma.Decimal(wallet.creditLimit ?? 0);
+        const outstanding = balance.isNegative() ? balance.abs() : new Prisma.Decimal(0);
+        const remainingCredit = Prisma.Decimal.max(limit.minus(outstanding), 0);
+        if (grandTotal.greaterThan(remainingCredit)) {
+          throw new TransactionError('Limit kredit tidak mencukupi', 400, 'INSUFFICIENT_CREDIT');
+        }
 
         return await db.$transaction(async (tx) => {
           const installment = await tx.installment.create({
@@ -150,7 +195,9 @@ export function createTransactionService(db: TransactionPrismaClient) {
               installmentMonths,
               currentTerm: 1,
               monthlyAmount,
-              nextDueDate: parsedDate,
+              kind: billingMode,
+              paidTerms: 0,
+              nextDueDate,
               status: 'ACTIVE',
               startDate: parsedDate,
               description: input.description ?? null,

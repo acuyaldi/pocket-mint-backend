@@ -7,6 +7,8 @@ import type { PayInstallmentResult } from '../services/installment-payment.types
 import { getAuthenticatedUserId } from '../http/authContext';
 import { scalarString } from '../http/queryParsers';
 import { forwardError } from '../http/forwardError';
+import { reportingConfig } from '../config';
+import { formatReportingDate } from '../domain/reportingTime';
 
 // ponytail: static provider rates, matched against wallet name on the frontend;
 // move to a DB table when rates need per-user overrides or admin management.
@@ -26,21 +28,35 @@ const PAYLATER_RATES = [
  * preserved byte-for-byte for API compatibility. Stored contract values only —
  * no progress/remaining is computed (the schema has no paid-terms field).
  */
-function serializeInstallment(inst: InstallmentListItem) {
+function serializeInstallment(inst: InstallmentListItem | PayInstallmentResult['installment']) {
+  const storedStatus = inst.status;
+  const nextDueDay = formatReportingDate(inst.nextDueDate, reportingConfig.timezone);
+  const today = formatReportingDate(new Date(), reportingConfig.timezone);
+  const status = storedStatus === 'ACTIVE' && nextDueDay < today ? 'OVERDUE' : storedStatus;
+  const purchase = 'transactions' in inst
+    ? inst.transactions.find((transaction) => transaction.type === 'EXPENSE')
+    : undefined;
+
   return {
     id: inst.id,
+    transactionId: purchase?.id ?? null,
+    kind: inst.kind,
     description: inst.description,
     walletId: inst.walletId,
     walletName: inst.wallet.name,
     walletType: inst.wallet.type,
     monthlyAmount: parseFloat(inst.monthlyAmount.toString()),
+    amountPerTerm: parseFloat(inst.monthlyAmount.toString()),
     currentTerm: inst.currentTerm,
     installmentMonths: inst.installmentMonths,
+    totalTerms: inst.installmentMonths,
+    paidTerms: inst.paidTerms,
+    nextDueDate: inst.nextDueDate,
     totalAmount: parseFloat(inst.totalAmount.toString()),
     grandTotal: parseFloat(inst.grandTotal.toString()),
     totalInterest: parseFloat(inst.totalInterest.toString()),
     interestRate: parseFloat(inst.interestRate.toString()),
-    status: inst.status,
+    status,
     startDate: inst.startDate,
     balanceDeducted: inst.balanceDeducted,
   };

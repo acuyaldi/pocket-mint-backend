@@ -12,6 +12,7 @@ router.use('/v1/dashboard', dashboardRouter);
 router.use('/v1/transactions', transactionRouter);
 router.use('/v1/wallets', walletRouter);
 router.use('/v1/users', userRouter);
+router.use('/v1/bills', installmentRouter);
 router.use('/v1/installments', installmentRouter);
 
 export { router };

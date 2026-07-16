@@ -53,5 +53,8 @@ export interface ListInstallmentsInput {
  * exact `include` the service issues, so it stays in lockstep with the query.
  */
 export type InstallmentListItem = Prisma.InstallmentGetPayload<{
-  include: { wallet: { select: { id: true; name: true; type: true } } };
+  include: {
+    wallet: { select: { id: true; name: true; type: true } };
+    transactions: { select: { id: true; type: true; createdAt: true } };
+  };
 }>;

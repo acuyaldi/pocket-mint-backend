@@ -30,13 +30,17 @@ function makeRow(over: Record<string, unknown> = {}) {
     installmentMonths: 3,
     currentTerm: 1,
     monthlyAmount: D('362833.33'),
+    kind: 'INSTALLMENT',
+    paidTerms: 0,
+    nextDueDate: new Date('2026-08-05T00:00:00.000Z'),
     status: 'ACTIVE',
     startDate: new Date('2026-07-01T00:00:00.000Z'),
     description: 'Laptop',
     balanceDeducted: true,
     createdAt: new Date('2026-07-01T00:00:00.000Z'),
     updatedAt: new Date('2026-07-01T00:00:00.000Z'),
-    wallet: { id: 'w1', name: 'Kredivo', type: 'LOAN_PAYLATER' },
+    wallet: { id: 'w1', name: 'Kredivo', type: 'PAYLATER' },
+    transactions: [{ id: 'tx-purchase', type: 'EXPENSE', createdAt: new Date('2026-07-01T00:00:00.000Z') }],
     ...over,
   };
 }
@@ -54,14 +58,17 @@ beforeEach(() => {
 });
 
 describe('installment query service — listInstallments', () => {
-  it('scopes to the authenticated user, orders startDate desc, includes wallet fields', async () => {
+  it('scopes to the authenticated user, orders by due date, and includes the purchase transaction', async () => {
     await service.listInstallments({ userId: USER });
 
     expect(h.findMany).toHaveBeenCalledTimes(1);
     expect(h.findMany).toHaveBeenCalledWith({
       where: { userId: USER },
-      include: { wallet: { select: { id: true, name: true, type: true } } },
-      orderBy: { startDate: 'desc' },
+      include: {
+        wallet: { select: { id: true, name: true, type: true } },
+        transactions: { select: { id: true, type: true, createdAt: true } },
+      },
+      orderBy: { nextDueDate: 'asc' },
     });
   });
 
@@ -98,7 +105,8 @@ describe('installment query service — listInstallments', () => {
     const [row] = await service.listInstallments({ userId: USER });
     expect(row.grandTotal).toBeInstanceOf(Prisma.Decimal);
     expect(row.monthlyAmount.toString()).toBe('362833.33');
-    expect(row.wallet).toEqual({ id: 'w1', name: 'Kredivo', type: 'LOAN_PAYLATER' });
+    expect(row.wallet).toEqual({ id: 'w1', name: 'Kredivo', type: 'PAYLATER' });
+    expect(row.transactions[0].id).toBe('tx-purchase');
   });
 
   it('returns an empty array when the user has no installments', async () => {

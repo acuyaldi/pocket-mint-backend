@@ -24,10 +24,15 @@ interface FakeOptions {
  */
 function makeDb(opts: FakeOptions = {}) {
   const committed: { id: string; delta: number }[] = [];
+  const installmentCreates: Record<string, any>[] = [];
+  const transactionCreates: Record<string, any>[] = [];
 
   const makeTx = (buffer: { id: string; delta: number }[]) => ({
     transaction: {
-      create: vi.fn(async ({ data }: any) => ({ id: 'tx-new', ...data })),
+      create: vi.fn(async ({ data }: any) => {
+        transactionCreates.push(data);
+        return { id: 'tx-new', ...data };
+      }),
       update: vi.fn(async ({ where, data }: any) => ({ id: where.id, ...data })),
       delete: vi.fn(async () => ({ id: 'deleted' })),
     },
@@ -40,7 +45,10 @@ function makeDb(opts: FakeOptions = {}) {
       }),
     },
     installment: {
-      create: vi.fn(async ({ data }: any) => ({ id: 'inst-new', ...data })),
+      create: vi.fn(async ({ data }: any) => {
+        installmentCreates.push(data);
+        return { id: 'inst-new', ...data };
+      }),
       update: vi.fn(async () => {
         if (opts.failInstallmentUpdate) throw new Error('boom');
         return {};
@@ -64,11 +72,11 @@ function makeDb(opts: FakeOptions = {}) {
 
   const net = (id: string) => committed.filter((c) => c.id === id).reduce((a, c) => a + c.delta, 0);
   const aggregate = () => committed.reduce((a, c) => a + c.delta, 0);
-  return { db, net, aggregate, committed };
+  return { db, net, aggregate, committed, installmentCreates, transactionCreates };
 }
 
 /** wallet.findFirst that returns a wallet only for the listed ids. */
-const ownedWallets = (map: Record<string, { type?: string }>) =>
+const ownedWallets = (map: Record<string, Record<string, unknown>>) =>
   vi.fn(async ({ where }: any) => (map[where.id] ? { id: where.id, ...map[where.id] } : null));
 
 const svc = (db: unknown) => createTransactionService(db as TransactionPrismaClient);
@@ -101,12 +109,92 @@ describe('transactionService.createTransaction', () => {
 
   it('creates an installment and locks the full grandTotal on the wallet', async () => {
     const { db, net } = makeDb();
-    db.wallet.findFirst = ownedWallets({ cc: { type: 'CREDIT_CARD' } });
+    db.wallet.findFirst = ownedWallets({ cc: { type: 'CREDIT_CARD', balance: D(0), creditLimit: D(1000), cutoffDay: 20, paymentDueDay: 5 } });
     await svc(db).createTransaction({
       userId: 'u', type: 'EXPENSE', amount: 300, walletId: 'cc',
       isInstallment: true, installmentMonths: 3, interestRate: 0,
     });
     expect(net('cc')).toBe(-300); // grandTotal, not the monthly 100
+  });
+
+  it('creates a one-term FULL bill for a normal credit expense', async () => {
+    const { db, net, installmentCreates, transactionCreates } = makeDb();
+    db.wallet.findFirst = ownedWallets({
+      cc: { type: 'CREDIT_CARD', balance: D(-200), creditLimit: D(1000), cutoffDay: 20, paymentDueDay: 5 },
+    });
+
+    await svc(db).createTransaction({
+      userId: 'u',
+      type: 'EXPENSE',
+      amount: 250,
+      walletId: 'cc',
+      date: '2026-07-10',
+      billingMode: 'FULL',
+    });
+
+    expect(net('cc')).toBe(-250);
+    expect(installmentCreates[0]).toMatchObject({
+      kind: 'FULL',
+      installmentMonths: 1,
+      paidTerms: 0,
+      monthlyAmount: D(250),
+    });
+    expect(installmentCreates[0].nextDueDate.toISOString()).toBe('2026-08-04T17:00:00.000Z');
+    expect(transactionCreates[0]).toMatchObject({ isInstallment: true, installmentId: 'inst-new' });
+  });
+
+  it('allows a two-term installment below Rp500.000', async () => {
+    const { db, installmentCreates } = makeDb();
+    db.wallet.findFirst = ownedWallets({
+      pay: { type: 'PAYLATER', balance: D(0), creditLimit: D(500_000), cutoffDay: 15, paymentDueDay: 28 },
+    });
+
+    await svc(db).createTransaction({
+      userId: 'u',
+      type: 'EXPENSE',
+      amount: 200_000,
+      walletId: 'pay',
+      date: '2026-07-10',
+      billingMode: 'INSTALLMENT',
+      installmentMonths: 2,
+      interestRate: 0,
+    });
+
+    expect(installmentCreates[0]).toMatchObject({ kind: 'INSTALLMENT', installmentMonths: 2, paidTerms: 0 });
+  });
+
+  it('rejects a credit purchase above remaining credit', async () => {
+    const { db, committed, installmentCreates } = makeDb();
+    db.wallet.findFirst = ownedWallets({
+      cc: { type: 'CREDIT_CARD', balance: D(-800), creditLimit: D(1000), cutoffDay: 20, paymentDueDay: 5 },
+    });
+
+    await expect(svc(db).createTransaction({
+      userId: 'u', type: 'EXPENSE', amount: 201, walletId: 'cc', billingMode: 'FULL',
+    })).rejects.toMatchObject({ statusCode: 400, code: 'INSUFFICIENT_CREDIT' });
+    expect(committed).toHaveLength(0);
+    expect(installmentCreates).toHaveLength(0);
+  });
+
+  it('rejects using a loan as an expense source', async () => {
+    const { db, committed } = makeDb();
+    db.wallet.findFirst = ownedWallets({ loan: { type: 'LOAN', balance: D(-1000), creditLimit: D(0) } });
+
+    await expect(svc(db).createTransaction({
+      userId: 'u', type: 'EXPENSE', amount: 100, walletId: 'loan',
+    })).rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
+    expect(committed).toHaveLength(0);
+  });
+
+  it('requires firstDueDate when the credit cycle is incomplete', async () => {
+    const { db } = makeDb();
+    db.wallet.findFirst = ownedWallets({
+      cc: { type: 'CREDIT_CARD', balance: D(0), creditLimit: D(1000), cutoffDay: null, paymentDueDay: null },
+    });
+
+    await expect(svc(db).createTransaction({
+      userId: 'u', type: 'EXPENSE', amount: 100, walletId: 'cc', billingMode: 'FULL',
+    })).rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
   });
 
   it('rejects an invalid amount before any write', async () => {
@@ -152,13 +240,16 @@ describe('transactionService.createTransaction', () => {
 
   it('rolls back all writes when a step inside the transaction fails', async () => {
     const { db, net, committed } = makeDb({ failInstallmentUpdate: true });
-    db.wallet.findFirst = ownedWallets({ cc: { type: 'CREDIT_CARD' } });
+    db.wallet.findFirst = ownedWallets({
+      cc: { type: 'CREDIT_CARD', balance: D(0), creditLimit: D(1000), cutoffDay: 20, paymentDueDay: 5 },
+    });
     await expect(
       svc(db).createTransaction({
         userId: 'u', type: 'EXPENSE', amount: 300, walletId: 'cc',
         isInstallment: true, installmentMonths: 3, interestRate: 0,
       })
     ).rejects.toThrow();
+    expect(db.$transaction).toHaveBeenCalledTimes(1);
     expect(committed).toHaveLength(0); // wallet decrement was buffered, never committed
     expect(net('cc')).toBe(0);
   });

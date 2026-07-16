@@ -65,8 +65,9 @@ export function createInstallmentQueryService(db: InstallmentQueryPrismaClient) 
       },
       include: {
         wallet: { select: { id: true, name: true, type: true } },
+        transactions: { select: { id: true, type: true, createdAt: true } },
       },
-      orderBy: { startDate: 'desc' },
+      orderBy: { nextDueDate: 'asc' },
     });
   }
 
