@@ -99,12 +99,53 @@ describe('transactionService.createTransaction', () => {
 
   it('creates a TRANSFER symmetrically and persists toWalletId', async () => {
     const { db, net, aggregate } = makeDb();
-    db.wallet.findFirst = ownedWallets({ src: { type: 'CASH' }, dst: {} });
+    db.wallet.findFirst = ownedWallets({ src: { type: 'CASH', balance: D(500) }, dst: {} });
     const created = await svc(db).createTransaction({ userId: 'u', type: 'TRANSFER', amount: 100, walletId: 'src', toWalletId: 'dst' });
     expect((created as any).toWalletId).toBe('dst');
     expect(net('src')).toBe(-100);
     expect(net('dst')).toBe(100);
     expect(aggregate()).toBe(0);
+  });
+
+  it('allows an e-wallet source and a credit-card destination', async () => {
+    const { db, net } = makeDb();
+    db.wallet.findFirst = ownedWallets({
+      src: { type: 'E_WALLET', balance: D(500) },
+      card: { type: 'CREDIT_CARD', balance: D(-300) },
+    });
+
+    await svc(db).createTransaction({
+      userId: 'u', type: 'TRANSFER', amount: 200, walletId: 'src', toWalletId: 'card',
+    });
+
+    expect(net('src')).toBe(-200);
+    expect(net('card')).toBe(200);
+  });
+
+  it('rejects a liability as a transfer source', async () => {
+    const { db, committed } = makeDb();
+    db.wallet.findFirst = ownedWallets({
+      card: { type: 'CREDIT_CARD', balance: D(-300) },
+      bank: { type: 'BANK', balance: D(1000) },
+    });
+
+    await expect(svc(db).createTransaction({
+      userId: 'u', type: 'TRANSFER', amount: 100, walletId: 'card', toWalletId: 'bank',
+    })).rejects.toMatchObject({ statusCode: 400, code: 'INVALID_TRANSFER' });
+    expect(committed).toHaveLength(0);
+  });
+
+  it('rejects a transfer when the source balance is insufficient', async () => {
+    const { db, committed } = makeDb();
+    db.wallet.findFirst = ownedWallets({
+      bank: { type: 'BANK', balance: D(50) },
+      loan: { type: 'LOAN', balance: D(-1000) },
+    });
+
+    await expect(svc(db).createTransaction({
+      userId: 'u', type: 'TRANSFER', amount: 100, walletId: 'bank', toWalletId: 'loan',
+    })).rejects.toMatchObject({ statusCode: 400, code: 'INSUFFICIENT_FUNDS' });
+    expect(committed).toHaveLength(0);
   });
 
   it('creates an installment and locks the full grandTotal on the wallet', async () => {
@@ -216,7 +257,7 @@ describe('transactionService.createTransaction', () => {
 
   it('rejects an unowned destination wallet', async () => {
     const { db, committed } = makeDb();
-    db.wallet.findFirst = ownedWallets({ src: { type: 'CASH' } }); // dst missing
+    db.wallet.findFirst = ownedWallets({ src: { type: 'CASH', balance: D(100) } }); // dst missing
     await expect(
       svc(db).createTransaction({ userId: 'u', type: 'TRANSFER', amount: 10, walletId: 'src', toWalletId: 'dst' })
     ).rejects.toMatchObject({ statusCode: 404, message: 'Wallet tujuan tidak ditemukan' });
@@ -281,11 +322,26 @@ describe('transactionService.updateTransaction', () => {
     db.transaction.findFirst = vi.fn(async () => ({
       id: 't1', type: 'TRANSFER', amount: D(100), walletId: 'src', toWalletId: 'dst', isInstallment: false,
     }));
-    db.wallet.findFirst = ownedWallets({ dst2: {} });
+    db.wallet.findFirst = ownedWallets({ src: { type: 'BANK', balance: D(500) }, dst2: {} });
     await svc(db).updateTransaction({ userId: 'u', id: 't1', toWalletId: 'dst2' });
     expect(net('src')).toBe(0); // +100 reverse, -100 apply
     expect(net('dst')).toBe(-100); // reverse the old credit
     expect(net('dst2')).toBe(100); // credit the new destination
+  });
+
+  it('rejects changing a transfer source to a liability', async () => {
+    const { db, committed } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'TRANSFER', amount: D(100), walletId: 'bank', toWalletId: 'loan', isInstallment: false,
+    }));
+    db.wallet.findFirst = ownedWallets({
+      card: { type: 'CREDIT_CARD', balance: D(-100) },
+      loan: { type: 'LOAN', balance: D(-500) },
+    });
+
+    await expect(svc(db).updateTransaction({ userId: 'u', id: 't1', walletId: 'card' }))
+      .rejects.toMatchObject({ statusCode: 400, code: 'INVALID_TRANSFER' });
+    expect(committed).toHaveLength(0);
   });
 
   it('refuses to edit an installment transaction', async () => {

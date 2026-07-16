@@ -123,7 +123,7 @@ export async function payInstallment(
       userId,
       installmentId: req.params.id,
       sourceWalletId: req.body.sourceWalletId ?? '',
-      amount: req.body.amount ?? '',
+      amount: req.body.amount,
       date: req.body.date,
     });
 

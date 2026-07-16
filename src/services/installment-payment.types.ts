@@ -11,7 +11,7 @@ export interface PayInstallmentInput {
   userId: string;
   installmentId: string;
   sourceWalletId: string;
-  amount: DecimalInput;
+  amount?: DecimalInput;
   date?: string;
 }
 

@@ -37,6 +37,7 @@ import {
 
 const VALID_TYPES = ['INCOME', 'EXPENSE', 'TRANSFER'];
 const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'PAYLATER'];
+const TRANSFER_SOURCE_TYPES = ['CASH', 'BANK', 'E_WALLET'];
 
 /** Map a Prisma FK violation to the same 400 the controller used to return. */
 function rethrowCreate(err: unknown): never {
@@ -97,6 +98,16 @@ export function createTransactionService(db: TransactionPrismaClient) {
     const wallet = await db.wallet.findFirst({ where: { id: resolvedWalletId, userId } });
     if (!wallet) {
       throw new TransactionError('Wallet tidak ditemukan', 404, 'NOT_FOUND');
+    }
+
+    if (type === 'TRANSFER') {
+      if (!TRANSFER_SOURCE_TYPES.includes(wallet.type)) {
+        throw new TransactionError('Sumber transfer harus Kas, Bank, atau E-Wallet', 400, 'INVALID_TRANSFER');
+      }
+      const sourceBalance = new Prisma.Decimal(wallet.balance ?? 0);
+      if (sourceBalance.lessThan(numAmount)) {
+        throw new TransactionError('Saldo sumber tidak mencukupi', 400, 'INSUFFICIENT_FUNDS');
+      }
     }
 
     if (type === 'TRANSFER' && toWalletId) {
@@ -308,7 +319,7 @@ export function createTransactionService(db: TransactionPrismaClient) {
     const newWalletId = walletId ?? existing.walletId;
     const newToWalletId = newType === 'TRANSFER' ? (toWalletId ?? existing.toWalletId ?? null) : null;
 
-    if (walletId) {
+    if (walletId && newType !== 'TRANSFER') {
       const targetWallet = await db.wallet.findFirst({ where: { id: walletId, userId }, select: { id: true } });
       if (!targetWallet) {
         throw new TransactionError('Wallet tidak ditemukan', 404, 'WALLET_NOT_FOUND');
@@ -321,6 +332,19 @@ export function createTransactionService(db: TransactionPrismaClient) {
       }
       if (newToWalletId === newWalletId) {
         throw new TransactionError('Wallet asal dan tujuan tidak boleh sama', 400, 'INVALID_TRANSFER');
+      }
+      const sourceWallet = await db.wallet.findFirst({
+        where: { id: newWalletId, userId },
+        select: { id: true, type: true, balance: true },
+      });
+      if (!sourceWallet) {
+        throw new TransactionError('Wallet tidak ditemukan', 404, 'WALLET_NOT_FOUND');
+      }
+      if (!TRANSFER_SOURCE_TYPES.includes(sourceWallet.type)) {
+        throw new TransactionError('Sumber transfer harus Kas, Bank, atau E-Wallet', 400, 'INVALID_TRANSFER');
+      }
+      if (sourceWallet.balance.lessThan(newAmount)) {
+        throw new TransactionError('Saldo sumber tidak mencukupi', 400, 'INSUFFICIENT_FUNDS');
       }
       const destWallet = await db.wallet.findFirst({ where: { id: newToWalletId, userId }, select: { id: true } });
       if (!destWallet) {

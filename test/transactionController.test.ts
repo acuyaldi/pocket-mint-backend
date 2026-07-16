@@ -65,7 +65,7 @@ beforeEach(() => {
 describe('create', () => {
   it('TRANSFER debits source, credits destination, and persists toWalletId', async () => {
     h.prismaMock.wallet.findFirst.mockImplementation(async ({ where }: { where: { id: string } }) =>
-      where.id === 'src' ? { id: 'src', type: 'CASH' } : where.id === 'dst' ? { id: 'dst' } : null
+      where.id === 'src' ? { id: 'src', type: 'CASH', balance: D(1000) } : where.id === 'dst' ? { id: 'dst' } : null
     );
     h.txClient.transaction.create.mockResolvedValue({ id: 't1', amount: D(100), type: 'TRANSFER', wallet: {}, category: null });
 
@@ -93,7 +93,7 @@ describe('create', () => {
 
   it("rejects a transfer to a wallet the caller doesn't own, with no mutation", async () => {
     h.prismaMock.wallet.findFirst.mockImplementation(async ({ where }: { where: { id: string } }) =>
-      where.id === 'src' ? { id: 'src', type: 'CASH' } : null // dst not owned
+      where.id === 'src' ? { id: 'src', type: 'CASH', balance: D(1000) } : null // dst not owned
     );
     const res = await request(buildApp())
       .post('/tx')
@@ -121,7 +121,9 @@ describe('update', () => {
     h.prismaMock.transaction.findFirst.mockResolvedValue({
       id: 't1', type: 'TRANSFER', amount: D(100), walletId: 'src', toWalletId: 'dst', isInstallment: false,
     });
-    h.prismaMock.wallet.findFirst.mockResolvedValue({ id: 'dst' });
+    h.prismaMock.wallet.findFirst.mockImplementation(async ({ where }: { where: { id: string } }) =>
+      where.id === 'src' ? { id: 'src', type: 'BANK', balance: D(1000) } : { id: 'dst' }
+    );
     const res = await request(buildApp()).put('/tx/t1').send({ amount: 150 });
 
     expect(res.status).toBe(200);

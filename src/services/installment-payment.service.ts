@@ -1,7 +1,8 @@
 import prisma from '../lib/prisma';
 import { Prisma, InstallmentStatus } from '../generated/prisma/client';
 import { reportingConfig } from '../config';
-import { parseBusinessDate } from '../domain/reportingTime';
+import { formatReportingDate, parseBusinessDate } from '../domain/reportingTime';
+import { addBillingMonth } from '../domain/billingCycle';
 import {
   applyBalanceDeltas,
   computeBalanceEffect,
@@ -13,7 +14,7 @@ import type {
   PayInstallmentResult,
 } from './installment-payment.types';
 
-const ALLOWED_SOURCE_TYPES = ['BANK', 'CASH'];
+const ALLOWED_SOURCE_TYPES = ['BANK', 'CASH', 'E_WALLET'];
 
 const INSTALLMENT_PAYMENT_INCLUDE = {
   wallet: { select: { id: true, name: true, type: true } },
@@ -24,7 +25,7 @@ const PAID_INSTALLMENT_INCLUDE = {
   wallet: { select: { id: true, name: true, type: true } },
 } as const;
 
-function toDecimal(input: PayInstallmentInput['amount']): Prisma.Decimal {
+function toDecimal(input: NonNullable<PayInstallmentInput['amount']>): Prisma.Decimal {
   try {
     return new Prisma.Decimal(input);
   } catch {
@@ -34,11 +35,6 @@ function toDecimal(input: PayInstallmentInput['amount']): Prisma.Decimal {
 
 export function createInstallmentPaymentService(db: InstallmentPaymentPrismaClient) {
   async function payInstallment(input: PayInstallmentInput): Promise<PayInstallmentResult> {
-    const amount = toDecimal(input.amount);
-    if (amount.lessThanOrEqualTo(0)) {
-      throw new InstallmentError('amount is required and must be a positive number', 400, 'INVALID_AMOUNT');
-    }
-
     let parsedDate: Date;
     try {
       parsedDate = parseBusinessDate(input.date, reportingConfig.timezone);
@@ -56,11 +52,15 @@ export function createInstallmentPaymentService(db: InstallmentPaymentPrismaClie
     if (installment.status !== InstallmentStatus.ACTIVE) {
       throw new InstallmentError('Cicilan tidak aktif', 409, 'CONFLICT');
     }
-    if (installment.currentTerm >= installment.installmentMonths) {
-      throw new InstallmentError('Cicilan sudah lunas', 409, 'CONFLICT');
+    if (installment.paidTerms >= installment.installmentMonths) {
+      throw new InstallmentError('Tagihan sudah lunas', 409, 'CONFLICT');
+    }
+    const amount = input.amount === undefined ? installment.monthlyAmount : toDecimal(input.amount);
+    if (amount.lessThanOrEqualTo(0)) {
+      throw new InstallmentError('amount is required and must be a positive number', 400, 'INVALID_AMOUNT');
     }
     if (!amount.equals(installment.monthlyAmount)) {
-      throw new InstallmentError('Jumlah pembayaran harus sama dengan cicilan bulanan', 400, 'INVALID_AMOUNT');
+      throw new InstallmentError('Jumlah pembayaran harus sama dengan nominal termin', 400, 'INVALID_AMOUNT');
     }
 
     const sourceWallet = await db.wallet.findFirst({
@@ -71,17 +71,24 @@ export function createInstallmentPaymentService(db: InstallmentPaymentPrismaClie
       throw new InstallmentError('Rekening sumber tidak ditemukan', 404, 'NOT_FOUND');
     }
     if (!ALLOWED_SOURCE_TYPES.includes(sourceWallet.type)) {
-      throw new InstallmentError('Pembayaran cicilan hanya bisa dari rekening bank atau kas', 400, 'BAD_REQUEST');
+      throw new InstallmentError('Pembayaran tagihan hanya bisa dari kas, bank, atau e-wallet', 400, 'BAD_REQUEST');
     }
     if (sourceWallet.balance.lessThan(amount)) {
       throw new InstallmentError('Saldo rekening sumber tidak cukup', 400, 'INSUFFICIENT_FUNDS');
     }
 
-    const nextTerm = installment.currentTerm + 1;
+    const nextPaidTerms = installment.paidTerms + 1;
+    const nextTerm = Math.min(nextPaidTerms + 1, installment.installmentMonths);
     const nextStatus =
-      nextTerm >= installment.installmentMonths
+      nextPaidTerms >= installment.installmentMonths
         ? InstallmentStatus.SETTLED
         : InstallmentStatus.ACTIVE;
+    const nextDueDate = nextStatus === InstallmentStatus.SETTLED
+      ? installment.nextDueDate
+      : parseBusinessDate(
+          addBillingMonth(formatReportingDate(installment.nextDueDate, reportingConfig.timezone), 1),
+          reportingConfig.timezone,
+        );
 
     return db.$transaction(async (tx) => {
       const transaction = await tx.transaction.create({
@@ -91,7 +98,7 @@ export function createInstallmentPaymentService(db: InstallmentPaymentPrismaClie
           toWalletId: installment.walletId,
           type: 'TRANSFER',
           amount,
-          description: `Pembayaran cicilan — ${installment.description || installment.wallet.name}`,
+          description: `Pembayaran tagihan — ${installment.description || installment.wallet.name}`,
           date: parsedDate,
           isInstallment: false,
         },
@@ -112,6 +119,8 @@ export function createInstallmentPaymentService(db: InstallmentPaymentPrismaClie
         where: { id: installment.id },
         data: {
           currentTerm: nextTerm,
+          paidTerms: nextPaidTerms,
+          nextDueDate,
           status: nextStatus,
         },
         include: PAID_INSTALLMENT_INCLUDE,
@@ -121,7 +130,7 @@ export function createInstallmentPaymentService(db: InstallmentPaymentPrismaClie
     });
   }
 
-  return { payInstallment };
+  return { payInstallment, payBill: payInstallment };
 }
 
 export const installmentPaymentService = createInstallmentPaymentService(prisma);
