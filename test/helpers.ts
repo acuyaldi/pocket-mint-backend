@@ -29,7 +29,9 @@ export const validClaims = {
  */
 export function applyEnv(env: Record<string, string | undefined>): void {
   for (const [k, v] of Object.entries(env)) {
-    if (v === undefined) delete process.env[k];
+    // Keep an explicit empty value so a later first-time `dotenv/config` import
+    // cannot repopulate the key from the developer's local .env file.
+    if (v === undefined) process.env[k] = '';
     else process.env[k] = v;
   }
 }
