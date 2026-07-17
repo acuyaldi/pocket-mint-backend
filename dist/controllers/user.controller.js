@@ -7,6 +7,7 @@ exports.UserController = void 0;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const response_1 = require("../utils/response");
 const authContext_1 = require("../http/authContext");
+const category_service_1 = require("../services/category.service");
 /**
  * Explicit response projection for a user. Using a fixed `select` (never
  * `include` / bare model) guarantees only these fields are ever serialized to
@@ -54,6 +55,7 @@ class UserController {
                 select: userSelect,
             });
             if (existing) {
+                await category_service_1.categoryService.ensureDefaultCategories(userId);
                 return (0, response_1.sendSuccess)(res, existing, "User already exists");
             }
             // Create the local row keyed to the verified Supabase identity.
@@ -61,6 +63,7 @@ class UserController {
                 data: { id: userId, email, name },
                 select: userSelect,
             });
+            await category_service_1.categoryService.ensureDefaultCategories(userId);
             (0, response_1.sendSuccess)(res, user, "User synced successfully", 201);
         }
         catch (err) {

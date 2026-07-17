@@ -20,8 +20,10 @@ export interface CreateTransactionInput {
     /** ISO day (`YYYY-MM-DD`) or offset timestamp; normalized in the service. */
     date?: string;
     isInstallment?: boolean;
+    billingMode?: 'FULL' | 'INSTALLMENT';
     installmentMonths?: number;
     interestRate?: number;
+    firstDueDate?: string;
 }
 /** Update fields; `undefined` means "omitted" (keep the persisted value). */
 export interface UpdateTransactionFields {

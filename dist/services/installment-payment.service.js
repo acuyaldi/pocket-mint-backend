@@ -9,9 +9,10 @@ const prisma_1 = __importDefault(require("../lib/prisma"));
 const client_1 = require("../generated/prisma/client");
 const config_1 = require("../config");
 const reportingTime_1 = require("../domain/reportingTime");
+const billingCycle_1 = require("../domain/billingCycle");
 const transactionBalance_1 = require("../domain/transactionBalance");
 const installment_errors_1 = require("./installment.errors");
-const ALLOWED_SOURCE_TYPES = ['BANK', 'CASH'];
+const ALLOWED_SOURCE_TYPES = ['BANK', 'CASH', 'E_WALLET'];
 const INSTALLMENT_PAYMENT_INCLUDE = {
     wallet: { select: { id: true, name: true, type: true } },
     toWallet: { select: { id: true, name: true, type: true } },
@@ -29,10 +30,6 @@ function toDecimal(input) {
 }
 function createInstallmentPaymentService(db) {
     async function payInstallment(input) {
-        const amount = toDecimal(input.amount);
-        if (amount.lessThanOrEqualTo(0)) {
-            throw new installment_errors_1.InstallmentError('amount is required and must be a positive number', 400, 'INVALID_AMOUNT');
-        }
         let parsedDate;
         try {
             parsedDate = (0, reportingTime_1.parseBusinessDate)(input.date, config_1.reportingConfig.timezone);
@@ -50,11 +47,15 @@ function createInstallmentPaymentService(db) {
         if (installment.status !== client_1.InstallmentStatus.ACTIVE) {
             throw new installment_errors_1.InstallmentError('Cicilan tidak aktif', 409, 'CONFLICT');
         }
-        if (installment.currentTerm >= installment.installmentMonths) {
-            throw new installment_errors_1.InstallmentError('Cicilan sudah lunas', 409, 'CONFLICT');
+        if (installment.paidTerms >= installment.installmentMonths) {
+            throw new installment_errors_1.InstallmentError('Tagihan sudah lunas', 409, 'CONFLICT');
+        }
+        const amount = input.amount === undefined ? installment.monthlyAmount : toDecimal(input.amount);
+        if (amount.lessThanOrEqualTo(0)) {
+            throw new installment_errors_1.InstallmentError('amount is required and must be a positive number', 400, 'INVALID_AMOUNT');
         }
         if (!amount.equals(installment.monthlyAmount)) {
-            throw new installment_errors_1.InstallmentError('Jumlah pembayaran harus sama dengan cicilan bulanan', 400, 'INVALID_AMOUNT');
+            throw new installment_errors_1.InstallmentError('Jumlah pembayaran harus sama dengan nominal termin', 400, 'INVALID_AMOUNT');
         }
         const sourceWallet = await db.wallet.findFirst({
             where: { id: input.sourceWalletId, userId: input.userId },
@@ -64,15 +65,19 @@ function createInstallmentPaymentService(db) {
             throw new installment_errors_1.InstallmentError('Rekening sumber tidak ditemukan', 404, 'NOT_FOUND');
         }
         if (!ALLOWED_SOURCE_TYPES.includes(sourceWallet.type)) {
-            throw new installment_errors_1.InstallmentError('Pembayaran cicilan hanya bisa dari rekening bank atau kas', 400, 'BAD_REQUEST');
+            throw new installment_errors_1.InstallmentError('Pembayaran tagihan hanya bisa dari kas, bank, atau e-wallet', 400, 'BAD_REQUEST');
         }
         if (sourceWallet.balance.lessThan(amount)) {
             throw new installment_errors_1.InstallmentError('Saldo rekening sumber tidak cukup', 400, 'INSUFFICIENT_FUNDS');
         }
-        const nextTerm = installment.currentTerm + 1;
-        const nextStatus = nextTerm >= installment.installmentMonths
+        const nextPaidTerms = installment.paidTerms + 1;
+        const nextTerm = Math.min(nextPaidTerms + 1, installment.installmentMonths);
+        const nextStatus = nextPaidTerms >= installment.installmentMonths
             ? client_1.InstallmentStatus.SETTLED
             : client_1.InstallmentStatus.ACTIVE;
+        const nextDueDate = nextStatus === client_1.InstallmentStatus.SETTLED
+            ? installment.nextDueDate
+            : (0, reportingTime_1.parseBusinessDate)((0, billingCycle_1.addBillingMonth)((0, reportingTime_1.formatReportingDate)(installment.nextDueDate, config_1.reportingConfig.timezone), 1), config_1.reportingConfig.timezone);
         return db.$transaction(async (tx) => {
             const transaction = await tx.transaction.create({
                 data: {
@@ -81,7 +86,7 @@ function createInstallmentPaymentService(db) {
                     toWalletId: installment.walletId,
                     type: 'TRANSFER',
                     amount,
-                    description: `Pembayaran cicilan — ${installment.description || installment.wallet.name}`,
+                    description: `Pembayaran tagihan — ${installment.description || installment.wallet.name}`,
                     date: parsedDate,
                     isInstallment: false,
                 },
@@ -97,6 +102,8 @@ function createInstallmentPaymentService(db) {
                 where: { id: installment.id },
                 data: {
                     currentTerm: nextTerm,
+                    paidTerms: nextPaidTerms,
+                    nextDueDate,
                     status: nextStatus,
                 },
                 include: PAID_INSTALLMENT_INCLUDE,
@@ -104,7 +111,7 @@ function createInstallmentPaymentService(db) {
             return { transaction, installment: updated };
         });
     }
-    return { payInstallment };
+    return { payInstallment, payBill: payInstallment };
 }
 exports.installmentPaymentService = createInstallmentPaymentService(prisma_1.default);
 //# sourceMappingURL=installment-payment.service.js.map

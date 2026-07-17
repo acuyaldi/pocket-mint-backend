@@ -10,7 +10,9 @@ export interface CreateTransactionDto {
     note?: string;
     date?: string;
     isInstallment?: boolean;
+    billingMode?: 'FULL' | 'INSTALLMENT';
     installmentMonths?: number;
+    firstDueDate?: string;
     interestRate?: number;
     currentTerm?: number;
 }

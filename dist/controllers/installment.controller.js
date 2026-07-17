@@ -9,6 +9,8 @@ const installment_payment_service_1 = require("../services/installment-payment.s
 const authContext_1 = require("../http/authContext");
 const queryParsers_1 = require("../http/queryParsers");
 const forwardError_1 = require("../http/forwardError");
+const config_1 = require("../config");
+const reportingTime_1 = require("../domain/reportingTime");
 // ponytail: static provider rates, matched against wallet name on the frontend;
 // move to a DB table when rates need per-user overrides or admin management.
 // rate = bunga flat %/bulan, adminFee = % dari pokok (sekali bayar, belum dipersist).
@@ -27,20 +29,33 @@ const PAYLATER_RATES = [
  * no progress/remaining is computed (the schema has no paid-terms field).
  */
 function serializeInstallment(inst) {
+    const storedStatus = inst.status;
+    const nextDueDay = (0, reportingTime_1.formatReportingDate)(inst.nextDueDate, config_1.reportingConfig.timezone);
+    const today = (0, reportingTime_1.formatReportingDate)(new Date(), config_1.reportingConfig.timezone);
+    const status = storedStatus === 'ACTIVE' && nextDueDay < today ? 'OVERDUE' : storedStatus;
+    const purchase = 'transactions' in inst
+        ? inst.transactions.find((transaction) => transaction.type === 'EXPENSE')
+        : undefined;
     return {
         id: inst.id,
+        transactionId: purchase?.id ?? null,
+        kind: inst.kind,
         description: inst.description,
         walletId: inst.walletId,
         walletName: inst.wallet.name,
         walletType: inst.wallet.type,
         monthlyAmount: parseFloat(inst.monthlyAmount.toString()),
+        amountPerTerm: parseFloat(inst.monthlyAmount.toString()),
         currentTerm: inst.currentTerm,
         installmentMonths: inst.installmentMonths,
+        totalTerms: inst.installmentMonths,
+        paidTerms: inst.paidTerms,
+        nextDueDate: inst.nextDueDate,
         totalAmount: parseFloat(inst.totalAmount.toString()),
         grandTotal: parseFloat(inst.grandTotal.toString()),
         totalInterest: parseFloat(inst.totalInterest.toString()),
         interestRate: parseFloat(inst.interestRate.toString()),
-        status: inst.status,
+        status,
         startDate: inst.startDate,
         balanceDeducted: inst.balanceDeducted,
     };
@@ -97,7 +112,7 @@ async function payInstallment(req, res, next) {
             userId,
             installmentId: req.params.id,
             sourceWalletId: req.body.sourceWalletId ?? '',
-            amount: req.body.amount ?? '',
+            amount: req.body.amount,
             date: req.body.date,
         });
         return (0, response_1.sendSuccess)(res, serializePayment(paid), 'Installment payment recorded');

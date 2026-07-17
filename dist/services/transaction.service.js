@@ -23,12 +23,13 @@ const client_1 = require("../generated/prisma/client");
 const config_1 = require("../config");
 const reportingTime_1 = require("../domain/reportingTime");
 const installment_1 = require("../domain/installment");
+const billingCycle_1 = require("../domain/billingCycle");
 const transactionBalance_1 = require("../domain/transactionBalance");
 const transaction_errors_1 = require("./transaction.errors");
 const transaction_types_1 = require("./transaction.types");
 const VALID_TYPES = ['INCOME', 'EXPENSE', 'TRANSFER'];
-const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
-const VALID_TENORS = [3, 6, 12];
+const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'PAYLATER'];
+const TRANSFER_SOURCE_TYPES = ['CASH', 'BANK', 'E_WALLET'];
 /** Map a Prisma FK violation to the same 400 the controller used to return. */
 function rethrowCreate(err) {
     if (err instanceof transaction_errors_1.TransactionError)
@@ -81,32 +82,57 @@ function createTransactionService(db) {
         if (!wallet) {
             throw new transaction_errors_1.TransactionError('Wallet tidak ditemukan', 404, 'NOT_FOUND');
         }
+        if (type === 'TRANSFER') {
+            if (!TRANSFER_SOURCE_TYPES.includes(wallet.type)) {
+                throw new transaction_errors_1.TransactionError('Sumber transfer harus Kas, Bank, atau E-Wallet', 400, 'INVALID_TRANSFER');
+            }
+            const sourceBalance = new client_1.Prisma.Decimal(wallet.balance ?? 0);
+            if (sourceBalance.lessThan(numAmount)) {
+                throw new transaction_errors_1.TransactionError('Saldo sumber tidak mencukupi', 400, 'INSUFFICIENT_FUNDS');
+            }
+        }
         if (type === 'TRANSFER' && toWalletId) {
             const toWallet = await db.wallet.findFirst({ where: { id: toWalletId, userId }, select: { id: true } });
             if (!toWallet) {
                 throw new transaction_errors_1.TransactionError('Wallet tujuan tidak ditemukan', 404, 'NOT_FOUND');
             }
         }
+        if (type === 'TRANSFER' && categoryId) {
+            throw new transaction_errors_1.TransactionError('Transfer tidak menggunakan kategori', 400, 'BAD_REQUEST');
+        }
+        if (type !== 'TRANSFER' && !categoryId) {
+            throw new transaction_errors_1.TransactionError('categoryId wajib diisi untuk pemasukan dan pengeluaran', 400, 'BAD_REQUEST');
+        }
         if (categoryId) {
             const category = await db.category.findFirst({ where: { id: categoryId, userId } });
             if (!category) {
                 throw new transaction_errors_1.TransactionError('Kategori tidak ditemukan', 404, 'NOT_FOUND');
             }
+            if (category.type !== type) {
+                throw new transaction_errors_1.TransactionError('Tipe kategori tidak sesuai dengan tipe transaksi', 400, 'BAD_REQUEST');
+            }
+        }
+        const isCreditExpense = type === 'EXPENSE' && CREDIT_WALLET_TYPES.includes(wallet.type);
+        if (type === 'EXPENSE' && wallet.type === 'LOAN') {
+            throw new transaction_errors_1.TransactionError('Pinjaman tidak dapat digunakan sebagai sumber pengeluaran', 400, 'BAD_REQUEST');
+        }
+        if (input.billingMode !== undefined && !isCreditExpense) {
+            throw new transaction_errors_1.TransactionError('Mode tagihan hanya tersedia untuk kartu kredit dan paylater', 400, 'BAD_REQUEST');
         }
         try {
             // ─── Installment (Model A: one Installment ↔ one Transaction) ──────────
-            if (input.isInstallment) {
-                if (!CREDIT_WALLET_TYPES.includes(wallet.type)) {
-                    throw new transaction_errors_1.TransactionError('Cicilan hanya tersedia untuk wallet DEBT', 400, 'BAD_REQUEST');
+            if (isCreditExpense) {
+                const billingMode = input.billingMode ?? (input.isInstallment ? 'INSTALLMENT' : 'FULL');
+                const installmentMonths = billingMode === 'FULL' ? 1 : input.installmentMonths;
+                if (!installmentMonths || !Number.isInteger(installmentMonths) || installmentMonths < 1 || installmentMonths > 120) {
+                    throw new transaction_errors_1.TransactionError('Tenor tagihan tidak valid', 400, 'BAD_REQUEST');
                 }
-                const { installmentMonths } = input;
-                if (!installmentMonths || !VALID_TENORS.includes(installmentMonths)) {
-                    throw new transaction_errors_1.TransactionError('Tenor cicilan tidak valid', 400, 'BAD_REQUEST');
+                if (billingMode === 'INSTALLMENT' && installmentMonths < 2) {
+                    throw new transaction_errors_1.TransactionError('Cicilan harus memiliki minimal 2 termin', 400, 'BAD_REQUEST');
                 }
-                if (type !== 'EXPENSE') {
-                    throw new transaction_errors_1.TransactionError('Cicilan hanya tersedia untuk tipe EXPENSE', 400, 'BAD_REQUEST');
-                }
-                const parsedInterestRate = input.interestRate !== undefined && input.interestRate !== null ? Number(input.interestRate) : 0;
+                const parsedInterestRate = billingMode === 'INSTALLMENT' && input.interestRate !== undefined && input.interestRate !== null
+                    ? Number(input.interestRate)
+                    : 0;
                 if (parsedInterestRate < 0)
                     throw new transaction_errors_1.TransactionError('Bunga tidak boleh negatif', 400, 'BAD_REQUEST');
                 if (parsedInterestRate > 100)
@@ -117,6 +143,35 @@ function createTransactionService(db) {
                     interestRatePctPerMonth: interestRateDecimal,
                     months: installmentMonths,
                 });
+                let firstDueDate;
+                if (wallet.cutoffDay && wallet.paymentDueDay) {
+                    firstDueDate = (0, billingCycle_1.calculateFirstDueDate)({
+                        transactionDate: (0, reportingTime_1.formatReportingDate)(parsedDate, config_1.reportingConfig.timezone),
+                        cutoffDay: wallet.cutoffDay,
+                        paymentDueDay: wallet.paymentDueDay,
+                        timeZone: 'Asia/Jakarta',
+                    });
+                }
+                else if (input.firstDueDate) {
+                    firstDueDate = input.firstDueDate;
+                }
+                else {
+                    throw new transaction_errors_1.TransactionError('firstDueDate wajib diisi jika cutoff atau tanggal jatuh tempo belum diatur', 400, 'BAD_REQUEST');
+                }
+                let nextDueDate;
+                try {
+                    nextDueDate = (0, reportingTime_1.parseBusinessDate)(firstDueDate, config_1.reportingConfig.timezone);
+                }
+                catch (error) {
+                    throw new transaction_errors_1.TransactionError(error instanceof Error ? error.message : 'firstDueDate tidak valid', 400, 'BAD_REQUEST');
+                }
+                const balance = new client_1.Prisma.Decimal(wallet.balance ?? 0);
+                const limit = new client_1.Prisma.Decimal(wallet.creditLimit ?? 0);
+                const outstanding = balance.isNegative() ? balance.abs() : new client_1.Prisma.Decimal(0);
+                const remainingCredit = client_1.Prisma.Decimal.max(limit.minus(outstanding), 0);
+                if (grandTotal.greaterThan(remainingCredit)) {
+                    throw new transaction_errors_1.TransactionError('Limit kredit tidak mencukupi', 400, 'INSUFFICIENT_CREDIT');
+                }
                 return await db.$transaction(async (tx) => {
                     const installment = await tx.installment.create({
                         data: {
@@ -129,7 +184,9 @@ function createTransactionService(db) {
                             installmentMonths,
                             currentTerm: 1,
                             monthlyAmount,
-                            nextDueDate: parsedDate,
+                            kind: billingMode,
+                            paidTerms: 0,
+                            nextDueDate,
                             status: 'ACTIVE',
                             startDate: parsedDate,
                             description: input.description ?? null,
@@ -231,7 +288,7 @@ function createTransactionService(db) {
         const newAmount = amount !== undefined ? new client_1.Prisma.Decimal(Number(amount)) : existing.amount;
         const newWalletId = walletId ?? existing.walletId;
         const newToWalletId = newType === 'TRANSFER' ? (toWalletId ?? existing.toWalletId ?? null) : null;
-        if (walletId) {
+        if (walletId && newType !== 'TRANSFER') {
             const targetWallet = await db.wallet.findFirst({ where: { id: walletId, userId }, select: { id: true } });
             if (!targetWallet) {
                 throw new transaction_errors_1.TransactionError('Wallet tidak ditemukan', 404, 'WALLET_NOT_FOUND');
@@ -244,17 +301,38 @@ function createTransactionService(db) {
             if (newToWalletId === newWalletId) {
                 throw new transaction_errors_1.TransactionError('Wallet asal dan tujuan tidak boleh sama', 400, 'INVALID_TRANSFER');
             }
+            const sourceWallet = await db.wallet.findFirst({
+                where: { id: newWalletId, userId },
+                select: { id: true, type: true, balance: true },
+            });
+            if (!sourceWallet) {
+                throw new transaction_errors_1.TransactionError('Wallet tidak ditemukan', 404, 'WALLET_NOT_FOUND');
+            }
+            if (!TRANSFER_SOURCE_TYPES.includes(sourceWallet.type)) {
+                throw new transaction_errors_1.TransactionError('Sumber transfer harus Kas, Bank, atau E-Wallet', 400, 'INVALID_TRANSFER');
+            }
+            if (sourceWallet.balance.lessThan(newAmount)) {
+                throw new transaction_errors_1.TransactionError('Saldo sumber tidak mencukupi', 400, 'INSUFFICIENT_FUNDS');
+            }
             const destWallet = await db.wallet.findFirst({ where: { id: newToWalletId, userId }, select: { id: true } });
             if (!destWallet) {
                 throw new transaction_errors_1.TransactionError('Wallet tujuan tidak ditemukan', 404, 'WALLET_NOT_FOUND');
             }
         }
-        // Same ownership invariant as create: a newly assigned category must belong
-        // to the caller. Clearing (empty/null) stays exempt — it references nothing.
+        if (newType === 'TRANSFER' && categoryId) {
+            throw new transaction_errors_1.TransactionError('Transfer tidak menggunakan kategori', 400, 'BAD_REQUEST');
+        }
+        if (newType !== 'TRANSFER' && categoryId !== undefined && !categoryId) {
+            throw new transaction_errors_1.TransactionError('categoryId wajib diisi untuk pemasukan dan pengeluaran', 400, 'BAD_REQUEST');
+        }
+        // Same ownership and type invariant as create.
         if (categoryId) {
             const category = await db.category.findFirst({ where: { id: categoryId, userId } });
             if (!category) {
                 throw new transaction_errors_1.TransactionError('Kategori tidak ditemukan', 404, 'NOT_FOUND');
+            }
+            if (category.type !== newType) {
+                throw new transaction_errors_1.TransactionError('Tipe kategori tidak sesuai dengan tipe transaksi', 400, 'BAD_REQUEST');
             }
         }
         try {
@@ -274,7 +352,9 @@ function createTransactionService(db) {
                         ...(amount !== undefined && { amount: newAmount }),
                         ...(description !== undefined && { description }),
                         ...(parsedDate && { date: parsedDate }),
-                        ...(categoryId !== undefined && { categoryId: categoryId || null }),
+                        ...(newType === 'TRANSFER'
+                            ? { categoryId: null }
+                            : categoryId !== undefined && { categoryId }),
                         ...(walletId !== undefined && { walletId }),
                         toWalletId: newToWalletId,
                     },
