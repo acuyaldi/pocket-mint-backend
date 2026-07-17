@@ -3,6 +3,7 @@ import { Prisma, InstallmentStatus } from '../generated/prisma/client';
 import { reportingConfig } from '../config';
 import { formatReportingDate, parseBusinessDate } from '../domain/reportingTime';
 import { addBillingMonth } from '../domain/billingCycle';
+import { computeFinalMonthlyAmount } from '../domain/installment';
 import {
   applyBalanceDeltas,
   computeBalanceEffect,
@@ -55,11 +56,18 @@ export function createInstallmentPaymentService(db: InstallmentPaymentPrismaClie
     if (installment.paidTerms >= installment.installmentMonths) {
       throw new InstallmentError('Tagihan sudah lunas', 409, 'CONFLICT');
     }
-    const amount = input.amount === undefined ? installment.monthlyAmount : toDecimal(input.amount);
+    const nextPaidTerms = installment.paidTerms + 1;
+    const isFinalTerm = nextPaidTerms >= installment.installmentMonths;
+    // Last term absorbs the rounding remainder so the schedule sums to grandTotal exactly.
+    const expectedAmount = isFinalTerm
+      ? computeFinalMonthlyAmount(installment.grandTotal, installment.monthlyAmount, installment.installmentMonths)
+      : installment.monthlyAmount;
+
+    const amount = input.amount === undefined ? expectedAmount : toDecimal(input.amount);
     if (amount.lessThanOrEqualTo(0)) {
       throw new InstallmentError('amount is required and must be a positive number', 400, 'INVALID_AMOUNT');
     }
-    if (!amount.equals(installment.monthlyAmount)) {
+    if (!amount.equals(expectedAmount)) {
       throw new InstallmentError('Jumlah pembayaran harus sama dengan nominal termin', 400, 'INVALID_AMOUNT');
     }
 
@@ -77,12 +85,8 @@ export function createInstallmentPaymentService(db: InstallmentPaymentPrismaClie
       throw new InstallmentError('Saldo rekening sumber tidak cukup', 400, 'INSUFFICIENT_FUNDS');
     }
 
-    const nextPaidTerms = installment.paidTerms + 1;
     const nextTerm = Math.min(nextPaidTerms + 1, installment.installmentMonths);
-    const nextStatus =
-      nextPaidTerms >= installment.installmentMonths
-        ? InstallmentStatus.SETTLED
-        : InstallmentStatus.ACTIVE;
+    const nextStatus = isFinalTerm ? InstallmentStatus.SETTLED : InstallmentStatus.ACTIVE;
     const nextDueDate = nextStatus === InstallmentStatus.SETTLED
       ? installment.nextDueDate
       : parseBusinessDate(

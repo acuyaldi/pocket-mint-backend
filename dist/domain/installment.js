@@ -28,6 +28,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MONEY_ROUNDING = exports.MONEY_SCALE = void 0;
 exports.toMoney = toMoney;
+exports.computeFinalMonthlyAmount = computeFinalMonthlyAmount;
 exports.computeInstallmentPlan = computeInstallmentPlan;
 const client_1 = require("../generated/prisma/client");
 /** Currency precision: 2 dp, matching the `Decimal(15, 2)` money columns. */
@@ -39,6 +40,15 @@ function toMoney(value) {
     return value.toDecimalPlaces(exports.MONEY_SCALE, exports.MONEY_ROUNDING);
 }
 const HUNDRED = new client_1.Prisma.Decimal(100);
+/**
+ * The last term's payment: whatever cents the rounded `monthlyAmount` left
+ * behind, so `monthlyAmount × (months − 1) + finalMonthlyAmount` sums back to
+ * `grandTotal` exactly. Single source of truth — both `computeInstallmentPlan`
+ * and the payment service call this instead of re-deriving the formula.
+ */
+function computeFinalMonthlyAmount(grandTotal, monthlyAmount, months) {
+    return toMoney(grandTotal.minus(monthlyAmount.times(months - 1)));
+}
 /**
  * Compute an installment plan entirely in Decimal. Throws on invalid input
  * (non-positive principal, out-of-range rate, non-positive/non-integer term)
@@ -61,8 +71,7 @@ function computeInstallmentPlan(input) {
     const totalInterest = toMoney(principal.times(interestRatePctPerMonth).div(HUNDRED).times(monthsDec));
     const grandTotal = toMoney(totalAmount.plus(totalInterest));
     const monthlyAmount = toMoney(grandTotal.div(monthsDec));
-    // Final term takes whatever cents the rounded monthly amount left behind.
-    const finalMonthlyAmount = toMoney(grandTotal.minus(monthlyAmount.times(months - 1)));
+    const finalMonthlyAmount = computeFinalMonthlyAmount(grandTotal, monthlyAmount, months);
     return { totalAmount, totalInterest, grandTotal, monthlyAmount, finalMonthlyAmount };
 }
 //# sourceMappingURL=installment.js.map
