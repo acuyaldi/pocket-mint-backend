@@ -10,6 +10,7 @@ const client_1 = require("../generated/prisma/client");
 const config_1 = require("../config");
 const reportingTime_1 = require("../domain/reportingTime");
 const billingCycle_1 = require("../domain/billingCycle");
+const installment_1 = require("../domain/installment");
 const transactionBalance_1 = require("../domain/transactionBalance");
 const installment_errors_1 = require("./installment.errors");
 const ALLOWED_SOURCE_TYPES = ['BANK', 'CASH', 'E_WALLET'];
@@ -50,11 +51,17 @@ function createInstallmentPaymentService(db) {
         if (installment.paidTerms >= installment.installmentMonths) {
             throw new installment_errors_1.InstallmentError('Tagihan sudah lunas', 409, 'CONFLICT');
         }
-        const amount = input.amount === undefined ? installment.monthlyAmount : toDecimal(input.amount);
+        const nextPaidTerms = installment.paidTerms + 1;
+        const isFinalTerm = nextPaidTerms >= installment.installmentMonths;
+        // Last term absorbs the rounding remainder so the schedule sums to grandTotal exactly.
+        const expectedAmount = isFinalTerm
+            ? (0, installment_1.computeFinalMonthlyAmount)(installment.grandTotal, installment.monthlyAmount, installment.installmentMonths)
+            : installment.monthlyAmount;
+        const amount = input.amount === undefined ? expectedAmount : toDecimal(input.amount);
         if (amount.lessThanOrEqualTo(0)) {
             throw new installment_errors_1.InstallmentError('amount is required and must be a positive number', 400, 'INVALID_AMOUNT');
         }
-        if (!amount.equals(installment.monthlyAmount)) {
+        if (!amount.equals(expectedAmount)) {
             throw new installment_errors_1.InstallmentError('Jumlah pembayaran harus sama dengan nominal termin', 400, 'INVALID_AMOUNT');
         }
         const sourceWallet = await db.wallet.findFirst({
@@ -70,11 +77,8 @@ function createInstallmentPaymentService(db) {
         if (sourceWallet.balance.lessThan(amount)) {
             throw new installment_errors_1.InstallmentError('Saldo rekening sumber tidak cukup', 400, 'INSUFFICIENT_FUNDS');
         }
-        const nextPaidTerms = installment.paidTerms + 1;
         const nextTerm = Math.min(nextPaidTerms + 1, installment.installmentMonths);
-        const nextStatus = nextPaidTerms >= installment.installmentMonths
-            ? client_1.InstallmentStatus.SETTLED
-            : client_1.InstallmentStatus.ACTIVE;
+        const nextStatus = isFinalTerm ? client_1.InstallmentStatus.SETTLED : client_1.InstallmentStatus.ACTIVE;
         const nextDueDate = nextStatus === client_1.InstallmentStatus.SETTLED
             ? installment.nextDueDate
             : (0, reportingTime_1.parseBusinessDate)((0, billingCycle_1.addBillingMonth)((0, reportingTime_1.formatReportingDate)(installment.nextDueDate, config_1.reportingConfig.timezone), 1), config_1.reportingConfig.timezone);

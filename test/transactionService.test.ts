@@ -278,6 +278,42 @@ describe('transactionService.createTransaction', () => {
     expect(committed).toHaveLength(0);
   });
 
+  it('PM-STAB-007: allows INCOME into an ASSET wallet', async () => {
+    const { db, net } = makeDb();
+    db.wallet.findFirst = ownedWallets({ bank: { type: 'BANK', balance: D(500) } });
+    const created = await svc(db).createTransaction({ userId: 'u', type: 'INCOME', amount: 100, walletId: 'bank' });
+    expect(created.type).toBe('INCOME');
+    expect(net('bank')).toBe(100);
+  });
+
+  it.each(['CREDIT_CARD', 'PAYLATER', 'LOAN'])(
+    'PM-STAB-007: rejects INCOME into a %s (DEBT) wallet before any write',
+    async (debtType) => {
+      const { db, committed } = makeDb();
+      db.wallet.findFirst = ownedWallets({ debt: { type: debtType, balance: D(-300) } });
+
+      await expect(svc(db).createTransaction({
+        userId: 'u', type: 'INCOME', amount: 100, walletId: 'debt',
+      })).rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
+
+      // No partial write: no balance change, no $transaction attempted.
+      expect(committed).toHaveLength(0);
+      expect(db.$transaction).not.toHaveBeenCalled();
+    }
+  );
+
+  it('PM-STAB-007: enforces user isolation for the INCOME/DEBT guard (unowned wallet 404s, no leak of type)', async () => {
+    const { db, committed } = makeDb();
+    // Wallet belongs to another user — findFirst scoped by { id, userId } returns null.
+    db.wallet.findFirst = ownedWallets({});
+
+    await expect(svc(db).createTransaction({
+      userId: 'u', type: 'INCOME', amount: 100, walletId: 'someone-elses-card',
+    })).rejects.toMatchObject({ statusCode: 404, code: 'NOT_FOUND' });
+    expect(committed).toHaveLength(0);
+    expect(db.$transaction).not.toHaveBeenCalled();
+  });
+
   it('requires firstDueDate when the credit cycle is incomplete', async () => {
     const { db } = makeDb();
     db.wallet.findFirst = ownedWallets({
@@ -392,6 +428,30 @@ describe('transactionService.updateTransaction', () => {
 
     await expect(svc(db).updateTransaction({ userId: 'u', id: 't1', walletId: 'card' }))
       .rejects.toMatchObject({ statusCode: 400, code: 'INVALID_TRANSFER' });
+    expect(committed).toHaveLength(0);
+  });
+
+  it('PM-STAB-007: rejects retargeting an INCOME transaction onto a DEBT wallet', async () => {
+    const { db, committed } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'INCOME', amount: D(100), walletId: 'bank', toWalletId: null, isInstallment: false,
+    }));
+    db.wallet.findFirst = ownedWallets({ card: { type: 'CREDIT_CARD', balance: D(-100) } });
+
+    await expect(svc(db).updateTransaction({ userId: 'u', id: 't1', walletId: 'card' }))
+      .rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
+    expect(committed).toHaveLength(0);
+  });
+
+  it('PM-STAB-007: rejects flipping an EXPENSE into INCOME on a DEBT wallet', async () => {
+    const { db, committed } = makeDb();
+    db.transaction.findFirst = vi.fn(async () => ({
+      id: 't1', type: 'EXPENSE', amount: D(100), walletId: 'card', toWalletId: null, isInstallment: false,
+    }));
+    db.wallet.findFirst = ownedWallets({ card: { type: 'CREDIT_CARD', balance: D(-100) } });
+
+    await expect(svc(db).updateTransaction({ userId: 'u', id: 't1', type: 'INCOME' }))
+      .rejects.toMatchObject({ statusCode: 400, code: 'BAD_REQUEST' });
     expect(committed).toHaveLength(0);
   });
 

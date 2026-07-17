@@ -21,6 +21,7 @@ exports.createTransactionService = createTransactionService;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const client_1 = require("../generated/prisma/client");
 const config_1 = require("../config");
+const financial_1 = require("../utils/financial");
 const reportingTime_1 = require("../domain/reportingTime");
 const installment_1 = require("../domain/installment");
 const billingCycle_1 = require("../domain/billingCycle");
@@ -115,6 +116,9 @@ function createTransactionService(db) {
         const isCreditExpense = type === 'EXPENSE' && CREDIT_WALLET_TYPES.includes(wallet.type);
         if (type === 'EXPENSE' && wallet.type === 'LOAN') {
             throw new transaction_errors_1.TransactionError('Pinjaman tidak dapat digunakan sebagai sumber pengeluaran', 400, 'BAD_REQUEST');
+        }
+        if (type === 'INCOME' && (0, financial_1.classifyWalletForNetWorth)(wallet.type) === 'DEBT') {
+            throw new transaction_errors_1.TransactionError('Pemasukan tidak bisa dicatat ke wallet utang (kartu kredit, paylater, atau pinjaman)', 400, 'BAD_REQUEST');
         }
         if (input.billingMode !== undefined && !isCreditExpense) {
             throw new transaction_errors_1.TransactionError('Mode tagihan hanya tersedia untuk kartu kredit dan paylater', 400, 'BAD_REQUEST');
@@ -288,10 +292,15 @@ function createTransactionService(db) {
         const newAmount = amount !== undefined ? new client_1.Prisma.Decimal(Number(amount)) : existing.amount;
         const newWalletId = walletId ?? existing.walletId;
         const newToWalletId = newType === 'TRANSFER' ? (toWalletId ?? existing.toWalletId ?? null) : null;
-        if (walletId && newType !== 'TRANSFER') {
-            const targetWallet = await db.wallet.findFirst({ where: { id: walletId, userId }, select: { id: true } });
+        // Fetch the target wallet whenever it might change (explicit walletId) or its
+        // type needs checking (type flips to INCOME, even onto the unchanged wallet).
+        if (newType !== 'TRANSFER' && (walletId || newType === 'INCOME')) {
+            const targetWallet = await db.wallet.findFirst({ where: { id: newWalletId, userId }, select: { id: true, type: true } });
             if (!targetWallet) {
                 throw new transaction_errors_1.TransactionError('Wallet tidak ditemukan', 404, 'WALLET_NOT_FOUND');
+            }
+            if (newType === 'INCOME' && (0, financial_1.classifyWalletForNetWorth)(targetWallet.type) === 'DEBT') {
+                throw new transaction_errors_1.TransactionError('Pemasukan tidak bisa dicatat ke wallet utang (kartu kredit, paylater, atau pinjaman)', 400, 'BAD_REQUEST');
             }
         }
         if (newType === 'TRANSFER') {

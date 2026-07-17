@@ -15,6 +15,7 @@
 import prisma from '../lib/prisma';
 import { Prisma } from '../generated/prisma/client';
 import { reportingConfig } from '../config';
+import { classifyWalletForNetWorth } from '../utils/financial';
 import { formatReportingDate, parseBusinessDate } from '../domain/reportingTime';
 import { computeInstallmentPlan } from '../domain/installment';
 import { calculateFirstDueDate } from '../domain/billingCycle';
@@ -136,6 +137,9 @@ export function createTransactionService(db: TransactionPrismaClient) {
     const isCreditExpense = type === 'EXPENSE' && CREDIT_WALLET_TYPES.includes(wallet.type);
     if (type === 'EXPENSE' && wallet.type === 'LOAN') {
       throw new TransactionError('Pinjaman tidak dapat digunakan sebagai sumber pengeluaran', 400, 'BAD_REQUEST');
+    }
+    if (type === 'INCOME' && classifyWalletForNetWorth(wallet.type) === 'DEBT') {
+      throw new TransactionError('Pemasukan tidak bisa dicatat ke wallet utang (kartu kredit, paylater, atau pinjaman)', 400, 'BAD_REQUEST');
     }
     if (input.billingMode !== undefined && !isCreditExpense) {
       throw new TransactionError('Mode tagihan hanya tersedia untuk kartu kredit dan paylater', 400, 'BAD_REQUEST');
@@ -328,10 +332,15 @@ export function createTransactionService(db: TransactionPrismaClient) {
     const newWalletId = walletId ?? existing.walletId;
     const newToWalletId = newType === 'TRANSFER' ? (toWalletId ?? existing.toWalletId ?? null) : null;
 
-    if (walletId && newType !== 'TRANSFER') {
-      const targetWallet = await db.wallet.findFirst({ where: { id: walletId, userId }, select: { id: true } });
+    // Fetch the target wallet whenever it might change (explicit walletId) or its
+    // type needs checking (type flips to INCOME, even onto the unchanged wallet).
+    if (newType !== 'TRANSFER' && (walletId || newType === 'INCOME')) {
+      const targetWallet = await db.wallet.findFirst({ where: { id: newWalletId, userId }, select: { id: true, type: true } });
       if (!targetWallet) {
         throw new TransactionError('Wallet tidak ditemukan', 404, 'WALLET_NOT_FOUND');
+      }
+      if (newType === 'INCOME' && classifyWalletForNetWorth(targetWallet.type) === 'DEBT') {
+        throw new TransactionError('Pemasukan tidak bisa dicatat ke wallet utang (kartu kredit, paylater, atau pinjaman)', 400, 'BAD_REQUEST');
       }
     }
 
