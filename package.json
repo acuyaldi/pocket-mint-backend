@@ -9,7 +9,11 @@
     "start": "node dist/server.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prisma:generate": "prisma generate"
+    "test:integration": "node scripts/run-integration-tests.mjs",
+    "prisma:generate": "prisma generate",
+    "db:backup": "node scripts/db-backup.mjs",
+    "db:restore": "node scripts/db-restore.mjs",
+    "db:verify": "node scripts/db-verify.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
@@ -29,6 +33,7 @@
     "@types/morgan": "^1.9.9",
     "@types/node": "^20.19.43",
     "@types/supertest": "^7.2.0",
+    "embedded-postgres": "^18.4.0-beta.17",
     "prisma": "^7.8.0",
     "supertest": "^7.2.2",
     "ts-node-dev": "^2.0.0",
