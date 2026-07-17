@@ -20,7 +20,10 @@ export interface CreateWalletInput {
     name: string;
     type?: WalletType;
     balance?: DecimalInput;
+    principal?: DecimalInput;
     creditLimit?: DecimalInput;
+    cutoffDay?: number | null;
+    paymentDueDay?: number | null;
     interestRate?: DecimalInput;
     adminFee?: DecimalInput;
     adminFeeType?: AdminFeeType;
@@ -41,6 +44,8 @@ export interface UpdateWalletInput {
     type?: WalletType;
     balance?: DecimalInput;
     creditLimit?: DecimalInput | null;
+    cutoffDay?: number | null;
+    paymentDueDay?: number | null;
     interestRate?: DecimalInput;
     adminFee?: DecimalInput;
     adminFeeType?: AdminFeeType;

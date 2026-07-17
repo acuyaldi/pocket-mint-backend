@@ -10,7 +10,8 @@ function classifyWalletForNetWorth(type) {
         case 'E_WALLET':
             return 'ASSET';
         case 'CREDIT_CARD':
-        case 'LOAN_PAYLATER':
+        case 'PAYLATER':
+        case 'LOAN':
             return 'DEBT';
         default:
             throw new Error(`Unsupported wallet type: ${type}`);

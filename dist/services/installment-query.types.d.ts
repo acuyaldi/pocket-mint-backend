@@ -37,6 +37,13 @@ export type InstallmentListItem = Prisma.InstallmentGetPayload<{
                 type: true;
             };
         };
+        transactions: {
+            select: {
+                id: true;
+                type: true;
+                createdAt: true;
+            };
+        };
     };
 }>;
 //# sourceMappingURL=installment-query.types.d.ts.map

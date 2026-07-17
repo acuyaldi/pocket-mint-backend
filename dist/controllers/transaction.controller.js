@@ -20,8 +20,10 @@ function mapCreateTransactionRequest(req, userId) {
         description: b.description,
         date: b.date,
         isInstallment: b.isInstallment,
+        billingMode: b.billingMode,
         installmentMonths: b.installmentMonths,
         interestRate: b.interestRate,
+        firstDueDate: b.firstDueDate,
     };
 }
 /** Allowlist update fields from the request body into the service input. */

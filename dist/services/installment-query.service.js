@@ -57,8 +57,9 @@ function createInstallmentQueryService(db) {
             },
             include: {
                 wallet: { select: { id: true, name: true, type: true } },
+                transactions: { select: { id: true, type: true, createdAt: true } },
             },
-            orderBy: { startDate: 'desc' },
+            orderBy: { nextDueDate: 'asc' },
         });
     }
     return { listInstallments };

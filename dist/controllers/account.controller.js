@@ -7,7 +7,8 @@ const wallet_query_service_1 = require("../services/wallet-query.service");
 const authContext_1 = require("../http/authContext");
 const queryParsers_1 = require("../http/queryParsers");
 const forwardError_1 = require("../http/forwardError");
-const DEBT_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
+const CREDIT_TYPES = ['CREDIT_CARD', 'PAYLATER'];
+const LIABILITY_TYPES = ['CREDIT_CARD', 'PAYLATER', 'LOAN'];
 /** Map allowlisted create fields from the request body into the service input. */
 function mapCreateWalletRequest(body, userId) {
     return {
@@ -15,7 +16,10 @@ function mapCreateWalletRequest(body, userId) {
         name: body.name,
         type: body.type,
         balance: body.balance,
+        principal: body.principal,
         creditLimit: body.creditLimit,
+        cutoffDay: body.cutoffDay,
+        paymentDueDay: body.paymentDueDay,
         interestRate: body.interestRate,
         adminFee: body.adminFee,
         adminFeeType: body.adminFeeType,
@@ -32,6 +36,8 @@ function mapUpdateWalletRequest(walletId, userId, body) {
         type: body.type,
         balance: body.balance,
         creditLimit: body.creditLimit,
+        cutoffDay: body.cutoffDay,
+        paymentDueDay: body.paymentDueDay,
         interestRate: body.interestRate,
         adminFee: body.adminFee,
         adminFeeType: body.adminFeeType,
@@ -72,7 +78,10 @@ async function netWorthSnapshot(userId) {
 function serializeWallet(w) {
     const balance = parseFloat(w.balance.toString());
     const creditLimit = parseFloat(w.creditLimit.toString());
-    const isDebt = DEBT_TYPES.includes(w.type);
+    const isCredit = CREDIT_TYPES.includes(w.type);
+    const isLiability = LIABILITY_TYPES.includes(w.type);
+    const outstanding = isLiability ? Math.abs(Math.min(balance, 0)) : null;
+    const remainingCredit = isCredit ? Math.max(creditLimit - Math.abs(Math.min(balance, 0)), 0) : null;
     return {
         ...w,
         balance,
@@ -80,9 +89,11 @@ function serializeWallet(w) {
         initialBalance: parseFloat(w.initialBalance.toString()),
         interestRate: parseFloat(w.interestRate.toString()),
         adminFee: parseFloat(w.adminFee.toString()),
-        // Computed fields for DEBT wallets
-        sisa_limit: isDebt ? creditLimit + balance : null,
-        outstanding_debt: isDebt ? Math.abs(balance) : null,
+        outstanding,
+        remainingCredit,
+        // Compatibility aliases for existing clients during the UI migration.
+        sisa_limit: remainingCredit,
+        outstanding_debt: outstanding,
     };
 }
 /** Serialize sparkline points: Decimal → number, preserving pre-creation `null` (never 0). */

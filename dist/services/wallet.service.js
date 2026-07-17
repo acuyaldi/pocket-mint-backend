@@ -26,8 +26,16 @@ exports.createWalletService = createWalletService;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const client_1 = require("../generated/prisma/client");
 const wallet_errors_1 = require("./wallet.errors");
-const VALID_WALLET_TYPES = ['CASH', 'BANK', 'E_WALLET', 'CREDIT_CARD', 'LOAN_PAYLATER'];
-const DEBT_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
+const VALID_WALLET_TYPES = ['CASH', 'BANK', 'E_WALLET', 'CREDIT_CARD', 'PAYLATER', 'LOAN'];
+const ASSET_TYPES = ['CASH', 'BANK', 'E_WALLET'];
+const CREDIT_TYPES = ['CREDIT_CARD', 'PAYLATER'];
+function assertBillingDay(name, value) {
+    if (value === undefined || value === null)
+        return;
+    if (!Number.isInteger(value) || value < 1 || value > 31) {
+        throw new wallet_errors_1.WalletError(`${name} must be between 1 and 31`, 400, 'BAD_REQUEST');
+    }
+}
 /**
  * Coerce the opening balance exactly as the controller did (`Number(balance)`,
  * defaulting to 0), but reject a value that coerces to `NaN` *before* the write.
@@ -52,28 +60,53 @@ function createWalletService(db) {
      * value (Sprint 2A) → write. A missing related user surfaces as the same 400.
      */
     async function createWallet(input) {
-        const { userId, name, type, creditLimit, interestRate, adminFee, adminFeeType, icon, color } = input;
+        const { userId, name, type, principal, creditLimit, cutoffDay, paymentDueDay, interestRate, adminFee, adminFeeType, icon, color, } = input;
         if (!name || typeof name !== 'string') {
             throw new wallet_errors_1.WalletError('name is required and must be a string', 400, 'BAD_REQUEST');
         }
         if (type && !VALID_WALLET_TYPES.includes(type)) {
             throw new wallet_errors_1.WalletError(`type must be one of: ${VALID_WALLET_TYPES.join(', ')}`, 400, 'BAD_REQUEST');
         }
-        if (type !== undefined && DEBT_TYPES.includes(type) && (creditLimit === undefined || Number(creditLimit) <= 0)) {
-            throw new wallet_errors_1.WalletError('creditLimit is required for DEBT wallets (CREDIT_CARD, LOAN_PAYLATER)', 400, 'BAD_REQUEST');
+        const resolvedType = type ?? 'CASH';
+        const isAsset = ASSET_TYPES.includes(resolvedType);
+        const isCredit = CREDIT_TYPES.includes(resolvedType);
+        if (isCredit && (creditLimit === undefined || !Number.isFinite(Number(creditLimit)) || Number(creditLimit) <= 0)) {
+            throw new wallet_errors_1.WalletError('creditLimit must be greater than zero for CREDIT_CARD and PAYLATER', 400, 'BAD_REQUEST');
         }
+        assertBillingDay('cutoffDay', cutoffDay);
+        assertBillingDay('paymentDueDay', paymentDueDay);
         // Seed balance and initialBalance from the same opening value so the ledger
         // can be reconciled against it (expected = initialBalance + Σ effects).
-        const openingBalance = toOpeningBalance(input.balance);
+        let openingBalance = toOpeningBalance(input.balance);
+        if (isAsset && openingBalance < 0) {
+            throw new wallet_errors_1.WalletError('Asset opening balance cannot be negative', 400, 'BAD_REQUEST');
+        }
+        if (isCredit)
+            openingBalance = 0;
+        if (resolvedType === 'LOAN') {
+            const principalAmount = Number(principal);
+            if (!Number.isFinite(principalAmount) || principalAmount <= 0) {
+                throw new wallet_errors_1.WalletError('principal must be greater than zero for LOAN', 400, 'BAD_REQUEST');
+            }
+            if (creditLimit !== undefined || cutoffDay !== undefined || paymentDueDay !== undefined) {
+                throw new wallet_errors_1.WalletError('LOAN only accepts principal, not credit billing fields', 400, 'BAD_REQUEST');
+            }
+            openingBalance = -Math.abs(principalAmount);
+        }
+        else if (principal !== undefined) {
+            throw new wallet_errors_1.WalletError('principal is only valid for LOAN', 400, 'BAD_REQUEST');
+        }
         try {
             return await db.wallet.create({
                 data: {
                     userId,
                     name,
-                    type: type ?? 'CASH',
+                    type: resolvedType,
                     balance: openingBalance,
                     initialBalance: openingBalance,
-                    creditLimit: creditLimit !== undefined ? Number(creditLimit) : 0,
+                    creditLimit: isCredit ? Number(creditLimit) : 0,
+                    cutoffDay: isCredit ? cutoffDay ?? null : null,
+                    paymentDueDay: isCredit ? paymentDueDay ?? null : null,
                     interestRate: interestRate !== undefined ? Number(interestRate) : 0,
                     adminFee: adminFee !== undefined ? Number(adminFee) : 0,
                     ...(adminFeeType !== undefined && { adminFeeType }),
@@ -101,14 +134,26 @@ function createWalletService(db) {
      * while explicit `null` is written where the column is nullable.
      */
     async function updateWallet(input) {
-        const { userId, walletId, name, type, balance, creditLimit, interestRate, adminFee, adminFeeType, icon, color, isArchived } = input;
+        const { userId, walletId, name, type, balance, creditLimit, cutoffDay, paymentDueDay, interestRate, adminFee, adminFeeType, icon, color, isArchived, } = input;
         if (type && !VALID_WALLET_TYPES.includes(type)) {
             throw new wallet_errors_1.WalletError(`type must be one of: ${VALID_WALLET_TYPES.join(', ')}`, 400, 'BAD_REQUEST');
         }
+        assertBillingDay('cutoffDay', cutoffDay);
+        assertBillingDay('paymentDueDay', paymentDueDay);
         // Ownership check: refuse to touch a wallet that isn't the caller's.
-        const owned = await db.wallet.findFirst({ where: { id: walletId, userId }, select: { id: true, balance: true } });
+        const owned = await db.wallet.findFirst({
+            where: { id: walletId, userId },
+            select: { id: true, type: true, balance: true },
+        });
         if (!owned) {
             throw new wallet_errors_1.WalletError(`Wallet with id ${walletId} not found`, 404, 'NOT_FOUND');
+        }
+        const hasCreditMetadata = creditLimit !== undefined || cutoffDay !== undefined || paymentDueDay !== undefined;
+        if (hasCreditMetadata && owned.type !== undefined && !CREDIT_TYPES.includes(owned.type)) {
+            throw new wallet_errors_1.WalletError('Credit billing fields are only valid for CREDIT_CARD and PAYLATER', 400, 'BAD_REQUEST');
+        }
+        if (creditLimit !== undefined && (!Number.isFinite(Number(creditLimit)) || Number(creditLimit) <= 0)) {
+            throw new wallet_errors_1.WalletError('creditLimit must be greater than zero', 400, 'BAD_REQUEST');
         }
         // Ledger boundary (Sprint 2B): `balance` is ledger state, not editable
         // metadata. A harmless echo of the *current* balance is tolerated; any
@@ -136,6 +181,8 @@ function createWalletService(db) {
                     ...(type !== undefined && { type }),
                     // `balance` intentionally omitted — see the ledger-boundary guard above.
                     ...(creditLimit !== undefined && { creditLimit: Number(creditLimit) }),
+                    ...(cutoffDay !== undefined && { cutoffDay }),
+                    ...(paymentDueDay !== undefined && { paymentDueDay }),
                     ...(interestRate !== undefined && { interestRate: Number(interestRate) }),
                     ...(adminFee !== undefined && { adminFee: Number(adminFee) }),
                     ...(adminFeeType !== undefined && { adminFeeType }),

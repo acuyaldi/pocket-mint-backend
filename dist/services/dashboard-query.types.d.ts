@@ -19,7 +19,7 @@ export interface GetDashboardSummaryInput {
  * the controller's job (the single response boundary); the service never calls
  * `.toNumber()` / `parseFloat`. Product rule (PD-001, delegated to
  * `calculateNetWorth`): `totalAset` = CASH/BANK/E_WALLET balances; `totalUtang` =
- * |CREDIT_CARD/LOAN_PAYLATER balances|; `netWorth` = `totalAset` − `totalUtang`
+ * |CREDIT_CARD/PAYLATER/LOAN balances|; `netWorth` = `totalAset` − `totalUtang`
  * (may be negative; components stay separately reported). Structurally
  * identical to the wallet query service's `WalletTotals`, kept as its own type so
  * the dashboard contract is self-contained.
