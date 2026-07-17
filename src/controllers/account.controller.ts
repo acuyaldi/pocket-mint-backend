@@ -1,0 +1,270 @@
+import { Request, Response, NextFunction } from 'express';
+import type { ParsedQs } from 'qs';
+import { sendSuccess, sendError } from '../utils/response';
+import { walletService } from '../services/wallet.service';
+import { walletQueryService } from '../services/wallet-query.service';
+import { getAuthenticatedUserId } from '../http/authContext';
+import { scalarBooleanTrue } from '../http/queryParsers';
+import { forwardError } from '../http/forwardError';
+import type {
+  CreateWalletInput,
+  UpdateWalletInput,
+  DeleteWalletInput,
+  DecimalInput,
+  WalletType,
+  AdminFeeType,
+} from '../services/wallet.types';
+import type { Wallet, WalletTotals, WalletSparklinePoint } from '../services/wallet-query.types';
+
+const CREDIT_TYPES = ['CREDIT_CARD', 'PAYLATER'];
+const LIABILITY_TYPES = ['CREDIT_CARD', 'PAYLATER', 'LOAN'];
+
+/** Allowlisted create-wallet request body (no `userId` — that is resolved separately). */
+interface CreateWalletBody {
+  name?: string;
+  type?: WalletType;
+  balance?: DecimalInput;
+  principal?: DecimalInput;
+  creditLimit?: DecimalInput;
+  cutoffDay?: number | null;
+  paymentDueDay?: number | null;
+  interestRate?: DecimalInput;
+  adminFee?: DecimalInput;
+  adminFeeType?: AdminFeeType;
+  icon?: string | null;
+  color?: string | null;
+}
+
+/** Map allowlisted create fields from the request body into the service input. */
+function mapCreateWalletRequest(body: CreateWalletBody, userId: string): CreateWalletInput {
+  return {
+    userId,
+    name: body.name as string,
+    type: body.type,
+    balance: body.balance,
+    principal: body.principal,
+    creditLimit: body.creditLimit,
+    cutoffDay: body.cutoffDay,
+    paymentDueDay: body.paymentDueDay,
+    interestRate: body.interestRate,
+    adminFee: body.adminFee,
+    adminFeeType: body.adminFeeType,
+    icon: body.icon,
+    color: body.color,
+  };
+}
+
+/** Allowlisted update-wallet request body. `userId`/`walletId` come from auth + route. */
+interface UpdateWalletBody {
+  name?: string;
+  type?: WalletType;
+  balance?: DecimalInput;
+  creditLimit?: DecimalInput | null;
+  cutoffDay?: number | null;
+  paymentDueDay?: number | null;
+  interestRate?: DecimalInput;
+  adminFee?: DecimalInput;
+  adminFeeType?: AdminFeeType;
+  icon?: string | null;
+  color?: string | null;
+  isArchived?: boolean;
+}
+
+/** Map allowlisted update fields (plus route id + authenticated user) into service input. */
+function mapUpdateWalletRequest(walletId: string, userId: string, body: UpdateWalletBody): UpdateWalletInput {
+  return {
+    userId,
+    walletId,
+    name: body.name,
+    type: body.type,
+    balance: body.balance,
+    creditLimit: body.creditLimit,
+    cutoffDay: body.cutoffDay,
+    paymentDueDay: body.paymentDueDay,
+    interestRate: body.interestRate,
+    adminFee: body.adminFee,
+    adminFeeType: body.adminFeeType,
+    icon: body.icon,
+    color: body.color,
+    isArchived: body.isArchived,
+  };
+}
+
+/**
+ * Map the delete request into service input. `force` is normalized exactly as
+ * before: active only when the query string is literally `'true'`.
+ */
+function mapDeleteWalletRequest(
+  walletId: string,
+  userId: string,
+  query: ParsedQs
+): DeleteWalletInput {
+  return { userId, walletId, force: scalarBooleanTrue(query.force) };
+}
+
+/**
+ * Serialize the query service's Decimal net-worth totals into the existing
+ * numeric response. The reporting snapshot is fetched from the wallet query
+ * service (reads) and appended to every mutation response, exactly as before.
+ */
+function serializeNetWorth(totals: WalletTotals) {
+  return {
+    totalAset: parseFloat(totals.totalAset.toString()),
+    totalUtang: parseFloat(totals.totalUtang.toString()),
+    netWorth: parseFloat(totals.netWorth.toString()),
+  };
+}
+
+/** Fetch + serialize the caller's net-worth snapshot (the mutation-response reporting field). */
+async function netWorthSnapshot(userId: string) {
+  return serializeNetWorth(await walletQueryService.getNetWorth({ userId }));
+}
+
+/**
+ * Serialize one wallet for the list response: Decimal → number (parseFloat, as
+ * before) plus the DEBT-only computed fields. `sisa_limit` and `outstanding_debt`
+ * are `null` for asset wallets. This is the single response boundary — the query
+ * service returns raw Decimals and never converts.
+ */
+function serializeWallet(w: Wallet) {
+  const balance = parseFloat(w.balance.toString());
+  const creditLimit = parseFloat(w.creditLimit.toString());
+  const isCredit = CREDIT_TYPES.includes(w.type);
+  const isLiability = LIABILITY_TYPES.includes(w.type);
+  const outstanding = isLiability ? Math.abs(Math.min(balance, 0)) : null;
+  const remainingCredit = isCredit ? Math.max(creditLimit - Math.abs(Math.min(balance, 0)), 0) : null;
+
+  return {
+    ...w,
+    balance,
+    creditLimit,
+    initialBalance: parseFloat(w.initialBalance.toString()),
+    interestRate: parseFloat(w.interestRate.toString()),
+    adminFee: parseFloat(w.adminFee.toString()),
+    outstanding,
+    remainingCredit,
+    // Compatibility aliases for existing clients during the UI migration.
+    sisa_limit: remainingCredit,
+    outstanding_debt: outstanding,
+  };
+}
+
+/** Serialize sparkline points: Decimal → number, preserving pre-creation `null` (never 0). */
+function serializeSparkline(points: WalletSparklinePoint[]) {
+  return points.map((point) => ({
+    date: point.date,
+    balance: point.balance === null ? null : Number(point.balance.toString()),
+  }));
+}
+
+/**
+ * GET /api/v1/wallets
+ * Returns list of wallets for the authenticated user,
+ * with computed fields: sisa_limit & outstanding_debt for DEBT wallets.
+ */
+export const getAllWallets = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Identity comes only from the canonical auth context (set by requireUser).
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return sendError(res, 'Unauthorized', 401);
+    }
+
+    const wallets = await walletQueryService.listWallets({ userId });
+
+    sendSuccess(res, wallets.map(serializeWallet), 'Fetched wallets');
+  } catch (err) {
+    forwardError(err, res, next);
+  }
+};
+
+/**
+ * POST /api/v1/wallets
+ * Create a new wallet for the user.
+ */
+export const createWallet = async (
+  req: Request<unknown, unknown, CreateWalletBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // Identity is the authenticated caller only — never the request body/query.
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return sendError(res, 'userId is required', 400);
+    }
+
+    const wallet = await walletService.createWallet(mapCreateWalletRequest(req.body, userId));
+
+    // net-worth snapshot (reporting) is appended here; the service owns no response shaping.
+    sendSuccess(res, { ...wallet, netWorth: await netWorthSnapshot(userId) }, 'Wallet created successfully', 201);
+  } catch (err) {
+    forwardError(err, res, next);
+  }
+};
+
+/**
+ * PUT /api/v1/wallets/:id
+ * Update wallet details.
+ */
+export const updateWallet = async (
+  req: Request<{ id: string }, unknown, UpdateWalletBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return sendError(res, 'Unauthorized', 401);
+    }
+    const wallet = await walletService.updateWallet(mapUpdateWalletRequest(req.params.id, userId, req.body));
+
+    sendSuccess(res, { ...wallet, netWorth: await netWorthSnapshot(wallet.userId) }, 'Wallet updated successfully');
+  } catch (err) {
+    forwardError(err, res, next);
+  }
+};
+
+/**
+ * DELETE /api/v1/wallets/:id
+ * Hard delete with transaction check: refuses when the wallet has transaction
+ * history unless ?force=true (frontend confirm modal sends force).
+ */
+export const deleteWallet = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+  try {
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return sendError(res, 'Unauthorized', 401);
+    }
+    const result = await walletService.deleteWallet(mapDeleteWalletRequest(req.params.id, userId, req.query));
+
+    // Ownership was verified in the service, so the caller owns the deleted wallet;
+    // the reporting snapshot reflects the state after deletion.
+    sendSuccess(res, { id: result.id, netWorth: await netWorthSnapshot(userId) }, `Wallet ${result.id} deleted successfully`);
+  } catch (err) {
+    forwardError(err, res, next);
+  }
+};
+
+/**
+ * GET /api/v1/wallets/:id/sparkline
+ * Returns up to 7 historical balance data points for a wallet.
+ * Used to render mini sparkline charts on dashboard wallet cards.
+ */
+export const getWalletSparkline = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return sendError(res, 'Unauthorized', 401);
+    }
+    const points = await walletQueryService.getWalletSparkline({ userId, walletId: req.params.id });
+
+    sendSuccess(res, serializeSparkline(points), 'Sparkline data');
+  } catch (err) {
+    forwardError(err, res, next);
+  }
+};

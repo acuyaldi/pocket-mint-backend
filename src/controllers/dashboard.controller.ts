@@ -1,0 +1,40 @@
+import { Request, Response, NextFunction } from 'express';
+import { sendError } from '../utils/response';
+import { dashboardQueryService } from '../services/dashboard-query.service';
+import type { DashboardSummaryResult } from '../services/dashboard-query.types';
+import { getAuthenticatedUserId } from '../http/authContext';
+import { forwardError } from '../http/forwardError';
+
+/**
+ * Serialize the service's Decimal totals into the existing numeric response.
+ * This is the single response boundary (Decimal → number via parseFloat, exactly
+ * as before); the service never converts. Field names and the bare (un-enveloped)
+ * shape are preserved byte-for-byte for API compatibility.
+ */
+function serializeDashboardSummary(result: DashboardSummaryResult) {
+  return {
+    total_aset: parseFloat(result.totalAset.toString()),
+    total_utang: parseFloat(result.totalUtang.toString()),
+    net_worth: parseFloat(result.netWorth.toString()),
+  };
+}
+
+/**
+ * GET /api/v1/dashboard/summary
+ * Returns aggregated financial summary: total_aset, total_utang, net_worth.
+ */
+export const getDashboardSummary = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = getAuthenticatedUserId(req);
+    if (!userId) {
+      return sendError(res, 'Unauthorized', 401);
+    }
+
+    const result = await dashboardQueryService.getSummary({ userId });
+    return res.status(200).json(serializeDashboardSummary(result));
+  } catch (err) {
+    // No operational errors are thrown on this read path, so this always
+    // delegates to the central error handler (safe envelope + redacted logging).
+    forwardError(err, res, next);
+  }
+};

@@ -4,16 +4,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
 const routes_1 = require("./routes");
 const error_middleware_1 = require("./middlewares/error.middleware");
+const config_1 = require("./config");
+const rateLimit_1 = require("./middleware/rateLimit");
+const cors_1 = require("./middleware/cors");
 const app = (0, express_1.default)();
+// Trust proxy governs how req.ip is derived (and thus rate-limit keying).
+// Defaults to false; set TRUST_PROXY to the reverse-proxy hop count in prod.
+app.set('trust proxy', config_1.trustProxy);
 // --------------- Middleware ---------------
 app.use((0, helmet_1.default)());
-app.use((0, cors_1.default)());
+app.use(cors_1.corsMiddleware);
 app.use((0, morgan_1.default)('dev'));
+// --------------- Rate limiting ---------------
+// PRE-AUTH layer: the general limiter runs before body parsing and before
+// authentication, keying by IP to protect the auth machinery (token / API-key
+// verification). The stricter POST-AUTH mutation limiter is applied per-route
+// AFTER `requireUser` (see the route modules) so it can key by the verified
+// user id; it is not mounted globally here.
+if (config_1.rateLimitConfig.enabled) {
+    app.use('/api', rateLimit_1.generalLimiter);
+}
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 // --------------- Routes ---------------

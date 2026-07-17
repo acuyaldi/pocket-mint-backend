@@ -1,0 +1,61 @@
+name: Backend CI
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - master
+
+  push:
+    branches:
+      - dev
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Backend Verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Validate Prisma schema
+        run: npx prisma validate
+
+      - name: Run tests
+        run: npx vitest run
+
+      - name: Production build
+        run: npm run build
+
+      - name: Verify Prisma client packaging
+        run: |
+          test -f dist/generated/prisma/client.js
+          node -e "require('./dist/generated/prisma/client'); console.log('Prisma client packaging OK')"
+
+      - name: Check repository diff
+        run: git diff --exit-code

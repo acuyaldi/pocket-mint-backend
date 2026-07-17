@@ -1,22 +1,107 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getWalletSparkline = exports.deleteWallet = exports.updateWallet = exports.createWallet = exports.getAllWallets = void 0;
-const prisma_1 = __importDefault(require("../lib/prisma"));
 const response_1 = require("../utils/response");
-const financial_1 = require("../utils/financial");
-const VALID_WALLET_TYPES = ['CASH', 'BANK', 'E_WALLET', 'CREDIT_CARD', 'LOAN_PAYLATER'];
-const DEBT_TYPES = ['CREDIT_CARD', 'LOAN_PAYLATER'];
-/** Serialized net worth snapshot, recomputed after every wallet mutation. */
-async function netWorthSnapshot(userId) {
-    const { totalAset, totalUtang, netWorth } = await (0, financial_1.getUserNetWorth)(userId);
+const wallet_service_1 = require("../services/wallet.service");
+const wallet_query_service_1 = require("../services/wallet-query.service");
+const authContext_1 = require("../http/authContext");
+const queryParsers_1 = require("../http/queryParsers");
+const forwardError_1 = require("../http/forwardError");
+const CREDIT_TYPES = ['CREDIT_CARD', 'PAYLATER'];
+const LIABILITY_TYPES = ['CREDIT_CARD', 'PAYLATER', 'LOAN'];
+/** Map allowlisted create fields from the request body into the service input. */
+function mapCreateWalletRequest(body, userId) {
     return {
-        totalAset: parseFloat(totalAset.toString()),
-        totalUtang: parseFloat(totalUtang.toString()),
-        netWorth: parseFloat(netWorth.toString()),
+        userId,
+        name: body.name,
+        type: body.type,
+        balance: body.balance,
+        principal: body.principal,
+        creditLimit: body.creditLimit,
+        cutoffDay: body.cutoffDay,
+        paymentDueDay: body.paymentDueDay,
+        interestRate: body.interestRate,
+        adminFee: body.adminFee,
+        adminFeeType: body.adminFeeType,
+        icon: body.icon,
+        color: body.color,
     };
+}
+/** Map allowlisted update fields (plus route id + authenticated user) into service input. */
+function mapUpdateWalletRequest(walletId, userId, body) {
+    return {
+        userId,
+        walletId,
+        name: body.name,
+        type: body.type,
+        balance: body.balance,
+        creditLimit: body.creditLimit,
+        cutoffDay: body.cutoffDay,
+        paymentDueDay: body.paymentDueDay,
+        interestRate: body.interestRate,
+        adminFee: body.adminFee,
+        adminFeeType: body.adminFeeType,
+        icon: body.icon,
+        color: body.color,
+        isArchived: body.isArchived,
+    };
+}
+/**
+ * Map the delete request into service input. `force` is normalized exactly as
+ * before: active only when the query string is literally `'true'`.
+ */
+function mapDeleteWalletRequest(walletId, userId, query) {
+    return { userId, walletId, force: (0, queryParsers_1.scalarBooleanTrue)(query.force) };
+}
+/**
+ * Serialize the query service's Decimal net-worth totals into the existing
+ * numeric response. The reporting snapshot is fetched from the wallet query
+ * service (reads) and appended to every mutation response, exactly as before.
+ */
+function serializeNetWorth(totals) {
+    return {
+        totalAset: parseFloat(totals.totalAset.toString()),
+        totalUtang: parseFloat(totals.totalUtang.toString()),
+        netWorth: parseFloat(totals.netWorth.toString()),
+    };
+}
+/** Fetch + serialize the caller's net-worth snapshot (the mutation-response reporting field). */
+async function netWorthSnapshot(userId) {
+    return serializeNetWorth(await wallet_query_service_1.walletQueryService.getNetWorth({ userId }));
+}
+/**
+ * Serialize one wallet for the list response: Decimal → number (parseFloat, as
+ * before) plus the DEBT-only computed fields. `sisa_limit` and `outstanding_debt`
+ * are `null` for asset wallets. This is the single response boundary — the query
+ * service returns raw Decimals and never converts.
+ */
+function serializeWallet(w) {
+    const balance = parseFloat(w.balance.toString());
+    const creditLimit = parseFloat(w.creditLimit.toString());
+    const isCredit = CREDIT_TYPES.includes(w.type);
+    const isLiability = LIABILITY_TYPES.includes(w.type);
+    const outstanding = isLiability ? Math.abs(Math.min(balance, 0)) : null;
+    const remainingCredit = isCredit ? Math.max(creditLimit - Math.abs(Math.min(balance, 0)), 0) : null;
+    return {
+        ...w,
+        balance,
+        creditLimit,
+        initialBalance: parseFloat(w.initialBalance.toString()),
+        interestRate: parseFloat(w.interestRate.toString()),
+        adminFee: parseFloat(w.adminFee.toString()),
+        outstanding,
+        remainingCredit,
+        // Compatibility aliases for existing clients during the UI migration.
+        sisa_limit: remainingCredit,
+        outstanding_debt: outstanding,
+    };
+}
+/** Serialize sparkline points: Decimal → number, preserving pre-creation `null` (never 0). */
+function serializeSparkline(points) {
+    return points.map((point) => ({
+        date: point.date,
+        balance: point.balance === null ? null : Number(point.balance.toString()),
+    }));
 }
 /**
  * GET /api/v1/wallets
@@ -25,36 +110,16 @@ async function netWorthSnapshot(userId) {
  */
 const getAllWallets = async (req, res, next) => {
     try {
-        // userId disuntik oleh requireUser — jangan hardcode, create/list harus user yang sama
-        const userId = req.userId;
+        // Identity comes only from the canonical auth context (set by requireUser).
+        const userId = (0, authContext_1.getAuthenticatedUserId)(req);
         if (!userId) {
             return (0, response_1.sendError)(res, 'Unauthorized', 401);
         }
-        const wallets = await prisma_1.default.wallet.findMany({
-            where: { userId },
-            orderBy: { createdAt: 'asc' },
-        });
-        const serialized = wallets.map((w) => {
-            const balance = parseFloat(w.balance.toString());
-            const creditLimit = parseFloat(w.creditLimit.toString());
-            const isDebt = DEBT_TYPES.includes(w.type);
-            return {
-                ...w,
-                balance,
-                creditLimit,
-                initialBalance: parseFloat(w.initialBalance.toString()),
-                interestRate: parseFloat(w.interestRate.toString()),
-                adminFee: parseFloat(w.adminFee.toString()),
-                // Computed fields for DEBT wallets
-                sisa_limit: isDebt ? creditLimit + balance : null,
-                outstanding_debt: isDebt ? Math.abs(balance) : null,
-            };
-        });
-        (0, response_1.sendSuccess)(res, serialized, 'Fetched wallets');
+        const wallets = await wallet_query_service_1.walletQueryService.listWallets({ userId });
+        (0, response_1.sendSuccess)(res, wallets.map(serializeWallet), 'Fetched wallets');
     }
     catch (err) {
-        console.error('getAllWallets error:', err);
-        return res.status(500).json({ error: 'Internal server error' });
+        (0, forwardError_1.forwardError)(err, res, next);
     }
 };
 exports.getAllWallets = getAllWallets;
@@ -64,41 +129,17 @@ exports.getAllWallets = getAllWallets;
  */
 const createWallet = async (req, res, next) => {
     try {
-        const userId = req.userId || req.body.userId || req.query.userId;
+        // Identity is the authenticated caller only — never the request body/query.
+        const userId = (0, authContext_1.getAuthenticatedUserId)(req);
         if (!userId) {
             return (0, response_1.sendError)(res, 'userId is required', 400);
         }
-        const { name, type, balance, creditLimit, interestRate, adminFee, adminFeeType, icon, color } = req.body;
-        if (!name || typeof name !== 'string') {
-            return (0, response_1.sendError)(res, 'name is required and must be a string', 400);
-        }
-        if (type && !VALID_WALLET_TYPES.includes(type)) {
-            return (0, response_1.sendError)(res, `type must be one of: ${VALID_WALLET_TYPES.join(', ')}`, 400);
-        }
-        if (DEBT_TYPES.includes(type) && (creditLimit === undefined || Number(creditLimit) <= 0)) {
-            return (0, response_1.sendError)(res, 'creditLimit is required for DEBT wallets (CREDIT_CARD, LOAN_PAYLATER)', 400);
-        }
-        const wallet = await prisma_1.default.wallet.create({
-            data: {
-                userId,
-                name,
-                type: type ?? 'CASH',
-                balance: balance !== undefined ? Number(balance) : 0,
-                creditLimit: creditLimit !== undefined ? Number(creditLimit) : 0,
-                interestRate: interestRate !== undefined ? Number(interestRate) : 0,
-                adminFee: adminFee !== undefined ? Number(adminFee) : 0,
-                ...(adminFeeType !== undefined && { adminFeeType }),
-                icon: icon ?? null,
-                color: color ?? null,
-            },
-        });
+        const wallet = await wallet_service_1.walletService.createWallet(mapCreateWalletRequest(req.body, userId));
+        // net-worth snapshot (reporting) is appended here; the service owns no response shaping.
         (0, response_1.sendSuccess)(res, { ...wallet, netWorth: await netWorthSnapshot(userId) }, 'Wallet created successfully', 201);
     }
     catch (err) {
-        if (err.code === 'P2003') {
-            return (0, response_1.sendError)(res, 'Invalid userId (user not found)', 400);
-        }
-        next(err);
+        (0, forwardError_1.forwardError)(err, res, next);
     }
 };
 exports.createWallet = createWallet;
@@ -108,39 +149,15 @@ exports.createWallet = createWallet;
  */
 const updateWallet = async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const userId = req.userId;
-        const { name, type, balance, creditLimit, interestRate, adminFee, adminFeeType, icon, color, isArchived } = req.body;
-        if (type && !VALID_WALLET_TYPES.includes(type)) {
-            return (0, response_1.sendError)(res, `type must be one of: ${VALID_WALLET_TYPES.join(', ')}`, 400);
+        const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+        if (!userId) {
+            return (0, response_1.sendError)(res, 'Unauthorized', 401);
         }
-        // Ownership check: refuse to touch a wallet that isn't the caller's.
-        const owned = await prisma_1.default.wallet.findFirst({ where: { id, userId }, select: { id: true } });
-        if (!owned) {
-            return (0, response_1.sendError)(res, `Wallet with id ${id} not found`, 404);
-        }
-        const wallet = await prisma_1.default.wallet.update({
-            where: { id },
-            data: {
-                ...(name !== undefined && { name }),
-                ...(type !== undefined && { type }),
-                ...(balance !== undefined && { balance: Number(balance) }),
-                ...(creditLimit !== undefined && { creditLimit: Number(creditLimit) }),
-                ...(interestRate !== undefined && { interestRate: Number(interestRate) }),
-                ...(adminFee !== undefined && { adminFee: Number(adminFee) }),
-                ...(adminFeeType !== undefined && { adminFeeType }),
-                ...(icon !== undefined && { icon }),
-                ...(color !== undefined && { color }),
-                ...(isArchived !== undefined && { isArchived }),
-            },
-        });
+        const wallet = await wallet_service_1.walletService.updateWallet(mapUpdateWalletRequest(req.params.id, userId, req.body));
         (0, response_1.sendSuccess)(res, { ...wallet, netWorth: await netWorthSnapshot(wallet.userId) }, 'Wallet updated successfully');
     }
     catch (err) {
-        if (err.code === 'P2025') {
-            return (0, response_1.sendError)(res, `Wallet with id ${req.params.id} not found`, 404);
-        }
-        next(err);
+        (0, forwardError_1.forwardError)(err, res, next);
     }
 };
 exports.updateWallet = updateWallet;
@@ -151,25 +168,17 @@ exports.updateWallet = updateWallet;
  */
 const deleteWallet = async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const userId = req.userId;
-        // Ownership check: refuse to delete a wallet that isn't the caller's.
-        const owned = await prisma_1.default.wallet.findFirst({ where: { id, userId }, select: { id: true } });
-        if (!owned) {
-            return (0, response_1.sendError)(res, `Wallet with id ${id} not found`, 404);
+        const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+        if (!userId) {
+            return (0, response_1.sendError)(res, 'Unauthorized', 401);
         }
-        const txCount = await prisma_1.default.transaction.count({ where: { walletId: id, userId } });
-        if (txCount > 0 && req.query.force !== 'true') {
-            return (0, response_1.sendError)(res, `Wallet has ${txCount} transactions. Pass ?force=true to delete anyway.`, 409);
-        }
-        const deleted = await prisma_1.default.wallet.delete({ where: { id } });
-        (0, response_1.sendSuccess)(res, { id, netWorth: await netWorthSnapshot(deleted.userId) }, `Wallet ${id} deleted successfully`);
+        const result = await wallet_service_1.walletService.deleteWallet(mapDeleteWalletRequest(req.params.id, userId, req.query));
+        // Ownership was verified in the service, so the caller owns the deleted wallet;
+        // the reporting snapshot reflects the state after deletion.
+        (0, response_1.sendSuccess)(res, { id: result.id, netWorth: await netWorthSnapshot(userId) }, `Wallet ${result.id} deleted successfully`);
     }
     catch (err) {
-        if (err.code === 'P2025') {
-            return (0, response_1.sendError)(res, `Wallet with id ${req.params.id} not found`, 404);
-        }
-        next(err);
+        (0, forwardError_1.forwardError)(err, res, next);
     }
 };
 exports.deleteWallet = deleteWallet;
@@ -180,59 +189,15 @@ exports.deleteWallet = deleteWallet;
  */
 const getWalletSparkline = async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const userId = req.userId;
-        // Verify wallet exists AND belongs to the caller
-        const wallet = await prisma_1.default.wallet.findFirst({
-            where: { id, userId },
-            select: { id: true, balance: true },
-        });
-        if (!wallet) {
-            return (0, response_1.sendError)(res, 'Wallet not found', 404);
+        const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+        if (!userId) {
+            return (0, response_1.sendError)(res, 'Unauthorized', 401);
         }
-        // Last 7 transactions (newest first)
-        const recentTx = await prisma_1.default.transaction.findMany({
-            where: { walletId: id, userId },
-            orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
-            take: 7,
-            select: { id: true, type: true, amount: true, date: true },
-        });
-        if (recentTx.length < 2) {
-            return (0, response_1.sendSuccess)(res, [], 'Not enough data for sparkline');
-        }
-        // Reverse to oldest-first
-        const txChronological = [...recentTx].reverse();
-        // Replay balances from current balance backwards
-        let runningBalance = parseFloat(wallet.balance.toString());
-        const points = [];
-        // Final point = current balance
-        points.push({
-            date: txChronological[txChronological.length - 1].date.toISOString().slice(0, 10),
-            balance: Math.round(runningBalance),
-        });
-        // Walk backwards from newest to second-oldest, undoing each tx
-        for (let i = recentTx.length - 1; i >= 1; i--) {
-            const tx = recentTx[i];
-            const amt = parseFloat(tx.amount.toString());
-            if (tx.type === 'INCOME') {
-                runningBalance -= amt;
-            }
-            else if (tx.type === 'EXPENSE') {
-                runningBalance += amt;
-            }
-            // TRANSFER: no net change for single-wallet sparkline
-            points.push({
-                date: tx.date.toISOString().slice(0, 10),
-                balance: Math.round(runningBalance),
-            });
-        }
-        // Reverse to get oldest-first order
-        points.reverse();
-        (0, response_1.sendSuccess)(res, points, 'Sparkline data');
+        const points = await wallet_query_service_1.walletQueryService.getWalletSparkline({ userId, walletId: req.params.id });
+        (0, response_1.sendSuccess)(res, serializeSparkline(points), 'Sparkline data');
     }
     catch (err) {
-        console.error('getWalletSparkline error:', err);
-        return res.status(500).json({ error: 'Internal server error' });
+        (0, forwardError_1.forwardError)(err, res, next);
     }
 };
 exports.getWalletSparkline = getWalletSparkline;

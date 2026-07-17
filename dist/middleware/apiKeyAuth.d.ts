@@ -1,21 +1,27 @@
 import { Request, Response, NextFunction } from 'express';
 /**
- * API-key gate ONLY — does not resolve a user.
- * Used by endpoints that run before the user exists in the backend
- * (e.g. POST /users/sync during signup).
+ * Gate for user-scoped routes: require a verified JWT AND an existing local
+ * user row for the verified `sub`. Publishes `req.auth = { userId }`.
+ *
+ * Decision tree (the order is the contract):
+ *   1. No `Authorization: Bearer <token>` → 401 (`missing_bearer`).
+ *   2. Token present but invalid/expired/wrong-aud/iss/signature → 401
+ *      (`invalid_token`). Never falls back to any other identity source.
+ *   3. Verified `sub` has no local user row → 401 (`unknown_user`).
+ *   4. Otherwise publish the canonical `req.auth` context and continue.
+ *
+ * SECURITY: this NEVER falls back to a shared/default user and never reads
+ * `x-user-id`, a body/query `userId`, or an API key.
  */
-export declare function apiKeyAuth(req: Request, res: Response, next: NextFunction): Response<any, Record<string, any>> | undefined;
+export declare function requireUser(req: Request, res: Response, next: NextFunction): Promise<void>;
 /**
- * API-key gate + authenticated-user resolution.
+ * Gate for the identity-bootstrap route (`POST /users/sync`): require a verified
+ * JWT but do NOT require a pre-existing local user row — this is the endpoint
+ * that CREATES that row. Publishes `req.auth = { userId: <verified sub>, email }`
+ * so the controller can provision/return exactly the caller's own local user.
  *
- * Identity is taken from the `x-user-id` header (Supabase UID === backend
- * User.id via /users/sync), falling back to `x-user-email` for legacy users
- * whose backend id predates the Supabase-UID sync. The resolved id is injected
- * into req.userId / req.body.userId / req.query.userId for downstream controllers.
- *
- * SECURITY: this NEVER falls back to a shared/default user. A request without a
- * valid, known user identity is rejected. Previously the middleware resolved the
- * oldest user for every request, so all users saw the same Wallets/Transactions.
+ * A verified user can therefore only ever sync themselves; the verified `sub` is
+ * the authority and any `supabaseId` in the body is ignored downstream.
  */
-export declare function requireUser(req: Request, res: Response, next: NextFunction): Promise<Response<any, Record<string, any>> | undefined>;
+export declare function requireVerifiedJwt(req: Request, res: Response, next: NextFunction): Promise<void>;
 //# sourceMappingURL=apiKeyAuth.d.ts.map
