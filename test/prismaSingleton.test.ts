@@ -38,12 +38,21 @@ afterEach(() => {
 });
 
 describe('prisma singleton (development)', () => {
-  it('constructs resources once and caches them on the global', async () => {
+  it('does not construct resources merely from being imported', async () => {
+    const create = vi.fn(() => ({ prisma: { id: 'A' }, pool: {}, close: vi.fn() }));
+
+    await loadSingleton({ isProduction: false, create });
+
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('constructs resources lazily on first use and caches them on the global', async () => {
     const res = { prisma: { id: 'A' }, pool: {}, close: vi.fn() };
     const create = vi.fn(() => res);
 
     const mod = await loadSingleton({ isProduction: false, create });
 
+    expect((mod.prisma as unknown as { id: string }).id).toBe('A');
     expect(create).toHaveBeenCalledTimes(1);
     // Pool tuning + url are forwarded to the factory.
     expect(create).toHaveBeenCalledWith(
@@ -51,7 +60,8 @@ describe('prisma singleton (development)', () => {
       { max: 5 },
       expect.anything(),
     );
-    expect(mod.prisma).toBe(res.prisma);
+    expect((mod.prisma as unknown as { id: string }).id).toBe('A');
+    expect(create).toHaveBeenCalledTimes(1); // reused, not reconstructed
     expect((globalThis as any)[GLOBAL_KEY]).toBe(res);
   });
 
@@ -62,20 +72,20 @@ describe('prisma singleton (development)', () => {
 
     const mod = await loadSingleton({ isProduction: false, create });
 
+    expect((mod.prisma as unknown as { id: string }).id).toBe('CACHED');
     expect(create).not.toHaveBeenCalled();
-    expect(mod.prisma).toBe(cached.prisma);
   });
 });
 
 describe('prisma singleton (production)', () => {
-  it('constructs one instance and does not touch the global cache', async () => {
+  it('constructs one instance on first use and does not touch the global cache', async () => {
     const res = { prisma: { id: 'P' }, pool: {}, close: vi.fn() };
     const create = vi.fn(() => res);
 
     const mod = await loadSingleton({ isProduction: true, create });
 
+    expect((mod.prisma as unknown as { id: string }).id).toBe('P');
     expect(create).toHaveBeenCalledTimes(1);
-    expect(mod.prisma).toBe(res.prisma);
     expect((globalThis as any)[GLOBAL_KEY]).toBeUndefined();
   });
 });
