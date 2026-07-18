@@ -311,6 +311,10 @@ expose no internals.
 
 Never repeat credential values anywhere.
 
+**Timeline (PM-STAB-003):** the `.env` exposure commit is dated 2026-07-10;
+this runbook's rotation guidance was first documented 2026-07-13 — a gap of
+**three days**, not months. Do not restate this gap as longer than it was.
+
 | Credential | Class | Action |
 | --- | --- | --- |
 | Supabase **DB password** | **Rotation required** — was in git-tracked `.env`, still in history | Rotate in Supabase → update `DATABASE_URL`/`DIRECT_URL` everywhere (local, staging, prod, CI). Coordinate so no instance holds the old URL. |
@@ -320,6 +324,31 @@ Never repeat credential values anywhere.
 | **Supabase anon key** | Public config | Not a secret; do not confuse with the service-role key. |
 
 Rotate credentials **before** any history purge (§11).
+
+### 10.1 Database-password rotation checklist — evidence required
+
+**PM-STAB-003 stays Open until every field below is filled with real,
+dated, operator-attributed evidence.** An unfilled or partially filled
+checklist means the rotation has not been verified — never mark this
+issue Resolved from this checklist alone; production verification (§8,
+Phase B of the remediation plan) must also pass. Never write a real
+credential value into this file — record variable *names*, dates,
+operators, and pass/fail outcomes only.
+
+| Evidence field | Recorded value |
+| --- | --- |
+| Rotation date | *(pending)* |
+| Operator | *(pending)* |
+| Affected variable names | *(pending — e.g. `DATABASE_URL`, `DIRECT_URL`)* |
+| Railway variables updated | *(pending — staging / production, per-service)* |
+| Local production tooling updated | *(pending — e.g. `db-backup.mjs`/`db-restore.mjs`/`db-verify.mjs` configs, any local `.env` used for ops)* |
+| Old password invalidation verified | *(pending — confirm the previous password no longer authenticates)* |
+| Production connectivity verified | *(pending — health endpoint + Prisma connect check)* |
+| Smoke-test result | *(pending — see §9 smoke-test matrix outcome)* |
+
+Do not backfill this table with assumed or partial completion. Leave a
+field `(pending)` until the corresponding action has actually occurred and
+been confirmed.
 
 ---
 
