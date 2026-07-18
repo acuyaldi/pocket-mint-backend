@@ -53,7 +53,7 @@ flowchart TD
 | `force` query normalization | delete | **controller** mapper |
 | net-worth snapshot **aggregation** (reporting) | controller (`getUserNetWorth`) | **query service** (`getNetWorth`) |
 | net-worth snapshot **serialization** | controller | **controller** (`serializeNetWorth`) |
-| response envelope `{ ...wallet, netWorth }` | all mutations | **controller** |
+| response envelope `{ ...serializeWallet(wallet), netWorth }` | all mutations | **controller** |
 | wallet listing `findMany` + ordering + archived inclusion | controller (`getAllWallets`) | **query service** (`listWallets`) |
 | list serialization + `sisa_limit` / `outstanding_debt` | controller | **controller** (`serializeWallet`) |
 | sparkline ownership check + tx query + reconstruction | controller (`getWalletSparkline`) | **query service** (`getWalletSparkline`) |
@@ -70,6 +70,8 @@ After extraction the three mutation handlers are thin HTTP adapters. Each:
   (`mapCreateWalletRequest`, `mapUpdateWalletRequest`, `mapDeleteWalletRequest`) —
   never `data: req.body`
 - calls exactly one service method
+- serializes the returned wallet via `serializeWallet` (create/update return the
+  same Decimal→number shape as `getAllWallets` — no client special-casing)
 - appends the reporting net-worth snapshot and sends the existing success envelope
 - forwards errors via `forwardWalletError`
 
