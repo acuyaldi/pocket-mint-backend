@@ -145,7 +145,7 @@ scaled processes (documented; Redis is out of scope for this rollout).
 
 ## 5. Pending Prisma migrations
 
-Two local migrations, neither applied to the configured database (confirmed via
+Three local migrations, none applied to the configured database (confirmed via
 read-only `prisma migrate status`):
 
 ### `20260711172700_remove_local_user_password` — DESTRUCTIVE
@@ -170,25 +170,50 @@ ALTER TABLE "transactions" ADD COLUMN "to_wallet_id" TEXT;  -- + index + FK ON D
   Rollback = drop the column/index/FK (loses transfer-destination links created
   after apply).
 
-### ⚠️ Migration-history drift — provisioning blocker for a FRESH database
+### `20260717000000_generalize_wallets_and_bills` — MIXED (additive + in-place enum/data change)
+```sql
+ALTER TYPE "WalletType" RENAME VALUE 'LOAN_PAYLATER' TO 'PAYLATER';
+ALTER TYPE "WalletType" ADD VALUE 'LOAN';
+ALTER TABLE "wallets" ADD COLUMN "cutoff_day" INTEGER, ADD COLUMN "payment_due_day" INTEGER;  -- + bounds checks
+ALTER TABLE "installments" ADD COLUMN "kind" ..., ADD COLUMN "paid_terms" ..., ADD COLUMN "next_due_date" ...;
+-- backfills paid_terms/next_due_date from current_term/start_date, then sets next_due_date NOT NULL
+```
+- Enum rename + new value and the new nullable wallet columns are backward
+  compatible with old code (it never reads them). The `installments` backfill
+  is additive/widening only — it does not drop or narrow any existing column.
+  Safe to apply before the new code. Rollback is **not** a simple reverse (see
+  `docs/prisma-migration-reconciliation.md` §10) — restore from backup if this
+  one needs to be undone.
 
-`prisma migrate status` reports **"last common migration: null"**. The database
-has baseline migrations applied (`..._init`, `..._rename_account_to_wallet` —
-the latter appears twice in the remote history) that are **absent from
-`prisma/migrations/` locally**. Consequences:
+### ⚠️ Migration-history drift — provisioning blocker for a FRESH database (RESOLVED, re-verified 2026-07-18)
 
-- **Existing database** (the one in `DATABASE_URL`, or a snapshot/branch of it):
-  `prisma migrate deploy` applies the two pending migrations correctly — deploy
-  matches by name against `_prisma_migrations` and ignores DB-only entries. ✅
-- **Fresh/empty database** (a brand-new staging Supabase project): `migrate
-  deploy` would run only the two diff migrations against an empty schema →
-  `DROP COLUMN password` on a non-existent `users` table **fails**. ❌
+`prisma migrate status` used to report **"last common migration: null"**
+because the database's original baseline migrations (`..._init`,
+`..._rename_account_to_wallet` — the latter appears twice in the remote
+history) were **absent from `prisma/migrations/` locally**. This was fixed by
+reconstructing `prisma/migrations/20260710000000_baseline/` (see
+`docs/prisma-migration-reconciliation.md` §2–§5) so that a fresh database can
+be provisioned from the migration repository alone (PM-STAB-004).
 
-**Therefore, provision staging from a copy/snapshot/branch of the existing
-database, not from an empty project** — unless the missing baseline migrations
-are first reconstructed into `prisma/migrations/` (a separate, deliberate task;
-not done here to avoid creating migrations). Do not attempt `migrate reset` on
-any shared database.
+Current state, both proven on a disposable PostgreSQL 18 instance:
+
+- **Fresh/empty database**: `prisma migrate deploy` applies all four
+  migrations (`baseline` → `remove_local_user_password` →
+  `add_transaction_to_wallet` → `generalize_wallets_and_bills`) in order and
+  reaches a schema **identical** to `prisma/schema.prisma` (empty
+  `migrate diff`). No manual SQL, no `db push`, no dependency on any other
+  database. ✅
+- **Existing database** (the one in `DATABASE_URL`, a snapshot/branch of it, or
+  staging/production): still has only the legacy `_init`/`_rename` history
+  applied — none of the four repo migrations have been deployed there yet.
+  Provisioning it is a `migrate resolve --applied 20260710000000_baseline`
+  (metadata only) followed by `migrate deploy` for the three newer migrations —
+  see `docs/prisma-migration-reconciliation.md` §7–§9. This step is still
+  **manual and not yet executed against any real staging/production database**;
+  it requires a backup window and is not something to run against `.env`'s
+  database "to test".
+
+Do not attempt `migrate reset` on any shared database.
 
 ---
 

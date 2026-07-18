@@ -74,20 +74,24 @@ Confirm the target first (`prisma migrate status`, read-only).
 20260710000000_baseline                      (creates full schema, incl. users.password)
 20260711172700_remove_local_user_password    (destructive: DROP COLUMN password)
 20260711223000_add_transaction_to_wallet     (additive: to_wallet_id + index + FK)
+20260717000000_generalize_wallets_and_bills  (WalletType PAYLATER/LOAN split, wallet billing fields, installment kind/paid_terms/next_due_date)
 ```
 
 - **Existing legacy-schema DB** (staging/prod): inspect `migrate status` +
-  `migrate diff` first; proceed only if drift exactly matches the two expected
+  `migrate diff` first; proceed only if drift exactly matches the three expected
   deltas. Then `migrate resolve --applied 20260710000000_baseline`
-  (metadata-only, no DDL) and `migrate deploy` for the two newer migrations.
+  (metadata-only, no DDL) and `migrate deploy` for the three newer migrations.
   Leave the legacy `_init`/`_rename` rows alone; **never hand-edit
   `_prisma_migrations`**.
-- **Empty DB**: `prisma migrate deploy` applies the full chain. Do **not** run
-  `migrate resolve` there.
+- **Empty DB**: `prisma migrate deploy` applies the full chain (all four
+  migrations). Do **not** run `migrate resolve` there. Re-verified end-to-end on
+  a disposable PostgreSQL 18 instance 2026-07-18 (PM-STAB-004): empty `migrate
+  diff` against `schema.prisma`, full test suite green with 0 skips, backend
+  starts and serves `/health`.
 
 ## Verification
 
-- Disposable-PostgreSQL replay of the chain; final
+- Disposable-PostgreSQL replay of the full chain; final
   `migrate diff` (DB → schema) must be empty
 - `npx prisma validate` && `npx prisma generate`
 - `npx vitest run` && `npm run build` (+ packaging check above)

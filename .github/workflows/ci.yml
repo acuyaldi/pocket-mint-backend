@@ -24,6 +24,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    # Disposable database for the Prisma integration suite ONLY — never
+    # Supabase or any shared instance. Torn down with the job.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pocketmint_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pocketmint_test
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -46,7 +66,12 @@ jobs:
       - name: Validate Prisma schema
         run: npx prisma validate
 
-      - name: Run tests
+      - name: Apply migrations to disposable test database
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+
+      - name: Run tests (including Prisma integration suite)
         run: npx vitest run
 
       - name: Production build

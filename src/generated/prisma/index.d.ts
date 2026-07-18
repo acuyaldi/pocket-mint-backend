@@ -38,11 +38,6 @@ export type Transaction = $Result.DefaultSelection<Prisma.$TransactionPayload>
  * 
  */
 export type Installment = $Result.DefaultSelection<Prisma.$InstallmentPayload>
-/**
- * Model Transfer
- * 
- */
-export type Transfer = $Result.DefaultSelection<Prisma.$TransferPayload>
 
 /**
  * Enums
@@ -297,16 +292,6 @@ export class PrismaClient<
     * ```
     */
   get installment(): Prisma.InstallmentDelegate<ExtArgs, ClientOptions>;
-
-  /**
-   * `prisma.transfer`: Exposes CRUD operations for the **Transfer** model.
-    * Example usage:
-    * ```ts
-    * // Fetch zero or more Transfers
-    * const transfers = await prisma.transfer.findMany()
-    * ```
-    */
-  get transfer(): Prisma.TransferDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -745,8 +730,7 @@ export namespace Prisma {
     Wallet: 'Wallet',
     Category: 'Category',
     Transaction: 'Transaction',
-    Installment: 'Installment',
-    Transfer: 'Transfer'
+    Installment: 'Installment'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -762,7 +746,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "wallet" | "category" | "transaction" | "installment" | "transfer"
+      modelProps: "user" | "wallet" | "category" | "transaction" | "installment"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1136,80 +1120,6 @@ export namespace Prisma {
           }
         }
       }
-      Transfer: {
-        payload: Prisma.$TransferPayload<ExtArgs>
-        fields: Prisma.TransferFieldRefs
-        operations: {
-          findUnique: {
-            args: Prisma.TransferFindUniqueArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TransferPayload> | null
-          }
-          findUniqueOrThrow: {
-            args: Prisma.TransferFindUniqueOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TransferPayload>
-          }
-          findFirst: {
-            args: Prisma.TransferFindFirstArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TransferPayload> | null
-          }
-          findFirstOrThrow: {
-            args: Prisma.TransferFindFirstOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TransferPayload>
-          }
-          findMany: {
-            args: Prisma.TransferFindManyArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TransferPayload>[]
-          }
-          create: {
-            args: Prisma.TransferCreateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TransferPayload>
-          }
-          createMany: {
-            args: Prisma.TransferCreateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          createManyAndReturn: {
-            args: Prisma.TransferCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TransferPayload>[]
-          }
-          delete: {
-            args: Prisma.TransferDeleteArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TransferPayload>
-          }
-          update: {
-            args: Prisma.TransferUpdateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TransferPayload>
-          }
-          deleteMany: {
-            args: Prisma.TransferDeleteManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          updateMany: {
-            args: Prisma.TransferUpdateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          updateManyAndReturn: {
-            args: Prisma.TransferUpdateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TransferPayload>[]
-          }
-          upsert: {
-            args: Prisma.TransferUpsertArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TransferPayload>
-          }
-          aggregate: {
-            args: Prisma.TransferAggregateArgs<ExtArgs>
-            result: $Utils.Optional<AggregateTransfer>
-          }
-          groupBy: {
-            args: Prisma.TransferGroupByArgs<ExtArgs>
-            result: $Utils.Optional<TransferGroupByOutputType>[]
-          }
-          count: {
-            args: Prisma.TransferCountArgs<ExtArgs>
-            result: $Utils.Optional<TransferCountAggregateOutputType> | number
-          }
-        }
-      }
     }
   } & {
     other: {
@@ -1323,7 +1233,6 @@ export namespace Prisma {
     category?: CategoryOmit
     transaction?: TransactionOmit
     installment?: InstallmentOmit
-    transfer?: TransferOmit
   }
 
   /* Types for Logging */
@@ -1408,7 +1317,6 @@ export namespace Prisma {
     categories: number
     transactions: number
     installments: number
-    transfers: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1416,7 +1324,6 @@ export namespace Prisma {
     categories?: boolean | UserCountOutputTypeCountCategoriesArgs
     transactions?: boolean | UserCountOutputTypeCountTransactionsArgs
     installments?: boolean | UserCountOutputTypeCountInstallmentsArgs
-    transfers?: boolean | UserCountOutputTypeCountTransfersArgs
   }
 
   // Custom InputTypes
@@ -1458,13 +1365,6 @@ export namespace Prisma {
     where?: InstallmentWhereInput
   }
 
-  /**
-   * UserCountOutputType without action
-   */
-  export type UserCountOutputTypeCountTransfersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: TransferWhereInput
-  }
-
 
   /**
    * Count Type WalletCountOutputType
@@ -1474,16 +1374,12 @@ export namespace Prisma {
     transactions: number
     toTransactions: number
     installments: number
-    fromTransfers: number
-    toTransfers: number
   }
 
   export type WalletCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     transactions?: boolean | WalletCountOutputTypeCountTransactionsArgs
     toTransactions?: boolean | WalletCountOutputTypeCountToTransactionsArgs
     installments?: boolean | WalletCountOutputTypeCountInstallmentsArgs
-    fromTransfers?: boolean | WalletCountOutputTypeCountFromTransfersArgs
-    toTransfers?: boolean | WalletCountOutputTypeCountToTransfersArgs
   }
 
   // Custom InputTypes
@@ -1516,20 +1412,6 @@ export namespace Prisma {
    */
   export type WalletCountOutputTypeCountInstallmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: InstallmentWhereInput
-  }
-
-  /**
-   * WalletCountOutputType without action
-   */
-  export type WalletCountOutputTypeCountFromTransfersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: TransferWhereInput
-  }
-
-  /**
-   * WalletCountOutputType without action
-   */
-  export type WalletCountOutputTypeCountToTransfersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: TransferWhereInput
   }
 
 
@@ -1775,7 +1657,6 @@ export namespace Prisma {
     categories?: boolean | User$categoriesArgs<ExtArgs>
     transactions?: boolean | User$transactionsArgs<ExtArgs>
     installments?: boolean | User$installmentsArgs<ExtArgs>
-    transfers?: boolean | User$transfersArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -1812,7 +1693,6 @@ export namespace Prisma {
     categories?: boolean | User$categoriesArgs<ExtArgs>
     transactions?: boolean | User$transactionsArgs<ExtArgs>
     installments?: boolean | User$installmentsArgs<ExtArgs>
-    transfers?: boolean | User$transfersArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1825,7 +1705,6 @@ export namespace Prisma {
       categories: Prisma.$CategoryPayload<ExtArgs>[]
       transactions: Prisma.$TransactionPayload<ExtArgs>[]
       installments: Prisma.$InstallmentPayload<ExtArgs>[]
-      transfers: Prisma.$TransferPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2232,7 +2111,6 @@ export namespace Prisma {
     categories<T extends User$categoriesArgs<ExtArgs> = {}>(args?: Subset<T, User$categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     transactions<T extends User$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     installments<T extends User$installmentsArgs<ExtArgs> = {}>(args?: Subset<T, User$installmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    transfers<T extends User$transfersArgs<ExtArgs> = {}>(args?: Subset<T, User$transfersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2757,30 +2635,6 @@ export namespace Prisma {
   }
 
   /**
-   * User.transfers
-   */
-  export type User$transfersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferInclude<ExtArgs> | null
-    where?: TransferWhereInput
-    orderBy?: TransferOrderByWithRelationInput | TransferOrderByWithRelationInput[]
-    cursor?: TransferWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: TransferScalarFieldEnum | TransferScalarFieldEnum[]
-  }
-
-  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3121,8 +2975,6 @@ export namespace Prisma {
     transactions?: boolean | Wallet$transactionsArgs<ExtArgs>
     toTransactions?: boolean | Wallet$toTransactionsArgs<ExtArgs>
     installments?: boolean | Wallet$installmentsArgs<ExtArgs>
-    fromTransfers?: boolean | Wallet$fromTransfersArgs<ExtArgs>
-    toTransfers?: boolean | Wallet$toTransfersArgs<ExtArgs>
     _count?: boolean | WalletCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["wallet"]>
 
@@ -3194,8 +3046,6 @@ export namespace Prisma {
     transactions?: boolean | Wallet$transactionsArgs<ExtArgs>
     toTransactions?: boolean | Wallet$toTransactionsArgs<ExtArgs>
     installments?: boolean | Wallet$installmentsArgs<ExtArgs>
-    fromTransfers?: boolean | Wallet$fromTransfersArgs<ExtArgs>
-    toTransfers?: boolean | Wallet$toTransfersArgs<ExtArgs>
     _count?: boolean | WalletCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type WalletIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3212,8 +3062,6 @@ export namespace Prisma {
       transactions: Prisma.$TransactionPayload<ExtArgs>[]
       toTransactions: Prisma.$TransactionPayload<ExtArgs>[]
       installments: Prisma.$InstallmentPayload<ExtArgs>[]
-      fromTransfers: Prisma.$TransferPayload<ExtArgs>[]
-      toTransfers: Prisma.$TransferPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -3631,8 +3479,6 @@ export namespace Prisma {
     transactions<T extends Wallet$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     toTransactions<T extends Wallet$toTransactionsArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$toTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     installments<T extends Wallet$installmentsArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$installmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    fromTransfers<T extends Wallet$fromTransfersArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$fromTransfersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    toTransfers<T extends Wallet$toTransfersArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$toTransfersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4149,54 +3995,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: InstallmentScalarFieldEnum | InstallmentScalarFieldEnum[]
-  }
-
-  /**
-   * Wallet.fromTransfers
-   */
-  export type Wallet$fromTransfersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferInclude<ExtArgs> | null
-    where?: TransferWhereInput
-    orderBy?: TransferOrderByWithRelationInput | TransferOrderByWithRelationInput[]
-    cursor?: TransferWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: TransferScalarFieldEnum | TransferScalarFieldEnum[]
-  }
-
-  /**
-   * Wallet.toTransfers
-   */
-  export type Wallet$toTransfersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferInclude<ExtArgs> | null
-    where?: TransferWhereInput
-    orderBy?: TransferOrderByWithRelationInput | TransferOrderByWithRelationInput[]
-    cursor?: TransferWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: TransferScalarFieldEnum | TransferScalarFieldEnum[]
   }
 
   /**
@@ -8033,1158 +7831,6 @@ export namespace Prisma {
 
 
   /**
-   * Model Transfer
-   */
-
-  export type AggregateTransfer = {
-    _count: TransferCountAggregateOutputType | null
-    _avg: TransferAvgAggregateOutputType | null
-    _sum: TransferSumAggregateOutputType | null
-    _min: TransferMinAggregateOutputType | null
-    _max: TransferMaxAggregateOutputType | null
-  }
-
-  export type TransferAvgAggregateOutputType = {
-    amount: Decimal | null
-  }
-
-  export type TransferSumAggregateOutputType = {
-    amount: Decimal | null
-  }
-
-  export type TransferMinAggregateOutputType = {
-    id: string | null
-    userId: string | null
-    fromWalletId: string | null
-    toWalletId: string | null
-    amount: Decimal | null
-    note: string | null
-    date: Date | null
-    createdAt: Date | null
-  }
-
-  export type TransferMaxAggregateOutputType = {
-    id: string | null
-    userId: string | null
-    fromWalletId: string | null
-    toWalletId: string | null
-    amount: Decimal | null
-    note: string | null
-    date: Date | null
-    createdAt: Date | null
-  }
-
-  export type TransferCountAggregateOutputType = {
-    id: number
-    userId: number
-    fromWalletId: number
-    toWalletId: number
-    amount: number
-    note: number
-    date: number
-    createdAt: number
-    _all: number
-  }
-
-
-  export type TransferAvgAggregateInputType = {
-    amount?: true
-  }
-
-  export type TransferSumAggregateInputType = {
-    amount?: true
-  }
-
-  export type TransferMinAggregateInputType = {
-    id?: true
-    userId?: true
-    fromWalletId?: true
-    toWalletId?: true
-    amount?: true
-    note?: true
-    date?: true
-    createdAt?: true
-  }
-
-  export type TransferMaxAggregateInputType = {
-    id?: true
-    userId?: true
-    fromWalletId?: true
-    toWalletId?: true
-    amount?: true
-    note?: true
-    date?: true
-    createdAt?: true
-  }
-
-  export type TransferCountAggregateInputType = {
-    id?: true
-    userId?: true
-    fromWalletId?: true
-    toWalletId?: true
-    amount?: true
-    note?: true
-    date?: true
-    createdAt?: true
-    _all?: true
-  }
-
-  export type TransferAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which Transfer to aggregate.
-     */
-    where?: TransferWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Transfers to fetch.
-     */
-    orderBy?: TransferOrderByWithRelationInput | TransferOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the start position
-     */
-    cursor?: TransferWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Transfers from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Transfers.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Count returned Transfers
-    **/
-    _count?: true | TransferCountAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to average
-    **/
-    _avg?: TransferAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: TransferSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the minimum value
-    **/
-    _min?: TransferMinAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the maximum value
-    **/
-    _max?: TransferMaxAggregateInputType
-  }
-
-  export type GetTransferAggregateType<T extends TransferAggregateArgs> = {
-        [P in keyof T & keyof AggregateTransfer]: P extends '_count' | 'count'
-      ? T[P] extends true
-        ? number
-        : GetScalarType<T[P], AggregateTransfer[P]>
-      : GetScalarType<T[P], AggregateTransfer[P]>
-  }
-
-
-
-
-  export type TransferGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: TransferWhereInput
-    orderBy?: TransferOrderByWithAggregationInput | TransferOrderByWithAggregationInput[]
-    by: TransferScalarFieldEnum[] | TransferScalarFieldEnum
-    having?: TransferScalarWhereWithAggregatesInput
-    take?: number
-    skip?: number
-    _count?: TransferCountAggregateInputType | true
-    _avg?: TransferAvgAggregateInputType
-    _sum?: TransferSumAggregateInputType
-    _min?: TransferMinAggregateInputType
-    _max?: TransferMaxAggregateInputType
-  }
-
-  export type TransferGroupByOutputType = {
-    id: string
-    userId: string
-    fromWalletId: string
-    toWalletId: string
-    amount: Decimal
-    note: string | null
-    date: Date
-    createdAt: Date
-    _count: TransferCountAggregateOutputType | null
-    _avg: TransferAvgAggregateOutputType | null
-    _sum: TransferSumAggregateOutputType | null
-    _min: TransferMinAggregateOutputType | null
-    _max: TransferMaxAggregateOutputType | null
-  }
-
-  type GetTransferGroupByPayload<T extends TransferGroupByArgs> = Prisma.PrismaPromise<
-    Array<
-      PickEnumerable<TransferGroupByOutputType, T['by']> &
-        {
-          [P in ((keyof T) & (keyof TransferGroupByOutputType))]: P extends '_count'
-            ? T[P] extends boolean
-              ? number
-              : GetScalarType<T[P], TransferGroupByOutputType[P]>
-            : GetScalarType<T[P], TransferGroupByOutputType[P]>
-        }
-      >
-    >
-
-
-  export type TransferSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    userId?: boolean
-    fromWalletId?: boolean
-    toWalletId?: boolean
-    amount?: boolean
-    note?: boolean
-    date?: boolean
-    createdAt?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
-    fromWallet?: boolean | WalletDefaultArgs<ExtArgs>
-    toWallet?: boolean | WalletDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["transfer"]>
-
-  export type TransferSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    userId?: boolean
-    fromWalletId?: boolean
-    toWalletId?: boolean
-    amount?: boolean
-    note?: boolean
-    date?: boolean
-    createdAt?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
-    fromWallet?: boolean | WalletDefaultArgs<ExtArgs>
-    toWallet?: boolean | WalletDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["transfer"]>
-
-  export type TransferSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    userId?: boolean
-    fromWalletId?: boolean
-    toWalletId?: boolean
-    amount?: boolean
-    note?: boolean
-    date?: boolean
-    createdAt?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
-    fromWallet?: boolean | WalletDefaultArgs<ExtArgs>
-    toWallet?: boolean | WalletDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["transfer"]>
-
-  export type TransferSelectScalar = {
-    id?: boolean
-    userId?: boolean
-    fromWalletId?: boolean
-    toWalletId?: boolean
-    amount?: boolean
-    note?: boolean
-    date?: boolean
-    createdAt?: boolean
-  }
-
-  export type TransferOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "fromWalletId" | "toWalletId" | "amount" | "note" | "date" | "createdAt", ExtArgs["result"]["transfer"]>
-  export type TransferInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
-    fromWallet?: boolean | WalletDefaultArgs<ExtArgs>
-    toWallet?: boolean | WalletDefaultArgs<ExtArgs>
-  }
-  export type TransferIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
-    fromWallet?: boolean | WalletDefaultArgs<ExtArgs>
-    toWallet?: boolean | WalletDefaultArgs<ExtArgs>
-  }
-  export type TransferIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
-    fromWallet?: boolean | WalletDefaultArgs<ExtArgs>
-    toWallet?: boolean | WalletDefaultArgs<ExtArgs>
-  }
-
-  export type $TransferPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    name: "Transfer"
-    objects: {
-      user: Prisma.$UserPayload<ExtArgs>
-      fromWallet: Prisma.$WalletPayload<ExtArgs>
-      toWallet: Prisma.$WalletPayload<ExtArgs>
-    }
-    scalars: $Extensions.GetPayloadResult<{
-      id: string
-      userId: string
-      fromWalletId: string
-      toWalletId: string
-      amount: Prisma.Decimal
-      note: string | null
-      date: Date
-      createdAt: Date
-    }, ExtArgs["result"]["transfer"]>
-    composites: {}
-  }
-
-  type TransferGetPayload<S extends boolean | null | undefined | TransferDefaultArgs> = $Result.GetResult<Prisma.$TransferPayload, S>
-
-  type TransferCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
-    Omit<TransferFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
-      select?: TransferCountAggregateInputType | true
-    }
-
-  export interface TransferDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Transfer'], meta: { name: 'Transfer' } }
-    /**
-     * Find zero or one Transfer that matches the filter.
-     * @param {TransferFindUniqueArgs} args - Arguments to find a Transfer
-     * @example
-     * // Get one Transfer
-     * const transfer = await prisma.transfer.findUnique({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUnique<T extends TransferFindUniqueArgs>(args: SelectSubset<T, TransferFindUniqueArgs<ExtArgs>>): Prisma__TransferClient<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find one Transfer that matches the filter or throw an error with `error.code='P2025'`
-     * if no matches were found.
-     * @param {TransferFindUniqueOrThrowArgs} args - Arguments to find a Transfer
-     * @example
-     * // Get one Transfer
-     * const transfer = await prisma.transfer.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUniqueOrThrow<T extends TransferFindUniqueOrThrowArgs>(args: SelectSubset<T, TransferFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TransferClient<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find the first Transfer that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {TransferFindFirstArgs} args - Arguments to find a Transfer
-     * @example
-     * // Get one Transfer
-     * const transfer = await prisma.transfer.findFirst({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirst<T extends TransferFindFirstArgs>(args?: SelectSubset<T, TransferFindFirstArgs<ExtArgs>>): Prisma__TransferClient<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find the first Transfer that matches the filter or
-     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {TransferFindFirstOrThrowArgs} args - Arguments to find a Transfer
-     * @example
-     * // Get one Transfer
-     * const transfer = await prisma.transfer.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirstOrThrow<T extends TransferFindFirstOrThrowArgs>(args?: SelectSubset<T, TransferFindFirstOrThrowArgs<ExtArgs>>): Prisma__TransferClient<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find zero or more Transfers that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {TransferFindManyArgs} args - Arguments to filter and select certain fields only.
-     * @example
-     * // Get all Transfers
-     * const transfers = await prisma.transfer.findMany()
-     * 
-     * // Get first 10 Transfers
-     * const transfers = await prisma.transfer.findMany({ take: 10 })
-     * 
-     * // Only select the `id`
-     * const transferWithIdOnly = await prisma.transfer.findMany({ select: { id: true } })
-     * 
-     */
-    findMany<T extends TransferFindManyArgs>(args?: SelectSubset<T, TransferFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
-
-    /**
-     * Create a Transfer.
-     * @param {TransferCreateArgs} args - Arguments to create a Transfer.
-     * @example
-     * // Create one Transfer
-     * const Transfer = await prisma.transfer.create({
-     *   data: {
-     *     // ... data to create a Transfer
-     *   }
-     * })
-     * 
-     */
-    create<T extends TransferCreateArgs>(args: SelectSubset<T, TransferCreateArgs<ExtArgs>>): Prisma__TransferClient<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Create many Transfers.
-     * @param {TransferCreateManyArgs} args - Arguments to create many Transfers.
-     * @example
-     * // Create many Transfers
-     * const transfer = await prisma.transfer.createMany({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     *     
-     */
-    createMany<T extends TransferCreateManyArgs>(args?: SelectSubset<T, TransferCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Create many Transfers and returns the data saved in the database.
-     * @param {TransferCreateManyAndReturnArgs} args - Arguments to create many Transfers.
-     * @example
-     * // Create many Transfers
-     * const transfer = await prisma.transfer.createManyAndReturn({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Create many Transfers and only return the `id`
-     * const transferWithIdOnly = await prisma.transfer.createManyAndReturn({
-     *   select: { id: true },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    createManyAndReturn<T extends TransferCreateManyAndReturnArgs>(args?: SelectSubset<T, TransferCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-    /**
-     * Delete a Transfer.
-     * @param {TransferDeleteArgs} args - Arguments to delete one Transfer.
-     * @example
-     * // Delete one Transfer
-     * const Transfer = await prisma.transfer.delete({
-     *   where: {
-     *     // ... filter to delete one Transfer
-     *   }
-     * })
-     * 
-     */
-    delete<T extends TransferDeleteArgs>(args: SelectSubset<T, TransferDeleteArgs<ExtArgs>>): Prisma__TransferClient<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Update one Transfer.
-     * @param {TransferUpdateArgs} args - Arguments to update one Transfer.
-     * @example
-     * // Update one Transfer
-     * const transfer = await prisma.transfer.update({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    update<T extends TransferUpdateArgs>(args: SelectSubset<T, TransferUpdateArgs<ExtArgs>>): Prisma__TransferClient<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Delete zero or more Transfers.
-     * @param {TransferDeleteManyArgs} args - Arguments to filter Transfers to delete.
-     * @example
-     * // Delete a few Transfers
-     * const { count } = await prisma.transfer.deleteMany({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     * 
-     */
-    deleteMany<T extends TransferDeleteManyArgs>(args?: SelectSubset<T, TransferDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more Transfers.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {TransferUpdateManyArgs} args - Arguments to update one or more rows.
-     * @example
-     * // Update many Transfers
-     * const transfer = await prisma.transfer.updateMany({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    updateMany<T extends TransferUpdateManyArgs>(args: SelectSubset<T, TransferUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more Transfers and returns the data updated in the database.
-     * @param {TransferUpdateManyAndReturnArgs} args - Arguments to update many Transfers.
-     * @example
-     * // Update many Transfers
-     * const transfer = await prisma.transfer.updateManyAndReturn({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Update zero or more Transfers and only return the `id`
-     * const transferWithIdOnly = await prisma.transfer.updateManyAndReturn({
-     *   select: { id: true },
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    updateManyAndReturn<T extends TransferUpdateManyAndReturnArgs>(args: SelectSubset<T, TransferUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
-
-    /**
-     * Create or update one Transfer.
-     * @param {TransferUpsertArgs} args - Arguments to update or create a Transfer.
-     * @example
-     * // Update or create a Transfer
-     * const transfer = await prisma.transfer.upsert({
-     *   create: {
-     *     // ... data to create a Transfer
-     *   },
-     *   update: {
-     *     // ... in case it already exists, update
-     *   },
-     *   where: {
-     *     // ... the filter for the Transfer we want to update
-     *   }
-     * })
-     */
-    upsert<T extends TransferUpsertArgs>(args: SelectSubset<T, TransferUpsertArgs<ExtArgs>>): Prisma__TransferClient<$Result.GetResult<Prisma.$TransferPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-
-    /**
-     * Count the number of Transfers.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {TransferCountArgs} args - Arguments to filter Transfers to count.
-     * @example
-     * // Count the number of Transfers
-     * const count = await prisma.transfer.count({
-     *   where: {
-     *     // ... the filter for the Transfers we want to count
-     *   }
-     * })
-    **/
-    count<T extends TransferCountArgs>(
-      args?: Subset<T, TransferCountArgs>,
-    ): Prisma.PrismaPromise<
-      T extends $Utils.Record<'select', any>
-        ? T['select'] extends true
-          ? number
-          : GetScalarType<T['select'], TransferCountAggregateOutputType>
-        : number
-    >
-
-    /**
-     * Allows you to perform aggregations operations on a Transfer.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {TransferAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
-     * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
-     * const aggregations = await prisma.user.aggregate({
-     *   _avg: {
-     *     age: true,
-     *   },
-     *   where: {
-     *     email: {
-     *       contains: "prisma.io",
-     *     },
-     *   },
-     *   orderBy: {
-     *     age: "asc",
-     *   },
-     *   take: 10,
-     * })
-    **/
-    aggregate<T extends TransferAggregateArgs>(args: Subset<T, TransferAggregateArgs>): Prisma.PrismaPromise<GetTransferAggregateType<T>>
-
-    /**
-     * Group by Transfer.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {TransferGroupByArgs} args - Group by arguments.
-     * @example
-     * // Group by city, order by createdAt, get count
-     * const result = await prisma.user.groupBy({
-     *   by: ['city', 'createdAt'],
-     *   orderBy: {
-     *     createdAt: true
-     *   },
-     *   _count: {
-     *     _all: true
-     *   },
-     * })
-     * 
-    **/
-    groupBy<
-      T extends TransferGroupByArgs,
-      HasSelectOrTake extends Or<
-        Extends<'skip', Keys<T>>,
-        Extends<'take', Keys<T>>
-      >,
-      OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: TransferGroupByArgs['orderBy'] }
-        : { orderBy?: TransferGroupByArgs['orderBy'] },
-      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends MaybeTupleToUnion<T['by']>,
-      ByValid extends Has<ByFields, OrderFields>,
-      HavingFields extends GetHavingFields<T['having']>,
-      HavingValid extends Has<ByFields, HavingFields>,
-      ByEmpty extends T['by'] extends never[] ? True : False,
-      InputErrors extends ByEmpty extends True
-      ? `Error: "by" must not be empty.`
-      : HavingValid extends False
-      ? {
-          [P in HavingFields]: P extends ByFields
-            ? never
-            : P extends string
-            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
-            : [
-                Error,
-                'Field ',
-                P,
-                ` in "having" needs to be provided in "by"`,
-              ]
-        }[HavingFields]
-      : 'take' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "take", you also need to provide "orderBy"'
-      : 'skip' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "skip", you also need to provide "orderBy"'
-      : ByValid extends True
-      ? {}
-      : {
-          [P in OrderFields]: P extends ByFields
-            ? never
-            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-        }[OrderFields]
-    >(args: SubsetIntersection<T, TransferGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTransferGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-  /**
-   * Fields of the Transfer model
-   */
-  readonly fields: TransferFieldRefs;
-  }
-
-  /**
-   * The delegate class that acts as a "Promise-like" for Transfer.
-   * Why is this prefixed with `Prisma__`?
-   * Because we want to prevent naming conflicts as mentioned in
-   * https://github.com/prisma/prisma-client-js/issues/707
-   */
-  export interface Prisma__TransferClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    fromWallet<T extends WalletDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WalletDefaultArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    toWallet<T extends WalletDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WalletDefaultArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    /**
-     * Attaches callbacks for the resolution and/or rejection of the Promise.
-     * @param onfulfilled The callback to execute when the Promise is resolved.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of which ever callback is executed.
-     */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
-    /**
-     * Attaches a callback for only the rejection of the Promise.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of the callback.
-     */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
-    /**
-     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
-     * resolved value cannot be modified from the callback.
-     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
-     * @returns A Promise for the completion of the callback.
-     */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
-  }
-
-
-
-
-  /**
-   * Fields of the Transfer model
-   */
-  interface TransferFieldRefs {
-    readonly id: FieldRef<"Transfer", 'String'>
-    readonly userId: FieldRef<"Transfer", 'String'>
-    readonly fromWalletId: FieldRef<"Transfer", 'String'>
-    readonly toWalletId: FieldRef<"Transfer", 'String'>
-    readonly amount: FieldRef<"Transfer", 'Decimal'>
-    readonly note: FieldRef<"Transfer", 'String'>
-    readonly date: FieldRef<"Transfer", 'DateTime'>
-    readonly createdAt: FieldRef<"Transfer", 'DateTime'>
-  }
-    
-
-  // Custom InputTypes
-  /**
-   * Transfer findUnique
-   */
-  export type TransferFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferInclude<ExtArgs> | null
-    /**
-     * Filter, which Transfer to fetch.
-     */
-    where: TransferWhereUniqueInput
-  }
-
-  /**
-   * Transfer findUniqueOrThrow
-   */
-  export type TransferFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferInclude<ExtArgs> | null
-    /**
-     * Filter, which Transfer to fetch.
-     */
-    where: TransferWhereUniqueInput
-  }
-
-  /**
-   * Transfer findFirst
-   */
-  export type TransferFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferInclude<ExtArgs> | null
-    /**
-     * Filter, which Transfer to fetch.
-     */
-    where?: TransferWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Transfers to fetch.
-     */
-    orderBy?: TransferOrderByWithRelationInput | TransferOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for Transfers.
-     */
-    cursor?: TransferWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Transfers from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Transfers.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of Transfers.
-     */
-    distinct?: TransferScalarFieldEnum | TransferScalarFieldEnum[]
-  }
-
-  /**
-   * Transfer findFirstOrThrow
-   */
-  export type TransferFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferInclude<ExtArgs> | null
-    /**
-     * Filter, which Transfer to fetch.
-     */
-    where?: TransferWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Transfers to fetch.
-     */
-    orderBy?: TransferOrderByWithRelationInput | TransferOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for Transfers.
-     */
-    cursor?: TransferWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Transfers from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Transfers.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of Transfers.
-     */
-    distinct?: TransferScalarFieldEnum | TransferScalarFieldEnum[]
-  }
-
-  /**
-   * Transfer findMany
-   */
-  export type TransferFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferInclude<ExtArgs> | null
-    /**
-     * Filter, which Transfers to fetch.
-     */
-    where?: TransferWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Transfers to fetch.
-     */
-    orderBy?: TransferOrderByWithRelationInput | TransferOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for listing Transfers.
-     */
-    cursor?: TransferWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` Transfers from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` Transfers.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of Transfers.
-     */
-    distinct?: TransferScalarFieldEnum | TransferScalarFieldEnum[]
-  }
-
-  /**
-   * Transfer create
-   */
-  export type TransferCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferInclude<ExtArgs> | null
-    /**
-     * The data needed to create a Transfer.
-     */
-    data: XOR<TransferCreateInput, TransferUncheckedCreateInput>
-  }
-
-  /**
-   * Transfer createMany
-   */
-  export type TransferCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to create many Transfers.
-     */
-    data: TransferCreateManyInput | TransferCreateManyInput[]
-    skipDuplicates?: boolean
-  }
-
-  /**
-   * Transfer createManyAndReturn
-   */
-  export type TransferCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelectCreateManyAndReturn<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * The data used to create many Transfers.
-     */
-    data: TransferCreateManyInput | TransferCreateManyInput[]
-    skipDuplicates?: boolean
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferIncludeCreateManyAndReturn<ExtArgs> | null
-  }
-
-  /**
-   * Transfer update
-   */
-  export type TransferUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferInclude<ExtArgs> | null
-    /**
-     * The data needed to update a Transfer.
-     */
-    data: XOR<TransferUpdateInput, TransferUncheckedUpdateInput>
-    /**
-     * Choose, which Transfer to update.
-     */
-    where: TransferWhereUniqueInput
-  }
-
-  /**
-   * Transfer updateMany
-   */
-  export type TransferUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to update Transfers.
-     */
-    data: XOR<TransferUpdateManyMutationInput, TransferUncheckedUpdateManyInput>
-    /**
-     * Filter which Transfers to update
-     */
-    where?: TransferWhereInput
-    /**
-     * Limit how many Transfers to update.
-     */
-    limit?: number
-  }
-
-  /**
-   * Transfer updateManyAndReturn
-   */
-  export type TransferUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelectUpdateManyAndReturn<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * The data used to update Transfers.
-     */
-    data: XOR<TransferUpdateManyMutationInput, TransferUncheckedUpdateManyInput>
-    /**
-     * Filter which Transfers to update
-     */
-    where?: TransferWhereInput
-    /**
-     * Limit how many Transfers to update.
-     */
-    limit?: number
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferIncludeUpdateManyAndReturn<ExtArgs> | null
-  }
-
-  /**
-   * Transfer upsert
-   */
-  export type TransferUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferInclude<ExtArgs> | null
-    /**
-     * The filter to search for the Transfer to update in case it exists.
-     */
-    where: TransferWhereUniqueInput
-    /**
-     * In case the Transfer found by the `where` argument doesn't exist, create a new Transfer with this data.
-     */
-    create: XOR<TransferCreateInput, TransferUncheckedCreateInput>
-    /**
-     * In case the Transfer was found with the provided `where` argument, update it with this data.
-     */
-    update: XOR<TransferUpdateInput, TransferUncheckedUpdateInput>
-  }
-
-  /**
-   * Transfer delete
-   */
-  export type TransferDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferInclude<ExtArgs> | null
-    /**
-     * Filter which Transfer to delete.
-     */
-    where: TransferWhereUniqueInput
-  }
-
-  /**
-   * Transfer deleteMany
-   */
-  export type TransferDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which Transfers to delete
-     */
-    where?: TransferWhereInput
-    /**
-     * Limit how many Transfers to delete.
-     */
-    limit?: number
-  }
-
-  /**
-   * Transfer without action
-   */
-  export type TransferDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Transfer
-     */
-    select?: TransferSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Transfer
-     */
-    omit?: TransferOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TransferInclude<ExtArgs> | null
-  }
-
-
-  /**
    * Enums
    */
 
@@ -9292,20 +7938,6 @@ export namespace Prisma {
   };
 
   export type InstallmentScalarFieldEnum = (typeof InstallmentScalarFieldEnum)[keyof typeof InstallmentScalarFieldEnum]
-
-
-  export const TransferScalarFieldEnum: {
-    id: 'id',
-    userId: 'userId',
-    fromWalletId: 'fromWalletId',
-    toWalletId: 'toWalletId',
-    amount: 'amount',
-    note: 'note',
-    date: 'date',
-    createdAt: 'createdAt'
-  };
-
-  export type TransferScalarFieldEnum = (typeof TransferScalarFieldEnum)[keyof typeof TransferScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -9515,7 +8147,6 @@ export namespace Prisma {
     categories?: CategoryListRelationFilter
     transactions?: TransactionListRelationFilter
     installments?: InstallmentListRelationFilter
-    transfers?: TransferListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -9529,7 +8160,6 @@ export namespace Prisma {
     categories?: CategoryOrderByRelationAggregateInput
     transactions?: TransactionOrderByRelationAggregateInput
     installments?: InstallmentOrderByRelationAggregateInput
-    transfers?: TransferOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -9546,7 +8176,6 @@ export namespace Prisma {
     categories?: CategoryListRelationFilter
     transactions?: TransactionListRelationFilter
     installments?: InstallmentListRelationFilter
-    transfers?: TransferListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -9598,8 +8227,6 @@ export namespace Prisma {
     transactions?: TransactionListRelationFilter
     toTransactions?: TransactionListRelationFilter
     installments?: InstallmentListRelationFilter
-    fromTransfers?: TransferListRelationFilter
-    toTransfers?: TransferListRelationFilter
   }
 
   export type WalletOrderByWithRelationInput = {
@@ -9624,8 +8251,6 @@ export namespace Prisma {
     transactions?: TransactionOrderByRelationAggregateInput
     toTransactions?: TransactionOrderByRelationAggregateInput
     installments?: InstallmentOrderByRelationAggregateInput
-    fromTransfers?: TransferOrderByRelationAggregateInput
-    toTransfers?: TransferOrderByRelationAggregateInput
   }
 
   export type WalletWhereUniqueInput = Prisma.AtLeast<{
@@ -9653,8 +8278,6 @@ export namespace Prisma {
     transactions?: TransactionListRelationFilter
     toTransactions?: TransactionListRelationFilter
     installments?: InstallmentListRelationFilter
-    fromTransfers?: TransferListRelationFilter
-    toTransfers?: TransferListRelationFilter
   }, "id">
 
   export type WalletOrderByWithAggregationInput = {
@@ -10036,84 +8659,6 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"Installment"> | Date | string
   }
 
-  export type TransferWhereInput = {
-    AND?: TransferWhereInput | TransferWhereInput[]
-    OR?: TransferWhereInput[]
-    NOT?: TransferWhereInput | TransferWhereInput[]
-    id?: StringFilter<"Transfer"> | string
-    userId?: StringFilter<"Transfer"> | string
-    fromWalletId?: StringFilter<"Transfer"> | string
-    toWalletId?: StringFilter<"Transfer"> | string
-    amount?: DecimalFilter<"Transfer"> | Decimal | DecimalJsLike | number | string
-    note?: StringNullableFilter<"Transfer"> | string | null
-    date?: DateTimeFilter<"Transfer"> | Date | string
-    createdAt?: DateTimeFilter<"Transfer"> | Date | string
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
-    fromWallet?: XOR<WalletScalarRelationFilter, WalletWhereInput>
-    toWallet?: XOR<WalletScalarRelationFilter, WalletWhereInput>
-  }
-
-  export type TransferOrderByWithRelationInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    fromWalletId?: SortOrder
-    toWalletId?: SortOrder
-    amount?: SortOrder
-    note?: SortOrderInput | SortOrder
-    date?: SortOrder
-    createdAt?: SortOrder
-    user?: UserOrderByWithRelationInput
-    fromWallet?: WalletOrderByWithRelationInput
-    toWallet?: WalletOrderByWithRelationInput
-  }
-
-  export type TransferWhereUniqueInput = Prisma.AtLeast<{
-    id?: string
-    AND?: TransferWhereInput | TransferWhereInput[]
-    OR?: TransferWhereInput[]
-    NOT?: TransferWhereInput | TransferWhereInput[]
-    userId?: StringFilter<"Transfer"> | string
-    fromWalletId?: StringFilter<"Transfer"> | string
-    toWalletId?: StringFilter<"Transfer"> | string
-    amount?: DecimalFilter<"Transfer"> | Decimal | DecimalJsLike | number | string
-    note?: StringNullableFilter<"Transfer"> | string | null
-    date?: DateTimeFilter<"Transfer"> | Date | string
-    createdAt?: DateTimeFilter<"Transfer"> | Date | string
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
-    fromWallet?: XOR<WalletScalarRelationFilter, WalletWhereInput>
-    toWallet?: XOR<WalletScalarRelationFilter, WalletWhereInput>
-  }, "id">
-
-  export type TransferOrderByWithAggregationInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    fromWalletId?: SortOrder
-    toWalletId?: SortOrder
-    amount?: SortOrder
-    note?: SortOrderInput | SortOrder
-    date?: SortOrder
-    createdAt?: SortOrder
-    _count?: TransferCountOrderByAggregateInput
-    _avg?: TransferAvgOrderByAggregateInput
-    _max?: TransferMaxOrderByAggregateInput
-    _min?: TransferMinOrderByAggregateInput
-    _sum?: TransferSumOrderByAggregateInput
-  }
-
-  export type TransferScalarWhereWithAggregatesInput = {
-    AND?: TransferScalarWhereWithAggregatesInput | TransferScalarWhereWithAggregatesInput[]
-    OR?: TransferScalarWhereWithAggregatesInput[]
-    NOT?: TransferScalarWhereWithAggregatesInput | TransferScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter<"Transfer"> | string
-    userId?: StringWithAggregatesFilter<"Transfer"> | string
-    fromWalletId?: StringWithAggregatesFilter<"Transfer"> | string
-    toWalletId?: StringWithAggregatesFilter<"Transfer"> | string
-    amount?: DecimalWithAggregatesFilter<"Transfer"> | Decimal | DecimalJsLike | number | string
-    note?: StringNullableWithAggregatesFilter<"Transfer"> | string | null
-    date?: DateTimeWithAggregatesFilter<"Transfer"> | Date | string
-    createdAt?: DateTimeWithAggregatesFilter<"Transfer"> | Date | string
-  }
-
   export type UserCreateInput = {
     id?: string
     email: string
@@ -10125,7 +8670,6 @@ export namespace Prisma {
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
-    transfers?: TransferCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -10139,7 +8683,6 @@ export namespace Prisma {
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
-    transfers?: TransferUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -10153,7 +8696,6 @@ export namespace Prisma {
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
-    transfers?: TransferUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -10167,7 +8709,6 @@ export namespace Prisma {
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
-    transfers?: TransferUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -10218,8 +8759,6 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutWalletInput
     toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
     installments?: InstallmentCreateNestedManyWithoutWalletInput
-    fromTransfers?: TransferCreateNestedManyWithoutFromWalletInput
-    toTransfers?: TransferCreateNestedManyWithoutToWalletInput
   }
 
   export type WalletUncheckedCreateInput = {
@@ -10243,8 +8782,6 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
     toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
-    fromTransfers?: TransferUncheckedCreateNestedManyWithoutFromWalletInput
-    toTransfers?: TransferUncheckedCreateNestedManyWithoutToWalletInput
   }
 
   export type WalletUpdateInput = {
@@ -10268,8 +8805,6 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutWalletNestedInput
     toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUpdateManyWithoutWalletNestedInput
-    fromTransfers?: TransferUpdateManyWithoutFromWalletNestedInput
-    toTransfers?: TransferUpdateManyWithoutToWalletNestedInput
   }
 
   export type WalletUncheckedUpdateInput = {
@@ -10293,8 +8828,6 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
     toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
-    fromTransfers?: TransferUncheckedUpdateManyWithoutFromWalletNestedInput
-    toTransfers?: TransferUncheckedUpdateManyWithoutToWalletNestedInput
   }
 
   export type WalletCreateManyInput = {
@@ -10720,80 +9253,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type TransferCreateInput = {
-    id?: string
-    amount: Decimal | DecimalJsLike | number | string
-    note?: string | null
-    date: Date | string
-    createdAt?: Date | string
-    user: UserCreateNestedOneWithoutTransfersInput
-    fromWallet: WalletCreateNestedOneWithoutFromTransfersInput
-    toWallet: WalletCreateNestedOneWithoutToTransfersInput
-  }
-
-  export type TransferUncheckedCreateInput = {
-    id?: string
-    userId: string
-    fromWalletId: string
-    toWalletId: string
-    amount: Decimal | DecimalJsLike | number | string
-    note?: string | null
-    date: Date | string
-    createdAt?: Date | string
-  }
-
-  export type TransferUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    user?: UserUpdateOneRequiredWithoutTransfersNestedInput
-    fromWallet?: WalletUpdateOneRequiredWithoutFromTransfersNestedInput
-    toWallet?: WalletUpdateOneRequiredWithoutToTransfersNestedInput
-  }
-
-  export type TransferUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
-    fromWalletId?: StringFieldUpdateOperationsInput | string
-    toWalletId?: StringFieldUpdateOperationsInput | string
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TransferCreateManyInput = {
-    id?: string
-    userId: string
-    fromWalletId: string
-    toWalletId: string
-    amount: Decimal | DecimalJsLike | number | string
-    note?: string | null
-    date: Date | string
-    createdAt?: Date | string
-  }
-
-  export type TransferUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TransferUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
-    fromWalletId?: StringFieldUpdateOperationsInput | string
-    toWalletId?: StringFieldUpdateOperationsInput | string
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -10859,12 +9318,6 @@ export namespace Prisma {
     none?: InstallmentWhereInput
   }
 
-  export type TransferListRelationFilter = {
-    every?: TransferWhereInput
-    some?: TransferWhereInput
-    none?: TransferWhereInput
-  }
-
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -10883,10 +9336,6 @@ export namespace Prisma {
   }
 
   export type InstallmentOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
-  export type TransferOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -11464,47 +9913,6 @@ export namespace Prisma {
     _max?: NestedEnumInstallmentStatusFilter<$PrismaModel>
   }
 
-  export type TransferCountOrderByAggregateInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    fromWalletId?: SortOrder
-    toWalletId?: SortOrder
-    amount?: SortOrder
-    note?: SortOrder
-    date?: SortOrder
-    createdAt?: SortOrder
-  }
-
-  export type TransferAvgOrderByAggregateInput = {
-    amount?: SortOrder
-  }
-
-  export type TransferMaxOrderByAggregateInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    fromWalletId?: SortOrder
-    toWalletId?: SortOrder
-    amount?: SortOrder
-    note?: SortOrder
-    date?: SortOrder
-    createdAt?: SortOrder
-  }
-
-  export type TransferMinOrderByAggregateInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    fromWalletId?: SortOrder
-    toWalletId?: SortOrder
-    amount?: SortOrder
-    note?: SortOrder
-    date?: SortOrder
-    createdAt?: SortOrder
-  }
-
-  export type TransferSumOrderByAggregateInput = {
-    amount?: SortOrder
-  }
-
   export type WalletCreateNestedManyWithoutUserInput = {
     create?: XOR<WalletCreateWithoutUserInput, WalletUncheckedCreateWithoutUserInput> | WalletCreateWithoutUserInput[] | WalletUncheckedCreateWithoutUserInput[]
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
@@ -11533,13 +9941,6 @@ export namespace Prisma {
     connect?: InstallmentWhereUniqueInput | InstallmentWhereUniqueInput[]
   }
 
-  export type TransferCreateNestedManyWithoutUserInput = {
-    create?: XOR<TransferCreateWithoutUserInput, TransferUncheckedCreateWithoutUserInput> | TransferCreateWithoutUserInput[] | TransferUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: TransferCreateOrConnectWithoutUserInput | TransferCreateOrConnectWithoutUserInput[]
-    createMany?: TransferCreateManyUserInputEnvelope
-    connect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-  }
-
   export type WalletUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<WalletCreateWithoutUserInput, WalletUncheckedCreateWithoutUserInput> | WalletCreateWithoutUserInput[] | WalletUncheckedCreateWithoutUserInput[]
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
@@ -11566,13 +9967,6 @@ export namespace Prisma {
     connectOrCreate?: InstallmentCreateOrConnectWithoutUserInput | InstallmentCreateOrConnectWithoutUserInput[]
     createMany?: InstallmentCreateManyUserInputEnvelope
     connect?: InstallmentWhereUniqueInput | InstallmentWhereUniqueInput[]
-  }
-
-  export type TransferUncheckedCreateNestedManyWithoutUserInput = {
-    create?: XOR<TransferCreateWithoutUserInput, TransferUncheckedCreateWithoutUserInput> | TransferCreateWithoutUserInput[] | TransferUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: TransferCreateOrConnectWithoutUserInput | TransferCreateOrConnectWithoutUserInput[]
-    createMany?: TransferCreateManyUserInputEnvelope
-    connect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -11643,20 +10037,6 @@ export namespace Prisma {
     deleteMany?: InstallmentScalarWhereInput | InstallmentScalarWhereInput[]
   }
 
-  export type TransferUpdateManyWithoutUserNestedInput = {
-    create?: XOR<TransferCreateWithoutUserInput, TransferUncheckedCreateWithoutUserInput> | TransferCreateWithoutUserInput[] | TransferUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: TransferCreateOrConnectWithoutUserInput | TransferCreateOrConnectWithoutUserInput[]
-    upsert?: TransferUpsertWithWhereUniqueWithoutUserInput | TransferUpsertWithWhereUniqueWithoutUserInput[]
-    createMany?: TransferCreateManyUserInputEnvelope
-    set?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    disconnect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    delete?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    connect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    update?: TransferUpdateWithWhereUniqueWithoutUserInput | TransferUpdateWithWhereUniqueWithoutUserInput[]
-    updateMany?: TransferUpdateManyWithWhereWithoutUserInput | TransferUpdateManyWithWhereWithoutUserInput[]
-    deleteMany?: TransferScalarWhereInput | TransferScalarWhereInput[]
-  }
-
   export type WalletUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<WalletCreateWithoutUserInput, WalletUncheckedCreateWithoutUserInput> | WalletCreateWithoutUserInput[] | WalletUncheckedCreateWithoutUserInput[]
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
@@ -11713,20 +10093,6 @@ export namespace Prisma {
     deleteMany?: InstallmentScalarWhereInput | InstallmentScalarWhereInput[]
   }
 
-  export type TransferUncheckedUpdateManyWithoutUserNestedInput = {
-    create?: XOR<TransferCreateWithoutUserInput, TransferUncheckedCreateWithoutUserInput> | TransferCreateWithoutUserInput[] | TransferUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: TransferCreateOrConnectWithoutUserInput | TransferCreateOrConnectWithoutUserInput[]
-    upsert?: TransferUpsertWithWhereUniqueWithoutUserInput | TransferUpsertWithWhereUniqueWithoutUserInput[]
-    createMany?: TransferCreateManyUserInputEnvelope
-    set?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    disconnect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    delete?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    connect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    update?: TransferUpdateWithWhereUniqueWithoutUserInput | TransferUpdateWithWhereUniqueWithoutUserInput[]
-    updateMany?: TransferUpdateManyWithWhereWithoutUserInput | TransferUpdateManyWithWhereWithoutUserInput[]
-    deleteMany?: TransferScalarWhereInput | TransferScalarWhereInput[]
-  }
-
   export type UserCreateNestedOneWithoutWalletsInput = {
     create?: XOR<UserCreateWithoutWalletsInput, UserUncheckedCreateWithoutWalletsInput>
     connectOrCreate?: UserCreateOrConnectWithoutWalletsInput
@@ -11754,20 +10120,6 @@ export namespace Prisma {
     connect?: InstallmentWhereUniqueInput | InstallmentWhereUniqueInput[]
   }
 
-  export type TransferCreateNestedManyWithoutFromWalletInput = {
-    create?: XOR<TransferCreateWithoutFromWalletInput, TransferUncheckedCreateWithoutFromWalletInput> | TransferCreateWithoutFromWalletInput[] | TransferUncheckedCreateWithoutFromWalletInput[]
-    connectOrCreate?: TransferCreateOrConnectWithoutFromWalletInput | TransferCreateOrConnectWithoutFromWalletInput[]
-    createMany?: TransferCreateManyFromWalletInputEnvelope
-    connect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-  }
-
-  export type TransferCreateNestedManyWithoutToWalletInput = {
-    create?: XOR<TransferCreateWithoutToWalletInput, TransferUncheckedCreateWithoutToWalletInput> | TransferCreateWithoutToWalletInput[] | TransferUncheckedCreateWithoutToWalletInput[]
-    connectOrCreate?: TransferCreateOrConnectWithoutToWalletInput | TransferCreateOrConnectWithoutToWalletInput[]
-    createMany?: TransferCreateManyToWalletInputEnvelope
-    connect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-  }
-
   export type TransactionUncheckedCreateNestedManyWithoutWalletInput = {
     create?: XOR<TransactionCreateWithoutWalletInput, TransactionUncheckedCreateWithoutWalletInput> | TransactionCreateWithoutWalletInput[] | TransactionUncheckedCreateWithoutWalletInput[]
     connectOrCreate?: TransactionCreateOrConnectWithoutWalletInput | TransactionCreateOrConnectWithoutWalletInput[]
@@ -11787,20 +10139,6 @@ export namespace Prisma {
     connectOrCreate?: InstallmentCreateOrConnectWithoutWalletInput | InstallmentCreateOrConnectWithoutWalletInput[]
     createMany?: InstallmentCreateManyWalletInputEnvelope
     connect?: InstallmentWhereUniqueInput | InstallmentWhereUniqueInput[]
-  }
-
-  export type TransferUncheckedCreateNestedManyWithoutFromWalletInput = {
-    create?: XOR<TransferCreateWithoutFromWalletInput, TransferUncheckedCreateWithoutFromWalletInput> | TransferCreateWithoutFromWalletInput[] | TransferUncheckedCreateWithoutFromWalletInput[]
-    connectOrCreate?: TransferCreateOrConnectWithoutFromWalletInput | TransferCreateOrConnectWithoutFromWalletInput[]
-    createMany?: TransferCreateManyFromWalletInputEnvelope
-    connect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-  }
-
-  export type TransferUncheckedCreateNestedManyWithoutToWalletInput = {
-    create?: XOR<TransferCreateWithoutToWalletInput, TransferUncheckedCreateWithoutToWalletInput> | TransferCreateWithoutToWalletInput[] | TransferUncheckedCreateWithoutToWalletInput[]
-    connectOrCreate?: TransferCreateOrConnectWithoutToWalletInput | TransferCreateOrConnectWithoutToWalletInput[]
-    createMany?: TransferCreateManyToWalletInputEnvelope
-    connect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
   }
 
   export type EnumWalletTypeFieldUpdateOperationsInput = {
@@ -11881,34 +10219,6 @@ export namespace Prisma {
     deleteMany?: InstallmentScalarWhereInput | InstallmentScalarWhereInput[]
   }
 
-  export type TransferUpdateManyWithoutFromWalletNestedInput = {
-    create?: XOR<TransferCreateWithoutFromWalletInput, TransferUncheckedCreateWithoutFromWalletInput> | TransferCreateWithoutFromWalletInput[] | TransferUncheckedCreateWithoutFromWalletInput[]
-    connectOrCreate?: TransferCreateOrConnectWithoutFromWalletInput | TransferCreateOrConnectWithoutFromWalletInput[]
-    upsert?: TransferUpsertWithWhereUniqueWithoutFromWalletInput | TransferUpsertWithWhereUniqueWithoutFromWalletInput[]
-    createMany?: TransferCreateManyFromWalletInputEnvelope
-    set?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    disconnect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    delete?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    connect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    update?: TransferUpdateWithWhereUniqueWithoutFromWalletInput | TransferUpdateWithWhereUniqueWithoutFromWalletInput[]
-    updateMany?: TransferUpdateManyWithWhereWithoutFromWalletInput | TransferUpdateManyWithWhereWithoutFromWalletInput[]
-    deleteMany?: TransferScalarWhereInput | TransferScalarWhereInput[]
-  }
-
-  export type TransferUpdateManyWithoutToWalletNestedInput = {
-    create?: XOR<TransferCreateWithoutToWalletInput, TransferUncheckedCreateWithoutToWalletInput> | TransferCreateWithoutToWalletInput[] | TransferUncheckedCreateWithoutToWalletInput[]
-    connectOrCreate?: TransferCreateOrConnectWithoutToWalletInput | TransferCreateOrConnectWithoutToWalletInput[]
-    upsert?: TransferUpsertWithWhereUniqueWithoutToWalletInput | TransferUpsertWithWhereUniqueWithoutToWalletInput[]
-    createMany?: TransferCreateManyToWalletInputEnvelope
-    set?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    disconnect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    delete?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    connect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    update?: TransferUpdateWithWhereUniqueWithoutToWalletInput | TransferUpdateWithWhereUniqueWithoutToWalletInput[]
-    updateMany?: TransferUpdateManyWithWhereWithoutToWalletInput | TransferUpdateManyWithWhereWithoutToWalletInput[]
-    deleteMany?: TransferScalarWhereInput | TransferScalarWhereInput[]
-  }
-
   export type TransactionUncheckedUpdateManyWithoutWalletNestedInput = {
     create?: XOR<TransactionCreateWithoutWalletInput, TransactionUncheckedCreateWithoutWalletInput> | TransactionCreateWithoutWalletInput[] | TransactionUncheckedCreateWithoutWalletInput[]
     connectOrCreate?: TransactionCreateOrConnectWithoutWalletInput | TransactionCreateOrConnectWithoutWalletInput[]
@@ -11949,34 +10259,6 @@ export namespace Prisma {
     update?: InstallmentUpdateWithWhereUniqueWithoutWalletInput | InstallmentUpdateWithWhereUniqueWithoutWalletInput[]
     updateMany?: InstallmentUpdateManyWithWhereWithoutWalletInput | InstallmentUpdateManyWithWhereWithoutWalletInput[]
     deleteMany?: InstallmentScalarWhereInput | InstallmentScalarWhereInput[]
-  }
-
-  export type TransferUncheckedUpdateManyWithoutFromWalletNestedInput = {
-    create?: XOR<TransferCreateWithoutFromWalletInput, TransferUncheckedCreateWithoutFromWalletInput> | TransferCreateWithoutFromWalletInput[] | TransferUncheckedCreateWithoutFromWalletInput[]
-    connectOrCreate?: TransferCreateOrConnectWithoutFromWalletInput | TransferCreateOrConnectWithoutFromWalletInput[]
-    upsert?: TransferUpsertWithWhereUniqueWithoutFromWalletInput | TransferUpsertWithWhereUniqueWithoutFromWalletInput[]
-    createMany?: TransferCreateManyFromWalletInputEnvelope
-    set?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    disconnect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    delete?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    connect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    update?: TransferUpdateWithWhereUniqueWithoutFromWalletInput | TransferUpdateWithWhereUniqueWithoutFromWalletInput[]
-    updateMany?: TransferUpdateManyWithWhereWithoutFromWalletInput | TransferUpdateManyWithWhereWithoutFromWalletInput[]
-    deleteMany?: TransferScalarWhereInput | TransferScalarWhereInput[]
-  }
-
-  export type TransferUncheckedUpdateManyWithoutToWalletNestedInput = {
-    create?: XOR<TransferCreateWithoutToWalletInput, TransferUncheckedCreateWithoutToWalletInput> | TransferCreateWithoutToWalletInput[] | TransferUncheckedCreateWithoutToWalletInput[]
-    connectOrCreate?: TransferCreateOrConnectWithoutToWalletInput | TransferCreateOrConnectWithoutToWalletInput[]
-    upsert?: TransferUpsertWithWhereUniqueWithoutToWalletInput | TransferUpsertWithWhereUniqueWithoutToWalletInput[]
-    createMany?: TransferCreateManyToWalletInputEnvelope
-    set?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    disconnect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    delete?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    connect?: TransferWhereUniqueInput | TransferWhereUniqueInput[]
-    update?: TransferUpdateWithWhereUniqueWithoutToWalletInput | TransferUpdateWithWhereUniqueWithoutToWalletInput[]
-    updateMany?: TransferUpdateManyWithWhereWithoutToWalletInput | TransferUpdateManyWithWhereWithoutToWalletInput[]
-    deleteMany?: TransferScalarWhereInput | TransferScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutCategoriesInput = {
@@ -12203,48 +10485,6 @@ export namespace Prisma {
     update?: TransactionUpdateWithWhereUniqueWithoutInstallmentInput | TransactionUpdateWithWhereUniqueWithoutInstallmentInput[]
     updateMany?: TransactionUpdateManyWithWhereWithoutInstallmentInput | TransactionUpdateManyWithWhereWithoutInstallmentInput[]
     deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
-  }
-
-  export type UserCreateNestedOneWithoutTransfersInput = {
-    create?: XOR<UserCreateWithoutTransfersInput, UserUncheckedCreateWithoutTransfersInput>
-    connectOrCreate?: UserCreateOrConnectWithoutTransfersInput
-    connect?: UserWhereUniqueInput
-  }
-
-  export type WalletCreateNestedOneWithoutFromTransfersInput = {
-    create?: XOR<WalletCreateWithoutFromTransfersInput, WalletUncheckedCreateWithoutFromTransfersInput>
-    connectOrCreate?: WalletCreateOrConnectWithoutFromTransfersInput
-    connect?: WalletWhereUniqueInput
-  }
-
-  export type WalletCreateNestedOneWithoutToTransfersInput = {
-    create?: XOR<WalletCreateWithoutToTransfersInput, WalletUncheckedCreateWithoutToTransfersInput>
-    connectOrCreate?: WalletCreateOrConnectWithoutToTransfersInput
-    connect?: WalletWhereUniqueInput
-  }
-
-  export type UserUpdateOneRequiredWithoutTransfersNestedInput = {
-    create?: XOR<UserCreateWithoutTransfersInput, UserUncheckedCreateWithoutTransfersInput>
-    connectOrCreate?: UserCreateOrConnectWithoutTransfersInput
-    upsert?: UserUpsertWithoutTransfersInput
-    connect?: UserWhereUniqueInput
-    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutTransfersInput, UserUpdateWithoutTransfersInput>, UserUncheckedUpdateWithoutTransfersInput>
-  }
-
-  export type WalletUpdateOneRequiredWithoutFromTransfersNestedInput = {
-    create?: XOR<WalletCreateWithoutFromTransfersInput, WalletUncheckedCreateWithoutFromTransfersInput>
-    connectOrCreate?: WalletCreateOrConnectWithoutFromTransfersInput
-    upsert?: WalletUpsertWithoutFromTransfersInput
-    connect?: WalletWhereUniqueInput
-    update?: XOR<XOR<WalletUpdateToOneWithWhereWithoutFromTransfersInput, WalletUpdateWithoutFromTransfersInput>, WalletUncheckedUpdateWithoutFromTransfersInput>
-  }
-
-  export type WalletUpdateOneRequiredWithoutToTransfersNestedInput = {
-    create?: XOR<WalletCreateWithoutToTransfersInput, WalletUncheckedCreateWithoutToTransfersInput>
-    connectOrCreate?: WalletCreateOrConnectWithoutToTransfersInput
-    upsert?: WalletUpsertWithoutToTransfersInput
-    connect?: WalletWhereUniqueInput
-    update?: XOR<XOR<WalletUpdateToOneWithWhereWithoutToTransfersInput, WalletUpdateWithoutToTransfersInput>, WalletUncheckedUpdateWithoutToTransfersInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -12572,8 +10812,6 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutWalletInput
     toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
     installments?: InstallmentCreateNestedManyWithoutWalletInput
-    fromTransfers?: TransferCreateNestedManyWithoutFromWalletInput
-    toTransfers?: TransferCreateNestedManyWithoutToWalletInput
   }
 
   export type WalletUncheckedCreateWithoutUserInput = {
@@ -12596,8 +10834,6 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
     toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
-    fromTransfers?: TransferUncheckedCreateNestedManyWithoutFromWalletInput
-    toTransfers?: TransferUncheckedCreateNestedManyWithoutToWalletInput
   }
 
   export type WalletCreateOrConnectWithoutUserInput = {
@@ -12739,36 +10975,6 @@ export namespace Prisma {
 
   export type InstallmentCreateManyUserInputEnvelope = {
     data: InstallmentCreateManyUserInput | InstallmentCreateManyUserInput[]
-    skipDuplicates?: boolean
-  }
-
-  export type TransferCreateWithoutUserInput = {
-    id?: string
-    amount: Decimal | DecimalJsLike | number | string
-    note?: string | null
-    date: Date | string
-    createdAt?: Date | string
-    fromWallet: WalletCreateNestedOneWithoutFromTransfersInput
-    toWallet: WalletCreateNestedOneWithoutToTransfersInput
-  }
-
-  export type TransferUncheckedCreateWithoutUserInput = {
-    id?: string
-    fromWalletId: string
-    toWalletId: string
-    amount: Decimal | DecimalJsLike | number | string
-    note?: string | null
-    date: Date | string
-    createdAt?: Date | string
-  }
-
-  export type TransferCreateOrConnectWithoutUserInput = {
-    where: TransferWhereUniqueInput
-    create: XOR<TransferCreateWithoutUserInput, TransferUncheckedCreateWithoutUserInput>
-  }
-
-  export type TransferCreateManyUserInputEnvelope = {
-    data: TransferCreateManyUserInput | TransferCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -12920,36 +11126,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Installment"> | Date | string
   }
 
-  export type TransferUpsertWithWhereUniqueWithoutUserInput = {
-    where: TransferWhereUniqueInput
-    update: XOR<TransferUpdateWithoutUserInput, TransferUncheckedUpdateWithoutUserInput>
-    create: XOR<TransferCreateWithoutUserInput, TransferUncheckedCreateWithoutUserInput>
-  }
-
-  export type TransferUpdateWithWhereUniqueWithoutUserInput = {
-    where: TransferWhereUniqueInput
-    data: XOR<TransferUpdateWithoutUserInput, TransferUncheckedUpdateWithoutUserInput>
-  }
-
-  export type TransferUpdateManyWithWhereWithoutUserInput = {
-    where: TransferScalarWhereInput
-    data: XOR<TransferUpdateManyMutationInput, TransferUncheckedUpdateManyWithoutUserInput>
-  }
-
-  export type TransferScalarWhereInput = {
-    AND?: TransferScalarWhereInput | TransferScalarWhereInput[]
-    OR?: TransferScalarWhereInput[]
-    NOT?: TransferScalarWhereInput | TransferScalarWhereInput[]
-    id?: StringFilter<"Transfer"> | string
-    userId?: StringFilter<"Transfer"> | string
-    fromWalletId?: StringFilter<"Transfer"> | string
-    toWalletId?: StringFilter<"Transfer"> | string
-    amount?: DecimalFilter<"Transfer"> | Decimal | DecimalJsLike | number | string
-    note?: StringNullableFilter<"Transfer"> | string | null
-    date?: DateTimeFilter<"Transfer"> | Date | string
-    createdAt?: DateTimeFilter<"Transfer"> | Date | string
-  }
-
   export type UserCreateWithoutWalletsInput = {
     id?: string
     email: string
@@ -12960,7 +11136,6 @@ export namespace Prisma {
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
-    transfers?: TransferCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutWalletsInput = {
@@ -12973,7 +11148,6 @@ export namespace Prisma {
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
-    transfers?: TransferUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutWalletsInput = {
@@ -13121,66 +11295,6 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type TransferCreateWithoutFromWalletInput = {
-    id?: string
-    amount: Decimal | DecimalJsLike | number | string
-    note?: string | null
-    date: Date | string
-    createdAt?: Date | string
-    user: UserCreateNestedOneWithoutTransfersInput
-    toWallet: WalletCreateNestedOneWithoutToTransfersInput
-  }
-
-  export type TransferUncheckedCreateWithoutFromWalletInput = {
-    id?: string
-    userId: string
-    toWalletId: string
-    amount: Decimal | DecimalJsLike | number | string
-    note?: string | null
-    date: Date | string
-    createdAt?: Date | string
-  }
-
-  export type TransferCreateOrConnectWithoutFromWalletInput = {
-    where: TransferWhereUniqueInput
-    create: XOR<TransferCreateWithoutFromWalletInput, TransferUncheckedCreateWithoutFromWalletInput>
-  }
-
-  export type TransferCreateManyFromWalletInputEnvelope = {
-    data: TransferCreateManyFromWalletInput | TransferCreateManyFromWalletInput[]
-    skipDuplicates?: boolean
-  }
-
-  export type TransferCreateWithoutToWalletInput = {
-    id?: string
-    amount: Decimal | DecimalJsLike | number | string
-    note?: string | null
-    date: Date | string
-    createdAt?: Date | string
-    user: UserCreateNestedOneWithoutTransfersInput
-    fromWallet: WalletCreateNestedOneWithoutFromTransfersInput
-  }
-
-  export type TransferUncheckedCreateWithoutToWalletInput = {
-    id?: string
-    userId: string
-    fromWalletId: string
-    amount: Decimal | DecimalJsLike | number | string
-    note?: string | null
-    date: Date | string
-    createdAt?: Date | string
-  }
-
-  export type TransferCreateOrConnectWithoutToWalletInput = {
-    where: TransferWhereUniqueInput
-    create: XOR<TransferCreateWithoutToWalletInput, TransferUncheckedCreateWithoutToWalletInput>
-  }
-
-  export type TransferCreateManyToWalletInputEnvelope = {
-    data: TransferCreateManyToWalletInput | TransferCreateManyToWalletInput[]
-    skipDuplicates?: boolean
-  }
-
   export type UserUpsertWithoutWalletsInput = {
     update: XOR<UserUpdateWithoutWalletsInput, UserUncheckedUpdateWithoutWalletsInput>
     create: XOR<UserCreateWithoutWalletsInput, UserUncheckedCreateWithoutWalletsInput>
@@ -13202,7 +11316,6 @@ export namespace Prisma {
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
-    transfers?: TransferUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutWalletsInput = {
@@ -13215,7 +11328,6 @@ export namespace Prisma {
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
-    transfers?: TransferUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutWalletInput = {
@@ -13266,38 +11378,6 @@ export namespace Prisma {
     data: XOR<InstallmentUpdateManyMutationInput, InstallmentUncheckedUpdateManyWithoutWalletInput>
   }
 
-  export type TransferUpsertWithWhereUniqueWithoutFromWalletInput = {
-    where: TransferWhereUniqueInput
-    update: XOR<TransferUpdateWithoutFromWalletInput, TransferUncheckedUpdateWithoutFromWalletInput>
-    create: XOR<TransferCreateWithoutFromWalletInput, TransferUncheckedCreateWithoutFromWalletInput>
-  }
-
-  export type TransferUpdateWithWhereUniqueWithoutFromWalletInput = {
-    where: TransferWhereUniqueInput
-    data: XOR<TransferUpdateWithoutFromWalletInput, TransferUncheckedUpdateWithoutFromWalletInput>
-  }
-
-  export type TransferUpdateManyWithWhereWithoutFromWalletInput = {
-    where: TransferScalarWhereInput
-    data: XOR<TransferUpdateManyMutationInput, TransferUncheckedUpdateManyWithoutFromWalletInput>
-  }
-
-  export type TransferUpsertWithWhereUniqueWithoutToWalletInput = {
-    where: TransferWhereUniqueInput
-    update: XOR<TransferUpdateWithoutToWalletInput, TransferUncheckedUpdateWithoutToWalletInput>
-    create: XOR<TransferCreateWithoutToWalletInput, TransferUncheckedCreateWithoutToWalletInput>
-  }
-
-  export type TransferUpdateWithWhereUniqueWithoutToWalletInput = {
-    where: TransferWhereUniqueInput
-    data: XOR<TransferUpdateWithoutToWalletInput, TransferUncheckedUpdateWithoutToWalletInput>
-  }
-
-  export type TransferUpdateManyWithWhereWithoutToWalletInput = {
-    where: TransferScalarWhereInput
-    data: XOR<TransferUpdateManyMutationInput, TransferUncheckedUpdateManyWithoutToWalletInput>
-  }
-
   export type UserCreateWithoutCategoriesInput = {
     id?: string
     email: string
@@ -13308,7 +11388,6 @@ export namespace Prisma {
     wallets?: WalletCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
-    transfers?: TransferCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCategoriesInput = {
@@ -13321,7 +11400,6 @@ export namespace Prisma {
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
-    transfers?: TransferUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCategoriesInput = {
@@ -13390,7 +11468,6 @@ export namespace Prisma {
     wallets?: WalletUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
-    transfers?: TransferUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCategoriesInput = {
@@ -13403,7 +11480,6 @@ export namespace Prisma {
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
-    transfers?: TransferUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutCategoryInput = {
@@ -13432,7 +11508,6 @@ export namespace Prisma {
     wallets?: WalletCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
-    transfers?: TransferCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -13445,7 +11520,6 @@ export namespace Prisma {
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
-    transfers?: TransferUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -13473,8 +11547,6 @@ export namespace Prisma {
     user: UserCreateNestedOneWithoutWalletsInput
     toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
     installments?: InstallmentCreateNestedManyWithoutWalletInput
-    fromTransfers?: TransferCreateNestedManyWithoutFromWalletInput
-    toTransfers?: TransferCreateNestedManyWithoutToWalletInput
   }
 
   export type WalletUncheckedCreateWithoutTransactionsInput = {
@@ -13497,8 +11569,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
-    fromTransfers?: TransferUncheckedCreateNestedManyWithoutFromWalletInput
-    toTransfers?: TransferUncheckedCreateNestedManyWithoutToWalletInput
   }
 
   export type WalletCreateOrConnectWithoutTransactionsInput = {
@@ -13526,8 +11596,6 @@ export namespace Prisma {
     user: UserCreateNestedOneWithoutWalletsInput
     transactions?: TransactionCreateNestedManyWithoutWalletInput
     installments?: InstallmentCreateNestedManyWithoutWalletInput
-    fromTransfers?: TransferCreateNestedManyWithoutFromWalletInput
-    toTransfers?: TransferCreateNestedManyWithoutToWalletInput
   }
 
   export type WalletUncheckedCreateWithoutToTransactionsInput = {
@@ -13550,8 +11618,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
-    fromTransfers?: TransferUncheckedCreateNestedManyWithoutFromWalletInput
-    toTransfers?: TransferUncheckedCreateNestedManyWithoutToWalletInput
   }
 
   export type WalletCreateOrConnectWithoutToTransactionsInput = {
@@ -13662,7 +11728,6 @@ export namespace Prisma {
     wallets?: WalletUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
-    transfers?: TransferUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -13675,7 +11740,6 @@ export namespace Prisma {
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
-    transfers?: TransferUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutTransactionsInput = {
@@ -13709,8 +11773,6 @@ export namespace Prisma {
     user?: UserUpdateOneRequiredWithoutWalletsNestedInput
     toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUpdateManyWithoutWalletNestedInput
-    fromTransfers?: TransferUpdateManyWithoutFromWalletNestedInput
-    toTransfers?: TransferUpdateManyWithoutToWalletNestedInput
   }
 
   export type WalletUncheckedUpdateWithoutTransactionsInput = {
@@ -13733,8 +11795,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
-    fromTransfers?: TransferUncheckedUpdateManyWithoutFromWalletNestedInput
-    toTransfers?: TransferUncheckedUpdateManyWithoutToWalletNestedInput
   }
 
   export type WalletUpsertWithoutToTransactionsInput = {
@@ -13768,8 +11828,6 @@ export namespace Prisma {
     user?: UserUpdateOneRequiredWithoutWalletsNestedInput
     transactions?: TransactionUpdateManyWithoutWalletNestedInput
     installments?: InstallmentUpdateManyWithoutWalletNestedInput
-    fromTransfers?: TransferUpdateManyWithoutFromWalletNestedInput
-    toTransfers?: TransferUpdateManyWithoutToWalletNestedInput
   }
 
   export type WalletUncheckedUpdateWithoutToTransactionsInput = {
@@ -13792,8 +11850,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
-    fromTransfers?: TransferUncheckedUpdateManyWithoutFromWalletNestedInput
-    toTransfers?: TransferUncheckedUpdateManyWithoutToWalletNestedInput
   }
 
   export type CategoryUpsertWithoutTransactionsInput = {
@@ -13900,7 +11956,6 @@ export namespace Prisma {
     wallets?: WalletCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
-    transfers?: TransferCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutInstallmentsInput = {
@@ -13913,7 +11968,6 @@ export namespace Prisma {
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
-    transfers?: TransferUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutInstallmentsInput = {
@@ -13941,8 +11995,6 @@ export namespace Prisma {
     user: UserCreateNestedOneWithoutWalletsInput
     transactions?: TransactionCreateNestedManyWithoutWalletInput
     toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
-    fromTransfers?: TransferCreateNestedManyWithoutFromWalletInput
-    toTransfers?: TransferCreateNestedManyWithoutToWalletInput
   }
 
   export type WalletUncheckedCreateWithoutInstallmentsInput = {
@@ -13965,8 +12017,6 @@ export namespace Prisma {
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
     toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
-    fromTransfers?: TransferUncheckedCreateNestedManyWithoutFromWalletInput
-    toTransfers?: TransferUncheckedCreateNestedManyWithoutToWalletInput
   }
 
   export type WalletCreateOrConnectWithoutInstallmentsInput = {
@@ -14035,7 +12085,6 @@ export namespace Prisma {
     wallets?: WalletUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
-    transfers?: TransferUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutInstallmentsInput = {
@@ -14048,7 +12097,6 @@ export namespace Prisma {
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
-    transfers?: TransferUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutInstallmentsInput = {
@@ -14082,8 +12130,6 @@ export namespace Prisma {
     user?: UserUpdateOneRequiredWithoutWalletsNestedInput
     transactions?: TransactionUpdateManyWithoutWalletNestedInput
     toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
-    fromTransfers?: TransferUpdateManyWithoutFromWalletNestedInput
-    toTransfers?: TransferUpdateManyWithoutToWalletNestedInput
   }
 
   export type WalletUncheckedUpdateWithoutInstallmentsInput = {
@@ -14106,8 +12152,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
     toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
-    fromTransfers?: TransferUncheckedUpdateManyWithoutFromWalletNestedInput
-    toTransfers?: TransferUncheckedUpdateManyWithoutToWalletNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutInstallmentInput = {
@@ -14124,298 +12168,6 @@ export namespace Prisma {
   export type TransactionUpdateManyWithWhereWithoutInstallmentInput = {
     where: TransactionScalarWhereInput
     data: XOR<TransactionUpdateManyMutationInput, TransactionUncheckedUpdateManyWithoutInstallmentInput>
-  }
-
-  export type UserCreateWithoutTransfersInput = {
-    id?: string
-    email: string
-    name: string
-    avatarUrl?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    wallets?: WalletCreateNestedManyWithoutUserInput
-    categories?: CategoryCreateNestedManyWithoutUserInput
-    transactions?: TransactionCreateNestedManyWithoutUserInput
-    installments?: InstallmentCreateNestedManyWithoutUserInput
-  }
-
-  export type UserUncheckedCreateWithoutTransfersInput = {
-    id?: string
-    email: string
-    name: string
-    avatarUrl?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
-    categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
-    transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
-    installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
-  }
-
-  export type UserCreateOrConnectWithoutTransfersInput = {
-    where: UserWhereUniqueInput
-    create: XOR<UserCreateWithoutTransfersInput, UserUncheckedCreateWithoutTransfersInput>
-  }
-
-  export type WalletCreateWithoutFromTransfersInput = {
-    id?: string
-    name: string
-    type?: $Enums.WalletType
-    balance?: Decimal | DecimalJsLike | number | string
-    creditLimit?: Decimal | DecimalJsLike | number | string
-    initialBalance?: Decimal | DecimalJsLike | number | string
-    icon?: string | null
-    color?: string | null
-    interestRate?: Decimal | DecimalJsLike | number | string
-    isArchived?: boolean
-    adminFee?: Decimal | DecimalJsLike | number | string
-    adminFeeType?: $Enums.AdminFeeType
-    cutoffDay?: number | null
-    paymentDueDay?: number | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    user: UserCreateNestedOneWithoutWalletsInput
-    transactions?: TransactionCreateNestedManyWithoutWalletInput
-    toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
-    installments?: InstallmentCreateNestedManyWithoutWalletInput
-    toTransfers?: TransferCreateNestedManyWithoutToWalletInput
-  }
-
-  export type WalletUncheckedCreateWithoutFromTransfersInput = {
-    id?: string
-    userId: string
-    name: string
-    type?: $Enums.WalletType
-    balance?: Decimal | DecimalJsLike | number | string
-    creditLimit?: Decimal | DecimalJsLike | number | string
-    initialBalance?: Decimal | DecimalJsLike | number | string
-    icon?: string | null
-    color?: string | null
-    interestRate?: Decimal | DecimalJsLike | number | string
-    isArchived?: boolean
-    adminFee?: Decimal | DecimalJsLike | number | string
-    adminFeeType?: $Enums.AdminFeeType
-    cutoffDay?: number | null
-    paymentDueDay?: number | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
-    toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
-    installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
-    toTransfers?: TransferUncheckedCreateNestedManyWithoutToWalletInput
-  }
-
-  export type WalletCreateOrConnectWithoutFromTransfersInput = {
-    where: WalletWhereUniqueInput
-    create: XOR<WalletCreateWithoutFromTransfersInput, WalletUncheckedCreateWithoutFromTransfersInput>
-  }
-
-  export type WalletCreateWithoutToTransfersInput = {
-    id?: string
-    name: string
-    type?: $Enums.WalletType
-    balance?: Decimal | DecimalJsLike | number | string
-    creditLimit?: Decimal | DecimalJsLike | number | string
-    initialBalance?: Decimal | DecimalJsLike | number | string
-    icon?: string | null
-    color?: string | null
-    interestRate?: Decimal | DecimalJsLike | number | string
-    isArchived?: boolean
-    adminFee?: Decimal | DecimalJsLike | number | string
-    adminFeeType?: $Enums.AdminFeeType
-    cutoffDay?: number | null
-    paymentDueDay?: number | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    user: UserCreateNestedOneWithoutWalletsInput
-    transactions?: TransactionCreateNestedManyWithoutWalletInput
-    toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
-    installments?: InstallmentCreateNestedManyWithoutWalletInput
-    fromTransfers?: TransferCreateNestedManyWithoutFromWalletInput
-  }
-
-  export type WalletUncheckedCreateWithoutToTransfersInput = {
-    id?: string
-    userId: string
-    name: string
-    type?: $Enums.WalletType
-    balance?: Decimal | DecimalJsLike | number | string
-    creditLimit?: Decimal | DecimalJsLike | number | string
-    initialBalance?: Decimal | DecimalJsLike | number | string
-    icon?: string | null
-    color?: string | null
-    interestRate?: Decimal | DecimalJsLike | number | string
-    isArchived?: boolean
-    adminFee?: Decimal | DecimalJsLike | number | string
-    adminFeeType?: $Enums.AdminFeeType
-    cutoffDay?: number | null
-    paymentDueDay?: number | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
-    toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
-    installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
-    fromTransfers?: TransferUncheckedCreateNestedManyWithoutFromWalletInput
-  }
-
-  export type WalletCreateOrConnectWithoutToTransfersInput = {
-    where: WalletWhereUniqueInput
-    create: XOR<WalletCreateWithoutToTransfersInput, WalletUncheckedCreateWithoutToTransfersInput>
-  }
-
-  export type UserUpsertWithoutTransfersInput = {
-    update: XOR<UserUpdateWithoutTransfersInput, UserUncheckedUpdateWithoutTransfersInput>
-    create: XOR<UserCreateWithoutTransfersInput, UserUncheckedCreateWithoutTransfersInput>
-    where?: UserWhereInput
-  }
-
-  export type UserUpdateToOneWithWhereWithoutTransfersInput = {
-    where?: UserWhereInput
-    data: XOR<UserUpdateWithoutTransfersInput, UserUncheckedUpdateWithoutTransfersInput>
-  }
-
-  export type UserUpdateWithoutTransfersInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    wallets?: WalletUpdateManyWithoutUserNestedInput
-    categories?: CategoryUpdateManyWithoutUserNestedInput
-    transactions?: TransactionUpdateManyWithoutUserNestedInput
-    installments?: InstallmentUpdateManyWithoutUserNestedInput
-  }
-
-  export type UserUncheckedUpdateWithoutTransfersInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    email?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
-    categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
-    transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
-    installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
-  }
-
-  export type WalletUpsertWithoutFromTransfersInput = {
-    update: XOR<WalletUpdateWithoutFromTransfersInput, WalletUncheckedUpdateWithoutFromTransfersInput>
-    create: XOR<WalletCreateWithoutFromTransfersInput, WalletUncheckedCreateWithoutFromTransfersInput>
-    where?: WalletWhereInput
-  }
-
-  export type WalletUpdateToOneWithWhereWithoutFromTransfersInput = {
-    where?: WalletWhereInput
-    data: XOR<WalletUpdateWithoutFromTransfersInput, WalletUncheckedUpdateWithoutFromTransfersInput>
-  }
-
-  export type WalletUpdateWithoutFromTransfersInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    type?: EnumWalletTypeFieldUpdateOperationsInput | $Enums.WalletType
-    balance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    creditLimit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    initialBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    icon?: NullableStringFieldUpdateOperationsInput | string | null
-    color?: NullableStringFieldUpdateOperationsInput | string | null
-    interestRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    isArchived?: BoolFieldUpdateOperationsInput | boolean
-    adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
-    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
-    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    user?: UserUpdateOneRequiredWithoutWalletsNestedInput
-    transactions?: TransactionUpdateManyWithoutWalletNestedInput
-    toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
-    installments?: InstallmentUpdateManyWithoutWalletNestedInput
-    toTransfers?: TransferUpdateManyWithoutToWalletNestedInput
-  }
-
-  export type WalletUncheckedUpdateWithoutFromTransfersInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    type?: EnumWalletTypeFieldUpdateOperationsInput | $Enums.WalletType
-    balance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    creditLimit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    initialBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    icon?: NullableStringFieldUpdateOperationsInput | string | null
-    color?: NullableStringFieldUpdateOperationsInput | string | null
-    interestRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    isArchived?: BoolFieldUpdateOperationsInput | boolean
-    adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
-    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
-    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
-    toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
-    installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
-    toTransfers?: TransferUncheckedUpdateManyWithoutToWalletNestedInput
-  }
-
-  export type WalletUpsertWithoutToTransfersInput = {
-    update: XOR<WalletUpdateWithoutToTransfersInput, WalletUncheckedUpdateWithoutToTransfersInput>
-    create: XOR<WalletCreateWithoutToTransfersInput, WalletUncheckedCreateWithoutToTransfersInput>
-    where?: WalletWhereInput
-  }
-
-  export type WalletUpdateToOneWithWhereWithoutToTransfersInput = {
-    where?: WalletWhereInput
-    data: XOR<WalletUpdateWithoutToTransfersInput, WalletUncheckedUpdateWithoutToTransfersInput>
-  }
-
-  export type WalletUpdateWithoutToTransfersInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    type?: EnumWalletTypeFieldUpdateOperationsInput | $Enums.WalletType
-    balance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    creditLimit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    initialBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    icon?: NullableStringFieldUpdateOperationsInput | string | null
-    color?: NullableStringFieldUpdateOperationsInput | string | null
-    interestRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    isArchived?: BoolFieldUpdateOperationsInput | boolean
-    adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
-    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
-    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    user?: UserUpdateOneRequiredWithoutWalletsNestedInput
-    transactions?: TransactionUpdateManyWithoutWalletNestedInput
-    toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
-    installments?: InstallmentUpdateManyWithoutWalletNestedInput
-    fromTransfers?: TransferUpdateManyWithoutFromWalletNestedInput
-  }
-
-  export type WalletUncheckedUpdateWithoutToTransfersInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    type?: EnumWalletTypeFieldUpdateOperationsInput | $Enums.WalletType
-    balance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    creditLimit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    initialBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    icon?: NullableStringFieldUpdateOperationsInput | string | null
-    color?: NullableStringFieldUpdateOperationsInput | string | null
-    interestRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    isArchived?: BoolFieldUpdateOperationsInput | boolean
-    adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
-    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
-    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
-    toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
-    installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
-    fromTransfers?: TransferUncheckedUpdateManyWithoutFromWalletNestedInput
   }
 
   export type WalletCreateManyUserInput = {
@@ -14486,16 +12238,6 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
-  export type TransferCreateManyUserInput = {
-    id?: string
-    fromWalletId: string
-    toWalletId: string
-    amount: Decimal | DecimalJsLike | number | string
-    note?: string | null
-    date: Date | string
-    createdAt?: Date | string
-  }
-
   export type WalletUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -14516,8 +12258,6 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutWalletNestedInput
     toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUpdateManyWithoutWalletNestedInput
-    fromTransfers?: TransferUpdateManyWithoutFromWalletNestedInput
-    toTransfers?: TransferUpdateManyWithoutToWalletNestedInput
   }
 
   export type WalletUncheckedUpdateWithoutUserInput = {
@@ -14540,8 +12280,6 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
     toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
-    fromTransfers?: TransferUncheckedUpdateManyWithoutFromWalletNestedInput
-    toTransfers?: TransferUncheckedUpdateManyWithoutToWalletNestedInput
   }
 
   export type WalletUncheckedUpdateManyWithoutUserInput = {
@@ -14714,36 +12452,6 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type TransferUpdateWithoutUserInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    fromWallet?: WalletUpdateOneRequiredWithoutFromTransfersNestedInput
-    toWallet?: WalletUpdateOneRequiredWithoutToTransfersNestedInput
-  }
-
-  export type TransferUncheckedUpdateWithoutUserInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    fromWalletId?: StringFieldUpdateOperationsInput | string
-    toWalletId?: StringFieldUpdateOperationsInput | string
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TransferUncheckedUpdateManyWithoutUserInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    fromWalletId?: StringFieldUpdateOperationsInput | string
-    toWalletId?: StringFieldUpdateOperationsInput | string
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
   export type TransactionCreateManyWalletInput = {
     id?: string
     userId: string
@@ -14796,26 +12504,6 @@ export namespace Prisma {
     balanceDeducted?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-  }
-
-  export type TransferCreateManyFromWalletInput = {
-    id?: string
-    userId: string
-    toWalletId: string
-    amount: Decimal | DecimalJsLike | number | string
-    note?: string | null
-    date: Date | string
-    createdAt?: Date | string
-  }
-
-  export type TransferCreateManyToWalletInput = {
-    id?: string
-    userId: string
-    fromWalletId: string
-    amount: Decimal | DecimalJsLike | number | string
-    note?: string | null
-    date: Date | string
-    createdAt?: Date | string
   }
 
   export type TransactionUpdateWithoutWalletInput = {
@@ -14980,66 +12668,6 @@ export namespace Prisma {
     balanceDeducted?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TransferUpdateWithoutFromWalletInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    user?: UserUpdateOneRequiredWithoutTransfersNestedInput
-    toWallet?: WalletUpdateOneRequiredWithoutToTransfersNestedInput
-  }
-
-  export type TransferUncheckedUpdateWithoutFromWalletInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
-    toWalletId?: StringFieldUpdateOperationsInput | string
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TransferUncheckedUpdateManyWithoutFromWalletInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
-    toWalletId?: StringFieldUpdateOperationsInput | string
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TransferUpdateWithoutToWalletInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    user?: UserUpdateOneRequiredWithoutTransfersNestedInput
-    fromWallet?: WalletUpdateOneRequiredWithoutFromTransfersNestedInput
-  }
-
-  export type TransferUncheckedUpdateWithoutToWalletInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
-    fromWalletId?: StringFieldUpdateOperationsInput | string
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TransferUncheckedUpdateManyWithoutToWalletInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    userId?: StringFieldUpdateOperationsInput | string
-    fromWalletId?: StringFieldUpdateOperationsInput | string
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TransactionCreateManyCategoryInput = {

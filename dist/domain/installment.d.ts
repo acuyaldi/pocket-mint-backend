@@ -27,6 +27,13 @@ export interface InstallmentPlan {
     finalMonthlyAmount: Prisma.Decimal;
 }
 /**
+ * The last term's payment: whatever cents the rounded `monthlyAmount` left
+ * behind, so `monthlyAmount × (months − 1) + finalMonthlyAmount` sums back to
+ * `grandTotal` exactly. Single source of truth — both `computeInstallmentPlan`
+ * and the payment service call this instead of re-deriving the formula.
+ */
+export declare function computeFinalMonthlyAmount(grandTotal: Prisma.Decimal, monthlyAmount: Prisma.Decimal, months: number): Prisma.Decimal;
+/**
  * Compute an installment plan entirely in Decimal. Throws on invalid input
  * (non-positive principal, out-of-range rate, non-positive/non-integer term)
  * so the caller fails before any mutation.

@@ -201,17 +201,6 @@ exports.Prisma.InstallmentScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.TransferScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  fromWalletId: 'fromWalletId',
-  toWalletId: 'toWalletId',
-  amount: 'amount',
-  note: 'note',
-  date: 'date',
-  createdAt: 'createdAt'
-};
-
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -267,8 +256,7 @@ exports.Prisma.ModelName = {
   Wallet: 'Wallet',
   Category: 'Category',
   Transaction: 'Transaction',
-  Installment: 'Installment',
-  Transfer: 'Transfer'
+  Installment: 'Installment'
 };
 
 /**

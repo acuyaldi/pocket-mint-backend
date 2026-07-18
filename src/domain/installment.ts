@@ -63,6 +63,20 @@ export interface InstallmentPlan {
 const HUNDRED = new Prisma.Decimal(100);
 
 /**
+ * The last term's payment: whatever cents the rounded `monthlyAmount` left
+ * behind, so `monthlyAmount × (months − 1) + finalMonthlyAmount` sums back to
+ * `grandTotal` exactly. Single source of truth — both `computeInstallmentPlan`
+ * and the payment service call this instead of re-deriving the formula.
+ */
+export function computeFinalMonthlyAmount(
+  grandTotal: Prisma.Decimal,
+  monthlyAmount: Prisma.Decimal,
+  months: number,
+): Prisma.Decimal {
+  return toMoney(grandTotal.minus(monthlyAmount.times(months - 1)));
+}
+
+/**
  * Compute an installment plan entirely in Decimal. Throws on invalid input
  * (non-positive principal, out-of-range rate, non-positive/non-integer term)
  * so the caller fails before any mutation.
@@ -87,8 +101,7 @@ export function computeInstallmentPlan(input: InstallmentPlanInput): Installment
   const totalInterest = toMoney(principal.times(interestRatePctPerMonth).div(HUNDRED).times(monthsDec));
   const grandTotal = toMoney(totalAmount.plus(totalInterest));
   const monthlyAmount = toMoney(grandTotal.div(monthsDec));
-  // Final term takes whatever cents the rounded monthly amount left behind.
-  const finalMonthlyAmount = toMoney(grandTotal.minus(monthlyAmount.times(months - 1)));
+  const finalMonthlyAmount = computeFinalMonthlyAmount(grandTotal, monthlyAmount, months);
 
   return { totalAmount, totalInterest, grandTotal, monthlyAmount, finalMonthlyAmount };
 }

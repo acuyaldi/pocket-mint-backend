@@ -38,7 +38,17 @@ function updateData() {
 beforeEach(() => {
   vi.clearAllMocks();
   h.prismaMock.wallet.findMany.mockResolvedValue([]); // for the net-worth snapshot
-  h.prismaMock.wallet.update.mockResolvedValue({ id: 'w1', userId: USER, name: 'x', balance: D(1000) });
+  h.prismaMock.wallet.update.mockResolvedValue({
+    id: 'w1',
+    userId: USER,
+    name: 'x',
+    type: 'CASH',
+    balance: D(1000),
+    creditLimit: D(0),
+    initialBalance: D(1000),
+    interestRate: D(0),
+    adminFee: D(0),
+  });
 });
 
 describe('PUT /wallets/:id — ledger boundary', () => {
