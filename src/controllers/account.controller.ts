@@ -197,7 +197,12 @@ export const createWallet = async (
     const wallet = await walletService.createWallet(mapCreateWalletRequest(req.body, userId));
 
     // net-worth snapshot (reporting) is appended here; the service owns no response shaping.
-    sendSuccess(res, { ...wallet, netWorth: await netWorthSnapshot(userId) }, 'Wallet created successfully', 201);
+    sendSuccess(
+      res,
+      { ...serializeWallet(wallet), netWorth: await netWorthSnapshot(userId) },
+      'Wallet created successfully',
+      201
+    );
   } catch (err) {
     forwardError(err, res, next);
   }
@@ -219,7 +224,11 @@ export const updateWallet = async (
     }
     const wallet = await walletService.updateWallet(mapUpdateWalletRequest(req.params.id, userId, req.body));
 
-    sendSuccess(res, { ...wallet, netWorth: await netWorthSnapshot(wallet.userId) }, 'Wallet updated successfully');
+    sendSuccess(
+      res,
+      { ...serializeWallet(wallet), netWorth: await netWorthSnapshot(wallet.userId) },
+      'Wallet updated successfully'
+    );
   } catch (err) {
     forwardError(err, res, next);
   }

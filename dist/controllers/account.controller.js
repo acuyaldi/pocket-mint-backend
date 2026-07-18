@@ -136,7 +136,7 @@ const createWallet = async (req, res, next) => {
         }
         const wallet = await wallet_service_1.walletService.createWallet(mapCreateWalletRequest(req.body, userId));
         // net-worth snapshot (reporting) is appended here; the service owns no response shaping.
-        (0, response_1.sendSuccess)(res, { ...wallet, netWorth: await netWorthSnapshot(userId) }, 'Wallet created successfully', 201);
+        (0, response_1.sendSuccess)(res, { ...serializeWallet(wallet), netWorth: await netWorthSnapshot(userId) }, 'Wallet created successfully', 201);
     }
     catch (err) {
         (0, forwardError_1.forwardError)(err, res, next);
@@ -154,7 +154,7 @@ const updateWallet = async (req, res, next) => {
             return (0, response_1.sendError)(res, 'Unauthorized', 401);
         }
         const wallet = await wallet_service_1.walletService.updateWallet(mapUpdateWalletRequest(req.params.id, userId, req.body));
-        (0, response_1.sendSuccess)(res, { ...wallet, netWorth: await netWorthSnapshot(wallet.userId) }, 'Wallet updated successfully');
+        (0, response_1.sendSuccess)(res, { ...serializeWallet(wallet), netWorth: await netWorthSnapshot(wallet.userId) }, 'Wallet updated successfully');
     }
     catch (err) {
         (0, forwardError_1.forwardError)(err, res, next);

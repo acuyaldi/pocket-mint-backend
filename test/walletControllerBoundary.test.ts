@@ -58,7 +58,16 @@ function expectPrismaMutationsUntouched() {
 
 describe('wallet mutation controllers — boundary', () => {
   it('create: maps authenticated userId (ignoring body userId), allowlists fields, 201', async () => {
-    h.service.createWallet.mockResolvedValue({ id: 'w1', name: 'X', balance: D(1000) });
+    h.service.createWallet.mockResolvedValue({
+      id: 'w1',
+      name: 'X',
+      type: 'CASH',
+      balance: D('1000.50'),
+      creditLimit: D(0),
+      initialBalance: D('1000.50'),
+      interestRate: D(0),
+      adminFee: D(0),
+    });
 
     const res = await request(buildApp())
       .post('/wallets')
@@ -66,7 +75,8 @@ describe('wallet mutation controllers — boundary', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.message).toBe('Wallet created successfully');
-    expect(res.body.data).toMatchObject({ id: 'w1', name: 'X' });
+    expect(res.body.data).toMatchObject({ id: 'w1', name: 'X', balance: 1000.5 });
+    expect(typeof res.body.data.balance).toBe('number'); // Decimal → number, same contract as GET/PUT
     expect(res.body.data.netWorth).toBeDefined();
     expect(h.service.createWallet).toHaveBeenCalledTimes(1);
 
@@ -78,7 +88,16 @@ describe('wallet mutation controllers — boundary', () => {
   });
 
   it('create: forwards principal and billing-cycle fields', async () => {
-    h.service.createWallet.mockResolvedValue({ id: 'w2', name: 'Card', balance: D(0) });
+    h.service.createWallet.mockResolvedValue({
+      id: 'w2',
+      name: 'Card',
+      type: 'CREDIT_CARD',
+      balance: D(0),
+      creditLimit: D('10000000'),
+      initialBalance: D(0),
+      interestRate: D(0),
+      adminFee: D(0),
+    });
 
     await request(buildApp()).post('/wallets').send({
       name: 'Card',
@@ -104,12 +123,24 @@ describe('wallet mutation controllers — boundary', () => {
   });
 
   it('update: maps route id + userId and allowlisted fields, calls once, 200', async () => {
-    h.service.updateWallet.mockResolvedValue({ id: 'w9', userId: USER, name: 'New' });
+    h.service.updateWallet.mockResolvedValue({
+      id: 'w9',
+      userId: USER,
+      name: 'New',
+      type: 'CASH',
+      balance: D('42.75'),
+      creditLimit: D(0),
+      initialBalance: D('42.75'),
+      interestRate: D(0),
+      adminFee: D(0),
+    });
 
     const res = await request(buildApp()).put('/wallets/w9').send({ name: 'New', foo: 'x', userId: 'evil' });
 
     expect(res.status).toBe(200);
     expect(res.body.message).toBe('Wallet updated successfully');
+    expect(res.body.data).toMatchObject({ id: 'w9', balance: 42.75 });
+    expect(typeof res.body.data.balance).toBe('number'); // Decimal → number, same contract as GET
     expect(h.service.updateWallet).toHaveBeenCalledTimes(1);
 
     const arg = h.service.updateWallet.mock.calls[0][0];
@@ -156,5 +187,45 @@ describe('wallet mutation controllers — boundary', () => {
     expect(res.status).toBe(500);
     expect(res.body.error.code).toBe('INTERNAL_ERROR');
     expect(res.body.error.requestId).toBeTruthy(); // came from errorHandler, not sendError
+  });
+});
+
+describe('wallet mutation controllers — Decimal→number serialization contract (matches GET/list)', () => {
+  const baseWallet = { name: 'X', type: 'CASH', creditLimit: D(0), initialBalance: D(0), interestRate: D(0), adminFee: D(0) };
+
+  it('create: zero balance serializes as the number 0, not "0" or null', async () => {
+    h.service.createWallet.mockResolvedValue({ id: 'w1', ...baseWallet, balance: D(0) });
+
+    const res = await request(buildApp()).post('/wallets').send({ name: 'X', type: 'CASH' });
+
+    expect(res.body.data.balance).toBe(0);
+    expect(typeof res.body.data.balance).toBe('number');
+  });
+
+  it('create: large in-range value keeps precision as a number', async () => {
+    h.service.createWallet.mockResolvedValue({ id: 'w1', ...baseWallet, balance: D('999999999999.99') });
+
+    const res = await request(buildApp()).post('/wallets').send({ name: 'X', type: 'CASH' });
+
+    expect(res.body.data.balance).toBe(999999999999.99);
+    expect(typeof res.body.data.balance).toBe('number');
+  });
+
+  it('update: fractional decimal balance serializes identically to GET', async () => {
+    h.service.updateWallet.mockResolvedValue({ id: 'w9', userId: USER, ...baseWallet, balance: D('1234.56') });
+
+    const res = await request(buildApp()).put('/wallets/w9').send({ name: 'New' });
+
+    expect(res.body.data.balance).toBe(1234.56);
+    expect(typeof res.body.data.balance).toBe('number');
+  });
+
+  it('update: zero balance serializes as the number 0', async () => {
+    h.service.updateWallet.mockResolvedValue({ id: 'w9', userId: USER, ...baseWallet, balance: D(0) });
+
+    const res = await request(buildApp()).put('/wallets/w9').send({ name: 'New' });
+
+    expect(res.body.data.balance).toBe(0);
+    expect(typeof res.body.data.balance).toBe('number');
   });
 });
