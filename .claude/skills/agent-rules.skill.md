@@ -11,7 +11,9 @@ below; this file owns branching, verification, secrets, and load order.
 
 ## Skill Load Order
 
-Always read this file first. Then read, **only when the task touches that area**:
+Always read this file first, together with `git-workflow.skill.md` (branching,
+PR, and release process) before any task that touches git. Then read, **only
+when the task touches that area**:
 
 1. `authentication-security.skill.md` — auth, middleware, users, CORS, rate limiting
 2. `financial-logic.skill.md` — wallets, transactions, transfers, installments, dashboard, reconciliation
@@ -24,16 +26,19 @@ reference only, never part of the load order.
 
 ## Git Branch Roles
 
-- `master` = Production
+- `main` = Production
 - `dev` = Staging
-- `feature/*`, `fix/*`, `chore/*` = task branches
+- `master` = retired legacy branch — never use it for new work
+- `feature/*`, `fix/*`, `chore/*`, `docs/*`, `refactor/*`, `test/*` = task branches
+- `hotfix/*` = urgent production work, only when explicitly approved
 
 Every task: `git checkout dev` → pull latest `dev` → create a task branch →
-commit there → open a PR targeting `dev`.
+commit there → open a PR targeting `dev`. Full process, PR defaults, and the
+release workflow live in `git-workflow.skill.md`.
 
 Never:
-- commit or push directly to `dev` or `master`
-- target a PR at `master` without an explicit written release instruction
+- commit or push directly to `dev` or `main`
+- target a PR at `main` without an explicit written release instruction
 
 ## Focus
 
@@ -83,7 +88,8 @@ Never:
 ## Environment Isolation
 
 - `dev` branch → Railway Staging → Supabase Dev project
-- `master` branch → Railway Production → Supabase Production project
+- `main` branch → Railway Production → Supabase Production project (`master`
+  is retired and unused)
 
 Never mix these: no Production `DATABASE_URL` in staging, no staging JWT source
 in production, no shared database between the two.

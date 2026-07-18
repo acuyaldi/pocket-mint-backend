@@ -9,14 +9,17 @@ description: Use when working on Railway or Supabase environments, Vercel coordi
 
 | | Staging | Production |
 | --- | --- | --- |
-| Branch | `dev` | `master` |
+| Branch | `dev` | `main` |
 | App | Railway staging service | Railway production service |
 | DB/Auth | Supabase Dev project | Supabase Production project |
 | Frontend | Vercel Preview | Vercel Production |
 
+`master` is a retired legacy branch — it is not an environment and must not be
+deployed from.
+
 ## Railway
 
-- Staging service auto-deploys from `dev`; production from `master` (Railway
+- Staging service auto-deploys from `dev`; production from `main` (Railway
   Git integration is the CD; GitHub Actions is CI only).
 - Health check path: `/health` (returns `{ status: 'ok', ... }`).
 - Build/start use the repository scripts: `npm run build` / `npm start`.
@@ -25,7 +28,7 @@ description: Use when working on Railway or Supabase environments, Vercel coordi
   a controlled manual step; this stays forbidden until the user explicitly
   lifts it in writing (see `prisma-database.skill.md` and
   `docs/prisma-migration-reconciliation.md`).
-- Deployment happens only via merge to `dev`/`master` (Railway Git
+- Deployment happens only via merge to `dev`/`main` (Railway Git
   integration) — there is no sanctioned manual `railway up`-style deploy path.
 - One replica for this small personal project unless metrics prove otherwise.
   Rate limits are per-instance (in-memory) — scaling out changes behavior.
@@ -56,11 +59,11 @@ description: Use when working on Railway or Supabase environments, Vercel coordi
   `vitest run` → `npm run build` → generated-client packaging check →
   `git diff --exit-code` (committed `dist/` must match the build).
 - Never bypass failing CI (no force-merge, no skipping steps locally to "match").
-- PRs target `dev`. A release PR `dev → master` requires an explicit release
+- PRs target `dev`. A release PR `dev → main` requires an explicit release
   instruction from the user.
-- Known gap: the workflow's branch filters say `main`, but the production
-  branch is `master` — pushes to `master` do not trigger CI. Fix deliberately
-  in its own change; do not silently rename branches.
+- The workflow's branch filters are `dev`/`main` (fixed under PM-STAB-004;
+  the obsolete `master` filter was removed) — pushes/PRs to `main` now
+  trigger CI, so a release PR into `main` is gated the same as `dev`.
 
 ## Migrations Against Shared Databases
 
