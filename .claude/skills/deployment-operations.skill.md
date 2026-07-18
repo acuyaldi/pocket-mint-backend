@@ -61,10 +61,9 @@ deployed from.
 - Never bypass failing CI (no force-merge, no skipping steps locally to "match").
 - PRs target `dev`. A release PR `dev → main` requires an explicit release
   instruction from the user.
-- Known gap: the workflow's branch filters currently say `dev`/`master`, but
-  the production branch is now `main` — pushes/PRs to `main` do not trigger
-  CI. This is tracked as its own change (do not silently rename branch
-  filters as a side effect of an unrelated task).
+- The workflow's branch filters are `dev`/`main` (fixed under PM-STAB-004;
+  the obsolete `master` filter was removed) — pushes/PRs to `main` now
+  trigger CI, so a release PR into `main` is gated the same as `dev`.
 
 ## Migrations Against Shared Databases
 

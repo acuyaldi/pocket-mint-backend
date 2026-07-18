@@ -12,6 +12,24 @@ secret manager at deploy time.
 
 ---
 
+## 0. Quick reference (build, start, health, Node version)
+
+| | |
+| --- | --- |
+| **Node version** | `22.x` (pinned in `package.json` `engines`; matches `.github/workflows/ci.yml`) |
+| **Build command** | `npm run build` (= `prisma generate && tsc && node src/scripts/copy-prisma-client.cjs`) |
+| **Start command** | `npm start` (= `node dist/server.js`) |
+| **Health endpoint** | `GET /health` → `{ status: 'ok', ... }` (`200`) |
+| **Required environment variables** | See §1 below — `NODE_ENV`, `DATABASE_URL`, one of `SUPABASE_JWT_SECRET`/`SUPABASE_URL`, `CORS_ALLOWED_ORIGINS` are mandatory in production; `PORT` is platform-injected |
+
+Deployment is Railway Git integration (auto-deploy on push): staging service
+tracks `dev`, production service tracks `main`. There is no separate deploy
+script to invoke — merging to the branch is the deploy trigger. See
+`.claude/skills/deployment-operations.skill.md` for environment/platform
+detail.
+
+---
+
 ## 1. Environment variable inventory
 
 Parsed exclusively in [`src/config/index.ts`](../src/config/index.ts). Nothing
@@ -21,7 +39,7 @@ else reads `process.env`.
 | --- | --- | --- | --- | --- |
 | `NODE_ENV` | required | no | `development` | Set `production` in prod/staging so stack traces never reach clients and config validation is fatal. |
 | `PORT` | optional | no | `5001` | Bind port; platform may inject its own. |
-| `DATABASE_URL` | required | **yes** | — | Postgres/Supabase connection. Use the **rotated** password. |
+| `DATABASE_URL` | required | **yes** | — | Postgres/Supabase connection. See §10 for credential-rotation status. |
 | `DIRECT_URL` | optional | **yes** | — | Only if using a pooled `DATABASE_URL`; Prisma migrations use the direct connection. |
 | `SUPABASE_URL` | Mode B | no | — | Enables JWKS verification + auto-derives issuer. Public value. |
 | `SUPABASE_JWT_SECRET` | Mode A | **yes** | — | HS256 shared secret. One of Mode A / Mode B is **required** (fatal in prod if neither set). |
@@ -145,7 +163,7 @@ scaled processes (documented; Redis is out of scope for this rollout).
 
 ## 5. Pending Prisma migrations
 
-Three local migrations, none applied to the configured database (confirmed via
+Four local migrations, none applied to the configured database (confirmed via
 read-only `prisma migrate status`):
 
 ### `20260711172700_remove_local_user_password` — DESTRUCTIVE
@@ -185,6 +203,20 @@ ALTER TABLE "installments" ADD COLUMN "kind" ..., ADD COLUMN "paid_terms" ..., A
   `docs/prisma-migration-reconciliation.md` §10) — restore from backup if this
   one needs to be undone.
 
+### `20260718000000_drop_unused_transfer_model` — SAFE / NON-DESTRUCTIVE (dead table)
+
+```sql
+ALTER TABLE IF EXISTS "transfers" DROP CONSTRAINT ...;  -- x3 FKs
+DROP TABLE IF EXISTS "transfers";
+```
+
+- The `Transfer` model had zero application readers or writers (all transfers
+  use `Transaction` rows with `type='TRANSFER'` and `toWalletId`; see PD-007 and
+  `.claude/skills/financial-logic.skill.md` §16). Old and new code both ignore
+  this table — safe to apply any time, no ordering constraint relative to the
+  code deploy. Rollback = re-add the table via a new migration (Prisma has no
+  down-migrations); no data loss risk since nothing ever wrote to it.
+
 ### ⚠️ Migration-history drift — provisioning blocker for a FRESH database (RESOLVED, re-verified 2026-07-18)
 
 `prisma migrate status` used to report **"last common migration: null"**
@@ -195,19 +227,24 @@ reconstructing `prisma/migrations/20260710000000_baseline/` (see
 `docs/prisma-migration-reconciliation.md` §2–§5) so that a fresh database can
 be provisioned from the migration repository alone (PM-STAB-004).
 
-Current state, both proven on a disposable PostgreSQL 18 instance:
+Current state, on a disposable PostgreSQL 18 instance:
 
-- **Fresh/empty database**: `prisma migrate deploy` applies all four
+- **Fresh/empty database**: `prisma migrate deploy` applies all five
   migrations (`baseline` → `remove_local_user_password` →
-  `add_transaction_to_wallet` → `generalize_wallets_and_bills`) in order and
-  reaches a schema **identical** to `prisma/schema.prisma` (empty
-  `migrate diff`). No manual SQL, no `db push`, no dependency on any other
-  database. ✅
+  `add_transaction_to_wallet` → `generalize_wallets_and_bills` →
+  `drop_unused_transfer_model`) in order and reaches a schema **identical** to
+  `prisma/schema.prisma` (empty `migrate diff`, `migrate status` reports
+  "Database schema is up to date"). No manual SQL, no `db push`, no dependency
+  on any other database. All five migrations have been replayed end-to-end
+  this way, independently, more than once — see
+  `docs/prisma-migration-reconciliation.md` §6 and the cross-repo evidence in
+  `pocket-mint-fe/docs/releases/mvp-stable-rc-validation.md` §7, §17.5, and
+  §18 (dated 2026-07-18). ✅
 - **Existing database** (the one in `DATABASE_URL`, a snapshot/branch of it, or
   staging/production): still has only the legacy `_init`/`_rename` history
-  applied — none of the four repo migrations have been deployed there yet.
+  applied — none of the five repo migrations have been deployed there yet.
   Provisioning it is a `migrate resolve --applied 20260710000000_baseline`
-  (metadata only) followed by `migrate deploy` for the three newer migrations —
+  (metadata only) followed by `migrate deploy` for the four newer migrations —
   see `docs/prisma-migration-reconciliation.md` §7–§9. This step is still
   **manual and not yet executed against any real staging/production database**;
   it requires a backup window and is not something to run against `.env`'s
@@ -222,7 +259,9 @@ Do not attempt `migrate reset` on any shared database.
 Both environments — never auto-apply to a remote DB; run each step deliberately:
 
 1. **Back up / snapshot** the target database.
-2. Apply **additive** `add_transaction_to_wallet` (safe before code).
+2. Apply the **additive/safe** migrations — `add_transaction_to_wallet`,
+   `generalize_wallets_and_bills`, and `drop_unused_transfer_model` (all safe
+   before code).
 3. Deploy the JWT-only backend (no longer writes `users.password`).
 4. Apply **destructive** `remove_local_user_password` (with, or immediately
    after, the code deploy — see zero-downtime split in §5).
@@ -311,25 +350,46 @@ expose no internals.
 
 Never repeat credential values anywhere.
 
+**Update 19 Jul 2026 — forensic re-verification (PM-STAB-003):** The original
+entries below (row 1) were written from an initial incident-response
+assumption that `.env` / `.env.local` had leaked a live Supabase DB password.
+A full-history forensic pass across every commit, branch, and blob in both
+`pocket-mint-be` and `pocket-mint-fe` (`git log --all -p` scan for
+`DATABASE_URL`, `DIRECT_URL`, `service_role`, and both Supabase project refs)
+found **no** DATABASE_URL, DIRECT_URL, database password, or Supabase
+service-role key was ever committed in either repository. The only real
+content of the historically tracked `.env` / `.env.local` blobs (commits
+`d2daa7d`, `a900b69`) was public client config:
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+`NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_HCAPTCHA_SITE_KEY` — all belonging to the
+**Development** Supabase project (`clambteumrweoektkejl`). The
+**Production** project (`wvrdnmiuyeecqatlwbpp`) never appears anywhere in
+git history of either repository. The row below is retained (not deleted)
+for history, with its status corrected.
+
 | Credential | Class | Action |
 | --- | --- | --- |
-| Supabase **DB password** | **Rotation required** — was in git-tracked `.env`, still in history | Rotate in Supabase → update `DATABASE_URL`/`DIRECT_URL` everywhere (local, staging, prod, CI). Coordinate so no instance holds the old URL. |
-| Retired shared **API key** (`kunci_...`) | Retired — backend no longer accepts it | Remove from all deploy secrets; remove the hardcoded value from frontend source; purge from history (§11). No live system uses it. |
-| **Supabase JWT secret** (Mode A) | Rotate only if exposure suspected | Not in the tracked `.env` per audit. Rotating it **invalidates all active user sessions** — schedule accordingly. |
-| **Service-role key** | N/A here | Not used by this backend. Confirm it was never committed elsewhere; never ship it to this service. |
-| **Supabase anon key** | Public config | Not a secret; do not confuse with the service-role key. |
+| Supabase **DB password** | ~~Rotation required — was in git-tracked `.env`, still in history~~ **Corrected 19 Jul 2026: never committed.** Forensic scan found no `DATABASE_URL`/`DIRECT_URL` value, real or placeholder-with-real-data, in any tracked blob. No rotation required based on current evidence. | None required. Re-open if new evidence of a committed DB credential surfaces. |
+| Retired shared **API key** (`kunci_...`) | Confirmed hardcoded in `pocket-mint-fe` git history — retired, backend no longer accepts it | Remove from all deploy secrets; remove the hardcoded value from frontend source; purge from history (§11). No live system uses it. |
+| **Supabase JWT secret** (Mode A) | Not in tracked history (confirmed by forensic scan) | No rotation required based on current evidence. Rotating it **invalidates all active user sessions** — only do so if new exposure evidence appears. |
+| **Service-role key** | Not used by this backend; not found in either repo's history | Never ship it to this service. |
+| **Supabase anon key** | Public config (Development project only) | Not a secret; do not confuse with the service-role key. Historically visible in git history — see Residual Risk below. |
 
-Rotate credentials **before** any history purge (§11).
+No rotation of the Production Supabase project's credentials is recommended
+based on current evidence, since that project never appeared in git history.
 
 ---
 
 ## 11. Git-history purge plan — PENDING EXPLICIT APPROVAL (do not execute)
 
-History still contains secrets: `.env` / `.env.local` were tracked before commit
-`a900b69` untracked them (secrets remain in prior commits); audit docs previously
-held literal credentials; the frontend hardcoded key is documented from the audit.
-`.env` and `.env.local` are now untracked and git-ignored, but **history is not
-rewritten**.
+History still contains the Development project's public client config
+(`NEXT_PUBLIC_*`) and the retired frontend-hardcoded API key: `.env` /
+`.env.local` were tracked before commit `a900b69` untracked them (that
+public config remains visible in prior commits); the frontend hardcoded key
+is documented from the audit. No privileged credential (DB password,
+service-role key, JWT secret) was found in history — see §10.
+`.env` and `.env.local` are now untracked and git-ignored, but **history is
+not rewritten**.
 
 Coordinated plan (execute only on approval):
 
@@ -344,6 +404,51 @@ Coordinated plan (execute only on approval):
 6. All collaborators re-clone or hard-reset to the rewritten history.
 7. Re-scan full history (e.g. `gitleaks`/`trufflehog`) to confirm no secret
    remains.
+
+---
+
+## 12. Backend release tagging
+
+`pocket-mint-be` has no tags yet (`git tag -l` is empty at time of writing).
+When a release is cut, tag the same way the frontend does — see
+`pocket-mint-fe/docs/releases/README.md` §7 for the full rationale — with the
+backend-specific points below.
+
+- **When:** after the production rollout (§8) is deployed and verified
+  (`/health` green, smoke-test matrix in §9 passed), on the commit that was
+  merged to `main` for that release. Do not tag before production is confirmed
+  healthy.
+- **Naming:** `vMAJOR.MINOR.PATCH` (SemVer, `v` prefix), same scheme as the
+  frontend's `README.md` §2 — major stays `0` until Public Stable.
+- **Annotated tag required:** `git tag -a vX.Y.Z -m "Pocket Mint BE vX.Y.Z"`,
+  never a lightweight tag — an annotated tag carries author/date/message
+  metadata needed for the GitHub Release (§13).
+- **Relationship to frontend tags:** backend and frontend tags are
+  **independent** — each repo versions and tags on its own schedule. Give them
+  the same version number only when a release happens to ship both sides
+  together; never force them to stay in sync artificially (mirrors
+  `pocket-mint-fe/docs/releases/README.md` §7's "Tag FE dan BE independen"
+  rule).
+
+---
+
+## 13. GitHub Release procedure
+
+See `pocket-mint-fe/docs/releases/README.md` §11 for the full procedure
+(applies identically to this repo — only the repository and tag differ).
+Summary for `pocket-mint-be`:
+
+- Created in **this repository** (`pocket-mint-be`), from the annotated tag in
+  §12, via the GitHub UI ("Draft a new release") or `gh release create`.
+- **Published**, not left as a draft, once §12's tagging preconditions
+  (production verified) are met — a draft is only a working step while writing
+  the release body.
+- Title: `Pocket Mint BE vX.Y.Z`.
+- Body: summarize the notable backend changes since the last BE tag (schema
+  migrations applied, API/behavior changes, security fixes) in plain language.
+  This backend has no `src/lib/changelog.ts` equivalent yet (see
+  `pocket-mint-fe/docs/releases/README.md` §6) — until one exists, write the
+  release body directly from the merged PRs/commits for that release.
 
 ---
 

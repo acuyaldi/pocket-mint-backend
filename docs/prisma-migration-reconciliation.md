@@ -11,6 +11,27 @@ Companion to [`deployment-runbook.md`](./deployment-runbook.md).
 
 ---
 
+## 0. Quick reference — production migration runbook (7 steps)
+
+Every step below is **⚠ MANUAL**, run by a human against the real
+staging/production database only after review. Nothing in this document
+executes any of these automatically.
+
+| # | Step | Command / reference |
+| --- | --- | --- |
+| 1 | Backup production database | Snapshot / confirm PITR before anything else — see `backup-restore-runbook.md`, and §8/§9 step 2 below. |
+| 2 | Confirm current migration status | `prisma migrate status` (read-only) + the live `prisma migrate diff` from §4 — see §7 step 1, §8 step 3, §9 step 3. |
+| 3 | `prisma migrate resolve --applied` (if required) | `prisma migrate resolve --applied 20260710000000_baseline` — only when the target DB is proven at the baseline state (§7 preconditions). |
+| 4 | `prisma migrate deploy` | Applies the remaining pending migrations — see §7 step 3, §8 step 6, §9 step 5. |
+| 5 | Verify migration status | `prisma migrate status` again — expect "Database schema is up to date" (§8 step 7, §9 step 6). |
+| 6 | Smoke-test API | `/users/sync`, wallet/transaction/installment create flows — full matrix in `deployment-runbook.md` §9 (§8 step 8, §9 step 6). |
+| 7 | Rollback guidance | See §10 below — no down-migrations; restore from the §1 backup, or `migrate resolve --rolled-back` to clear metadata only. |
+
+Full procedure with preconditions and gating: §7 (mechanics), §8 (staging),
+§9 (production), §10 (rollback limitations).
+
+---
+
 ## 1. The blocker
 
 `prisma migrate status` reported:
@@ -83,10 +104,11 @@ Two independent proofs, neither of which mutated any database:
    ALTER TABLE "transactions" ADD CONSTRAINT "transactions_to_wallet_id_fkey" ...;
    ```
 
-   That is precisely the sum of the two committed later migrations. **No other
-   drift exists** (no enum, Decimal-precision, index, FK-action, or default
-   difference). The remote's current schema therefore equals
-   `schema.prisma` **with** `users.password` and **without**
+   That is precisely the sum of the two committed later migrations (at the
+   time this proof ran — see the fourth- and fifth-migration notes below for
+   what changed since). **No other drift exists** (no enum, Decimal-precision,
+   index, FK-action, or default difference). The remote's current schema
+   therefore equals `schema.prisma` **with** `users.password` and **without**
    `transactions.to_wallet_id` — i.e. the reconstructed baseline.
 
 2. **Offline diff** — the committed baseline SQL is byte-identical (modulo one
@@ -96,14 +118,18 @@ Two independent proofs, neither of which mutated any database:
 Conclusion: `baseline` + `remove_local_user_password` + `add_transaction_to_wallet`
 == `prisma/schema.prisma`, and `baseline` alone == the current remote schema.
 
-> **This proof predates the fourth migration** (`20260717000000_generalize_wallets_and_bills`,
-> see §5a) and the remote/staging/production databases have **not** had it
-> applied either (nothing beyond `baseline` has ever been deployed there — see
-> §7). Re-running the live diff against a real target today will therefore show
-> **three** deltas, not two: the original `password`/`to_wallet_id` pair plus the
-> `WalletType` enum change, `wallets.cutoff_day`/`payment_due_day`, and
-> `installments.kind`/`paid_terms`/`next_due_date`. Re-run the diff before acting
-> on §7–§9 and expect the larger delta set.
+> **This proof predates the fourth and fifth migrations** (
+> `20260717000000_generalize_wallets_and_bills`, see §5a, and
+> `20260718000000_drop_unused_transfer_model`, see §5b) and the
+> remote/staging/production databases have **not** had either applied
+> (nothing beyond `baseline` has ever been deployed there — see §7).
+> Re-running the live diff against a real target today will therefore show
+> **four** deltas, not two: the original `password`/`to_wallet_id` pair, the
+> `WalletType` enum change plus `wallets.cutoff_day`/`payment_due_day` and
+> `installments.kind`/`paid_terms`/`next_due_date`, and the `transfers` table
+> (with its three FKs) still being present pre-migration / absent
+> post-migration. Re-run the diff before acting on §7–§9 and expect the
+> larger delta set.
 
 ## 5. The reconstructed baseline
 
@@ -127,6 +153,7 @@ Final migration order in the repo:
 | 2 | `20260711172700_remove_local_user_password` | **destructive** (`DROP COLUMN users.password`) |
 | 3 | `20260711223000_add_transaction_to_wallet` | additive (nullable col + index + FK) |
 | 4 | `20260717000000_generalize_wallets_and_bills` | additive + in-place enum/data migration (see §5a) |
+| 5 | `20260718000000_drop_unused_transfer_model` | drops an unused table (safe/non-destructive — see §5b) |
 
 ### 5a. Fourth migration — added after the original baseline reconstruction
 
@@ -150,6 +177,33 @@ it does not drop or narrow anything. It was re-verified end-to-end together
 with the other three migrations (§6a) since it was never part of the
 original disposable-Postgres replay.
 
+### 5b. Fifth migration — drops the unused `Transfer` model (PM-STAB-009A)
+
+`20260718000000_drop_unused_transfer_model` was added 2026-07-18, after the
+fourth migration and its re-verification. It drops the `transfers` table and
+its three foreign keys:
+
+```sql
+ALTER TABLE IF EXISTS "transfers" DROP CONSTRAINT IF EXISTS "transfers_user_id_fkey";
+ALTER TABLE IF EXISTS "transfers" DROP CONSTRAINT IF EXISTS "transfers_from_wallet_id_fkey";
+ALTER TABLE IF EXISTS "transfers" DROP CONSTRAINT IF EXISTS "transfers_to_wallet_id_fkey";
+DROP TABLE IF EXISTS "transfers";
+```
+
+- The `Transfer` model was never referenced by any service, controller, route,
+  or test — all transfers use `Transaction` rows with `type='TRANSFER'` and
+  `toWalletId` (PD-007 declares this the canonical representation; see
+  `.claude/skills/financial-logic.skill.md` §16). `IF EXISTS` on every
+  statement makes it idempotent/safe to re-run.
+- **Replayed on a disposable database, independently, more than once** (all on
+  2026-07-18): see §6 below, and the cross-repo evidence in
+  `pocket-mint-fe/docs/releases/mvp-stable-rc-validation.md` §7 (`5 migrations
+  found`, `All migrations have been successfully applied`, 11/11 integration
+  tests), §17.5 (independent re-run, `migrate status` → "Database schema is up
+  to date"), and §18 (repeated again in a separate provisioning session, 42/42
+  HTTP smoke tests). This migration is proven to the same standard as the
+  first four.
+
 ---
 
 ## 6. Fresh database provisioning (empty database)
@@ -158,12 +212,12 @@ Any brand-new/empty Postgres (local dev, disposable CI, a new environment):
 
 ```bash
 # DATABASE_URL points at the EMPTY target.
-prisma migrate deploy      # applies baseline → remove_password → add_to_wallet → generalize_wallets_and_bills
+prisma migrate deploy      # applies baseline → remove_password → add_to_wallet → generalize_wallets_and_bills → drop_unused_transfer_model
 prisma generate
 ```
 
-Runs all four migrations in order and reaches `schema.prisma`. `_prisma_migrations`
-will list the four repo migrations (fresh DBs will not carry the legacy `_init`
+Runs all five migrations in order and reaches `schema.prisma`. `_prisma_migrations`
+will list the five repo migrations (fresh DBs will not carry the legacy `_init`
 /`_rename` names — that is expected and harmless).
 
 > Validation status (original, 3-migration chain): the two equivalence proofs in
@@ -196,6 +250,16 @@ will list the four repo migrations (fresh DBs will not carry the legacy `_init`
 > (`ts-node --transpile-only src/server.ts`) started against this database,
 > passed its startup `SELECT 1` check, and `GET /health` returned `200`. **Never**
 > point the block above at a shared database.
+>
+> **Fifth migration (`drop_unused_transfer_model`) since re-verified too,
+> independently, more than once** — all on 2026-07-18, after this replay was
+> first written up. See `pocket-mint-fe/docs/releases/mvp-stable-rc-validation.md`
+> §7 (`5 migrations found` → `All migrations have been successfully applied`,
+> 11/11 integration tests), §17.5 (independent re-run, `migrate status` →
+> "Database schema is up to date"), and §18 (repeated again in a separate
+> provisioning session with `NODE_ENV=production`, 42/42 HTTP smoke tests). The
+> five-migration chain is proven to the same standard described above — treat
+> the two write-ups together, not the fifth migration as an open item.
 
 ---
 
@@ -204,9 +268,9 @@ will list the four repo migrations (fresh DBs will not carry the legacy `_init`
 These databases **already contain the baseline tables** (proven in §4). They must
 **never** have the baseline SQL executed against them — that would fail on
 existing objects. Instead, mark the baseline as already-applied so Prisma records
-it without running SQL, then deploy only the three newer migrations (including
-`generalize_wallets_and_bills` — see §5a; nothing beyond `baseline` has been
-applied to any shared database yet).
+it without running SQL, then deploy only the four newer migrations (including
+`generalize_wallets_and_bills` — see §5a — and `drop_unused_transfer_model` —
+see §5b; nothing beyond `baseline` has been applied to any shared database yet).
 
 `migrate resolve --applied` changes **migration metadata only** — it inserts a
 `_prisma_migrations` row and runs **no** DDL.
@@ -216,21 +280,22 @@ applied to any shared database yet).
 ```bash
 # 1. Confirm you are pointed at the intended DB and it is at the pre-baseline
 #    state (password present, to_wallet_id absent, WalletType still has
-#    LOAN_PAYLATER, no cutoff_day/payment_due_day/kind/paid_terms/next_due_date).
+#    LOAN_PAYLATER, no cutoff_day/payment_due_day/kind/paid_terms/next_due_date,
+#    transfers table still present with its 3 FKs).
 #    Read-only:
 prisma migrate status
 
 # 2. Record the baseline as already applied (metadata only, no DDL):
 prisma migrate resolve --applied 20260710000000_baseline
 
-# 3. Apply ALL THREE newer migrations (remove_password, add_to_wallet, generalize_wallets_and_bills):
+# 3. Apply ALL FOUR newer migrations (remove_password, add_to_wallet, generalize_wallets_and_bills, drop_unused_transfer_model):
 prisma migrate deploy
 ```
 
 Only run step 2 when **all** of these hold:
 
 - the target DB's schema is proven equal to the baseline (§4 diff is empty except
-  the three later deltas — re-run it against *that* DB first, see the §4 note);
+  the four later deltas — re-run it against *that* DB first, see the §4 note);
 - you are connected to the intended database (double-check the target);
 - a backup / PITR window exists;
 - the migration records were reviewed (§3);
@@ -238,8 +303,8 @@ Only run step 2 when **all** of these hold:
 
 **Legacy `_init` / `_rename_account_to_wallet` records:** leave them. After the
 resolve, `_prisma_migrations` holds `_init`, `_rename` (×2), and `baseline`; the
-local folder holds `baseline` + the three later migrations. `migrate deploy`
-applies the three pending local migrations and **tolerates** the DB-only legacy
+local folder holds `baseline` + the four later migrations. `migrate deploy`
+applies the four pending local migrations and **tolerates** the DB-only legacy
 records (they are reported by `migrate status` but do not block `deploy`). Do not
 create empty local dirs for `_init`/`_rename` and do not delete the DB rows.
 
@@ -251,17 +316,22 @@ create empty local dirs for `_init`/`_rename` and do not delete the DB rows.
    additive migrations but see the ordering note in §10 for the destructive one.
 2. Back up staging (or confirm PITR).
 3. `prisma migrate status` (read-only) — expect `password` present,
-   `to_wallet_id` absent, no *failed* migrations.
-4. Re-run the §4 live diff against **staging** — expect the three deltas (not
-   two — see the §4 note about the fourth migration).
+   `to_wallet_id` absent, `WalletType` still has `LOAN_PAYLATER` (not yet split),
+   `wallets.cutoff_day`/`payment_due_day` absent, `installments.kind`/
+   `paid_terms`/`next_due_date` absent, `transfers` table still present with its
+   3 FKs, no *failed* migrations.
+4. Re-run the §4 live diff against **staging** — expect the four deltas (not
+   two — see the §4 note about the fourth and fifth migrations).
 5. `prisma migrate resolve --applied 20260710000000_baseline`.
 6. `prisma migrate deploy` — applies `remove_local_user_password`,
-   `add_transaction_to_wallet`, and `generalize_wallets_and_bills`.
+   `add_transaction_to_wallet`, `generalize_wallets_and_bills`, and
+   `drop_unused_transfer_model`.
 7. `prisma migrate status` again — expect “Database schema is up to date”.
 8. Smoke test: `/users/sync`, wallet create, income/expense/transfer create
    (destination persists via `to_wallet_id`), installment create; confirm
-   `users.password` is gone and wallet type / billing fields from migration 4
-   behave as expected.
+   `users.password` is gone, wallet type / billing fields from migration 4
+   behave as expected, and the `transfers` table no longer exists (no code
+   path reads/writes it, so this should be a non-event).
 
 ## 9. Production procedure
 
@@ -270,10 +340,12 @@ Same as staging, gated:
 1. **Ship code that no longer writes `users.password` first** (already true — the
    backend is Supabase-Auth only; verify no running instance INSERTs `password`).
 2. Back up / confirm PITR.
-3. `prisma migrate status` + §4 diff against **production** — expect the three
+3. `prisma migrate status` + §4 diff against **production** — expect the four
    deltas, no failed migrations.
 4. `prisma migrate resolve --applied 20260710000000_baseline`.
-5. `prisma migrate deploy` inside the deploy that ships compatible code.
+5. `prisma migrate deploy` inside the deploy that ships compatible code —
+   applies `remove_local_user_password`, `add_transaction_to_wallet`,
+   `generalize_wallets_and_bills`, and `drop_unused_transfer_model`.
 6. `prisma migrate status` → up to date. Smoke test as in §8.
 
 ### Zero-downtime option (the destructive drop)
@@ -310,6 +382,11 @@ Brief window, back up, run `resolve` + `deploy`, smoke test, reopen traffic.
   in the meantime), and the `paid_terms`/`next_due_date` backfill is a one-way
   data transformation. Treat it the same as the destructive migration for
   rollback purposes: restore from backup rather than hand-writing a reverse.
+- `drop_unused_transfer_model` is **irreversible** by forward migration in the
+  same sense as the destructive column drop: once `DROP TABLE "transfers"` runs,
+  the table and any rows it held are gone. In practice this is low-risk (zero
+  application code ever wrote to it — see §5b), but if it must come back, that
+  requires a new `CREATE TABLE` migration; the original data will not return.
 - `migrate resolve` is metadata-only; "rolling it back" means
   `prisma migrate resolve --rolled-back 20260710000000_baseline`, which only
   removes the applied marker — it changes no schema.
@@ -321,7 +398,7 @@ Brief window, back up, run `resolve` + `deploy`, smoke test, reopen traffic.
 Every shared-database command is left for a human to run after review:
 
 - `prisma migrate resolve --applied 20260710000000_baseline` (staging, then prod)
-- `prisma migrate deploy` (staging, then prod)
+- `prisma migrate deploy` for the four newer migrations (staging, then prod)
 - the live `prisma migrate diff` re-check against each target
 
 Completed since the original draft (no shared database touched):
@@ -346,3 +423,12 @@ production databases (§7–§9) remain manual, human-run steps against a shared
 database — nothing in this task executed them, and they require a backup
 window and explicit review each time regardless of how many times the fresh
 disposable-database path has been validated.
+
+**New since 2026-07-18:** `20260718000000_drop_unused_transfer_model` (§5b)
+was added after the four-migration re-verification above. It has since been
+replayed on a disposable database independently, more than once, in the same
+2026-07-18 window — see the note in §6 and
+`pocket-mint-fe/docs/releases/mvp-stable-rc-validation.md` §7/§17.5/§18. The
+five-migration chain is proven fresh-database-only, to the same standard as
+the original four; only the staging/production reconciliation (§7–§9, against
+a real shared database) remains open, as noted above.
