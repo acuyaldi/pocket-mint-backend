@@ -9,6 +9,16 @@ placeholder. Commands that touch a shared database are marked
 
 Companion to [`deployment-runbook.md`](./deployment-runbook.md).
 
+**Update 19 Juli 2026 — production reconciliation completed.** The §7/§9
+production procedure below has now been executed and verified against the
+real production database: `prisma migrate status` → "Database schema is up
+to date!"; `prisma migrate diff --from-config-datasource --to-schema
+prisma/schema.prisma --script` → "This is an empty migration."; Railway
+production deployment healthy; `GET /health` → `200`. `PM-STAB-004` is
+**Resolved** (see `pocket-mint-fe/docs/releases/known-issues.md`). The
+step-by-step instructions below are preserved as the reference procedure —
+they describe *how* the reconciliation was performed, not an open task.
+
 ---
 
 ## 0. Quick reference — production migration runbook (7 steps)
@@ -394,6 +404,11 @@ Brief window, back up, run `resolve` + `deploy`, smoke test, reopen traffic.
   immediately before `deploy`.
 
 ## 11. What remains manual (nothing auto-executed)
+
+**Update 19 Juli 2026:** the production steps below have been executed and
+verified — see the note at the top of this document and
+`pocket-mint-fe/docs/releases/known-issues.md` PM-STAB-004 (Resolved). The
+list is preserved as the historical record of what was manual at the time.
 
 Every shared-database command is left for a human to run after review:
 
