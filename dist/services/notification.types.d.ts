@@ -13,6 +13,20 @@ export declare const NOTIFICATION_INCLUDE: {
             readonly categoryId: true;
         };
     };
+    readonly installment: {
+        readonly select: {
+            readonly id: true;
+            readonly description: true;
+            readonly monthlyAmount: true;
+            readonly nextDueDate: true;
+            readonly status: true;
+            readonly wallet: {
+                readonly select: {
+                    readonly name: true;
+                };
+            };
+        };
+    };
 };
 export type NotificationWithTemplate = Prisma.RecurringReminderEventGetPayload<{
     include: typeof NOTIFICATION_INCLUDE;

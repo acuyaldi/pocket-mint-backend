@@ -4,14 +4,17 @@ vi.mock('../src/lib/prisma', () => ({ default: {} }));
 
 import { createRecurringReminderEngineService } from '../src/services/recurringReminderEngine.service';
 
-function makeDb(templates: any[], existingEvents: Map<string, any> = new Map()) {
+function makeDb(templates: any[], existingEvents: Map<string, any> = new Map(), installments: any[] = []) {
   return {
     recurringTransactionTemplate: {
       findMany: vi.fn(async () => templates),
     },
+    installment: {
+      findMany: vi.fn(async () => installments),
+    },
     recurringReminderEvent: {
       upsert: vi.fn(async ({ where, create }: any) => {
-        const key = JSON.stringify(where.templateId_occurrenceDate_offsetDays);
+        const key = JSON.stringify(where.templateId_occurrenceDate_offsetDays ?? where.installmentId_occurrenceDate_offsetDays);
         const existing = existingEvents.get(key);
         if (existing) return existing;
         const created = { id: `evt-${existingEvents.size + 1}`, createdAt: new Date(), ...create };
@@ -92,6 +95,58 @@ describe('recurring reminder engine', () => {
       expect.objectContaining({
         where: { isActive: true, reminderEnabled: true, frequency: 'MONTHLY' },
       })
+    );
+  });
+});
+
+describe('recurring reminder engine — installments (Phase 7)', () => {
+  const installment = {
+    id: 'inst-1',
+    userId: 'user-1',
+    status: 'ACTIVE',
+    nextDueDate: new Date('2026-07-15T00:00:00.000Z'),
+  };
+
+  it('creates an installment-sourced reminder event 3 days before nextDueDate', async () => {
+    const db = makeDb([], new Map(), [installment]);
+    const service = createRecurringReminderEngineService(db as any);
+
+    const events = await service.evaluateReminders('2026-07-12');
+
+    expect(events).toHaveLength(1);
+    expect(events[0].installmentId).toBe('inst-1');
+    expect(events[0].templateId).toBeUndefined();
+  });
+
+  it('skips installments whose reminder date does not match the evaluation date', async () => {
+    const db = makeDb([], new Map(), [installment]);
+    const service = createRecurringReminderEngineService(db as any);
+
+    const events = await service.evaluateReminders('2026-07-01');
+
+    expect(events).toHaveLength(0);
+  });
+
+  it('is idempotent for installments: evaluating the same date twice does not duplicate the event', async () => {
+    const existingEvents = new Map();
+    const db = makeDb([], existingEvents, [installment]);
+    const service = createRecurringReminderEngineService(db as any);
+
+    const first = await service.evaluateReminders('2026-07-12');
+    const second = await service.evaluateReminders('2026-07-12');
+
+    expect(first[0].id).toBe(second[0].id);
+    expect(existingEvents.size).toBe(1);
+  });
+
+  it('only queries ACTIVE installments', async () => {
+    const db = makeDb([], new Map(), []);
+    const service = createRecurringReminderEngineService(db as any);
+
+    await service.evaluateReminders('2026-07-12');
+
+    expect(db.installment.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { status: 'ACTIVE' } })
     );
   });
 });

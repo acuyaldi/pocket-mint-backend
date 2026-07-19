@@ -8,12 +8,13 @@ import type { PrismaClient } from '../generated/prisma/client';
 
 export type RecurringReminderEnginePrismaClient = Pick<
   PrismaClient,
-  'recurringTransactionTemplate' | 'recurringReminderEvent'
+  'recurringTransactionTemplate' | 'installment' | 'recurringReminderEvent'
 >;
 
 export interface RecurringReminderEvent {
   id: string;
-  templateId: string;
+  templateId: string | null;
+  installmentId: string | null;
   userId: string;
   occurrenceDate: Date;
   offsetDays: number;

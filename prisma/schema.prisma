@@ -219,6 +219,7 @@ model Installment {
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   wallet       Wallet        @relation(fields: [walletId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  reminderEvents RecurringReminderEvent[]
 
   @@index([userId, status])
   @@index([walletId])
@@ -272,24 +273,33 @@ model RecurringTransactionTemplate {
 // Phase 4: one row per (template, occurrence, offset) that the reminder engine
 // has already fired — the unique constraint is what makes re-running the
 // engine for the same evaluation date a no-op instead of a duplicate.
+// Phase 7: a row is sourced from either a recurring template OR an
+// installment, never both — templateId/installmentId are each optional so
+// the same table serves both without a parallel pipeline. The engine is the
+// only writer and is responsible for setting exactly one of them.
 model RecurringReminderEvent {
   id             String   @id @default(cuid())
-  templateId     String   @map("template_id")
+  templateId     String?  @map("template_id")
+  installmentId  String?  @map("installment_id")
   userId         String   @map("user_id")
   occurrenceDate DateTime @map("occurrence_date")
   offsetDays     Int      @map("offset_days")
   reminderDate   DateTime @map("reminder_date")
   readAt         DateTime? @map("read_at")
   // Phase 6: NULL = still waiting: non-null = a real transaction was created
-  // from this reminder and it must never be processed again.
+  // from this reminder and it must never be processed again. Template-sourced
+  // rows only — installment-sourced completion is derived, see notification
+  // controller.
   completedAt            DateTime? @map("completed_at")
   generatedTransactionId String?   @unique @map("generated_transaction_id")
   createdAt      DateTime @default(now()) @map("created_at")
 
-  template             RecurringTransactionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  template             RecurringTransactionTemplate? @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  installment           Installment?                 @relation(fields: [installmentId], references: [id], onDelete: Cascade)
   generatedTransaction Transaction?                 @relation(fields: [generatedTransactionId], references: [id], onDelete: SetNull)
 
   @@unique([templateId, occurrenceDate, offsetDays])
+  @@unique([installmentId, occurrenceDate, offsetDays])
   @@index([userId, reminderDate])
   @@map("recurring_reminder_events")
 }

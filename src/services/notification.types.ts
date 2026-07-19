@@ -1,5 +1,5 @@
 // ============================================================
-// Notification service contracts (Phase 5)
+// Notification service contracts (Phase 5; installments added in Phase 7)
 // ------------------------------------------------------------
 // The notification center reads/mutates the RecurringReminderEvent rows
 // persisted by the reminder engine (Phase 4) — no separate Notification
@@ -18,6 +18,16 @@ export type NotificationPrismaClient = Pick<
 export const NOTIFICATION_INCLUDE = {
   template: {
     select: { id: true, name: true, type: true, amountMode: true, amount: true, walletId: true, categoryId: true },
+  },
+  installment: {
+    select: {
+      id: true,
+      description: true,
+      monthlyAmount: true,
+      nextDueDate: true,
+      status: true,
+      wallet: { select: { name: true } },
+    },
   },
 } as const;
 
