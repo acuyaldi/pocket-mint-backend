@@ -9,6 +9,7 @@ const notificationRouter = Router();
 notificationRouter.get('/', requireUser, NotificationController.getAll);
 
 // Mutating routes: authenticate first so the mutation limiter keys by user id.
+notificationRouter.post('/refresh', requireUser, mutationLimiter, NotificationController.refresh);
 notificationRouter.patch('/read-all', requireUser, mutationLimiter, NotificationController.markAllRead);
 notificationRouter.patch('/:id/read', requireUser, mutationLimiter, NotificationController.markRead);
 notificationRouter.post('/:id/confirm', requireUser, mutationLimiter, NotificationController.confirm);

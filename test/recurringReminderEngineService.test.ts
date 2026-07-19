@@ -97,6 +97,19 @@ describe('recurring reminder engine', () => {
       })
     );
   });
+
+  it('scopes the template query to a single user when userId is provided', async () => {
+    const db = makeDb([]);
+    const service = createRecurringReminderEngineService(db as any);
+
+    await service.evaluateReminders('2026-07-12', 'user-1');
+
+    expect(db.recurringTransactionTemplate.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { isActive: true, reminderEnabled: true, frequency: 'MONTHLY', userId: 'user-1' },
+      })
+    );
+  });
 });
 
 describe('recurring reminder engine — installments (Phase 7)', () => {
@@ -147,6 +160,17 @@ describe('recurring reminder engine — installments (Phase 7)', () => {
 
     expect(db.installment.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: { status: 'ACTIVE' } })
+    );
+  });
+
+  it('scopes the installment query to a single user when userId is provided', async () => {
+    const db = makeDb([], new Map(), []);
+    const service = createRecurringReminderEngineService(db as any);
+
+    await service.evaluateReminders('2026-07-12', 'user-1');
+
+    expect(db.installment.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { status: 'ACTIVE', userId: 'user-1' } })
     );
   });
 });

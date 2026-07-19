@@ -10,6 +10,7 @@ exports.notificationRouter = notificationRouter;
 // GET /api/v1/notifications
 notificationRouter.get('/', apiKeyAuth_1.requireUser, notification_controller_1.NotificationController.getAll);
 // Mutating routes: authenticate first so the mutation limiter keys by user id.
+notificationRouter.post('/refresh', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, notification_controller_1.NotificationController.refresh);
 notificationRouter.patch('/read-all', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, notification_controller_1.NotificationController.markAllRead);
 notificationRouter.patch('/:id/read', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, notification_controller_1.NotificationController.markRead);
 notificationRouter.post('/:id/confirm', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, notification_controller_1.NotificationController.confirm);

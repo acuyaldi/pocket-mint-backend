@@ -30,9 +30,9 @@ function subtractDays(dateStr: string, days: number): string {
 }
 
 export function createRecurringReminderEngineService(db: RecurringReminderEnginePrismaClient) {
-  async function evaluateReminders(evaluationDate: string): Promise<RecurringReminderEvent[]> {
+  async function evaluateReminders(evaluationDate: string, userId?: string): Promise<RecurringReminderEvent[]> {
     const templates = await db.recurringTransactionTemplate.findMany({
-      where: { isActive: true, reminderEnabled: true, frequency: 'MONTHLY' },
+      where: { isActive: true, reminderEnabled: true, frequency: 'MONTHLY', ...(userId ? { userId } : {}) },
       select: { id: true, userId: true, startDate: true, endDate: true, reminderOffsetDays: true },
     });
 
@@ -71,7 +71,7 @@ export function createRecurringReminderEngineService(db: RecurringReminderEngine
     }
 
     const installments = await db.installment.findMany({
-      where: { status: 'ACTIVE' },
+      where: { status: 'ACTIVE', ...(userId ? { userId } : {}) },
       select: { id: true, userId: true, nextDueDate: true },
     });
 
