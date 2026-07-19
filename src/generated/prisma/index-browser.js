@@ -208,6 +208,7 @@ exports.Prisma.RecurringTransactionTemplateScalarFieldEnum = {
   categoryId: 'categoryId',
   name: 'name',
   type: 'type',
+  amountMode: 'amountMode',
   amount: 'amount',
   description: 'description',
   frequency: 'frequency',
@@ -266,6 +267,11 @@ exports.InstallmentStatus = exports.$Enums.InstallmentStatus = {
   ACTIVE: 'ACTIVE',
   SETTLED: 'SETTLED',
   CANCELLED: 'CANCELLED'
+};
+
+exports.RecurringAmountMode = exports.$Enums.RecurringAmountMode = {
+  FIXED: 'FIXED',
+  FLEXIBLE: 'FLEXIBLE'
 };
 
 exports.RecurrenceFrequency = exports.$Enums.RecurrenceFrequency = {

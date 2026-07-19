@@ -232,6 +232,11 @@ enum RecurrenceFrequency {
   YEARLY
 }
 
+enum RecurringAmountMode {
+  FIXED
+  FLEXIBLE
+}
+
 model RecurringTransactionTemplate {
   id          String              @id @default(cuid())
   userId      String              @map("user_id")
@@ -239,7 +244,8 @@ model RecurringTransactionTemplate {
   categoryId  String?             @map("category_id")
   name        String
   type        TransactionType
-  amount      Decimal             @db.Decimal(15, 2)
+  amountMode  RecurringAmountMode @default(FIXED) @map("amount_mode")
+  amount      Decimal?            @db.Decimal(15, 2)
   description String?
   frequency   RecurrenceFrequency
   startDate   DateTime            @map("start_date")

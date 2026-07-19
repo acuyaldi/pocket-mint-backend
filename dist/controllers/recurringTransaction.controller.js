@@ -14,6 +14,7 @@ function mapCreateRequest(req, userId) {
         walletId: b.walletId,
         categoryId: b.categoryId,
         type: b.type,
+        amountMode: b.amountMode,
         amount: b.amount,
         description: b.description,
         frequency: b.frequency,
@@ -31,6 +32,7 @@ function mapUpdateRequest(req, userId) {
         walletId: b.walletId,
         categoryId: b.categoryId,
         type: b.type,
+        amountMode: b.amountMode,
         amount: b.amount,
         description: b.description,
         frequency: b.frequency,
@@ -39,10 +41,10 @@ function mapUpdateRequest(req, userId) {
         isActive: b.isActive,
     };
 }
-// Decimal (Prisma) → number agar JSON-nya bersih buat frontend
+// Decimal (Prisma) → number agar JSON-nya bersih buat frontend; null (FLEXIBLE) passes through.
 const serialize = (template) => ({
     ...template,
-    amount: parseFloat(template.amount.toString()),
+    amount: template.amount === null ? null : parseFloat(template.amount.toString()),
 });
 class RecurringTransactionController {
     // GET /api/v1/recurring-transactions

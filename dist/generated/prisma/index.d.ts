@@ -111,6 +111,14 @@ export const RecurrenceFrequency: {
 
 export type RecurrenceFrequency = (typeof RecurrenceFrequency)[keyof typeof RecurrenceFrequency]
 
+
+export const RecurringAmountMode: {
+  FIXED: 'FIXED',
+  FLEXIBLE: 'FLEXIBLE'
+};
+
+export type RecurringAmountMode = (typeof RecurringAmountMode)[keyof typeof RecurringAmountMode]
+
 }
 
 export type WalletType = $Enums.WalletType
@@ -140,6 +148,10 @@ export const BillKind: typeof $Enums.BillKind
 export type RecurrenceFrequency = $Enums.RecurrenceFrequency
 
 export const RecurrenceFrequency: typeof $Enums.RecurrenceFrequency
+
+export type RecurringAmountMode = $Enums.RecurringAmountMode
+
+export const RecurringAmountMode: typeof $Enums.RecurringAmountMode
 
 /**
  * ##  Prisma Client ʲˢ
@@ -8073,6 +8085,7 @@ export namespace Prisma {
     categoryId: string | null
     name: string | null
     type: $Enums.TransactionType | null
+    amountMode: $Enums.RecurringAmountMode | null
     amount: Decimal | null
     description: string | null
     frequency: $Enums.RecurrenceFrequency | null
@@ -8090,6 +8103,7 @@ export namespace Prisma {
     categoryId: string | null
     name: string | null
     type: $Enums.TransactionType | null
+    amountMode: $Enums.RecurringAmountMode | null
     amount: Decimal | null
     description: string | null
     frequency: $Enums.RecurrenceFrequency | null
@@ -8107,6 +8121,7 @@ export namespace Prisma {
     categoryId: number
     name: number
     type: number
+    amountMode: number
     amount: number
     description: number
     frequency: number
@@ -8134,6 +8149,7 @@ export namespace Prisma {
     categoryId?: true
     name?: true
     type?: true
+    amountMode?: true
     amount?: true
     description?: true
     frequency?: true
@@ -8151,6 +8167,7 @@ export namespace Prisma {
     categoryId?: true
     name?: true
     type?: true
+    amountMode?: true
     amount?: true
     description?: true
     frequency?: true
@@ -8168,6 +8185,7 @@ export namespace Prisma {
     categoryId?: true
     name?: true
     type?: true
+    amountMode?: true
     amount?: true
     description?: true
     frequency?: true
@@ -8272,7 +8290,8 @@ export namespace Prisma {
     categoryId: string | null
     name: string
     type: $Enums.TransactionType
-    amount: Decimal
+    amountMode: $Enums.RecurringAmountMode
+    amount: Decimal | null
     description: string | null
     frequency: $Enums.RecurrenceFrequency
     startDate: Date
@@ -8308,6 +8327,7 @@ export namespace Prisma {
     categoryId?: boolean
     name?: boolean
     type?: boolean
+    amountMode?: boolean
     amount?: boolean
     description?: boolean
     frequency?: boolean
@@ -8328,6 +8348,7 @@ export namespace Prisma {
     categoryId?: boolean
     name?: boolean
     type?: boolean
+    amountMode?: boolean
     amount?: boolean
     description?: boolean
     frequency?: boolean
@@ -8348,6 +8369,7 @@ export namespace Prisma {
     categoryId?: boolean
     name?: boolean
     type?: boolean
+    amountMode?: boolean
     amount?: boolean
     description?: boolean
     frequency?: boolean
@@ -8368,6 +8390,7 @@ export namespace Prisma {
     categoryId?: boolean
     name?: boolean
     type?: boolean
+    amountMode?: boolean
     amount?: boolean
     description?: boolean
     frequency?: boolean
@@ -8378,7 +8401,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type RecurringTransactionTemplateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "walletId" | "categoryId" | "name" | "type" | "amount" | "description" | "frequency" | "startDate" | "endDate" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["recurringTransactionTemplate"]>
+  export type RecurringTransactionTemplateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "walletId" | "categoryId" | "name" | "type" | "amountMode" | "amount" | "description" | "frequency" | "startDate" | "endDate" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["recurringTransactionTemplate"]>
   export type RecurringTransactionTemplateInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     wallet?: boolean | WalletDefaultArgs<ExtArgs>
@@ -8409,7 +8432,8 @@ export namespace Prisma {
       categoryId: string | null
       name: string
       type: $Enums.TransactionType
-      amount: Prisma.Decimal
+      amountMode: $Enums.RecurringAmountMode
+      amount: Prisma.Decimal | null
       description: string | null
       frequency: $Enums.RecurrenceFrequency
       startDate: Date
@@ -8849,6 +8873,7 @@ export namespace Prisma {
     readonly categoryId: FieldRef<"RecurringTransactionTemplate", 'String'>
     readonly name: FieldRef<"RecurringTransactionTemplate", 'String'>
     readonly type: FieldRef<"RecurringTransactionTemplate", 'TransactionType'>
+    readonly amountMode: FieldRef<"RecurringTransactionTemplate", 'RecurringAmountMode'>
     readonly amount: FieldRef<"RecurringTransactionTemplate", 'Decimal'>
     readonly description: FieldRef<"RecurringTransactionTemplate", 'String'>
     readonly frequency: FieldRef<"RecurringTransactionTemplate", 'RecurrenceFrequency'>
@@ -9412,6 +9437,7 @@ export namespace Prisma {
     categoryId: 'categoryId',
     name: 'name',
     type: 'type',
+    amountMode: 'amountMode',
     amount: 'amount',
     description: 'description',
     frequency: 'frequency',
@@ -9598,6 +9624,20 @@ export namespace Prisma {
    * Reference to a field of type 'InstallmentStatus[]'
    */
   export type ListEnumInstallmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InstallmentStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'RecurringAmountMode'
+   */
+  export type EnumRecurringAmountModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurringAmountMode'>
+    
+
+
+  /**
+   * Reference to a field of type 'RecurringAmountMode[]'
+   */
+  export type ListEnumRecurringAmountModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurringAmountMode[]'>
     
 
 
@@ -10177,7 +10217,8 @@ export namespace Prisma {
     categoryId?: StringNullableFilter<"RecurringTransactionTemplate"> | string | null
     name?: StringFilter<"RecurringTransactionTemplate"> | string
     type?: EnumTransactionTypeFilter<"RecurringTransactionTemplate"> | $Enums.TransactionType
-    amount?: DecimalFilter<"RecurringTransactionTemplate"> | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFilter<"RecurringTransactionTemplate"> | $Enums.RecurringAmountMode
+    amount?: DecimalNullableFilter<"RecurringTransactionTemplate"> | Decimal | DecimalJsLike | number | string | null
     description?: StringNullableFilter<"RecurringTransactionTemplate"> | string | null
     frequency?: EnumRecurrenceFrequencyFilter<"RecurringTransactionTemplate"> | $Enums.RecurrenceFrequency
     startDate?: DateTimeFilter<"RecurringTransactionTemplate"> | Date | string
@@ -10197,7 +10238,8 @@ export namespace Prisma {
     categoryId?: SortOrderInput | SortOrder
     name?: SortOrder
     type?: SortOrder
-    amount?: SortOrder
+    amountMode?: SortOrder
+    amount?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
     frequency?: SortOrder
     startDate?: SortOrder
@@ -10220,7 +10262,8 @@ export namespace Prisma {
     categoryId?: StringNullableFilter<"RecurringTransactionTemplate"> | string | null
     name?: StringFilter<"RecurringTransactionTemplate"> | string
     type?: EnumTransactionTypeFilter<"RecurringTransactionTemplate"> | $Enums.TransactionType
-    amount?: DecimalFilter<"RecurringTransactionTemplate"> | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFilter<"RecurringTransactionTemplate"> | $Enums.RecurringAmountMode
+    amount?: DecimalNullableFilter<"RecurringTransactionTemplate"> | Decimal | DecimalJsLike | number | string | null
     description?: StringNullableFilter<"RecurringTransactionTemplate"> | string | null
     frequency?: EnumRecurrenceFrequencyFilter<"RecurringTransactionTemplate"> | $Enums.RecurrenceFrequency
     startDate?: DateTimeFilter<"RecurringTransactionTemplate"> | Date | string
@@ -10240,7 +10283,8 @@ export namespace Prisma {
     categoryId?: SortOrderInput | SortOrder
     name?: SortOrder
     type?: SortOrder
-    amount?: SortOrder
+    amountMode?: SortOrder
+    amount?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
     frequency?: SortOrder
     startDate?: SortOrder
@@ -10265,7 +10309,8 @@ export namespace Prisma {
     categoryId?: StringNullableWithAggregatesFilter<"RecurringTransactionTemplate"> | string | null
     name?: StringWithAggregatesFilter<"RecurringTransactionTemplate"> | string
     type?: EnumTransactionTypeWithAggregatesFilter<"RecurringTransactionTemplate"> | $Enums.TransactionType
-    amount?: DecimalWithAggregatesFilter<"RecurringTransactionTemplate"> | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeWithAggregatesFilter<"RecurringTransactionTemplate"> | $Enums.RecurringAmountMode
+    amount?: DecimalNullableWithAggregatesFilter<"RecurringTransactionTemplate"> | Decimal | DecimalJsLike | number | string | null
     description?: StringNullableWithAggregatesFilter<"RecurringTransactionTemplate"> | string | null
     frequency?: EnumRecurrenceFrequencyWithAggregatesFilter<"RecurringTransactionTemplate"> | $Enums.RecurrenceFrequency
     startDate?: DateTimeWithAggregatesFilter<"RecurringTransactionTemplate"> | Date | string
@@ -10885,7 +10930,8 @@ export namespace Prisma {
     id?: string
     name: string
     type: $Enums.TransactionType
-    amount: Decimal | DecimalJsLike | number | string
+    amountMode?: $Enums.RecurringAmountMode
+    amount?: Decimal | DecimalJsLike | number | string | null
     description?: string | null
     frequency: $Enums.RecurrenceFrequency
     startDate: Date | string
@@ -10905,7 +10951,8 @@ export namespace Prisma {
     categoryId?: string | null
     name: string
     type: $Enums.TransactionType
-    amount: Decimal | DecimalJsLike | number | string
+    amountMode?: $Enums.RecurringAmountMode
+    amount?: Decimal | DecimalJsLike | number | string | null
     description?: string | null
     frequency: $Enums.RecurrenceFrequency
     startDate: Date | string
@@ -10919,7 +10966,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -10939,7 +10987,8 @@ export namespace Prisma {
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -10956,7 +11005,8 @@ export namespace Prisma {
     categoryId?: string | null
     name: string
     type: $Enums.TransactionType
-    amount: Decimal | DecimalJsLike | number | string
+    amountMode?: $Enums.RecurringAmountMode
+    amount?: Decimal | DecimalJsLike | number | string | null
     description?: string | null
     frequency: $Enums.RecurrenceFrequency
     startDate: Date | string
@@ -10970,7 +11020,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -10987,7 +11038,8 @@ export namespace Prisma {
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -11667,6 +11719,24 @@ export namespace Prisma {
     _max?: NestedEnumInstallmentStatusFilter<$PrismaModel>
   }
 
+  export type EnumRecurringAmountModeFilter<$PrismaModel = never> = {
+    equals?: $Enums.RecurringAmountMode | EnumRecurringAmountModeFieldRefInput<$PrismaModel>
+    in?: $Enums.RecurringAmountMode[] | ListEnumRecurringAmountModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RecurringAmountMode[] | ListEnumRecurringAmountModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRecurringAmountModeFilter<$PrismaModel> | $Enums.RecurringAmountMode
+  }
+
+  export type DecimalNullableFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+  }
+
   export type EnumRecurrenceFrequencyFilter<$PrismaModel = never> = {
     equals?: $Enums.RecurrenceFrequency | EnumRecurrenceFrequencyFieldRefInput<$PrismaModel>
     in?: $Enums.RecurrenceFrequency[] | ListEnumRecurrenceFrequencyFieldRefInput<$PrismaModel>
@@ -11692,6 +11762,7 @@ export namespace Prisma {
     categoryId?: SortOrder
     name?: SortOrder
     type?: SortOrder
+    amountMode?: SortOrder
     amount?: SortOrder
     description?: SortOrder
     frequency?: SortOrder
@@ -11713,6 +11784,7 @@ export namespace Prisma {
     categoryId?: SortOrder
     name?: SortOrder
     type?: SortOrder
+    amountMode?: SortOrder
     amount?: SortOrder
     description?: SortOrder
     frequency?: SortOrder
@@ -11730,6 +11802,7 @@ export namespace Prisma {
     categoryId?: SortOrder
     name?: SortOrder
     type?: SortOrder
+    amountMode?: SortOrder
     amount?: SortOrder
     description?: SortOrder
     frequency?: SortOrder
@@ -11742,6 +11815,32 @@ export namespace Prisma {
 
   export type RecurringTransactionTemplateSumOrderByAggregateInput = {
     amount?: SortOrder
+  }
+
+  export type EnumRecurringAmountModeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RecurringAmountMode | EnumRecurringAmountModeFieldRefInput<$PrismaModel>
+    in?: $Enums.RecurringAmountMode[] | ListEnumRecurringAmountModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RecurringAmountMode[] | ListEnumRecurringAmountModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRecurringAmountModeWithAggregatesFilter<$PrismaModel> | $Enums.RecurringAmountMode
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRecurringAmountModeFilter<$PrismaModel>
+    _max?: NestedEnumRecurringAmountModeFilter<$PrismaModel>
+  }
+
+  export type DecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalNullableWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedDecimalNullableFilter<$PrismaModel>
+    _sum?: NestedDecimalNullableFilter<$PrismaModel>
+    _min?: NestedDecimalNullableFilter<$PrismaModel>
+    _max?: NestedDecimalNullableFilter<$PrismaModel>
   }
 
   export type EnumRecurrenceFrequencyWithAggregatesFilter<$PrismaModel = never> = {
@@ -12486,6 +12585,18 @@ export namespace Prisma {
     connect?: CategoryWhereUniqueInput
   }
 
+  export type EnumRecurringAmountModeFieldUpdateOperationsInput = {
+    set?: $Enums.RecurringAmountMode
+  }
+
+  export type NullableDecimalFieldUpdateOperationsInput = {
+    set?: Decimal | DecimalJsLike | number | string | null
+    increment?: Decimal | DecimalJsLike | number | string
+    decrement?: Decimal | DecimalJsLike | number | string
+    multiply?: Decimal | DecimalJsLike | number | string
+    divide?: Decimal | DecimalJsLike | number | string
+  }
+
   export type EnumRecurrenceFrequencyFieldUpdateOperationsInput = {
     set?: $Enums.RecurrenceFrequency
   }
@@ -12825,6 +12936,24 @@ export namespace Prisma {
     _max?: NestedEnumInstallmentStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumRecurringAmountModeFilter<$PrismaModel = never> = {
+    equals?: $Enums.RecurringAmountMode | EnumRecurringAmountModeFieldRefInput<$PrismaModel>
+    in?: $Enums.RecurringAmountMode[] | ListEnumRecurringAmountModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RecurringAmountMode[] | ListEnumRecurringAmountModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRecurringAmountModeFilter<$PrismaModel> | $Enums.RecurringAmountMode
+  }
+
+  export type NestedDecimalNullableFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+  }
+
   export type NestedEnumRecurrenceFrequencyFilter<$PrismaModel = never> = {
     equals?: $Enums.RecurrenceFrequency | EnumRecurrenceFrequencyFieldRefInput<$PrismaModel>
     in?: $Enums.RecurrenceFrequency[] | ListEnumRecurrenceFrequencyFieldRefInput<$PrismaModel>
@@ -12841,6 +12970,32 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type NestedEnumRecurringAmountModeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RecurringAmountMode | EnumRecurringAmountModeFieldRefInput<$PrismaModel>
+    in?: $Enums.RecurringAmountMode[] | ListEnumRecurringAmountModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RecurringAmountMode[] | ListEnumRecurringAmountModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRecurringAmountModeWithAggregatesFilter<$PrismaModel> | $Enums.RecurringAmountMode
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRecurringAmountModeFilter<$PrismaModel>
+    _max?: NestedEnumRecurringAmountModeFilter<$PrismaModel>
+  }
+
+  export type NestedDecimalNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel> | null
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel> | null
+    lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
+    not?: NestedDecimalNullableWithAggregatesFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedDecimalNullableFilter<$PrismaModel>
+    _sum?: NestedDecimalNullableFilter<$PrismaModel>
+    _min?: NestedDecimalNullableFilter<$PrismaModel>
+    _max?: NestedDecimalNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumRecurrenceFrequencyWithAggregatesFilter<$PrismaModel = never> = {
@@ -13061,7 +13216,8 @@ export namespace Prisma {
     id?: string
     name: string
     type: $Enums.TransactionType
-    amount: Decimal | DecimalJsLike | number | string
+    amountMode?: $Enums.RecurringAmountMode
+    amount?: Decimal | DecimalJsLike | number | string | null
     description?: string | null
     frequency: $Enums.RecurrenceFrequency
     startDate: Date | string
@@ -13079,7 +13235,8 @@ export namespace Prisma {
     categoryId?: string | null
     name: string
     type: $Enums.TransactionType
-    amount: Decimal | DecimalJsLike | number | string
+    amountMode?: $Enums.RecurringAmountMode
+    amount?: Decimal | DecimalJsLike | number | string | null
     description?: string | null
     frequency: $Enums.RecurrenceFrequency
     startDate: Date | string
@@ -13273,7 +13430,8 @@ export namespace Prisma {
     categoryId?: StringNullableFilter<"RecurringTransactionTemplate"> | string | null
     name?: StringFilter<"RecurringTransactionTemplate"> | string
     type?: EnumTransactionTypeFilter<"RecurringTransactionTemplate"> | $Enums.TransactionType
-    amount?: DecimalFilter<"RecurringTransactionTemplate"> | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFilter<"RecurringTransactionTemplate"> | $Enums.RecurringAmountMode
+    amount?: DecimalNullableFilter<"RecurringTransactionTemplate"> | Decimal | DecimalJsLike | number | string | null
     description?: StringNullableFilter<"RecurringTransactionTemplate"> | string | null
     frequency?: EnumRecurrenceFrequencyFilter<"RecurringTransactionTemplate"> | $Enums.RecurrenceFrequency
     startDate?: DateTimeFilter<"RecurringTransactionTemplate"> | Date | string
@@ -13458,7 +13616,8 @@ export namespace Prisma {
     id?: string
     name: string
     type: $Enums.TransactionType
-    amount: Decimal | DecimalJsLike | number | string
+    amountMode?: $Enums.RecurringAmountMode
+    amount?: Decimal | DecimalJsLike | number | string | null
     description?: string | null
     frequency: $Enums.RecurrenceFrequency
     startDate: Date | string
@@ -13476,7 +13635,8 @@ export namespace Prisma {
     categoryId?: string | null
     name: string
     type: $Enums.TransactionType
-    amount: Decimal | DecimalJsLike | number | string
+    amountMode?: $Enums.RecurringAmountMode
+    amount?: Decimal | DecimalJsLike | number | string | null
     description?: string | null
     frequency: $Enums.RecurrenceFrequency
     startDate: Date | string
@@ -13672,7 +13832,8 @@ export namespace Prisma {
     id?: string
     name: string
     type: $Enums.TransactionType
-    amount: Decimal | DecimalJsLike | number | string
+    amountMode?: $Enums.RecurringAmountMode
+    amount?: Decimal | DecimalJsLike | number | string | null
     description?: string | null
     frequency: $Enums.RecurrenceFrequency
     startDate: Date | string
@@ -13690,7 +13851,8 @@ export namespace Prisma {
     walletId: string
     name: string
     type: $Enums.TransactionType
-    amount: Decimal | DecimalJsLike | number | string
+    amountMode?: $Enums.RecurringAmountMode
+    amount?: Decimal | DecimalJsLike | number | string | null
     description?: string | null
     frequency: $Enums.RecurrenceFrequency
     startDate: Date | string
@@ -14789,7 +14951,8 @@ export namespace Prisma {
     categoryId?: string | null
     name: string
     type: $Enums.TransactionType
-    amount: Decimal | DecimalJsLike | number | string
+    amountMode?: $Enums.RecurringAmountMode
+    amount?: Decimal | DecimalJsLike | number | string | null
     description?: string | null
     frequency: $Enums.RecurrenceFrequency
     startDate: Date | string
@@ -15021,7 +15184,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15039,7 +15203,8 @@ export namespace Prisma {
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15055,7 +15220,8 @@ export namespace Prisma {
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15125,7 +15291,8 @@ export namespace Prisma {
     categoryId?: string | null
     name: string
     type: $Enums.TransactionType
-    amount: Decimal | DecimalJsLike | number | string
+    amountMode?: $Enums.RecurringAmountMode
+    amount?: Decimal | DecimalJsLike | number | string | null
     description?: string | null
     frequency: $Enums.RecurrenceFrequency
     startDate: Date | string
@@ -15303,7 +15470,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15321,7 +15489,8 @@ export namespace Prisma {
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15337,7 +15506,8 @@ export namespace Prisma {
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15368,7 +15538,8 @@ export namespace Prisma {
     walletId: string
     name: string
     type: $Enums.TransactionType
-    amount: Decimal | DecimalJsLike | number | string
+    amountMode?: $Enums.RecurringAmountMode
+    amount?: Decimal | DecimalJsLike | number | string | null
     description?: string | null
     frequency: $Enums.RecurrenceFrequency
     startDate: Date | string
@@ -15427,7 +15598,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15445,7 +15617,8 @@ export namespace Prisma {
     walletId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15461,7 +15634,8 @@ export namespace Prisma {
     walletId?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
-    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string

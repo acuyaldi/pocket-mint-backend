@@ -28,6 +28,7 @@ const baseInput = {
   name: 'Netflix',
   walletId: 'wallet-1',
   type: 'EXPENSE' as const,
+  amountMode: 'FIXED' as const,
   amount: 54000,
   frequency: 'MONTHLY' as const,
   startDate: '2026-08-01',
@@ -77,6 +78,30 @@ describe('recurring transaction service', () => {
     ).rejects.toThrow(RecurringTransactionError);
   });
 
+  it('rejects an invalid amountMode', async () => {
+    const db = makeDb();
+    await expect(
+      createRecurringTransactionService(db as any).createRecurringTransaction({ ...baseInput, amountMode: 'VARIABLE' as any })
+    ).rejects.toThrow(RecurringTransactionError);
+  });
+
+  it('rejects a FIXED template with no amount', async () => {
+    const db = makeDb();
+    await expect(
+      createRecurringTransactionService(db as any).createRecurringTransaction({ ...baseInput, amount: undefined })
+    ).rejects.toThrow(RecurringTransactionError);
+  });
+
+  it('creates a FLEXIBLE template with a null amount, ignoring any amount sent', async () => {
+    const db = makeDb();
+    const created = await createRecurringTransactionService(db as any).createRecurringTransaction({
+      ...baseInput,
+      amountMode: 'FLEXIBLE',
+      amount: 54000,
+    });
+    expect(created).toMatchObject({ amountMode: 'FLEXIBLE', amount: null });
+  });
+
   it('rejects an invalid frequency', async () => {
     const db = makeDb();
     await expect(
@@ -108,6 +133,8 @@ describe('recurring transaction service', () => {
     db.recurringTransactionTemplate.findFirst.mockResolvedValue({
       id: 'rec-1',
       userId: 'user-1',
+      amountMode: 'FIXED',
+      amount: 54000,
       startDate: new Date('2026-08-01'),
       endDate: null,
     } as any);
@@ -120,6 +147,55 @@ describe('recurring transaction service', () => {
 
     expect(db.recurringTransactionTemplate.findFirst).toHaveBeenCalledWith({ where: { id: 'rec-1', userId: 'user-1' } });
     expect(updated).toMatchObject({ isActive: false });
+  });
+
+  it('FIXED to FLEXIBLE update persists a null amount even if an amount is sent', async () => {
+    const db = makeDb();
+    db.recurringTransactionTemplate.findFirst.mockResolvedValue({
+      id: 'rec-1',
+      userId: 'user-1',
+      amountMode: 'FIXED',
+      amount: 54000,
+      startDate: new Date('2026-08-01'),
+      endDate: null,
+    } as any);
+
+    const updated = await createRecurringTransactionService(db as any).updateRecurringTransaction({
+      userId: 'user-1',
+      id: 'rec-1',
+      amountMode: 'FLEXIBLE',
+      amount: 99000,
+    });
+
+    expect(updated).toMatchObject({ amountMode: 'FLEXIBLE', amount: null });
+  });
+
+  it('FLEXIBLE to FIXED update requires a positive amount', async () => {
+    const db = makeDb();
+    db.recurringTransactionTemplate.findFirst.mockResolvedValue({
+      id: 'rec-1',
+      userId: 'user-1',
+      amountMode: 'FLEXIBLE',
+      amount: null,
+      startDate: new Date('2026-08-01'),
+      endDate: null,
+    } as any);
+
+    await expect(
+      createRecurringTransactionService(db as any).updateRecurringTransaction({
+        userId: 'user-1',
+        id: 'rec-1',
+        amountMode: 'FIXED',
+      })
+    ).rejects.toThrow(RecurringTransactionError);
+
+    const updated = await createRecurringTransactionService(db as any).updateRecurringTransaction({
+      userId: 'user-1',
+      id: 'rec-1',
+      amountMode: 'FIXED',
+      amount: 75000,
+    });
+    expect(updated).toMatchObject({ amountMode: 'FIXED', amount: 75000 });
   });
 
   it('rejects updating a template that does not belong to the user', async () => {

@@ -49,6 +49,17 @@ describe('recurring transaction controller', () => {
     expect(h.listRecurringTransactions).toHaveBeenCalledWith('user-1');
   });
 
+  it('passes through a null amount for FLEXIBLE templates without touching it', async () => {
+    h.listRecurringTransactions.mockResolvedValue([
+      { id: 'rec-2', name: 'Groceries', amountMode: 'FLEXIBLE', amount: null },
+    ]);
+
+    const response = await request(app()).get('/recurring-transactions');
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual([{ id: 'rec-2', name: 'Groceries', amountMode: 'FLEXIBLE', amount: null }]);
+  });
+
   it('rejects a missing authenticated identity on every route', async () => {
     const instance = app(false);
     expect((await request(instance).get('/recurring-transactions')).status).toBe(401);
@@ -69,6 +80,7 @@ describe('recurring transaction controller', () => {
         name: 'Netflix',
         walletId: 'wallet-1',
         type: 'EXPENSE',
+        amountMode: 'FIXED',
         amount: 54000,
         frequency: 'MONTHLY',
         startDate: '2026-08-01',
@@ -82,6 +94,7 @@ describe('recurring transaction controller', () => {
       walletId: 'wallet-1',
       categoryId: undefined,
       type: 'EXPENSE',
+      amountMode: 'FIXED',
       amount: 54000,
       description: undefined,
       frequency: 'MONTHLY',

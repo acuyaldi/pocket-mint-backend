@@ -21,6 +21,17 @@ const recurringTransaction_errors_1 = require("./recurringTransaction.errors");
 const recurringTransaction_types_1 = require("./recurringTransaction.types");
 const VALID_TYPES = ['INCOME', 'EXPENSE'];
 const VALID_FREQUENCIES = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
+const VALID_AMOUNT_MODES = ['FIXED', 'FLEXIBLE'];
+/** FIXED requires a positive amount; FLEXIBLE always persists a null amount. */
+function resolveAmount(amountMode, amount) {
+    if (amountMode === 'FLEXIBLE') {
+        return null;
+    }
+    if (amount === undefined || amount === null || isNaN(Number(amount)) || Number(amount) <= 0) {
+        throw new recurringTransaction_errors_1.RecurringTransactionError('amount is required and must be a positive number when amountMode is FIXED', 400, 'BAD_REQUEST');
+    }
+    return Number(amount);
+}
 function parseDate(value, field) {
     try {
         return (0, reportingTime_1.parseBusinessDate)(value, config_1.reportingConfig.timezone);
@@ -57,10 +68,10 @@ function createRecurringTransactionService(db) {
         if (!type || !VALID_TYPES.includes(type)) {
             throw new recurringTransaction_errors_1.RecurringTransactionError(`type is required and must be one of: ${VALID_TYPES.join(', ')}`, 400, 'BAD_REQUEST');
         }
-        const { amount } = input;
-        if (amount === undefined || amount === null || isNaN(Number(amount)) || Number(amount) <= 0) {
-            throw new recurringTransaction_errors_1.RecurringTransactionError('amount is required and must be a positive number', 400, 'BAD_REQUEST');
+        if (!input.amountMode || !VALID_AMOUNT_MODES.includes(input.amountMode)) {
+            throw new recurringTransaction_errors_1.RecurringTransactionError(`amountMode is required and must be one of: ${VALID_AMOUNT_MODES.join(', ')}`, 400, 'BAD_REQUEST');
         }
+        const amount = resolveAmount(input.amountMode, input.amount);
         if (!input.frequency || !VALID_FREQUENCIES.includes(input.frequency)) {
             throw new recurringTransaction_errors_1.RecurringTransactionError(`frequency is required and must be one of: ${VALID_FREQUENCIES.join(', ')}`, 400, 'BAD_REQUEST');
         }
@@ -83,7 +94,8 @@ function createRecurringTransactionService(db) {
                 walletId,
                 categoryId: categoryId ?? null,
                 type,
-                amount: Number(amount),
+                amountMode: input.amountMode,
+                amount,
                 description,
                 frequency: input.frequency,
                 startDate,
@@ -104,12 +116,17 @@ function createRecurringTransactionService(db) {
         if (input.type !== undefined && !VALID_TYPES.includes(input.type)) {
             throw new recurringTransaction_errors_1.RecurringTransactionError(`type must be one of: ${VALID_TYPES.join(', ')}`, 400, 'BAD_REQUEST');
         }
-        if (input.amount !== undefined && (isNaN(Number(input.amount)) || Number(input.amount) <= 0)) {
-            throw new recurringTransaction_errors_1.RecurringTransactionError('amount must be a positive number', 400, 'BAD_REQUEST');
+        if (input.amountMode !== undefined && !VALID_AMOUNT_MODES.includes(input.amountMode)) {
+            throw new recurringTransaction_errors_1.RecurringTransactionError(`amountMode must be one of: ${VALID_AMOUNT_MODES.join(', ')}`, 400, 'BAD_REQUEST');
         }
         if (input.frequency !== undefined && !VALID_FREQUENCIES.includes(input.frequency)) {
             throw new recurringTransaction_errors_1.RecurringTransactionError(`frequency must be one of: ${VALID_FREQUENCIES.join(', ')}`, 400, 'BAD_REQUEST');
         }
+        // Validate the final merged state, not just the fields present in this request —
+        // a partial update (e.g. amountMode alone) must still leave amount consistent.
+        const finalAmountMode = input.amountMode ?? existing.amountMode;
+        const amountSource = input.amount !== undefined ? input.amount : existing.amount;
+        const amount = resolveAmount(finalAmountMode, amountSource);
         const startDate = input.startDate !== undefined ? parseDate(input.startDate, 'startDate') : existing.startDate;
         const endDate = input.endDate !== undefined ? parseDate(input.endDate, 'endDate') : existing.endDate ?? undefined;
         if (endDate && endDate < startDate) {
@@ -128,7 +145,8 @@ function createRecurringTransactionService(db) {
                 walletId: input.walletId,
                 categoryId: input.categoryId,
                 type: input.type,
-                amount: input.amount !== undefined ? Number(input.amount) : undefined,
+                amountMode: finalAmountMode,
+                amount,
                 description: input.description,
                 frequency: input.frequency,
                 startDate: input.startDate !== undefined ? startDate : undefined,

@@ -23,6 +23,7 @@ function mapCreateRequest(
     walletId: b.walletId,
     categoryId: b.categoryId,
     type: b.type,
+    amountMode: b.amountMode,
     amount: b.amount,
     description: b.description,
     frequency: b.frequency,
@@ -44,6 +45,7 @@ function mapUpdateRequest(
     walletId: b.walletId,
     categoryId: b.categoryId,
     type: b.type,
+    amountMode: b.amountMode,
     amount: b.amount,
     description: b.description,
     frequency: b.frequency,
@@ -53,10 +55,10 @@ function mapUpdateRequest(
   };
 }
 
-// Decimal (Prisma) → number agar JSON-nya bersih buat frontend
-const serialize = (template: RecurringTransactionWithRelations & { amount: Prisma.Decimal }) => ({
+// Decimal (Prisma) → number agar JSON-nya bersih buat frontend; null (FLEXIBLE) passes through.
+const serialize = (template: RecurringTransactionWithRelations & { amount: Prisma.Decimal | null }) => ({
   ...template,
-  amount: parseFloat(template.amount.toString()),
+  amount: template.amount === null ? null : parseFloat(template.amount.toString()),
 });
 
 export class RecurringTransactionController {

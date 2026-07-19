@@ -1,5 +1,5 @@
 import type { PrismaClient, Prisma } from '../generated/prisma/client';
-import type { RecurrenceFrequency, RecurringTransactionType } from '../models/recurringTransaction.model';
+import type { RecurrenceFrequency, RecurringTransactionType, RecurringAmountMode } from '../models/recurringTransaction.model';
 export type RecurringTransactionPrismaClient = Pick<PrismaClient, 'recurringTransactionTemplate' | 'wallet' | 'category'>;
 /** Amount accepted from the controller; normalized to Decimal inside the service. */
 export type DecimalInput = Prisma.Decimal | number | string;
@@ -9,7 +9,9 @@ export interface CreateRecurringTransactionInput {
     walletId: string;
     categoryId?: string;
     type: RecurringTransactionType;
-    amount: DecimalInput;
+    amountMode: RecurringAmountMode;
+    /** Required when amountMode is FIXED; ignored (stored as null) when FLEXIBLE. */
+    amount?: DecimalInput;
     description?: string;
     frequency: RecurrenceFrequency;
     /** ISO day (`YYYY-MM-DD`) or offset timestamp; normalized in the service. */
@@ -22,6 +24,7 @@ export interface UpdateRecurringTransactionFields {
     walletId?: string;
     categoryId?: string;
     type?: RecurringTransactionType;
+    amountMode?: RecurringAmountMode;
     amount?: DecimalInput;
     description?: string;
     frequency?: RecurrenceFrequency;
