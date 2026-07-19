@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RecurringTransactionController = void 0;
 const response_1 = require("../utils/response");
 const recurringTransaction_service_1 = require("../services/recurringTransaction.service");
+const config_1 = require("../config");
+const reportingTime_1 = require("../domain/reportingTime");
+const billingCycle_1 = require("../domain/billingCycle");
 const authContext_1 = require("../http/authContext");
 const forwardError_1 = require("../http/forwardError");
 /** Allowlist create fields from the request body into the service input. */
@@ -20,6 +23,8 @@ function mapCreateRequest(req, userId) {
         frequency: b.frequency,
         startDate: b.startDate,
         endDate: b.endDate,
+        reminderEnabled: b.reminderEnabled,
+        reminderOffsetDays: b.reminderOffsetDays,
     };
 }
 /** Allowlist update fields from the request body into the service input. */
@@ -39,13 +44,23 @@ function mapUpdateRequest(req, userId) {
         startDate: b.startDate,
         endDate: b.endDate,
         isActive: b.isActive,
+        reminderEnabled: b.reminderEnabled,
+        reminderOffsetDays: b.reminderOffsetDays,
     };
 }
 // Decimal (Prisma) → number agar JSON-nya bersih buat frontend; null (FLEXIBLE) passes through.
-const serialize = (template) => ({
-    ...template,
-    amount: template.amount === null ? null : parseFloat(template.amount.toString()),
-});
+// nextDueDate: derived, display-only projection from the template (Phase 2) — monthly-only, null when
+// paused or once endDate has passed. No transaction generation happens here.
+const serialize = (template) => {
+    const nextDueDate = template.isActive && template.frequency === 'MONTHLY'
+        ? (0, billingCycle_1.nextMonthlyOccurrence)((0, reportingTime_1.formatReportingDate)(template.startDate, config_1.reportingConfig.timezone), template.endDate ? (0, reportingTime_1.formatReportingDate)(template.endDate, config_1.reportingConfig.timezone) : null, (0, reportingTime_1.formatReportingDate)(new Date(), config_1.reportingConfig.timezone))
+        : null;
+    return {
+        ...template,
+        amount: template.amount === null ? null : parseFloat(template.amount.toString()),
+        nextDueDate,
+    };
+};
 class RecurringTransactionController {
     // GET /api/v1/recurring-transactions
     static async getAll(req, res, next) {

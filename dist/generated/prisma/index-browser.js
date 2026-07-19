@@ -215,8 +215,20 @@ exports.Prisma.RecurringTransactionTemplateScalarFieldEnum = {
   startDate: 'startDate',
   endDate: 'endDate',
   isActive: 'isActive',
+  reminderEnabled: 'reminderEnabled',
+  reminderOffsetDays: 'reminderOffsetDays',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.RecurringReminderEventScalarFieldEnum = {
+  id: 'id',
+  templateId: 'templateId',
+  userId: 'userId',
+  occurrenceDate: 'occurrenceDate',
+  offsetDays: 'offsetDays',
+  reminderDate: 'reminderDate',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -287,7 +299,8 @@ exports.Prisma.ModelName = {
   Category: 'Category',
   Transaction: 'Transaction',
   Installment: 'Installment',
-  RecurringTransactionTemplate: 'RecurringTransactionTemplate'
+  RecurringTransactionTemplate: 'RecurringTransactionTemplate',
+  RecurringReminderEvent: 'RecurringReminderEvent'
 };
 
 /**

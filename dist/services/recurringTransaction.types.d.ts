@@ -17,6 +17,8 @@ export interface CreateRecurringTransactionInput {
     /** ISO day (`YYYY-MM-DD`) or offset timestamp; normalized in the service. */
     startDate: string;
     endDate?: string;
+    reminderEnabled?: boolean;
+    reminderOffsetDays?: number | null;
 }
 /** Update fields; `undefined` means "omitted" (keep the persisted value). */
 export interface UpdateRecurringTransactionFields {
@@ -31,6 +33,8 @@ export interface UpdateRecurringTransactionFields {
     startDate?: string;
     endDate?: string;
     isActive?: boolean;
+    reminderEnabled?: boolean;
+    reminderOffsetDays?: number | null;
 }
 export interface UpdateRecurringTransactionInput extends UpdateRecurringTransactionFields {
     userId: string;

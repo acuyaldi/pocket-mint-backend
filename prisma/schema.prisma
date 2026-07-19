@@ -253,6 +253,8 @@ model RecurringTransactionTemplate {
   startDate   DateTime             @map("start_date")
   endDate     DateTime?            @map("end_date")
   isActive    Boolean              @default(true) @map("is_active")
+  reminderEnabled    Boolean        @default(false) @map("reminder_enabled")
+  reminderOffsetDays Int?           @map("reminder_offset_days")
   createdAt   DateTime             @default(now()) @map("created_at")
   updatedAt   DateTime             @updatedAt @map("updated_at")
 
@@ -260,9 +262,29 @@ model RecurringTransactionTemplate {
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   wallet   Wallet    @relation(fields: [walletId], references: [id], onDelete: Cascade)
   category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  reminderEvents RecurringReminderEvent[]
 
   @@index([userId, isActive])
   @@map("recurring_transaction_templates")
+}
+
+// Phase 4: one row per (template, occurrence, offset) that the reminder engine
+// has already fired — the unique constraint is what makes re-running the
+// engine for the same evaluation date a no-op instead of a duplicate.
+model RecurringReminderEvent {
+  id             String   @id @default(cuid())
+  templateId     String   @map("template_id")
+  userId         String   @map("user_id")
+  occurrenceDate DateTime @map("occurrence_date")
+  offsetDays     Int      @map("offset_days")
+  reminderDate   DateTime @map("reminder_date")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  template RecurringTransactionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, occurrenceDate, offsetDays])
+  @@index([userId, reminderDate])
+  @@map("recurring_reminder_events")
 }
 
 

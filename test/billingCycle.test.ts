@@ -3,6 +3,7 @@ import {
   addBillingMonth,
   calculateFirstDueDate,
   clampDay,
+  nextMonthlyOccurrence,
 } from '../src/domain/billingCycle';
 
 describe('billing cycle calendar', () => {
@@ -65,5 +66,31 @@ describe('billing cycle calendar', () => {
         timeZone: 'Asia/Jakarta',
       }),
     ).toThrow('cutoffDay harus antara 1 dan 31');
+  });
+});
+
+describe('nextMonthlyOccurrence', () => {
+  it('returns the start date itself when it has not happened yet', () => {
+    expect(nextMonthlyOccurrence('2026-08-15', null, '2026-07-19')).toBe('2026-08-15');
+  });
+
+  it('returns this month occurrence when still upcoming', () => {
+    expect(nextMonthlyOccurrence('2026-01-15', null, '2026-07-10')).toBe('2026-07-15');
+  });
+
+  it('rolls to next month once this month day has passed', () => {
+    expect(nextMonthlyOccurrence('2026-01-15', null, '2026-07-20')).toBe('2026-08-15');
+  });
+
+  it('clamps to the last day of short months', () => {
+    expect(nextMonthlyOccurrence('2026-01-31', null, '2026-02-15')).toBe('2026-02-28');
+  });
+
+  it('returns null once past the recurrence end date', () => {
+    expect(nextMonthlyOccurrence('2026-01-15', '2026-06-15', '2026-07-01')).toBe(null);
+  });
+
+  it('returns null when the end date is before the first occurrence', () => {
+    expect(nextMonthlyOccurrence('2026-08-15', '2026-08-01', '2026-07-19')).toBe(null);
   });
 });

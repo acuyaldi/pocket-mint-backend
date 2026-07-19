@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.clampDay = clampDay;
 exports.addBillingMonth = addBillingMonth;
+exports.nextMonthlyOccurrence = nextMonthlyOccurrence;
 exports.calculateFirstDueDate = calculateFirstDueDate;
 function parseCalendarDate(value) {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
@@ -40,6 +41,23 @@ function addBillingMonth(date, months) {
     const targetYear = Math.floor(target / 12);
     const targetMonthIndex = ((target % 12) + 12) % 12;
     return clampDay(targetYear, targetMonthIndex, parsed.day);
+}
+/** Next monthly occurrence on/after `todayStr`, clamped to `endDate` (inclusive), or null once the recurrence has ended. */
+function nextMonthlyOccurrence(startDate, endDate, todayStr) {
+    if (startDate > todayStr) {
+        return endDate && startDate > endDate ? null : startDate;
+    }
+    const start = parseCalendarDate(startDate);
+    const today = parseCalendarDate(todayStr);
+    let months = (today.year - start.year) * 12 + (today.monthIndex - start.monthIndex);
+    let candidate = addBillingMonth(startDate, months);
+    if (candidate < todayStr) {
+        months += 1;
+        candidate = addBillingMonth(startDate, months);
+    }
+    if (endDate && candidate > endDate)
+        return null;
+    return candidate;
 }
 function calculateFirstDueDate(input) {
     if (input.timeZone !== 'Asia/Jakarta')

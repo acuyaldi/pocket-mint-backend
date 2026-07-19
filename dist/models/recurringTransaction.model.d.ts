@@ -13,6 +13,9 @@ export interface CreateRecurringTransactionDto {
     frequency: RecurrenceFrequency;
     startDate: string;
     endDate?: string;
+    /** When true, reminderOffsetDays is required and must be one of 0/1/3/7. */
+    reminderEnabled?: boolean;
+    reminderOffsetDays?: number | null;
 }
 export interface UpdateRecurringTransactionDto {
     name?: string;
@@ -26,5 +29,7 @@ export interface UpdateRecurringTransactionDto {
     startDate?: string;
     endDate?: string;
     isActive?: boolean;
+    reminderEnabled?: boolean;
+    reminderOffsetDays?: number | null;
 }
 //# sourceMappingURL=recurringTransaction.model.d.ts.map

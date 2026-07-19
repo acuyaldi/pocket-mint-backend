@@ -3,6 +3,9 @@ import { Prisma } from '../generated/prisma/client';
 import { sendSuccess, sendError } from '../utils/response';
 import { CreateRecurringTransactionDto, UpdateRecurringTransactionDto } from '../models/recurringTransaction.model';
 import { recurringTransactionService } from '../services/recurringTransaction.service';
+import { reportingConfig } from '../config';
+import { formatReportingDate } from '../domain/reportingTime';
+import { nextMonthlyOccurrence } from '../domain/billingCycle';
 import type {
   CreateRecurringTransactionInput,
   UpdateRecurringTransactionInput,
@@ -29,6 +32,8 @@ function mapCreateRequest(
     frequency: b.frequency,
     startDate: b.startDate,
     endDate: b.endDate,
+    reminderEnabled: b.reminderEnabled,
+    reminderOffsetDays: b.reminderOffsetDays,
   };
 }
 
@@ -52,14 +57,29 @@ function mapUpdateRequest(
     startDate: b.startDate,
     endDate: b.endDate,
     isActive: b.isActive,
+    reminderEnabled: b.reminderEnabled,
+    reminderOffsetDays: b.reminderOffsetDays,
   };
 }
 
 // Decimal (Prisma) → number agar JSON-nya bersih buat frontend; null (FLEXIBLE) passes through.
-const serialize = (template: RecurringTransactionWithRelations & { amount: Prisma.Decimal | null }) => ({
-  ...template,
-  amount: template.amount === null ? null : parseFloat(template.amount.toString()),
-});
+// nextDueDate: derived, display-only projection from the template (Phase 2) — monthly-only, null when
+// paused or once endDate has passed. No transaction generation happens here.
+const serialize = (template: RecurringTransactionWithRelations & { amount: Prisma.Decimal | null }) => {
+  const nextDueDate =
+    template.isActive && template.frequency === 'MONTHLY'
+      ? nextMonthlyOccurrence(
+          formatReportingDate(template.startDate, reportingConfig.timezone),
+          template.endDate ? formatReportingDate(template.endDate, reportingConfig.timezone) : null,
+          formatReportingDate(new Date(), reportingConfig.timezone)
+        )
+      : null;
+  return {
+    ...template,
+    amount: template.amount === null ? null : parseFloat(template.amount.toString()),
+    nextDueDate,
+  };
+};
 
 export class RecurringTransactionController {
   // GET /api/v1/recurring-transactions
