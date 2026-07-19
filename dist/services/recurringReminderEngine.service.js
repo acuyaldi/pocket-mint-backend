@@ -32,9 +32,9 @@ function subtractDays(dateStr, days) {
     return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
 }
 function createRecurringReminderEngineService(db) {
-    async function evaluateReminders(evaluationDate) {
+    async function evaluateReminders(evaluationDate, userId) {
         const templates = await db.recurringTransactionTemplate.findMany({
-            where: { isActive: true, reminderEnabled: true, frequency: 'MONTHLY' },
+            where: { isActive: true, reminderEnabled: true, frequency: 'MONTHLY', ...(userId ? { userId } : {}) },
             select: { id: true, userId: true, startDate: true, endDate: true, reminderOffsetDays: true },
         });
         const events = [];
@@ -67,7 +67,7 @@ function createRecurringReminderEngineService(db) {
             events.push(event);
         }
         const installments = await db.installment.findMany({
-            where: { status: 'ACTIVE' },
+            where: { status: 'ACTIVE', ...(userId ? { userId } : {}) },
             select: { id: true, userId: true, nextDueDate: true },
         });
         for (const installment of installments) {

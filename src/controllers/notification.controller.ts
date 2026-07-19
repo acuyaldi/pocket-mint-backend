@@ -54,6 +54,20 @@ export class NotificationController {
     }
   }
 
+  // POST /api/v1/notifications/refresh
+  static async refresh(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = getAuthenticatedUserId(req);
+      if (!userId) {
+        return sendError(res, 'Unauthorized', 401);
+      }
+      const notifications = await notificationService.refreshNotifications(userId);
+      sendSuccess(res, notifications.map(serialize), 'Notifications refreshed');
+    } catch (err) {
+      forwardError(err, res, next);
+    }
+  }
+
   // PATCH /api/v1/notifications/:id/read
   static async markRead(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
     try {

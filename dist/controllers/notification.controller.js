@@ -52,6 +52,20 @@ class NotificationController {
             (0, forwardError_1.forwardError)(err, res, next);
         }
     }
+    // POST /api/v1/notifications/refresh
+    static async refresh(req, res, next) {
+        try {
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId) {
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            }
+            const notifications = await notification_service_1.notificationService.refreshNotifications(userId);
+            (0, response_1.sendSuccess)(res, notifications.map(serialize), 'Notifications refreshed');
+        }
+        catch (err) {
+            (0, forwardError_1.forwardError)(err, res, next);
+        }
+    }
     // PATCH /api/v1/notifications/:id/read
     static async markRead(req, res, next) {
         try {

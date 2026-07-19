@@ -3,6 +3,11 @@ import { Prisma } from '../src/generated/prisma/client';
 
 vi.mock('../src/lib/prisma', () => ({ default: {} }));
 
+const { evaluateReminders } = vi.hoisted(() => ({ evaluateReminders: vi.fn(async () => []) }));
+vi.mock('../src/services/recurringReminderEngine.service', () => ({
+  recurringReminderEngineService: { evaluateReminders },
+}));
+
 import { createNotificationService } from '../src/services/notification.service';
 import { NotificationError } from '../src/services/notification.errors';
 
@@ -105,6 +110,19 @@ describe('notification service', () => {
     await createNotificationService(db as any).listNotifications('user-1');
     expect(db.recurringReminderEvent.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: { userId: 'user-1' }, orderBy: { reminderDate: 'desc' } })
+    );
+  });
+
+  it('refreshes notifications by evaluating reminders for the authenticated user only, then re-lists', async () => {
+    const db = makeDb();
+    evaluateReminders.mockClear();
+
+    await createNotificationService(db as any).refreshNotifications('user-1');
+
+    expect(evaluateReminders).toHaveBeenCalledTimes(1);
+    expect(evaluateReminders).toHaveBeenCalledWith(expect.any(String), 'user-1');
+    expect(db.recurringReminderEvent.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { userId: 'user-1' } })
     );
   });
 

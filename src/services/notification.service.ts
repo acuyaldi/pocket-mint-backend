@@ -12,6 +12,9 @@ import { Prisma } from '../generated/prisma/client';
 import { applyBalanceDeltas, computeBalanceEffect, type FinancialTxType } from '../domain/transactionBalance';
 import { TRANSACTION_INCLUDE } from './transaction.types';
 import { NotificationError } from './notification.errors';
+import { recurringReminderEngineService } from './recurringReminderEngine.service';
+import { reportingConfig } from '../config';
+import { formatReportingDate } from '../domain/reportingTime';
 import {
   NOTIFICATION_INCLUDE,
   type NotificationPrismaClient,
@@ -29,6 +32,18 @@ export function createNotificationService(db: NotificationPrismaClient) {
       include: NOTIFICATION_INCLUDE,
       orderBy: { reminderDate: 'desc' },
     });
+  }
+
+  /**
+   * Explicit, on-demand materialization for the calling user only: runs the
+   * reminder engine scoped to userId for "today" (reportingConfig timezone),
+   * then returns the up-to-date list. GET /notifications never calls this —
+   * it stays purely read-only (see notification.controller.ts getAll).
+   */
+  async function refreshNotifications(userId: string): Promise<NotificationWithTemplate[]> {
+    const today = formatReportingDate(new Date(), reportingConfig.timezone);
+    await recurringReminderEngineService.evaluateReminders(today, userId);
+    return listNotifications(userId);
   }
 
   async function markNotificationRead(input: MarkNotificationReadInput): Promise<NotificationWithTemplate> {
@@ -145,6 +160,7 @@ export function createNotificationService(db: NotificationPrismaClient) {
 
   return {
     listNotifications,
+    refreshNotifications,
     markNotificationRead,
     markAllNotificationsRead,
     confirmReminder,

@@ -18,6 +18,9 @@ const client_1 = require("../generated/prisma/client");
 const transactionBalance_1 = require("../domain/transactionBalance");
 const transaction_types_1 = require("./transaction.types");
 const notification_errors_1 = require("./notification.errors");
+const recurringReminderEngine_service_1 = require("./recurringReminderEngine.service");
+const config_1 = require("../config");
+const reportingTime_1 = require("../domain/reportingTime");
 const notification_types_1 = require("./notification.types");
 function createNotificationService(db) {
     async function listNotifications(userId) {
@@ -26,6 +29,17 @@ function createNotificationService(db) {
             include: notification_types_1.NOTIFICATION_INCLUDE,
             orderBy: { reminderDate: 'desc' },
         });
+    }
+    /**
+     * Explicit, on-demand materialization for the calling user only: runs the
+     * reminder engine scoped to userId for "today" (reportingConfig timezone),
+     * then returns the up-to-date list. GET /notifications never calls this —
+     * it stays purely read-only (see notification.controller.ts getAll).
+     */
+    async function refreshNotifications(userId) {
+        const today = (0, reportingTime_1.formatReportingDate)(new Date(), config_1.reportingConfig.timezone);
+        await recurringReminderEngine_service_1.recurringReminderEngineService.evaluateReminders(today, userId);
+        return listNotifications(userId);
     }
     async function markNotificationRead(input) {
         const { userId, id } = input;
@@ -133,6 +147,7 @@ function createNotificationService(db) {
     }
     return {
         listNotifications,
+        refreshNotifications,
         markNotificationRead,
         markAllNotificationsRead,
         confirmReminder,

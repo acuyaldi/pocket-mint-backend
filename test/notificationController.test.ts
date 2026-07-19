@@ -7,6 +7,7 @@ import { Prisma } from '../src/generated/prisma/client';
 
 const h = vi.hoisted(() => ({
   listNotifications: vi.fn(),
+  refreshNotifications: vi.fn(),
   markNotificationRead: vi.fn(),
   markAllNotificationsRead: vi.fn(),
   confirmReminder: vi.fn(),
@@ -29,6 +30,7 @@ function app(authenticated = true) {
     });
   }
   instance.get('/notifications', NotificationController.getAll);
+  instance.post('/notifications/refresh', NotificationController.refresh);
   instance.patch('/notifications/read-all', NotificationController.markAllRead);
   instance.patch('/notifications/:id/read', NotificationController.markRead);
   instance.post('/notifications/:id/confirm', NotificationController.confirm);
@@ -55,6 +57,24 @@ describe('notification controller', () => {
     expect(response.status).toBe(200);
     expect(response.body.data[0]).toMatchObject({ id: 'evt-1', templateId: 'rec-1', templateName: 'Netflix' });
     expect(h.listNotifications).toHaveBeenCalledWith('user-1');
+  });
+
+  it('refreshes notifications for the authenticated user and returns the up-to-date list', async () => {
+    h.refreshNotifications.mockResolvedValue([notification]);
+
+    const response = await request(app()).post('/notifications/refresh');
+
+    expect(response.status).toBe(200);
+    expect(response.body.data[0]).toMatchObject({ id: 'evt-1', templateId: 'rec-1' });
+    expect(h.refreshNotifications).toHaveBeenCalledWith('user-1');
+    expect(h.listNotifications).not.toHaveBeenCalled();
+  });
+
+  it('rejects refresh for an unauthenticated request', async () => {
+    const response = await request(app(false)).post('/notifications/refresh');
+
+    expect(response.status).toBe(401);
+    expect(h.refreshNotifications).not.toHaveBeenCalled();
   });
 
   it('marks a notification as read by id', async () => {
