@@ -43,6 +43,11 @@ export type Installment = $Result.DefaultSelection<Prisma.$InstallmentPayload>
  * 
  */
 export type RecurringTransactionTemplate = $Result.DefaultSelection<Prisma.$RecurringTransactionTemplatePayload>
+/**
+ * Model RecurringReminderEvent
+ * 
+ */
+export type RecurringReminderEvent = $Result.DefaultSelection<Prisma.$RecurringReminderEventPayload>
 
 /**
  * Enums
@@ -333,6 +338,16 @@ export class PrismaClient<
     * ```
     */
   get recurringTransactionTemplate(): Prisma.RecurringTransactionTemplateDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.recurringReminderEvent`: Exposes CRUD operations for the **RecurringReminderEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more RecurringReminderEvents
+    * const recurringReminderEvents = await prisma.recurringReminderEvent.findMany()
+    * ```
+    */
+  get recurringReminderEvent(): Prisma.RecurringReminderEventDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -772,7 +787,8 @@ export namespace Prisma {
     Category: 'Category',
     Transaction: 'Transaction',
     Installment: 'Installment',
-    RecurringTransactionTemplate: 'RecurringTransactionTemplate'
+    RecurringTransactionTemplate: 'RecurringTransactionTemplate',
+    RecurringReminderEvent: 'RecurringReminderEvent'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -788,7 +804,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "wallet" | "category" | "transaction" | "installment" | "recurringTransactionTemplate"
+      modelProps: "user" | "wallet" | "category" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1236,6 +1252,80 @@ export namespace Prisma {
           }
         }
       }
+      RecurringReminderEvent: {
+        payload: Prisma.$RecurringReminderEventPayload<ExtArgs>
+        fields: Prisma.RecurringReminderEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.RecurringReminderEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RecurringReminderEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.RecurringReminderEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RecurringReminderEventPayload>
+          }
+          findFirst: {
+            args: Prisma.RecurringReminderEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RecurringReminderEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.RecurringReminderEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RecurringReminderEventPayload>
+          }
+          findMany: {
+            args: Prisma.RecurringReminderEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RecurringReminderEventPayload>[]
+          }
+          create: {
+            args: Prisma.RecurringReminderEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RecurringReminderEventPayload>
+          }
+          createMany: {
+            args: Prisma.RecurringReminderEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.RecurringReminderEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RecurringReminderEventPayload>[]
+          }
+          delete: {
+            args: Prisma.RecurringReminderEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RecurringReminderEventPayload>
+          }
+          update: {
+            args: Prisma.RecurringReminderEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RecurringReminderEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.RecurringReminderEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.RecurringReminderEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.RecurringReminderEventUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RecurringReminderEventPayload>[]
+          }
+          upsert: {
+            args: Prisma.RecurringReminderEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RecurringReminderEventPayload>
+          }
+          aggregate: {
+            args: Prisma.RecurringReminderEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateRecurringReminderEvent>
+          }
+          groupBy: {
+            args: Prisma.RecurringReminderEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<RecurringReminderEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.RecurringReminderEventCountArgs<ExtArgs>
+            result: $Utils.Optional<RecurringReminderEventCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1350,6 +1440,7 @@ export namespace Prisma {
     transaction?: TransactionOmit
     installment?: InstallmentOmit
     recurringTransactionTemplate?: RecurringTransactionTemplateOmit
+    recurringReminderEvent?: RecurringReminderEventOmit
   }
 
   /* Types for Logging */
@@ -1618,6 +1709,37 @@ export namespace Prisma {
    */
   export type InstallmentCountOutputTypeCountTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TransactionWhereInput
+  }
+
+
+  /**
+   * Count Type RecurringTransactionTemplateCountOutputType
+   */
+
+  export type RecurringTransactionTemplateCountOutputType = {
+    reminderEvents: number
+  }
+
+  export type RecurringTransactionTemplateCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    reminderEvents?: boolean | RecurringTransactionTemplateCountOutputTypeCountReminderEventsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * RecurringTransactionTemplateCountOutputType without action
+   */
+  export type RecurringTransactionTemplateCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringTransactionTemplateCountOutputType
+     */
+    select?: RecurringTransactionTemplateCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * RecurringTransactionTemplateCountOutputType without action
+   */
+  export type RecurringTransactionTemplateCountOutputTypeCountReminderEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RecurringReminderEventWhereInput
   }
 
 
@@ -8359,6 +8481,8 @@ export namespace Prisma {
     user?: boolean | UserDefaultArgs<ExtArgs>
     wallet?: boolean | WalletDefaultArgs<ExtArgs>
     category?: boolean | RecurringTransactionTemplate$categoryArgs<ExtArgs>
+    reminderEvents?: boolean | RecurringTransactionTemplate$reminderEventsArgs<ExtArgs>
+    _count?: boolean | RecurringTransactionTemplateCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["recurringTransactionTemplate"]>
 
   export type RecurringTransactionTemplateSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -8432,6 +8556,8 @@ export namespace Prisma {
     user?: boolean | UserDefaultArgs<ExtArgs>
     wallet?: boolean | WalletDefaultArgs<ExtArgs>
     category?: boolean | RecurringTransactionTemplate$categoryArgs<ExtArgs>
+    reminderEvents?: boolean | RecurringTransactionTemplate$reminderEventsArgs<ExtArgs>
+    _count?: boolean | RecurringTransactionTemplateCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type RecurringTransactionTemplateIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -8450,6 +8576,7 @@ export namespace Prisma {
       user: Prisma.$UserPayload<ExtArgs>
       wallet: Prisma.$WalletPayload<ExtArgs>
       category: Prisma.$CategoryPayload<ExtArgs> | null
+      reminderEvents: Prisma.$RecurringReminderEventPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -8866,6 +8993,7 @@ export namespace Prisma {
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     wallet<T extends WalletDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WalletDefaultArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     category<T extends RecurringTransactionTemplate$categoryArgs<ExtArgs> = {}>(args?: Subset<T, RecurringTransactionTemplate$categoryArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    reminderEvents<T extends RecurringTransactionTemplate$reminderEventsArgs<ExtArgs> = {}>(args?: Subset<T, RecurringTransactionTemplate$reminderEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -9332,6 +9460,30 @@ export namespace Prisma {
   }
 
   /**
+   * RecurringTransactionTemplate.reminderEvents
+   */
+  export type RecurringTransactionTemplate$reminderEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringReminderEvent
+     */
+    select?: RecurringReminderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RecurringReminderEvent
+     */
+    omit?: RecurringReminderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RecurringReminderEventInclude<ExtArgs> | null
+    where?: RecurringReminderEventWhereInput
+    orderBy?: RecurringReminderEventOrderByWithRelationInput | RecurringReminderEventOrderByWithRelationInput[]
+    cursor?: RecurringReminderEventWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RecurringReminderEventScalarFieldEnum | RecurringReminderEventScalarFieldEnum[]
+  }
+
+  /**
    * RecurringTransactionTemplate without action
    */
   export type RecurringTransactionTemplateDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9347,6 +9499,1129 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: RecurringTransactionTemplateInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model RecurringReminderEvent
+   */
+
+  export type AggregateRecurringReminderEvent = {
+    _count: RecurringReminderEventCountAggregateOutputType | null
+    _avg: RecurringReminderEventAvgAggregateOutputType | null
+    _sum: RecurringReminderEventSumAggregateOutputType | null
+    _min: RecurringReminderEventMinAggregateOutputType | null
+    _max: RecurringReminderEventMaxAggregateOutputType | null
+  }
+
+  export type RecurringReminderEventAvgAggregateOutputType = {
+    offsetDays: number | null
+  }
+
+  export type RecurringReminderEventSumAggregateOutputType = {
+    offsetDays: number | null
+  }
+
+  export type RecurringReminderEventMinAggregateOutputType = {
+    id: string | null
+    templateId: string | null
+    userId: string | null
+    occurrenceDate: Date | null
+    offsetDays: number | null
+    reminderDate: Date | null
+    createdAt: Date | null
+  }
+
+  export type RecurringReminderEventMaxAggregateOutputType = {
+    id: string | null
+    templateId: string | null
+    userId: string | null
+    occurrenceDate: Date | null
+    offsetDays: number | null
+    reminderDate: Date | null
+    createdAt: Date | null
+  }
+
+  export type RecurringReminderEventCountAggregateOutputType = {
+    id: number
+    templateId: number
+    userId: number
+    occurrenceDate: number
+    offsetDays: number
+    reminderDate: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type RecurringReminderEventAvgAggregateInputType = {
+    offsetDays?: true
+  }
+
+  export type RecurringReminderEventSumAggregateInputType = {
+    offsetDays?: true
+  }
+
+  export type RecurringReminderEventMinAggregateInputType = {
+    id?: true
+    templateId?: true
+    userId?: true
+    occurrenceDate?: true
+    offsetDays?: true
+    reminderDate?: true
+    createdAt?: true
+  }
+
+  export type RecurringReminderEventMaxAggregateInputType = {
+    id?: true
+    templateId?: true
+    userId?: true
+    occurrenceDate?: true
+    offsetDays?: true
+    reminderDate?: true
+    createdAt?: true
+  }
+
+  export type RecurringReminderEventCountAggregateInputType = {
+    id?: true
+    templateId?: true
+    userId?: true
+    occurrenceDate?: true
+    offsetDays?: true
+    reminderDate?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type RecurringReminderEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which RecurringReminderEvent to aggregate.
+     */
+    where?: RecurringReminderEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RecurringReminderEvents to fetch.
+     */
+    orderBy?: RecurringReminderEventOrderByWithRelationInput | RecurringReminderEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: RecurringReminderEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RecurringReminderEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RecurringReminderEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned RecurringReminderEvents
+    **/
+    _count?: true | RecurringReminderEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: RecurringReminderEventAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: RecurringReminderEventSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: RecurringReminderEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: RecurringReminderEventMaxAggregateInputType
+  }
+
+  export type GetRecurringReminderEventAggregateType<T extends RecurringReminderEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateRecurringReminderEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateRecurringReminderEvent[P]>
+      : GetScalarType<T[P], AggregateRecurringReminderEvent[P]>
+  }
+
+
+
+
+  export type RecurringReminderEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RecurringReminderEventWhereInput
+    orderBy?: RecurringReminderEventOrderByWithAggregationInput | RecurringReminderEventOrderByWithAggregationInput[]
+    by: RecurringReminderEventScalarFieldEnum[] | RecurringReminderEventScalarFieldEnum
+    having?: RecurringReminderEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: RecurringReminderEventCountAggregateInputType | true
+    _avg?: RecurringReminderEventAvgAggregateInputType
+    _sum?: RecurringReminderEventSumAggregateInputType
+    _min?: RecurringReminderEventMinAggregateInputType
+    _max?: RecurringReminderEventMaxAggregateInputType
+  }
+
+  export type RecurringReminderEventGroupByOutputType = {
+    id: string
+    templateId: string
+    userId: string
+    occurrenceDate: Date
+    offsetDays: number
+    reminderDate: Date
+    createdAt: Date
+    _count: RecurringReminderEventCountAggregateOutputType | null
+    _avg: RecurringReminderEventAvgAggregateOutputType | null
+    _sum: RecurringReminderEventSumAggregateOutputType | null
+    _min: RecurringReminderEventMinAggregateOutputType | null
+    _max: RecurringReminderEventMaxAggregateOutputType | null
+  }
+
+  type GetRecurringReminderEventGroupByPayload<T extends RecurringReminderEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<RecurringReminderEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof RecurringReminderEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], RecurringReminderEventGroupByOutputType[P]>
+            : GetScalarType<T[P], RecurringReminderEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type RecurringReminderEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    templateId?: boolean
+    userId?: boolean
+    occurrenceDate?: boolean
+    offsetDays?: boolean
+    reminderDate?: boolean
+    createdAt?: boolean
+    template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["recurringReminderEvent"]>
+
+  export type RecurringReminderEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    templateId?: boolean
+    userId?: boolean
+    occurrenceDate?: boolean
+    offsetDays?: boolean
+    reminderDate?: boolean
+    createdAt?: boolean
+    template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["recurringReminderEvent"]>
+
+  export type RecurringReminderEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    templateId?: boolean
+    userId?: boolean
+    occurrenceDate?: boolean
+    offsetDays?: boolean
+    reminderDate?: boolean
+    createdAt?: boolean
+    template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["recurringReminderEvent"]>
+
+  export type RecurringReminderEventSelectScalar = {
+    id?: boolean
+    templateId?: boolean
+    userId?: boolean
+    occurrenceDate?: boolean
+    offsetDays?: boolean
+    reminderDate?: boolean
+    createdAt?: boolean
+  }
+
+  export type RecurringReminderEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "templateId" | "userId" | "occurrenceDate" | "offsetDays" | "reminderDate" | "createdAt", ExtArgs["result"]["recurringReminderEvent"]>
+  export type RecurringReminderEventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
+  }
+  export type RecurringReminderEventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
+  }
+  export type RecurringReminderEventIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
+  }
+
+  export type $RecurringReminderEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "RecurringReminderEvent"
+    objects: {
+      template: Prisma.$RecurringTransactionTemplatePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      templateId: string
+      userId: string
+      occurrenceDate: Date
+      offsetDays: number
+      reminderDate: Date
+      createdAt: Date
+    }, ExtArgs["result"]["recurringReminderEvent"]>
+    composites: {}
+  }
+
+  type RecurringReminderEventGetPayload<S extends boolean | null | undefined | RecurringReminderEventDefaultArgs> = $Result.GetResult<Prisma.$RecurringReminderEventPayload, S>
+
+  type RecurringReminderEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<RecurringReminderEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: RecurringReminderEventCountAggregateInputType | true
+    }
+
+  export interface RecurringReminderEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['RecurringReminderEvent'], meta: { name: 'RecurringReminderEvent' } }
+    /**
+     * Find zero or one RecurringReminderEvent that matches the filter.
+     * @param {RecurringReminderEventFindUniqueArgs} args - Arguments to find a RecurringReminderEvent
+     * @example
+     * // Get one RecurringReminderEvent
+     * const recurringReminderEvent = await prisma.recurringReminderEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends RecurringReminderEventFindUniqueArgs>(args: SelectSubset<T, RecurringReminderEventFindUniqueArgs<ExtArgs>>): Prisma__RecurringReminderEventClient<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one RecurringReminderEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {RecurringReminderEventFindUniqueOrThrowArgs} args - Arguments to find a RecurringReminderEvent
+     * @example
+     * // Get one RecurringReminderEvent
+     * const recurringReminderEvent = await prisma.recurringReminderEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends RecurringReminderEventFindUniqueOrThrowArgs>(args: SelectSubset<T, RecurringReminderEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__RecurringReminderEventClient<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first RecurringReminderEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RecurringReminderEventFindFirstArgs} args - Arguments to find a RecurringReminderEvent
+     * @example
+     * // Get one RecurringReminderEvent
+     * const recurringReminderEvent = await prisma.recurringReminderEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends RecurringReminderEventFindFirstArgs>(args?: SelectSubset<T, RecurringReminderEventFindFirstArgs<ExtArgs>>): Prisma__RecurringReminderEventClient<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first RecurringReminderEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RecurringReminderEventFindFirstOrThrowArgs} args - Arguments to find a RecurringReminderEvent
+     * @example
+     * // Get one RecurringReminderEvent
+     * const recurringReminderEvent = await prisma.recurringReminderEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends RecurringReminderEventFindFirstOrThrowArgs>(args?: SelectSubset<T, RecurringReminderEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__RecurringReminderEventClient<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more RecurringReminderEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RecurringReminderEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all RecurringReminderEvents
+     * const recurringReminderEvents = await prisma.recurringReminderEvent.findMany()
+     * 
+     * // Get first 10 RecurringReminderEvents
+     * const recurringReminderEvents = await prisma.recurringReminderEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const recurringReminderEventWithIdOnly = await prisma.recurringReminderEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends RecurringReminderEventFindManyArgs>(args?: SelectSubset<T, RecurringReminderEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a RecurringReminderEvent.
+     * @param {RecurringReminderEventCreateArgs} args - Arguments to create a RecurringReminderEvent.
+     * @example
+     * // Create one RecurringReminderEvent
+     * const RecurringReminderEvent = await prisma.recurringReminderEvent.create({
+     *   data: {
+     *     // ... data to create a RecurringReminderEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends RecurringReminderEventCreateArgs>(args: SelectSubset<T, RecurringReminderEventCreateArgs<ExtArgs>>): Prisma__RecurringReminderEventClient<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many RecurringReminderEvents.
+     * @param {RecurringReminderEventCreateManyArgs} args - Arguments to create many RecurringReminderEvents.
+     * @example
+     * // Create many RecurringReminderEvents
+     * const recurringReminderEvent = await prisma.recurringReminderEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends RecurringReminderEventCreateManyArgs>(args?: SelectSubset<T, RecurringReminderEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many RecurringReminderEvents and returns the data saved in the database.
+     * @param {RecurringReminderEventCreateManyAndReturnArgs} args - Arguments to create many RecurringReminderEvents.
+     * @example
+     * // Create many RecurringReminderEvents
+     * const recurringReminderEvent = await prisma.recurringReminderEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many RecurringReminderEvents and only return the `id`
+     * const recurringReminderEventWithIdOnly = await prisma.recurringReminderEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends RecurringReminderEventCreateManyAndReturnArgs>(args?: SelectSubset<T, RecurringReminderEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a RecurringReminderEvent.
+     * @param {RecurringReminderEventDeleteArgs} args - Arguments to delete one RecurringReminderEvent.
+     * @example
+     * // Delete one RecurringReminderEvent
+     * const RecurringReminderEvent = await prisma.recurringReminderEvent.delete({
+     *   where: {
+     *     // ... filter to delete one RecurringReminderEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends RecurringReminderEventDeleteArgs>(args: SelectSubset<T, RecurringReminderEventDeleteArgs<ExtArgs>>): Prisma__RecurringReminderEventClient<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one RecurringReminderEvent.
+     * @param {RecurringReminderEventUpdateArgs} args - Arguments to update one RecurringReminderEvent.
+     * @example
+     * // Update one RecurringReminderEvent
+     * const recurringReminderEvent = await prisma.recurringReminderEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends RecurringReminderEventUpdateArgs>(args: SelectSubset<T, RecurringReminderEventUpdateArgs<ExtArgs>>): Prisma__RecurringReminderEventClient<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more RecurringReminderEvents.
+     * @param {RecurringReminderEventDeleteManyArgs} args - Arguments to filter RecurringReminderEvents to delete.
+     * @example
+     * // Delete a few RecurringReminderEvents
+     * const { count } = await prisma.recurringReminderEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends RecurringReminderEventDeleteManyArgs>(args?: SelectSubset<T, RecurringReminderEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more RecurringReminderEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RecurringReminderEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many RecurringReminderEvents
+     * const recurringReminderEvent = await prisma.recurringReminderEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends RecurringReminderEventUpdateManyArgs>(args: SelectSubset<T, RecurringReminderEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more RecurringReminderEvents and returns the data updated in the database.
+     * @param {RecurringReminderEventUpdateManyAndReturnArgs} args - Arguments to update many RecurringReminderEvents.
+     * @example
+     * // Update many RecurringReminderEvents
+     * const recurringReminderEvent = await prisma.recurringReminderEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more RecurringReminderEvents and only return the `id`
+     * const recurringReminderEventWithIdOnly = await prisma.recurringReminderEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends RecurringReminderEventUpdateManyAndReturnArgs>(args: SelectSubset<T, RecurringReminderEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one RecurringReminderEvent.
+     * @param {RecurringReminderEventUpsertArgs} args - Arguments to update or create a RecurringReminderEvent.
+     * @example
+     * // Update or create a RecurringReminderEvent
+     * const recurringReminderEvent = await prisma.recurringReminderEvent.upsert({
+     *   create: {
+     *     // ... data to create a RecurringReminderEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the RecurringReminderEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends RecurringReminderEventUpsertArgs>(args: SelectSubset<T, RecurringReminderEventUpsertArgs<ExtArgs>>): Prisma__RecurringReminderEventClient<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of RecurringReminderEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RecurringReminderEventCountArgs} args - Arguments to filter RecurringReminderEvents to count.
+     * @example
+     * // Count the number of RecurringReminderEvents
+     * const count = await prisma.recurringReminderEvent.count({
+     *   where: {
+     *     // ... the filter for the RecurringReminderEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends RecurringReminderEventCountArgs>(
+      args?: Subset<T, RecurringReminderEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], RecurringReminderEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a RecurringReminderEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RecurringReminderEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends RecurringReminderEventAggregateArgs>(args: Subset<T, RecurringReminderEventAggregateArgs>): Prisma.PrismaPromise<GetRecurringReminderEventAggregateType<T>>
+
+    /**
+     * Group by RecurringReminderEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RecurringReminderEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends RecurringReminderEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: RecurringReminderEventGroupByArgs['orderBy'] }
+        : { orderBy?: RecurringReminderEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, RecurringReminderEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetRecurringReminderEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the RecurringReminderEvent model
+   */
+  readonly fields: RecurringReminderEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for RecurringReminderEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__RecurringReminderEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    template<T extends RecurringTransactionTemplateDefaultArgs<ExtArgs> = {}>(args?: Subset<T, RecurringTransactionTemplateDefaultArgs<ExtArgs>>): Prisma__RecurringTransactionTemplateClient<$Result.GetResult<Prisma.$RecurringTransactionTemplatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the RecurringReminderEvent model
+   */
+  interface RecurringReminderEventFieldRefs {
+    readonly id: FieldRef<"RecurringReminderEvent", 'String'>
+    readonly templateId: FieldRef<"RecurringReminderEvent", 'String'>
+    readonly userId: FieldRef<"RecurringReminderEvent", 'String'>
+    readonly occurrenceDate: FieldRef<"RecurringReminderEvent", 'DateTime'>
+    readonly offsetDays: FieldRef<"RecurringReminderEvent", 'Int'>
+    readonly reminderDate: FieldRef<"RecurringReminderEvent", 'DateTime'>
+    readonly createdAt: FieldRef<"RecurringReminderEvent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * RecurringReminderEvent findUnique
+   */
+  export type RecurringReminderEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringReminderEvent
+     */
+    select?: RecurringReminderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RecurringReminderEvent
+     */
+    omit?: RecurringReminderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RecurringReminderEventInclude<ExtArgs> | null
+    /**
+     * Filter, which RecurringReminderEvent to fetch.
+     */
+    where: RecurringReminderEventWhereUniqueInput
+  }
+
+  /**
+   * RecurringReminderEvent findUniqueOrThrow
+   */
+  export type RecurringReminderEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringReminderEvent
+     */
+    select?: RecurringReminderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RecurringReminderEvent
+     */
+    omit?: RecurringReminderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RecurringReminderEventInclude<ExtArgs> | null
+    /**
+     * Filter, which RecurringReminderEvent to fetch.
+     */
+    where: RecurringReminderEventWhereUniqueInput
+  }
+
+  /**
+   * RecurringReminderEvent findFirst
+   */
+  export type RecurringReminderEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringReminderEvent
+     */
+    select?: RecurringReminderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RecurringReminderEvent
+     */
+    omit?: RecurringReminderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RecurringReminderEventInclude<ExtArgs> | null
+    /**
+     * Filter, which RecurringReminderEvent to fetch.
+     */
+    where?: RecurringReminderEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RecurringReminderEvents to fetch.
+     */
+    orderBy?: RecurringReminderEventOrderByWithRelationInput | RecurringReminderEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for RecurringReminderEvents.
+     */
+    cursor?: RecurringReminderEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RecurringReminderEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RecurringReminderEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of RecurringReminderEvents.
+     */
+    distinct?: RecurringReminderEventScalarFieldEnum | RecurringReminderEventScalarFieldEnum[]
+  }
+
+  /**
+   * RecurringReminderEvent findFirstOrThrow
+   */
+  export type RecurringReminderEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringReminderEvent
+     */
+    select?: RecurringReminderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RecurringReminderEvent
+     */
+    omit?: RecurringReminderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RecurringReminderEventInclude<ExtArgs> | null
+    /**
+     * Filter, which RecurringReminderEvent to fetch.
+     */
+    where?: RecurringReminderEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RecurringReminderEvents to fetch.
+     */
+    orderBy?: RecurringReminderEventOrderByWithRelationInput | RecurringReminderEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for RecurringReminderEvents.
+     */
+    cursor?: RecurringReminderEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RecurringReminderEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RecurringReminderEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of RecurringReminderEvents.
+     */
+    distinct?: RecurringReminderEventScalarFieldEnum | RecurringReminderEventScalarFieldEnum[]
+  }
+
+  /**
+   * RecurringReminderEvent findMany
+   */
+  export type RecurringReminderEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringReminderEvent
+     */
+    select?: RecurringReminderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RecurringReminderEvent
+     */
+    omit?: RecurringReminderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RecurringReminderEventInclude<ExtArgs> | null
+    /**
+     * Filter, which RecurringReminderEvents to fetch.
+     */
+    where?: RecurringReminderEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RecurringReminderEvents to fetch.
+     */
+    orderBy?: RecurringReminderEventOrderByWithRelationInput | RecurringReminderEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing RecurringReminderEvents.
+     */
+    cursor?: RecurringReminderEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RecurringReminderEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RecurringReminderEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of RecurringReminderEvents.
+     */
+    distinct?: RecurringReminderEventScalarFieldEnum | RecurringReminderEventScalarFieldEnum[]
+  }
+
+  /**
+   * RecurringReminderEvent create
+   */
+  export type RecurringReminderEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringReminderEvent
+     */
+    select?: RecurringReminderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RecurringReminderEvent
+     */
+    omit?: RecurringReminderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RecurringReminderEventInclude<ExtArgs> | null
+    /**
+     * The data needed to create a RecurringReminderEvent.
+     */
+    data: XOR<RecurringReminderEventCreateInput, RecurringReminderEventUncheckedCreateInput>
+  }
+
+  /**
+   * RecurringReminderEvent createMany
+   */
+  export type RecurringReminderEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many RecurringReminderEvents.
+     */
+    data: RecurringReminderEventCreateManyInput | RecurringReminderEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * RecurringReminderEvent createManyAndReturn
+   */
+  export type RecurringReminderEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringReminderEvent
+     */
+    select?: RecurringReminderEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the RecurringReminderEvent
+     */
+    omit?: RecurringReminderEventOmit<ExtArgs> | null
+    /**
+     * The data used to create many RecurringReminderEvents.
+     */
+    data: RecurringReminderEventCreateManyInput | RecurringReminderEventCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RecurringReminderEventIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * RecurringReminderEvent update
+   */
+  export type RecurringReminderEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringReminderEvent
+     */
+    select?: RecurringReminderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RecurringReminderEvent
+     */
+    omit?: RecurringReminderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RecurringReminderEventInclude<ExtArgs> | null
+    /**
+     * The data needed to update a RecurringReminderEvent.
+     */
+    data: XOR<RecurringReminderEventUpdateInput, RecurringReminderEventUncheckedUpdateInput>
+    /**
+     * Choose, which RecurringReminderEvent to update.
+     */
+    where: RecurringReminderEventWhereUniqueInput
+  }
+
+  /**
+   * RecurringReminderEvent updateMany
+   */
+  export type RecurringReminderEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update RecurringReminderEvents.
+     */
+    data: XOR<RecurringReminderEventUpdateManyMutationInput, RecurringReminderEventUncheckedUpdateManyInput>
+    /**
+     * Filter which RecurringReminderEvents to update
+     */
+    where?: RecurringReminderEventWhereInput
+    /**
+     * Limit how many RecurringReminderEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * RecurringReminderEvent updateManyAndReturn
+   */
+  export type RecurringReminderEventUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringReminderEvent
+     */
+    select?: RecurringReminderEventSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the RecurringReminderEvent
+     */
+    omit?: RecurringReminderEventOmit<ExtArgs> | null
+    /**
+     * The data used to update RecurringReminderEvents.
+     */
+    data: XOR<RecurringReminderEventUpdateManyMutationInput, RecurringReminderEventUncheckedUpdateManyInput>
+    /**
+     * Filter which RecurringReminderEvents to update
+     */
+    where?: RecurringReminderEventWhereInput
+    /**
+     * Limit how many RecurringReminderEvents to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RecurringReminderEventIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * RecurringReminderEvent upsert
+   */
+  export type RecurringReminderEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringReminderEvent
+     */
+    select?: RecurringReminderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RecurringReminderEvent
+     */
+    omit?: RecurringReminderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RecurringReminderEventInclude<ExtArgs> | null
+    /**
+     * The filter to search for the RecurringReminderEvent to update in case it exists.
+     */
+    where: RecurringReminderEventWhereUniqueInput
+    /**
+     * In case the RecurringReminderEvent found by the `where` argument doesn't exist, create a new RecurringReminderEvent with this data.
+     */
+    create: XOR<RecurringReminderEventCreateInput, RecurringReminderEventUncheckedCreateInput>
+    /**
+     * In case the RecurringReminderEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<RecurringReminderEventUpdateInput, RecurringReminderEventUncheckedUpdateInput>
+  }
+
+  /**
+   * RecurringReminderEvent delete
+   */
+  export type RecurringReminderEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringReminderEvent
+     */
+    select?: RecurringReminderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RecurringReminderEvent
+     */
+    omit?: RecurringReminderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RecurringReminderEventInclude<ExtArgs> | null
+    /**
+     * Filter which RecurringReminderEvent to delete.
+     */
+    where: RecurringReminderEventWhereUniqueInput
+  }
+
+  /**
+   * RecurringReminderEvent deleteMany
+   */
+  export type RecurringReminderEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which RecurringReminderEvents to delete
+     */
+    where?: RecurringReminderEventWhereInput
+    /**
+     * Limit how many RecurringReminderEvents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * RecurringReminderEvent without action
+   */
+  export type RecurringReminderEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringReminderEvent
+     */
+    select?: RecurringReminderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RecurringReminderEvent
+     */
+    omit?: RecurringReminderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RecurringReminderEventInclude<ExtArgs> | null
   }
 
 
@@ -9481,6 +10756,19 @@ export namespace Prisma {
   };
 
   export type RecurringTransactionTemplateScalarFieldEnum = (typeof RecurringTransactionTemplateScalarFieldEnum)[keyof typeof RecurringTransactionTemplateScalarFieldEnum]
+
+
+  export const RecurringReminderEventScalarFieldEnum: {
+    id: 'id',
+    templateId: 'templateId',
+    userId: 'userId',
+    occurrenceDate: 'occurrenceDate',
+    offsetDays: 'offsetDays',
+    reminderDate: 'reminderDate',
+    createdAt: 'createdAt'
+  };
+
+  export type RecurringReminderEventScalarFieldEnum = (typeof RecurringReminderEventScalarFieldEnum)[keyof typeof RecurringReminderEventScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -10263,6 +11551,7 @@ export namespace Prisma {
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     wallet?: XOR<WalletScalarRelationFilter, WalletWhereInput>
     category?: XOR<CategoryNullableScalarRelationFilter, CategoryWhereInput> | null
+    reminderEvents?: RecurringReminderEventListRelationFilter
   }
 
   export type RecurringTransactionTemplateOrderByWithRelationInput = {
@@ -10286,6 +11575,7 @@ export namespace Prisma {
     user?: UserOrderByWithRelationInput
     wallet?: WalletOrderByWithRelationInput
     category?: CategoryOrderByWithRelationInput
+    reminderEvents?: RecurringReminderEventOrderByRelationAggregateInput
   }
 
   export type RecurringTransactionTemplateWhereUniqueInput = Prisma.AtLeast<{
@@ -10312,6 +11602,7 @@ export namespace Prisma {
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     wallet?: XOR<WalletScalarRelationFilter, WalletWhereInput>
     category?: XOR<CategoryNullableScalarRelationFilter, CategoryWhereInput> | null
+    reminderEvents?: RecurringReminderEventListRelationFilter
   }, "id">
 
   export type RecurringTransactionTemplateOrderByWithAggregationInput = {
@@ -10360,6 +11651,74 @@ export namespace Prisma {
     reminderOffsetDays?: IntNullableWithAggregatesFilter<"RecurringTransactionTemplate"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"RecurringTransactionTemplate"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"RecurringTransactionTemplate"> | Date | string
+  }
+
+  export type RecurringReminderEventWhereInput = {
+    AND?: RecurringReminderEventWhereInput | RecurringReminderEventWhereInput[]
+    OR?: RecurringReminderEventWhereInput[]
+    NOT?: RecurringReminderEventWhereInput | RecurringReminderEventWhereInput[]
+    id?: StringFilter<"RecurringReminderEvent"> | string
+    templateId?: StringFilter<"RecurringReminderEvent"> | string
+    userId?: StringFilter<"RecurringReminderEvent"> | string
+    occurrenceDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
+    offsetDays?: IntFilter<"RecurringReminderEvent"> | number
+    reminderDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
+    createdAt?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
+    template?: XOR<RecurringTransactionTemplateScalarRelationFilter, RecurringTransactionTemplateWhereInput>
+  }
+
+  export type RecurringReminderEventOrderByWithRelationInput = {
+    id?: SortOrder
+    templateId?: SortOrder
+    userId?: SortOrder
+    occurrenceDate?: SortOrder
+    offsetDays?: SortOrder
+    reminderDate?: SortOrder
+    createdAt?: SortOrder
+    template?: RecurringTransactionTemplateOrderByWithRelationInput
+  }
+
+  export type RecurringReminderEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    templateId_occurrenceDate_offsetDays?: RecurringReminderEventTemplateIdOccurrenceDateOffsetDaysCompoundUniqueInput
+    AND?: RecurringReminderEventWhereInput | RecurringReminderEventWhereInput[]
+    OR?: RecurringReminderEventWhereInput[]
+    NOT?: RecurringReminderEventWhereInput | RecurringReminderEventWhereInput[]
+    templateId?: StringFilter<"RecurringReminderEvent"> | string
+    userId?: StringFilter<"RecurringReminderEvent"> | string
+    occurrenceDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
+    offsetDays?: IntFilter<"RecurringReminderEvent"> | number
+    reminderDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
+    createdAt?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
+    template?: XOR<RecurringTransactionTemplateScalarRelationFilter, RecurringTransactionTemplateWhereInput>
+  }, "id" | "templateId_occurrenceDate_offsetDays">
+
+  export type RecurringReminderEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    templateId?: SortOrder
+    userId?: SortOrder
+    occurrenceDate?: SortOrder
+    offsetDays?: SortOrder
+    reminderDate?: SortOrder
+    createdAt?: SortOrder
+    _count?: RecurringReminderEventCountOrderByAggregateInput
+    _avg?: RecurringReminderEventAvgOrderByAggregateInput
+    _max?: RecurringReminderEventMaxOrderByAggregateInput
+    _min?: RecurringReminderEventMinOrderByAggregateInput
+    _sum?: RecurringReminderEventSumOrderByAggregateInput
+  }
+
+  export type RecurringReminderEventScalarWhereWithAggregatesInput = {
+    AND?: RecurringReminderEventScalarWhereWithAggregatesInput | RecurringReminderEventScalarWhereWithAggregatesInput[]
+    OR?: RecurringReminderEventScalarWhereWithAggregatesInput[]
+    NOT?: RecurringReminderEventScalarWhereWithAggregatesInput | RecurringReminderEventScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"RecurringReminderEvent"> | string
+    templateId?: StringWithAggregatesFilter<"RecurringReminderEvent"> | string
+    userId?: StringWithAggregatesFilter<"RecurringReminderEvent"> | string
+    occurrenceDate?: DateTimeWithAggregatesFilter<"RecurringReminderEvent"> | Date | string
+    offsetDays?: IntWithAggregatesFilter<"RecurringReminderEvent"> | number
+    reminderDate?: DateTimeWithAggregatesFilter<"RecurringReminderEvent"> | Date | string
+    createdAt?: DateTimeWithAggregatesFilter<"RecurringReminderEvent"> | Date | string
   }
 
   export type UserCreateInput = {
@@ -10986,6 +12345,7 @@ export namespace Prisma {
     user: UserCreateNestedOneWithoutRecurringTransactionTemplatesInput
     wallet: WalletCreateNestedOneWithoutRecurringTransactionTemplatesInput
     category?: CategoryCreateNestedOneWithoutRecurringTransactionTemplatesInput
+    reminderEvents?: RecurringReminderEventCreateNestedManyWithoutTemplateInput
   }
 
   export type RecurringTransactionTemplateUncheckedCreateInput = {
@@ -11006,6 +12366,7 @@ export namespace Prisma {
     reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    reminderEvents?: RecurringReminderEventUncheckedCreateNestedManyWithoutTemplateInput
   }
 
   export type RecurringTransactionTemplateUpdateInput = {
@@ -11026,6 +12387,7 @@ export namespace Prisma {
     user?: UserUpdateOneRequiredWithoutRecurringTransactionTemplatesNestedInput
     wallet?: WalletUpdateOneRequiredWithoutRecurringTransactionTemplatesNestedInput
     category?: CategoryUpdateOneWithoutRecurringTransactionTemplatesNestedInput
+    reminderEvents?: RecurringReminderEventUpdateManyWithoutTemplateNestedInput
   }
 
   export type RecurringTransactionTemplateUncheckedUpdateInput = {
@@ -11046,6 +12408,7 @@ export namespace Prisma {
     reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reminderEvents?: RecurringReminderEventUncheckedUpdateManyWithoutTemplateNestedInput
   }
 
   export type RecurringTransactionTemplateCreateManyInput = {
@@ -11103,6 +12466,75 @@ export namespace Prisma {
     reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RecurringReminderEventCreateInput = {
+    id?: string
+    userId: string
+    occurrenceDate: Date | string
+    offsetDays: number
+    reminderDate: Date | string
+    createdAt?: Date | string
+    template: RecurringTransactionTemplateCreateNestedOneWithoutReminderEventsInput
+  }
+
+  export type RecurringReminderEventUncheckedCreateInput = {
+    id?: string
+    templateId: string
+    userId: string
+    occurrenceDate: Date | string
+    offsetDays: number
+    reminderDate: Date | string
+    createdAt?: Date | string
+  }
+
+  export type RecurringReminderEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    offsetDays?: IntFieldUpdateOperationsInput | number
+    reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    template?: RecurringTransactionTemplateUpdateOneRequiredWithoutReminderEventsNestedInput
+  }
+
+  export type RecurringReminderEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    templateId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    offsetDays?: IntFieldUpdateOperationsInput | number
+    reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RecurringReminderEventCreateManyInput = {
+    id?: string
+    templateId: string
+    userId: string
+    occurrenceDate: Date | string
+    offsetDays: number
+    reminderDate: Date | string
+    createdAt?: Date | string
+  }
+
+  export type RecurringReminderEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    offsetDays?: IntFieldUpdateOperationsInput | number
+    reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RecurringReminderEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    templateId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    offsetDays?: IntFieldUpdateOperationsInput | number
+    reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -11811,6 +13243,16 @@ export namespace Prisma {
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
+  export type RecurringReminderEventListRelationFilter = {
+    every?: RecurringReminderEventWhereInput
+    some?: RecurringReminderEventWhereInput
+    none?: RecurringReminderEventWhereInput
+  }
+
+  export type RecurringReminderEventOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type RecurringTransactionTemplateCountOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
@@ -11929,6 +13371,55 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type RecurringTransactionTemplateScalarRelationFilter = {
+    is?: RecurringTransactionTemplateWhereInput
+    isNot?: RecurringTransactionTemplateWhereInput
+  }
+
+  export type RecurringReminderEventTemplateIdOccurrenceDateOffsetDaysCompoundUniqueInput = {
+    templateId: string
+    occurrenceDate: Date | string
+    offsetDays: number
+  }
+
+  export type RecurringReminderEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    templateId?: SortOrder
+    userId?: SortOrder
+    occurrenceDate?: SortOrder
+    offsetDays?: SortOrder
+    reminderDate?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type RecurringReminderEventAvgOrderByAggregateInput = {
+    offsetDays?: SortOrder
+  }
+
+  export type RecurringReminderEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    templateId?: SortOrder
+    userId?: SortOrder
+    occurrenceDate?: SortOrder
+    offsetDays?: SortOrder
+    reminderDate?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type RecurringReminderEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    templateId?: SortOrder
+    userId?: SortOrder
+    occurrenceDate?: SortOrder
+    offsetDays?: SortOrder
+    reminderDate?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type RecurringReminderEventSumOrderByAggregateInput = {
+    offsetDays?: SortOrder
   }
 
   export type WalletCreateNestedManyWithoutUserInput = {
@@ -12649,6 +14140,20 @@ export namespace Prisma {
     connect?: CategoryWhereUniqueInput
   }
 
+  export type RecurringReminderEventCreateNestedManyWithoutTemplateInput = {
+    create?: XOR<RecurringReminderEventCreateWithoutTemplateInput, RecurringReminderEventUncheckedCreateWithoutTemplateInput> | RecurringReminderEventCreateWithoutTemplateInput[] | RecurringReminderEventUncheckedCreateWithoutTemplateInput[]
+    connectOrCreate?: RecurringReminderEventCreateOrConnectWithoutTemplateInput | RecurringReminderEventCreateOrConnectWithoutTemplateInput[]
+    createMany?: RecurringReminderEventCreateManyTemplateInputEnvelope
+    connect?: RecurringReminderEventWhereUniqueInput | RecurringReminderEventWhereUniqueInput[]
+  }
+
+  export type RecurringReminderEventUncheckedCreateNestedManyWithoutTemplateInput = {
+    create?: XOR<RecurringReminderEventCreateWithoutTemplateInput, RecurringReminderEventUncheckedCreateWithoutTemplateInput> | RecurringReminderEventCreateWithoutTemplateInput[] | RecurringReminderEventUncheckedCreateWithoutTemplateInput[]
+    connectOrCreate?: RecurringReminderEventCreateOrConnectWithoutTemplateInput | RecurringReminderEventCreateOrConnectWithoutTemplateInput[]
+    createMany?: RecurringReminderEventCreateManyTemplateInputEnvelope
+    connect?: RecurringReminderEventWhereUniqueInput | RecurringReminderEventWhereUniqueInput[]
+  }
+
   export type EnumRecurringAmountModeFieldUpdateOperationsInput = {
     set?: $Enums.RecurringAmountMode
   }
@@ -12693,6 +14198,48 @@ export namespace Prisma {
     delete?: CategoryWhereInput | boolean
     connect?: CategoryWhereUniqueInput
     update?: XOR<XOR<CategoryUpdateToOneWithWhereWithoutRecurringTransactionTemplatesInput, CategoryUpdateWithoutRecurringTransactionTemplatesInput>, CategoryUncheckedUpdateWithoutRecurringTransactionTemplatesInput>
+  }
+
+  export type RecurringReminderEventUpdateManyWithoutTemplateNestedInput = {
+    create?: XOR<RecurringReminderEventCreateWithoutTemplateInput, RecurringReminderEventUncheckedCreateWithoutTemplateInput> | RecurringReminderEventCreateWithoutTemplateInput[] | RecurringReminderEventUncheckedCreateWithoutTemplateInput[]
+    connectOrCreate?: RecurringReminderEventCreateOrConnectWithoutTemplateInput | RecurringReminderEventCreateOrConnectWithoutTemplateInput[]
+    upsert?: RecurringReminderEventUpsertWithWhereUniqueWithoutTemplateInput | RecurringReminderEventUpsertWithWhereUniqueWithoutTemplateInput[]
+    createMany?: RecurringReminderEventCreateManyTemplateInputEnvelope
+    set?: RecurringReminderEventWhereUniqueInput | RecurringReminderEventWhereUniqueInput[]
+    disconnect?: RecurringReminderEventWhereUniqueInput | RecurringReminderEventWhereUniqueInput[]
+    delete?: RecurringReminderEventWhereUniqueInput | RecurringReminderEventWhereUniqueInput[]
+    connect?: RecurringReminderEventWhereUniqueInput | RecurringReminderEventWhereUniqueInput[]
+    update?: RecurringReminderEventUpdateWithWhereUniqueWithoutTemplateInput | RecurringReminderEventUpdateWithWhereUniqueWithoutTemplateInput[]
+    updateMany?: RecurringReminderEventUpdateManyWithWhereWithoutTemplateInput | RecurringReminderEventUpdateManyWithWhereWithoutTemplateInput[]
+    deleteMany?: RecurringReminderEventScalarWhereInput | RecurringReminderEventScalarWhereInput[]
+  }
+
+  export type RecurringReminderEventUncheckedUpdateManyWithoutTemplateNestedInput = {
+    create?: XOR<RecurringReminderEventCreateWithoutTemplateInput, RecurringReminderEventUncheckedCreateWithoutTemplateInput> | RecurringReminderEventCreateWithoutTemplateInput[] | RecurringReminderEventUncheckedCreateWithoutTemplateInput[]
+    connectOrCreate?: RecurringReminderEventCreateOrConnectWithoutTemplateInput | RecurringReminderEventCreateOrConnectWithoutTemplateInput[]
+    upsert?: RecurringReminderEventUpsertWithWhereUniqueWithoutTemplateInput | RecurringReminderEventUpsertWithWhereUniqueWithoutTemplateInput[]
+    createMany?: RecurringReminderEventCreateManyTemplateInputEnvelope
+    set?: RecurringReminderEventWhereUniqueInput | RecurringReminderEventWhereUniqueInput[]
+    disconnect?: RecurringReminderEventWhereUniqueInput | RecurringReminderEventWhereUniqueInput[]
+    delete?: RecurringReminderEventWhereUniqueInput | RecurringReminderEventWhereUniqueInput[]
+    connect?: RecurringReminderEventWhereUniqueInput | RecurringReminderEventWhereUniqueInput[]
+    update?: RecurringReminderEventUpdateWithWhereUniqueWithoutTemplateInput | RecurringReminderEventUpdateWithWhereUniqueWithoutTemplateInput[]
+    updateMany?: RecurringReminderEventUpdateManyWithWhereWithoutTemplateInput | RecurringReminderEventUpdateManyWithWhereWithoutTemplateInput[]
+    deleteMany?: RecurringReminderEventScalarWhereInput | RecurringReminderEventScalarWhereInput[]
+  }
+
+  export type RecurringTransactionTemplateCreateNestedOneWithoutReminderEventsInput = {
+    create?: XOR<RecurringTransactionTemplateCreateWithoutReminderEventsInput, RecurringTransactionTemplateUncheckedCreateWithoutReminderEventsInput>
+    connectOrCreate?: RecurringTransactionTemplateCreateOrConnectWithoutReminderEventsInput
+    connect?: RecurringTransactionTemplateWhereUniqueInput
+  }
+
+  export type RecurringTransactionTemplateUpdateOneRequiredWithoutReminderEventsNestedInput = {
+    create?: XOR<RecurringTransactionTemplateCreateWithoutReminderEventsInput, RecurringTransactionTemplateUncheckedCreateWithoutReminderEventsInput>
+    connectOrCreate?: RecurringTransactionTemplateCreateOrConnectWithoutReminderEventsInput
+    upsert?: RecurringTransactionTemplateUpsertWithoutReminderEventsInput
+    connect?: RecurringTransactionTemplateWhereUniqueInput
+    update?: XOR<XOR<RecurringTransactionTemplateUpdateToOneWithWhereWithoutReminderEventsInput, RecurringTransactionTemplateUpdateWithoutReminderEventsInput>, RecurringTransactionTemplateUncheckedUpdateWithoutReminderEventsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -13293,6 +14840,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     wallet: WalletCreateNestedOneWithoutRecurringTransactionTemplatesInput
     category?: CategoryCreateNestedOneWithoutRecurringTransactionTemplatesInput
+    reminderEvents?: RecurringReminderEventCreateNestedManyWithoutTemplateInput
   }
 
   export type RecurringTransactionTemplateUncheckedCreateWithoutUserInput = {
@@ -13312,6 +14860,7 @@ export namespace Prisma {
     reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    reminderEvents?: RecurringReminderEventUncheckedCreateNestedManyWithoutTemplateInput
   }
 
   export type RecurringTransactionTemplateCreateOrConnectWithoutUserInput = {
@@ -13699,6 +15248,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutRecurringTransactionTemplatesInput
     category?: CategoryCreateNestedOneWithoutRecurringTransactionTemplatesInput
+    reminderEvents?: RecurringReminderEventCreateNestedManyWithoutTemplateInput
   }
 
   export type RecurringTransactionTemplateUncheckedCreateWithoutWalletInput = {
@@ -13718,6 +15268,7 @@ export namespace Prisma {
     reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    reminderEvents?: RecurringReminderEventUncheckedCreateNestedManyWithoutTemplateInput
   }
 
   export type RecurringTransactionTemplateCreateOrConnectWithoutWalletInput = {
@@ -13919,6 +15470,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutRecurringTransactionTemplatesInput
     wallet: WalletCreateNestedOneWithoutRecurringTransactionTemplatesInput
+    reminderEvents?: RecurringReminderEventCreateNestedManyWithoutTemplateInput
   }
 
   export type RecurringTransactionTemplateUncheckedCreateWithoutCategoryInput = {
@@ -13938,6 +15490,7 @@ export namespace Prisma {
     reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    reminderEvents?: RecurringReminderEventUncheckedCreateNestedManyWithoutTemplateInput
   }
 
   export type RecurringTransactionTemplateCreateOrConnectWithoutCategoryInput = {
@@ -14826,6 +16379,34 @@ export namespace Prisma {
     create: XOR<CategoryCreateWithoutRecurringTransactionTemplatesInput, CategoryUncheckedCreateWithoutRecurringTransactionTemplatesInput>
   }
 
+  export type RecurringReminderEventCreateWithoutTemplateInput = {
+    id?: string
+    userId: string
+    occurrenceDate: Date | string
+    offsetDays: number
+    reminderDate: Date | string
+    createdAt?: Date | string
+  }
+
+  export type RecurringReminderEventUncheckedCreateWithoutTemplateInput = {
+    id?: string
+    userId: string
+    occurrenceDate: Date | string
+    offsetDays: number
+    reminderDate: Date | string
+    createdAt?: Date | string
+  }
+
+  export type RecurringReminderEventCreateOrConnectWithoutTemplateInput = {
+    where: RecurringReminderEventWhereUniqueInput
+    create: XOR<RecurringReminderEventCreateWithoutTemplateInput, RecurringReminderEventUncheckedCreateWithoutTemplateInput>
+  }
+
+  export type RecurringReminderEventCreateManyTemplateInputEnvelope = {
+    data: RecurringReminderEventCreateManyTemplateInput | RecurringReminderEventCreateManyTemplateInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutRecurringTransactionTemplatesInput = {
     update: XOR<UserUpdateWithoutRecurringTransactionTemplatesInput, UserUncheckedUpdateWithoutRecurringTransactionTemplatesInput>
     create: XOR<UserCreateWithoutRecurringTransactionTemplatesInput, UserUncheckedCreateWithoutRecurringTransactionTemplatesInput>
@@ -14953,6 +16534,131 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutCategoryNestedInput
+  }
+
+  export type RecurringReminderEventUpsertWithWhereUniqueWithoutTemplateInput = {
+    where: RecurringReminderEventWhereUniqueInput
+    update: XOR<RecurringReminderEventUpdateWithoutTemplateInput, RecurringReminderEventUncheckedUpdateWithoutTemplateInput>
+    create: XOR<RecurringReminderEventCreateWithoutTemplateInput, RecurringReminderEventUncheckedCreateWithoutTemplateInput>
+  }
+
+  export type RecurringReminderEventUpdateWithWhereUniqueWithoutTemplateInput = {
+    where: RecurringReminderEventWhereUniqueInput
+    data: XOR<RecurringReminderEventUpdateWithoutTemplateInput, RecurringReminderEventUncheckedUpdateWithoutTemplateInput>
+  }
+
+  export type RecurringReminderEventUpdateManyWithWhereWithoutTemplateInput = {
+    where: RecurringReminderEventScalarWhereInput
+    data: XOR<RecurringReminderEventUpdateManyMutationInput, RecurringReminderEventUncheckedUpdateManyWithoutTemplateInput>
+  }
+
+  export type RecurringReminderEventScalarWhereInput = {
+    AND?: RecurringReminderEventScalarWhereInput | RecurringReminderEventScalarWhereInput[]
+    OR?: RecurringReminderEventScalarWhereInput[]
+    NOT?: RecurringReminderEventScalarWhereInput | RecurringReminderEventScalarWhereInput[]
+    id?: StringFilter<"RecurringReminderEvent"> | string
+    templateId?: StringFilter<"RecurringReminderEvent"> | string
+    userId?: StringFilter<"RecurringReminderEvent"> | string
+    occurrenceDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
+    offsetDays?: IntFilter<"RecurringReminderEvent"> | number
+    reminderDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
+    createdAt?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
+  }
+
+  export type RecurringTransactionTemplateCreateWithoutReminderEventsInput = {
+    id?: string
+    name: string
+    type: $Enums.TransactionType
+    amountMode?: $Enums.RecurringAmountMode
+    amount?: Decimal | DecimalJsLike | number | string | null
+    description?: string | null
+    frequency: $Enums.RecurrenceFrequency
+    startDate: Date | string
+    endDate?: Date | string | null
+    isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutRecurringTransactionTemplatesInput
+    wallet: WalletCreateNestedOneWithoutRecurringTransactionTemplatesInput
+    category?: CategoryCreateNestedOneWithoutRecurringTransactionTemplatesInput
+  }
+
+  export type RecurringTransactionTemplateUncheckedCreateWithoutReminderEventsInput = {
+    id?: string
+    userId: string
+    walletId: string
+    categoryId?: string | null
+    name: string
+    type: $Enums.TransactionType
+    amountMode?: $Enums.RecurringAmountMode
+    amount?: Decimal | DecimalJsLike | number | string | null
+    description?: string | null
+    frequency: $Enums.RecurrenceFrequency
+    startDate: Date | string
+    endDate?: Date | string | null
+    isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RecurringTransactionTemplateCreateOrConnectWithoutReminderEventsInput = {
+    where: RecurringTransactionTemplateWhereUniqueInput
+    create: XOR<RecurringTransactionTemplateCreateWithoutReminderEventsInput, RecurringTransactionTemplateUncheckedCreateWithoutReminderEventsInput>
+  }
+
+  export type RecurringTransactionTemplateUpsertWithoutReminderEventsInput = {
+    update: XOR<RecurringTransactionTemplateUpdateWithoutReminderEventsInput, RecurringTransactionTemplateUncheckedUpdateWithoutReminderEventsInput>
+    create: XOR<RecurringTransactionTemplateCreateWithoutReminderEventsInput, RecurringTransactionTemplateUncheckedCreateWithoutReminderEventsInput>
+    where?: RecurringTransactionTemplateWhereInput
+  }
+
+  export type RecurringTransactionTemplateUpdateToOneWithWhereWithoutReminderEventsInput = {
+    where?: RecurringTransactionTemplateWhereInput
+    data: XOR<RecurringTransactionTemplateUpdateWithoutReminderEventsInput, RecurringTransactionTemplateUncheckedUpdateWithoutReminderEventsInput>
+  }
+
+  export type RecurringTransactionTemplateUpdateWithoutReminderEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutRecurringTransactionTemplatesNestedInput
+    wallet?: WalletUpdateOneRequiredWithoutRecurringTransactionTemplatesNestedInput
+    category?: CategoryUpdateOneWithoutRecurringTransactionTemplatesNestedInput
+  }
+
+  export type RecurringTransactionTemplateUncheckedUpdateWithoutReminderEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    walletId?: StringFieldUpdateOperationsInput | string
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+    amountMode?: EnumRecurringAmountModeFieldUpdateOperationsInput | $Enums.RecurringAmountMode
+    amount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    frequency?: EnumRecurrenceFrequencyFieldUpdateOperationsInput | $Enums.RecurrenceFrequency
+    startDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type WalletCreateManyUserInput = {
@@ -15277,6 +16983,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallet?: WalletUpdateOneRequiredWithoutRecurringTransactionTemplatesNestedInput
     category?: CategoryUpdateOneWithoutRecurringTransactionTemplatesNestedInput
+    reminderEvents?: RecurringReminderEventUpdateManyWithoutTemplateNestedInput
   }
 
   export type RecurringTransactionTemplateUncheckedUpdateWithoutUserInput = {
@@ -15296,6 +17003,7 @@ export namespace Prisma {
     reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reminderEvents?: RecurringReminderEventUncheckedUpdateManyWithoutTemplateNestedInput
   }
 
   export type RecurringTransactionTemplateUncheckedUpdateManyWithoutUserInput = {
@@ -15571,6 +17279,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutRecurringTransactionTemplatesNestedInput
     category?: CategoryUpdateOneWithoutRecurringTransactionTemplatesNestedInput
+    reminderEvents?: RecurringReminderEventUpdateManyWithoutTemplateNestedInput
   }
 
   export type RecurringTransactionTemplateUncheckedUpdateWithoutWalletInput = {
@@ -15590,6 +17299,7 @@ export namespace Prisma {
     reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reminderEvents?: RecurringReminderEventUncheckedUpdateManyWithoutTemplateNestedInput
   }
 
   export type RecurringTransactionTemplateUncheckedUpdateManyWithoutWalletInput = {
@@ -15707,6 +17417,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutRecurringTransactionTemplatesNestedInput
     wallet?: WalletUpdateOneRequiredWithoutRecurringTransactionTemplatesNestedInput
+    reminderEvents?: RecurringReminderEventUpdateManyWithoutTemplateNestedInput
   }
 
   export type RecurringTransactionTemplateUncheckedUpdateWithoutCategoryInput = {
@@ -15726,6 +17437,7 @@ export namespace Prisma {
     reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reminderEvents?: RecurringReminderEventUncheckedUpdateManyWithoutTemplateNestedInput
   }
 
   export type RecurringTransactionTemplateUncheckedUpdateManyWithoutCategoryInput = {
@@ -15805,6 +17517,42 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RecurringReminderEventCreateManyTemplateInput = {
+    id?: string
+    userId: string
+    occurrenceDate: Date | string
+    offsetDays: number
+    reminderDate: Date | string
+    createdAt?: Date | string
+  }
+
+  export type RecurringReminderEventUpdateWithoutTemplateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    offsetDays?: IntFieldUpdateOperationsInput | number
+    reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RecurringReminderEventUncheckedUpdateWithoutTemplateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    offsetDays?: IntFieldUpdateOperationsInput | number
+    reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RecurringReminderEventUncheckedUpdateManyWithoutTemplateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    offsetDays?: IntFieldUpdateOperationsInput | number
+    reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 
