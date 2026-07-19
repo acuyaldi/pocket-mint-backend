@@ -224,6 +224,7 @@ exports.Prisma.RecurringTransactionTemplateScalarFieldEnum = {
 exports.Prisma.RecurringReminderEventScalarFieldEnum = {
   id: 'id',
   templateId: 'templateId',
+  installmentId: 'installmentId',
   userId: 'userId',
   occurrenceDate: 'occurrenceDate',
   offsetDays: 'offsetDays',

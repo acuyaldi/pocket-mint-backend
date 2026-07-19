@@ -75,6 +75,11 @@ export function createNotificationService(db: NotificationPrismaClient) {
     if (existing.completedAt) {
       throw new NotificationError('Pengingat ini sudah diproses', 409, 'ALREADY_PROCESSED');
     }
+    if (existing.installmentId) {
+      // Installment payments are TRANSFERs handled by installment-payment.service.ts
+      // (POST /bills/:id/pay) — never a generic Transaction create like below.
+      throw new NotificationError('Gunakan pembayaran cicilan di halaman Tagihan', 400, 'USE_INSTALLMENT_PAYMENT');
+    }
     const template = existing.template;
     if (!template) {
       throw new NotificationError('Transaksi rutin tidak ditemukan', 404, 'TEMPLATE_NOT_FOUND');
