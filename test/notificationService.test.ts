@@ -3,7 +3,7 @@ import { Prisma } from '../src/generated/prisma/client';
 
 vi.mock('../src/lib/prisma', () => ({ default: {} }));
 
-const evaluateReminders = vi.fn(async () => []);
+const { evaluateReminders } = vi.hoisted(() => ({ evaluateReminders: vi.fn(async () => []) }));
 vi.mock('../src/services/recurringReminderEngine.service', () => ({
   recurringReminderEngineService: { evaluateReminders },
 }));
