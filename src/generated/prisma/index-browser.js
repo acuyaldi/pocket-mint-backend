@@ -235,6 +235,19 @@ exports.Prisma.RecurringReminderEventScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.SavingGoalScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  targetAmount: 'targetAmount',
+  currentAmount: 'currentAmount',
+  targetDate: 'targetDate',
+  notes: 'notes',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -297,6 +310,12 @@ exports.RecurrenceFrequency = exports.$Enums.RecurrenceFrequency = {
   YEARLY: 'YEARLY'
 };
 
+exports.SavingGoalStatus = exports.$Enums.SavingGoalStatus = {
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  ARCHIVED: 'ARCHIVED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Wallet: 'Wallet',
@@ -304,7 +323,8 @@ exports.Prisma.ModelName = {
   Transaction: 'Transaction',
   Installment: 'Installment',
   RecurringTransactionTemplate: 'RecurringTransactionTemplate',
-  RecurringReminderEvent: 'RecurringReminderEvent'
+  RecurringReminderEvent: 'RecurringReminderEvent',
+  SavingGoal: 'SavingGoal'
 };
 
 /**

@@ -1,0 +1,7 @@
+export declare class SavingGoalError extends Error {
+    readonly statusCode: number;
+    readonly code: string;
+    readonly isOperational = true;
+    constructor(message: string, statusCode: number, code: string);
+}
+//# sourceMappingURL=savingGoal.errors.d.ts.map

@@ -48,6 +48,11 @@ export type RecurringTransactionTemplate = $Result.DefaultSelection<Prisma.$Recu
  * 
  */
 export type RecurringReminderEvent = $Result.DefaultSelection<Prisma.$RecurringReminderEventPayload>
+/**
+ * Model SavingGoal
+ * 
+ */
+export type SavingGoal = $Result.DefaultSelection<Prisma.$SavingGoalPayload>
 
 /**
  * Enums
@@ -124,6 +129,15 @@ export const RecurringAmountMode: {
 
 export type RecurringAmountMode = (typeof RecurringAmountMode)[keyof typeof RecurringAmountMode]
 
+
+export const SavingGoalStatus: {
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  ARCHIVED: 'ARCHIVED'
+};
+
+export type SavingGoalStatus = (typeof SavingGoalStatus)[keyof typeof SavingGoalStatus]
+
 }
 
 export type WalletType = $Enums.WalletType
@@ -157,6 +171,10 @@ export const RecurrenceFrequency: typeof $Enums.RecurrenceFrequency
 export type RecurringAmountMode = $Enums.RecurringAmountMode
 
 export const RecurringAmountMode: typeof $Enums.RecurringAmountMode
+
+export type SavingGoalStatus = $Enums.SavingGoalStatus
+
+export const SavingGoalStatus: typeof $Enums.SavingGoalStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -348,6 +366,16 @@ export class PrismaClient<
     * ```
     */
   get recurringReminderEvent(): Prisma.RecurringReminderEventDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.savingGoal`: Exposes CRUD operations for the **SavingGoal** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SavingGoals
+    * const savingGoals = await prisma.savingGoal.findMany()
+    * ```
+    */
+  get savingGoal(): Prisma.SavingGoalDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -788,7 +816,8 @@ export namespace Prisma {
     Transaction: 'Transaction',
     Installment: 'Installment',
     RecurringTransactionTemplate: 'RecurringTransactionTemplate',
-    RecurringReminderEvent: 'RecurringReminderEvent'
+    RecurringReminderEvent: 'RecurringReminderEvent',
+    SavingGoal: 'SavingGoal'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -804,7 +833,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "wallet" | "category" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent"
+      modelProps: "user" | "wallet" | "category" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent" | "savingGoal"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1326,6 +1355,80 @@ export namespace Prisma {
           }
         }
       }
+      SavingGoal: {
+        payload: Prisma.$SavingGoalPayload<ExtArgs>
+        fields: Prisma.SavingGoalFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SavingGoalFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingGoalPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SavingGoalFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingGoalPayload>
+          }
+          findFirst: {
+            args: Prisma.SavingGoalFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingGoalPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SavingGoalFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingGoalPayload>
+          }
+          findMany: {
+            args: Prisma.SavingGoalFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingGoalPayload>[]
+          }
+          create: {
+            args: Prisma.SavingGoalCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingGoalPayload>
+          }
+          createMany: {
+            args: Prisma.SavingGoalCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SavingGoalCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingGoalPayload>[]
+          }
+          delete: {
+            args: Prisma.SavingGoalDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingGoalPayload>
+          }
+          update: {
+            args: Prisma.SavingGoalUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingGoalPayload>
+          }
+          deleteMany: {
+            args: Prisma.SavingGoalDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SavingGoalUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.SavingGoalUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingGoalPayload>[]
+          }
+          upsert: {
+            args: Prisma.SavingGoalUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingGoalPayload>
+          }
+          aggregate: {
+            args: Prisma.SavingGoalAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSavingGoal>
+          }
+          groupBy: {
+            args: Prisma.SavingGoalGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SavingGoalGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SavingGoalCountArgs<ExtArgs>
+            result: $Utils.Optional<SavingGoalCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1441,6 +1544,7 @@ export namespace Prisma {
     installment?: InstallmentOmit
     recurringTransactionTemplate?: RecurringTransactionTemplateOmit
     recurringReminderEvent?: RecurringReminderEventOmit
+    savingGoal?: SavingGoalOmit
   }
 
   /* Types for Logging */
@@ -1526,6 +1630,7 @@ export namespace Prisma {
     transactions: number
     installments: number
     recurringTransactionTemplates: number
+    savingGoals: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1534,6 +1639,7 @@ export namespace Prisma {
     transactions?: boolean | UserCountOutputTypeCountTransactionsArgs
     installments?: boolean | UserCountOutputTypeCountInstallmentsArgs
     recurringTransactionTemplates?: boolean | UserCountOutputTypeCountRecurringTransactionTemplatesArgs
+    savingGoals?: boolean | UserCountOutputTypeCountSavingGoalsArgs
   }
 
   // Custom InputTypes
@@ -1580,6 +1686,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountRecurringTransactionTemplatesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: RecurringTransactionTemplateWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountSavingGoalsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SavingGoalWhereInput
   }
 
 
@@ -1933,6 +2046,7 @@ export namespace Prisma {
     transactions?: boolean | User$transactionsArgs<ExtArgs>
     installments?: boolean | User$installmentsArgs<ExtArgs>
     recurringTransactionTemplates?: boolean | User$recurringTransactionTemplatesArgs<ExtArgs>
+    savingGoals?: boolean | User$savingGoalsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -1970,6 +2084,7 @@ export namespace Prisma {
     transactions?: boolean | User$transactionsArgs<ExtArgs>
     installments?: boolean | User$installmentsArgs<ExtArgs>
     recurringTransactionTemplates?: boolean | User$recurringTransactionTemplatesArgs<ExtArgs>
+    savingGoals?: boolean | User$savingGoalsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1983,6 +2098,7 @@ export namespace Prisma {
       transactions: Prisma.$TransactionPayload<ExtArgs>[]
       installments: Prisma.$InstallmentPayload<ExtArgs>[]
       recurringTransactionTemplates: Prisma.$RecurringTransactionTemplatePayload<ExtArgs>[]
+      savingGoals: Prisma.$SavingGoalPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2390,6 +2506,7 @@ export namespace Prisma {
     transactions<T extends User$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     installments<T extends User$installmentsArgs<ExtArgs> = {}>(args?: Subset<T, User$installmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     recurringTransactionTemplates<T extends User$recurringTransactionTemplatesArgs<ExtArgs> = {}>(args?: Subset<T, User$recurringTransactionTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringTransactionTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    savingGoals<T extends User$savingGoalsArgs<ExtArgs> = {}>(args?: Subset<T, User$savingGoalsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2935,6 +3052,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: RecurringTransactionTemplateScalarFieldEnum | RecurringTransactionTemplateScalarFieldEnum[]
+  }
+
+  /**
+   * User.savingGoals
+   */
+  export type User$savingGoalsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavingGoal
+     */
+    select?: SavingGoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavingGoal
+     */
+    omit?: SavingGoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingGoalInclude<ExtArgs> | null
+    where?: SavingGoalWhereInput
+    orderBy?: SavingGoalOrderByWithRelationInput | SavingGoalOrderByWithRelationInput[]
+    cursor?: SavingGoalWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SavingGoalScalarFieldEnum | SavingGoalScalarFieldEnum[]
   }
 
   /**
@@ -10811,6 +10952,1172 @@ export namespace Prisma {
 
 
   /**
+   * Model SavingGoal
+   */
+
+  export type AggregateSavingGoal = {
+    _count: SavingGoalCountAggregateOutputType | null
+    _avg: SavingGoalAvgAggregateOutputType | null
+    _sum: SavingGoalSumAggregateOutputType | null
+    _min: SavingGoalMinAggregateOutputType | null
+    _max: SavingGoalMaxAggregateOutputType | null
+  }
+
+  export type SavingGoalAvgAggregateOutputType = {
+    targetAmount: Decimal | null
+    currentAmount: Decimal | null
+  }
+
+  export type SavingGoalSumAggregateOutputType = {
+    targetAmount: Decimal | null
+    currentAmount: Decimal | null
+  }
+
+  export type SavingGoalMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    name: string | null
+    targetAmount: Decimal | null
+    currentAmount: Decimal | null
+    targetDate: Date | null
+    notes: string | null
+    status: $Enums.SavingGoalStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SavingGoalMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    name: string | null
+    targetAmount: Decimal | null
+    currentAmount: Decimal | null
+    targetDate: Date | null
+    notes: string | null
+    status: $Enums.SavingGoalStatus | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SavingGoalCountAggregateOutputType = {
+    id: number
+    userId: number
+    name: number
+    targetAmount: number
+    currentAmount: number
+    targetDate: number
+    notes: number
+    status: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type SavingGoalAvgAggregateInputType = {
+    targetAmount?: true
+    currentAmount?: true
+  }
+
+  export type SavingGoalSumAggregateInputType = {
+    targetAmount?: true
+    currentAmount?: true
+  }
+
+  export type SavingGoalMinAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    targetAmount?: true
+    currentAmount?: true
+    targetDate?: true
+    notes?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SavingGoalMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    targetAmount?: true
+    currentAmount?: true
+    targetDate?: true
+    notes?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SavingGoalCountAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    targetAmount?: true
+    currentAmount?: true
+    targetDate?: true
+    notes?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type SavingGoalAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SavingGoal to aggregate.
+     */
+    where?: SavingGoalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SavingGoals to fetch.
+     */
+    orderBy?: SavingGoalOrderByWithRelationInput | SavingGoalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SavingGoalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SavingGoals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SavingGoals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SavingGoals
+    **/
+    _count?: true | SavingGoalCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SavingGoalAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SavingGoalSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SavingGoalMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SavingGoalMaxAggregateInputType
+  }
+
+  export type GetSavingGoalAggregateType<T extends SavingGoalAggregateArgs> = {
+        [P in keyof T & keyof AggregateSavingGoal]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSavingGoal[P]>
+      : GetScalarType<T[P], AggregateSavingGoal[P]>
+  }
+
+
+
+
+  export type SavingGoalGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SavingGoalWhereInput
+    orderBy?: SavingGoalOrderByWithAggregationInput | SavingGoalOrderByWithAggregationInput[]
+    by: SavingGoalScalarFieldEnum[] | SavingGoalScalarFieldEnum
+    having?: SavingGoalScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SavingGoalCountAggregateInputType | true
+    _avg?: SavingGoalAvgAggregateInputType
+    _sum?: SavingGoalSumAggregateInputType
+    _min?: SavingGoalMinAggregateInputType
+    _max?: SavingGoalMaxAggregateInputType
+  }
+
+  export type SavingGoalGroupByOutputType = {
+    id: string
+    userId: string
+    name: string
+    targetAmount: Decimal
+    currentAmount: Decimal
+    targetDate: Date | null
+    notes: string | null
+    status: $Enums.SavingGoalStatus
+    createdAt: Date
+    updatedAt: Date
+    _count: SavingGoalCountAggregateOutputType | null
+    _avg: SavingGoalAvgAggregateOutputType | null
+    _sum: SavingGoalSumAggregateOutputType | null
+    _min: SavingGoalMinAggregateOutputType | null
+    _max: SavingGoalMaxAggregateOutputType | null
+  }
+
+  type GetSavingGoalGroupByPayload<T extends SavingGoalGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SavingGoalGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SavingGoalGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SavingGoalGroupByOutputType[P]>
+            : GetScalarType<T[P], SavingGoalGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SavingGoalSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    targetAmount?: boolean
+    currentAmount?: boolean
+    targetDate?: boolean
+    notes?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["savingGoal"]>
+
+  export type SavingGoalSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    targetAmount?: boolean
+    currentAmount?: boolean
+    targetDate?: boolean
+    notes?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["savingGoal"]>
+
+  export type SavingGoalSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    targetAmount?: boolean
+    currentAmount?: boolean
+    targetDate?: boolean
+    notes?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["savingGoal"]>
+
+  export type SavingGoalSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    targetAmount?: boolean
+    currentAmount?: boolean
+    targetDate?: boolean
+    notes?: boolean
+    status?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type SavingGoalOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "targetAmount" | "currentAmount" | "targetDate" | "notes" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["savingGoal"]>
+  export type SavingGoalInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type SavingGoalIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type SavingGoalIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $SavingGoalPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SavingGoal"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      name: string
+      targetAmount: Prisma.Decimal
+      currentAmount: Prisma.Decimal
+      targetDate: Date | null
+      notes: string | null
+      status: $Enums.SavingGoalStatus
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["savingGoal"]>
+    composites: {}
+  }
+
+  type SavingGoalGetPayload<S extends boolean | null | undefined | SavingGoalDefaultArgs> = $Result.GetResult<Prisma.$SavingGoalPayload, S>
+
+  type SavingGoalCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SavingGoalFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SavingGoalCountAggregateInputType | true
+    }
+
+  export interface SavingGoalDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SavingGoal'], meta: { name: 'SavingGoal' } }
+    /**
+     * Find zero or one SavingGoal that matches the filter.
+     * @param {SavingGoalFindUniqueArgs} args - Arguments to find a SavingGoal
+     * @example
+     * // Get one SavingGoal
+     * const savingGoal = await prisma.savingGoal.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SavingGoalFindUniqueArgs>(args: SelectSubset<T, SavingGoalFindUniqueArgs<ExtArgs>>): Prisma__SavingGoalClient<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one SavingGoal that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SavingGoalFindUniqueOrThrowArgs} args - Arguments to find a SavingGoal
+     * @example
+     * // Get one SavingGoal
+     * const savingGoal = await prisma.savingGoal.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SavingGoalFindUniqueOrThrowArgs>(args: SelectSubset<T, SavingGoalFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SavingGoalClient<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SavingGoal that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavingGoalFindFirstArgs} args - Arguments to find a SavingGoal
+     * @example
+     * // Get one SavingGoal
+     * const savingGoal = await prisma.savingGoal.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SavingGoalFindFirstArgs>(args?: SelectSubset<T, SavingGoalFindFirstArgs<ExtArgs>>): Prisma__SavingGoalClient<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first SavingGoal that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavingGoalFindFirstOrThrowArgs} args - Arguments to find a SavingGoal
+     * @example
+     * // Get one SavingGoal
+     * const savingGoal = await prisma.savingGoal.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SavingGoalFindFirstOrThrowArgs>(args?: SelectSubset<T, SavingGoalFindFirstOrThrowArgs<ExtArgs>>): Prisma__SavingGoalClient<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more SavingGoals that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavingGoalFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SavingGoals
+     * const savingGoals = await prisma.savingGoal.findMany()
+     * 
+     * // Get first 10 SavingGoals
+     * const savingGoals = await prisma.savingGoal.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const savingGoalWithIdOnly = await prisma.savingGoal.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SavingGoalFindManyArgs>(args?: SelectSubset<T, SavingGoalFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a SavingGoal.
+     * @param {SavingGoalCreateArgs} args - Arguments to create a SavingGoal.
+     * @example
+     * // Create one SavingGoal
+     * const SavingGoal = await prisma.savingGoal.create({
+     *   data: {
+     *     // ... data to create a SavingGoal
+     *   }
+     * })
+     * 
+     */
+    create<T extends SavingGoalCreateArgs>(args: SelectSubset<T, SavingGoalCreateArgs<ExtArgs>>): Prisma__SavingGoalClient<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many SavingGoals.
+     * @param {SavingGoalCreateManyArgs} args - Arguments to create many SavingGoals.
+     * @example
+     * // Create many SavingGoals
+     * const savingGoal = await prisma.savingGoal.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SavingGoalCreateManyArgs>(args?: SelectSubset<T, SavingGoalCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SavingGoals and returns the data saved in the database.
+     * @param {SavingGoalCreateManyAndReturnArgs} args - Arguments to create many SavingGoals.
+     * @example
+     * // Create many SavingGoals
+     * const savingGoal = await prisma.savingGoal.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SavingGoals and only return the `id`
+     * const savingGoalWithIdOnly = await prisma.savingGoal.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SavingGoalCreateManyAndReturnArgs>(args?: SelectSubset<T, SavingGoalCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a SavingGoal.
+     * @param {SavingGoalDeleteArgs} args - Arguments to delete one SavingGoal.
+     * @example
+     * // Delete one SavingGoal
+     * const SavingGoal = await prisma.savingGoal.delete({
+     *   where: {
+     *     // ... filter to delete one SavingGoal
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SavingGoalDeleteArgs>(args: SelectSubset<T, SavingGoalDeleteArgs<ExtArgs>>): Prisma__SavingGoalClient<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one SavingGoal.
+     * @param {SavingGoalUpdateArgs} args - Arguments to update one SavingGoal.
+     * @example
+     * // Update one SavingGoal
+     * const savingGoal = await prisma.savingGoal.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SavingGoalUpdateArgs>(args: SelectSubset<T, SavingGoalUpdateArgs<ExtArgs>>): Prisma__SavingGoalClient<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more SavingGoals.
+     * @param {SavingGoalDeleteManyArgs} args - Arguments to filter SavingGoals to delete.
+     * @example
+     * // Delete a few SavingGoals
+     * const { count } = await prisma.savingGoal.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SavingGoalDeleteManyArgs>(args?: SelectSubset<T, SavingGoalDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SavingGoals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavingGoalUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SavingGoals
+     * const savingGoal = await prisma.savingGoal.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SavingGoalUpdateManyArgs>(args: SelectSubset<T, SavingGoalUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SavingGoals and returns the data updated in the database.
+     * @param {SavingGoalUpdateManyAndReturnArgs} args - Arguments to update many SavingGoals.
+     * @example
+     * // Update many SavingGoals
+     * const savingGoal = await prisma.savingGoal.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more SavingGoals and only return the `id`
+     * const savingGoalWithIdOnly = await prisma.savingGoal.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends SavingGoalUpdateManyAndReturnArgs>(args: SelectSubset<T, SavingGoalUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one SavingGoal.
+     * @param {SavingGoalUpsertArgs} args - Arguments to update or create a SavingGoal.
+     * @example
+     * // Update or create a SavingGoal
+     * const savingGoal = await prisma.savingGoal.upsert({
+     *   create: {
+     *     // ... data to create a SavingGoal
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SavingGoal we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SavingGoalUpsertArgs>(args: SelectSubset<T, SavingGoalUpsertArgs<ExtArgs>>): Prisma__SavingGoalClient<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of SavingGoals.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavingGoalCountArgs} args - Arguments to filter SavingGoals to count.
+     * @example
+     * // Count the number of SavingGoals
+     * const count = await prisma.savingGoal.count({
+     *   where: {
+     *     // ... the filter for the SavingGoals we want to count
+     *   }
+     * })
+    **/
+    count<T extends SavingGoalCountArgs>(
+      args?: Subset<T, SavingGoalCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SavingGoalCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SavingGoal.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavingGoalAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SavingGoalAggregateArgs>(args: Subset<T, SavingGoalAggregateArgs>): Prisma.PrismaPromise<GetSavingGoalAggregateType<T>>
+
+    /**
+     * Group by SavingGoal.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavingGoalGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SavingGoalGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SavingGoalGroupByArgs['orderBy'] }
+        : { orderBy?: SavingGoalGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SavingGoalGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSavingGoalGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SavingGoal model
+   */
+  readonly fields: SavingGoalFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SavingGoal.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SavingGoalClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SavingGoal model
+   */
+  interface SavingGoalFieldRefs {
+    readonly id: FieldRef<"SavingGoal", 'String'>
+    readonly userId: FieldRef<"SavingGoal", 'String'>
+    readonly name: FieldRef<"SavingGoal", 'String'>
+    readonly targetAmount: FieldRef<"SavingGoal", 'Decimal'>
+    readonly currentAmount: FieldRef<"SavingGoal", 'Decimal'>
+    readonly targetDate: FieldRef<"SavingGoal", 'DateTime'>
+    readonly notes: FieldRef<"SavingGoal", 'String'>
+    readonly status: FieldRef<"SavingGoal", 'SavingGoalStatus'>
+    readonly createdAt: FieldRef<"SavingGoal", 'DateTime'>
+    readonly updatedAt: FieldRef<"SavingGoal", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SavingGoal findUnique
+   */
+  export type SavingGoalFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavingGoal
+     */
+    select?: SavingGoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavingGoal
+     */
+    omit?: SavingGoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingGoalInclude<ExtArgs> | null
+    /**
+     * Filter, which SavingGoal to fetch.
+     */
+    where: SavingGoalWhereUniqueInput
+  }
+
+  /**
+   * SavingGoal findUniqueOrThrow
+   */
+  export type SavingGoalFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavingGoal
+     */
+    select?: SavingGoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavingGoal
+     */
+    omit?: SavingGoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingGoalInclude<ExtArgs> | null
+    /**
+     * Filter, which SavingGoal to fetch.
+     */
+    where: SavingGoalWhereUniqueInput
+  }
+
+  /**
+   * SavingGoal findFirst
+   */
+  export type SavingGoalFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavingGoal
+     */
+    select?: SavingGoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavingGoal
+     */
+    omit?: SavingGoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingGoalInclude<ExtArgs> | null
+    /**
+     * Filter, which SavingGoal to fetch.
+     */
+    where?: SavingGoalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SavingGoals to fetch.
+     */
+    orderBy?: SavingGoalOrderByWithRelationInput | SavingGoalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SavingGoals.
+     */
+    cursor?: SavingGoalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SavingGoals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SavingGoals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SavingGoals.
+     */
+    distinct?: SavingGoalScalarFieldEnum | SavingGoalScalarFieldEnum[]
+  }
+
+  /**
+   * SavingGoal findFirstOrThrow
+   */
+  export type SavingGoalFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavingGoal
+     */
+    select?: SavingGoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavingGoal
+     */
+    omit?: SavingGoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingGoalInclude<ExtArgs> | null
+    /**
+     * Filter, which SavingGoal to fetch.
+     */
+    where?: SavingGoalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SavingGoals to fetch.
+     */
+    orderBy?: SavingGoalOrderByWithRelationInput | SavingGoalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SavingGoals.
+     */
+    cursor?: SavingGoalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SavingGoals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SavingGoals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SavingGoals.
+     */
+    distinct?: SavingGoalScalarFieldEnum | SavingGoalScalarFieldEnum[]
+  }
+
+  /**
+   * SavingGoal findMany
+   */
+  export type SavingGoalFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavingGoal
+     */
+    select?: SavingGoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavingGoal
+     */
+    omit?: SavingGoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingGoalInclude<ExtArgs> | null
+    /**
+     * Filter, which SavingGoals to fetch.
+     */
+    where?: SavingGoalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SavingGoals to fetch.
+     */
+    orderBy?: SavingGoalOrderByWithRelationInput | SavingGoalOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SavingGoals.
+     */
+    cursor?: SavingGoalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SavingGoals from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SavingGoals.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SavingGoals.
+     */
+    distinct?: SavingGoalScalarFieldEnum | SavingGoalScalarFieldEnum[]
+  }
+
+  /**
+   * SavingGoal create
+   */
+  export type SavingGoalCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavingGoal
+     */
+    select?: SavingGoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavingGoal
+     */
+    omit?: SavingGoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingGoalInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SavingGoal.
+     */
+    data: XOR<SavingGoalCreateInput, SavingGoalUncheckedCreateInput>
+  }
+
+  /**
+   * SavingGoal createMany
+   */
+  export type SavingGoalCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SavingGoals.
+     */
+    data: SavingGoalCreateManyInput | SavingGoalCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SavingGoal createManyAndReturn
+   */
+  export type SavingGoalCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavingGoal
+     */
+    select?: SavingGoalSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavingGoal
+     */
+    omit?: SavingGoalOmit<ExtArgs> | null
+    /**
+     * The data used to create many SavingGoals.
+     */
+    data: SavingGoalCreateManyInput | SavingGoalCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingGoalIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SavingGoal update
+   */
+  export type SavingGoalUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavingGoal
+     */
+    select?: SavingGoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavingGoal
+     */
+    omit?: SavingGoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingGoalInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SavingGoal.
+     */
+    data: XOR<SavingGoalUpdateInput, SavingGoalUncheckedUpdateInput>
+    /**
+     * Choose, which SavingGoal to update.
+     */
+    where: SavingGoalWhereUniqueInput
+  }
+
+  /**
+   * SavingGoal updateMany
+   */
+  export type SavingGoalUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SavingGoals.
+     */
+    data: XOR<SavingGoalUpdateManyMutationInput, SavingGoalUncheckedUpdateManyInput>
+    /**
+     * Filter which SavingGoals to update
+     */
+    where?: SavingGoalWhereInput
+    /**
+     * Limit how many SavingGoals to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * SavingGoal updateManyAndReturn
+   */
+  export type SavingGoalUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavingGoal
+     */
+    select?: SavingGoalSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavingGoal
+     */
+    omit?: SavingGoalOmit<ExtArgs> | null
+    /**
+     * The data used to update SavingGoals.
+     */
+    data: XOR<SavingGoalUpdateManyMutationInput, SavingGoalUncheckedUpdateManyInput>
+    /**
+     * Filter which SavingGoals to update
+     */
+    where?: SavingGoalWhereInput
+    /**
+     * Limit how many SavingGoals to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingGoalIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SavingGoal upsert
+   */
+  export type SavingGoalUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavingGoal
+     */
+    select?: SavingGoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavingGoal
+     */
+    omit?: SavingGoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingGoalInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SavingGoal to update in case it exists.
+     */
+    where: SavingGoalWhereUniqueInput
+    /**
+     * In case the SavingGoal found by the `where` argument doesn't exist, create a new SavingGoal with this data.
+     */
+    create: XOR<SavingGoalCreateInput, SavingGoalUncheckedCreateInput>
+    /**
+     * In case the SavingGoal was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SavingGoalUpdateInput, SavingGoalUncheckedUpdateInput>
+  }
+
+  /**
+   * SavingGoal delete
+   */
+  export type SavingGoalDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavingGoal
+     */
+    select?: SavingGoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavingGoal
+     */
+    omit?: SavingGoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingGoalInclude<ExtArgs> | null
+    /**
+     * Filter which SavingGoal to delete.
+     */
+    where: SavingGoalWhereUniqueInput
+  }
+
+  /**
+   * SavingGoal deleteMany
+   */
+  export type SavingGoalDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SavingGoals to delete
+     */
+    where?: SavingGoalWhereInput
+    /**
+     * Limit how many SavingGoals to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * SavingGoal without action
+   */
+  export type SavingGoalDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SavingGoal
+     */
+    select?: SavingGoalSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the SavingGoal
+     */
+    omit?: SavingGoalOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingGoalInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -10958,6 +12265,22 @@ export namespace Prisma {
   };
 
   export type RecurringReminderEventScalarFieldEnum = (typeof RecurringReminderEventScalarFieldEnum)[keyof typeof RecurringReminderEventScalarFieldEnum]
+
+
+  export const SavingGoalScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    name: 'name',
+    targetAmount: 'targetAmount',
+    currentAmount: 'currentAmount',
+    targetDate: 'targetDate',
+    notes: 'notes',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type SavingGoalScalarFieldEnum = (typeof SavingGoalScalarFieldEnum)[keyof typeof SavingGoalScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -11165,6 +12488,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'SavingGoalStatus'
+   */
+  export type EnumSavingGoalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SavingGoalStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'SavingGoalStatus[]'
+   */
+  export type ListEnumSavingGoalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SavingGoalStatus[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -11196,6 +12533,7 @@ export namespace Prisma {
     transactions?: TransactionListRelationFilter
     installments?: InstallmentListRelationFilter
     recurringTransactionTemplates?: RecurringTransactionTemplateListRelationFilter
+    savingGoals?: SavingGoalListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -11210,6 +12548,7 @@ export namespace Prisma {
     transactions?: TransactionOrderByRelationAggregateInput
     installments?: InstallmentOrderByRelationAggregateInput
     recurringTransactionTemplates?: RecurringTransactionTemplateOrderByRelationAggregateInput
+    savingGoals?: SavingGoalOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -11227,6 +12566,7 @@ export namespace Prisma {
     transactions?: TransactionListRelationFilter
     installments?: InstallmentListRelationFilter
     recurringTransactionTemplates?: RecurringTransactionTemplateListRelationFilter
+    savingGoals?: SavingGoalListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -11943,6 +13283,88 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"RecurringReminderEvent"> | Date | string
   }
 
+  export type SavingGoalWhereInput = {
+    AND?: SavingGoalWhereInput | SavingGoalWhereInput[]
+    OR?: SavingGoalWhereInput[]
+    NOT?: SavingGoalWhereInput | SavingGoalWhereInput[]
+    id?: StringFilter<"SavingGoal"> | string
+    userId?: StringFilter<"SavingGoal"> | string
+    name?: StringFilter<"SavingGoal"> | string
+    targetAmount?: DecimalFilter<"SavingGoal"> | Decimal | DecimalJsLike | number | string
+    currentAmount?: DecimalFilter<"SavingGoal"> | Decimal | DecimalJsLike | number | string
+    targetDate?: DateTimeNullableFilter<"SavingGoal"> | Date | string | null
+    notes?: StringNullableFilter<"SavingGoal"> | string | null
+    status?: EnumSavingGoalStatusFilter<"SavingGoal"> | $Enums.SavingGoalStatus
+    createdAt?: DateTimeFilter<"SavingGoal"> | Date | string
+    updatedAt?: DateTimeFilter<"SavingGoal"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type SavingGoalOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    targetAmount?: SortOrder
+    currentAmount?: SortOrder
+    targetDate?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type SavingGoalWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: SavingGoalWhereInput | SavingGoalWhereInput[]
+    OR?: SavingGoalWhereInput[]
+    NOT?: SavingGoalWhereInput | SavingGoalWhereInput[]
+    userId?: StringFilter<"SavingGoal"> | string
+    name?: StringFilter<"SavingGoal"> | string
+    targetAmount?: DecimalFilter<"SavingGoal"> | Decimal | DecimalJsLike | number | string
+    currentAmount?: DecimalFilter<"SavingGoal"> | Decimal | DecimalJsLike | number | string
+    targetDate?: DateTimeNullableFilter<"SavingGoal"> | Date | string | null
+    notes?: StringNullableFilter<"SavingGoal"> | string | null
+    status?: EnumSavingGoalStatusFilter<"SavingGoal"> | $Enums.SavingGoalStatus
+    createdAt?: DateTimeFilter<"SavingGoal"> | Date | string
+    updatedAt?: DateTimeFilter<"SavingGoal"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type SavingGoalOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    targetAmount?: SortOrder
+    currentAmount?: SortOrder
+    targetDate?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: SavingGoalCountOrderByAggregateInput
+    _avg?: SavingGoalAvgOrderByAggregateInput
+    _max?: SavingGoalMaxOrderByAggregateInput
+    _min?: SavingGoalMinOrderByAggregateInput
+    _sum?: SavingGoalSumOrderByAggregateInput
+  }
+
+  export type SavingGoalScalarWhereWithAggregatesInput = {
+    AND?: SavingGoalScalarWhereWithAggregatesInput | SavingGoalScalarWhereWithAggregatesInput[]
+    OR?: SavingGoalScalarWhereWithAggregatesInput[]
+    NOT?: SavingGoalScalarWhereWithAggregatesInput | SavingGoalScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SavingGoal"> | string
+    userId?: StringWithAggregatesFilter<"SavingGoal"> | string
+    name?: StringWithAggregatesFilter<"SavingGoal"> | string
+    targetAmount?: DecimalWithAggregatesFilter<"SavingGoal"> | Decimal | DecimalJsLike | number | string
+    currentAmount?: DecimalWithAggregatesFilter<"SavingGoal"> | Decimal | DecimalJsLike | number | string
+    targetDate?: DateTimeNullableWithAggregatesFilter<"SavingGoal"> | Date | string | null
+    notes?: StringNullableWithAggregatesFilter<"SavingGoal"> | string | null
+    status?: EnumSavingGoalStatusWithAggregatesFilter<"SavingGoal"> | $Enums.SavingGoalStatus
+    createdAt?: DateTimeWithAggregatesFilter<"SavingGoal"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"SavingGoal"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -11955,6 +13377,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -11969,6 +13392,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -11983,6 +13407,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -11997,6 +13422,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -12793,6 +14219,96 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type SavingGoalCreateInput = {
+    id?: string
+    name: string
+    targetAmount: Decimal | DecimalJsLike | number | string
+    currentAmount?: Decimal | DecimalJsLike | number | string
+    targetDate?: Date | string | null
+    notes?: string | null
+    status?: $Enums.SavingGoalStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutSavingGoalsInput
+  }
+
+  export type SavingGoalUncheckedCreateInput = {
+    id?: string
+    userId: string
+    name: string
+    targetAmount: Decimal | DecimalJsLike | number | string
+    currentAmount?: Decimal | DecimalJsLike | number | string
+    targetDate?: Date | string | null
+    notes?: string | null
+    status?: $Enums.SavingGoalStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SavingGoalUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    targetAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currentAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    targetDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSavingGoalStatusFieldUpdateOperationsInput | $Enums.SavingGoalStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutSavingGoalsNestedInput
+  }
+
+  export type SavingGoalUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    targetAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currentAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    targetDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSavingGoalStatusFieldUpdateOperationsInput | $Enums.SavingGoalStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavingGoalCreateManyInput = {
+    id?: string
+    userId: string
+    name: string
+    targetAmount: Decimal | DecimalJsLike | number | string
+    currentAmount?: Decimal | DecimalJsLike | number | string
+    targetDate?: Date | string | null
+    notes?: string | null
+    status?: $Enums.SavingGoalStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SavingGoalUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    targetAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currentAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    targetDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSavingGoalStatusFieldUpdateOperationsInput | $Enums.SavingGoalStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavingGoalUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    targetAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currentAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    targetDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSavingGoalStatusFieldUpdateOperationsInput | $Enums.SavingGoalStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -12864,6 +14380,12 @@ export namespace Prisma {
     none?: RecurringTransactionTemplateWhereInput
   }
 
+  export type SavingGoalListRelationFilter = {
+    every?: SavingGoalWhereInput
+    some?: SavingGoalWhereInput
+    none?: SavingGoalWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -12886,6 +14408,10 @@ export namespace Prisma {
   }
 
   export type RecurringTransactionTemplateOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SavingGoalOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -13706,6 +15232,72 @@ export namespace Prisma {
     offsetDays?: SortOrder
   }
 
+  export type EnumSavingGoalStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.SavingGoalStatus | EnumSavingGoalStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SavingGoalStatus[] | ListEnumSavingGoalStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SavingGoalStatus[] | ListEnumSavingGoalStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSavingGoalStatusFilter<$PrismaModel> | $Enums.SavingGoalStatus
+  }
+
+  export type SavingGoalCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    targetAmount?: SortOrder
+    currentAmount?: SortOrder
+    targetDate?: SortOrder
+    notes?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SavingGoalAvgOrderByAggregateInput = {
+    targetAmount?: SortOrder
+    currentAmount?: SortOrder
+  }
+
+  export type SavingGoalMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    targetAmount?: SortOrder
+    currentAmount?: SortOrder
+    targetDate?: SortOrder
+    notes?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SavingGoalMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    targetAmount?: SortOrder
+    currentAmount?: SortOrder
+    targetDate?: SortOrder
+    notes?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SavingGoalSumOrderByAggregateInput = {
+    targetAmount?: SortOrder
+    currentAmount?: SortOrder
+  }
+
+  export type EnumSavingGoalStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SavingGoalStatus | EnumSavingGoalStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SavingGoalStatus[] | ListEnumSavingGoalStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SavingGoalStatus[] | ListEnumSavingGoalStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSavingGoalStatusWithAggregatesFilter<$PrismaModel> | $Enums.SavingGoalStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSavingGoalStatusFilter<$PrismaModel>
+    _max?: NestedEnumSavingGoalStatusFilter<$PrismaModel>
+  }
+
   export type WalletCreateNestedManyWithoutUserInput = {
     create?: XOR<WalletCreateWithoutUserInput, WalletUncheckedCreateWithoutUserInput> | WalletCreateWithoutUserInput[] | WalletUncheckedCreateWithoutUserInput[]
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
@@ -13741,6 +15333,13 @@ export namespace Prisma {
     connect?: RecurringTransactionTemplateWhereUniqueInput | RecurringTransactionTemplateWhereUniqueInput[]
   }
 
+  export type SavingGoalCreateNestedManyWithoutUserInput = {
+    create?: XOR<SavingGoalCreateWithoutUserInput, SavingGoalUncheckedCreateWithoutUserInput> | SavingGoalCreateWithoutUserInput[] | SavingGoalUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SavingGoalCreateOrConnectWithoutUserInput | SavingGoalCreateOrConnectWithoutUserInput[]
+    createMany?: SavingGoalCreateManyUserInputEnvelope
+    connect?: SavingGoalWhereUniqueInput | SavingGoalWhereUniqueInput[]
+  }
+
   export type WalletUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<WalletCreateWithoutUserInput, WalletUncheckedCreateWithoutUserInput> | WalletCreateWithoutUserInput[] | WalletUncheckedCreateWithoutUserInput[]
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
@@ -13774,6 +15373,13 @@ export namespace Prisma {
     connectOrCreate?: RecurringTransactionTemplateCreateOrConnectWithoutUserInput | RecurringTransactionTemplateCreateOrConnectWithoutUserInput[]
     createMany?: RecurringTransactionTemplateCreateManyUserInputEnvelope
     connect?: RecurringTransactionTemplateWhereUniqueInput | RecurringTransactionTemplateWhereUniqueInput[]
+  }
+
+  export type SavingGoalUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<SavingGoalCreateWithoutUserInput, SavingGoalUncheckedCreateWithoutUserInput> | SavingGoalCreateWithoutUserInput[] | SavingGoalUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SavingGoalCreateOrConnectWithoutUserInput | SavingGoalCreateOrConnectWithoutUserInput[]
+    createMany?: SavingGoalCreateManyUserInputEnvelope
+    connect?: SavingGoalWhereUniqueInput | SavingGoalWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -13858,6 +15464,20 @@ export namespace Prisma {
     deleteMany?: RecurringTransactionTemplateScalarWhereInput | RecurringTransactionTemplateScalarWhereInput[]
   }
 
+  export type SavingGoalUpdateManyWithoutUserNestedInput = {
+    create?: XOR<SavingGoalCreateWithoutUserInput, SavingGoalUncheckedCreateWithoutUserInput> | SavingGoalCreateWithoutUserInput[] | SavingGoalUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SavingGoalCreateOrConnectWithoutUserInput | SavingGoalCreateOrConnectWithoutUserInput[]
+    upsert?: SavingGoalUpsertWithWhereUniqueWithoutUserInput | SavingGoalUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: SavingGoalCreateManyUserInputEnvelope
+    set?: SavingGoalWhereUniqueInput | SavingGoalWhereUniqueInput[]
+    disconnect?: SavingGoalWhereUniqueInput | SavingGoalWhereUniqueInput[]
+    delete?: SavingGoalWhereUniqueInput | SavingGoalWhereUniqueInput[]
+    connect?: SavingGoalWhereUniqueInput | SavingGoalWhereUniqueInput[]
+    update?: SavingGoalUpdateWithWhereUniqueWithoutUserInput | SavingGoalUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: SavingGoalUpdateManyWithWhereWithoutUserInput | SavingGoalUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: SavingGoalScalarWhereInput | SavingGoalScalarWhereInput[]
+  }
+
   export type WalletUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<WalletCreateWithoutUserInput, WalletUncheckedCreateWithoutUserInput> | WalletCreateWithoutUserInput[] | WalletUncheckedCreateWithoutUserInput[]
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
@@ -13926,6 +15546,20 @@ export namespace Prisma {
     update?: RecurringTransactionTemplateUpdateWithWhereUniqueWithoutUserInput | RecurringTransactionTemplateUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: RecurringTransactionTemplateUpdateManyWithWhereWithoutUserInput | RecurringTransactionTemplateUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: RecurringTransactionTemplateScalarWhereInput | RecurringTransactionTemplateScalarWhereInput[]
+  }
+
+  export type SavingGoalUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<SavingGoalCreateWithoutUserInput, SavingGoalUncheckedCreateWithoutUserInput> | SavingGoalCreateWithoutUserInput[] | SavingGoalUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SavingGoalCreateOrConnectWithoutUserInput | SavingGoalCreateOrConnectWithoutUserInput[]
+    upsert?: SavingGoalUpsertWithWhereUniqueWithoutUserInput | SavingGoalUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: SavingGoalCreateManyUserInputEnvelope
+    set?: SavingGoalWhereUniqueInput | SavingGoalWhereUniqueInput[]
+    disconnect?: SavingGoalWhereUniqueInput | SavingGoalWhereUniqueInput[]
+    delete?: SavingGoalWhereUniqueInput | SavingGoalWhereUniqueInput[]
+    connect?: SavingGoalWhereUniqueInput | SavingGoalWhereUniqueInput[]
+    update?: SavingGoalUpdateWithWhereUniqueWithoutUserInput | SavingGoalUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: SavingGoalUpdateManyWithWhereWithoutUserInput | SavingGoalUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: SavingGoalScalarWhereInput | SavingGoalScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutWalletsInput = {
@@ -14634,6 +16268,24 @@ export namespace Prisma {
     update?: XOR<XOR<TransactionUpdateToOneWithWhereWithoutReminderEventInput, TransactionUpdateWithoutReminderEventInput>, TransactionUncheckedUpdateWithoutReminderEventInput>
   }
 
+  export type UserCreateNestedOneWithoutSavingGoalsInput = {
+    create?: XOR<UserCreateWithoutSavingGoalsInput, UserUncheckedCreateWithoutSavingGoalsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSavingGoalsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type EnumSavingGoalStatusFieldUpdateOperationsInput = {
+    set?: $Enums.SavingGoalStatus
+  }
+
+  export type UserUpdateOneRequiredWithoutSavingGoalsNestedInput = {
+    create?: XOR<UserCreateWithoutSavingGoalsInput, UserUncheckedCreateWithoutSavingGoalsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSavingGoalsInput
+    upsert?: UserUpsertWithoutSavingGoalsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSavingGoalsInput, UserUpdateWithoutSavingGoalsInput>, UserUncheckedUpdateWithoutSavingGoalsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -15025,6 +16677,23 @@ export namespace Prisma {
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
+  export type NestedEnumSavingGoalStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.SavingGoalStatus | EnumSavingGoalStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SavingGoalStatus[] | ListEnumSavingGoalStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SavingGoalStatus[] | ListEnumSavingGoalStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSavingGoalStatusFilter<$PrismaModel> | $Enums.SavingGoalStatus
+  }
+
+  export type NestedEnumSavingGoalStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.SavingGoalStatus | EnumSavingGoalStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.SavingGoalStatus[] | ListEnumSavingGoalStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.SavingGoalStatus[] | ListEnumSavingGoalStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumSavingGoalStatusWithAggregatesFilter<$PrismaModel> | $Enums.SavingGoalStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumSavingGoalStatusFilter<$PrismaModel>
+    _max?: NestedEnumSavingGoalStatusFilter<$PrismaModel>
+  }
+
   export type WalletCreateWithoutUserInput = {
     id?: string
     name: string
@@ -15269,6 +16938,40 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type SavingGoalCreateWithoutUserInput = {
+    id?: string
+    name: string
+    targetAmount: Decimal | DecimalJsLike | number | string
+    currentAmount?: Decimal | DecimalJsLike | number | string
+    targetDate?: Date | string | null
+    notes?: string | null
+    status?: $Enums.SavingGoalStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SavingGoalUncheckedCreateWithoutUserInput = {
+    id?: string
+    name: string
+    targetAmount: Decimal | DecimalJsLike | number | string
+    currentAmount?: Decimal | DecimalJsLike | number | string
+    targetDate?: Date | string | null
+    notes?: string | null
+    status?: $Enums.SavingGoalStatus
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SavingGoalCreateOrConnectWithoutUserInput = {
+    where: SavingGoalWhereUniqueInput
+    create: XOR<SavingGoalCreateWithoutUserInput, SavingGoalUncheckedCreateWithoutUserInput>
+  }
+
+  export type SavingGoalCreateManyUserInputEnvelope = {
+    data: SavingGoalCreateManyUserInput | SavingGoalCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type WalletUpsertWithWhereUniqueWithoutUserInput = {
     where: WalletWhereUniqueInput
     update: XOR<WalletUpdateWithoutUserInput, WalletUncheckedUpdateWithoutUserInput>
@@ -15456,6 +17159,38 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"RecurringTransactionTemplate"> | Date | string
   }
 
+  export type SavingGoalUpsertWithWhereUniqueWithoutUserInput = {
+    where: SavingGoalWhereUniqueInput
+    update: XOR<SavingGoalUpdateWithoutUserInput, SavingGoalUncheckedUpdateWithoutUserInput>
+    create: XOR<SavingGoalCreateWithoutUserInput, SavingGoalUncheckedCreateWithoutUserInput>
+  }
+
+  export type SavingGoalUpdateWithWhereUniqueWithoutUserInput = {
+    where: SavingGoalWhereUniqueInput
+    data: XOR<SavingGoalUpdateWithoutUserInput, SavingGoalUncheckedUpdateWithoutUserInput>
+  }
+
+  export type SavingGoalUpdateManyWithWhereWithoutUserInput = {
+    where: SavingGoalScalarWhereInput
+    data: XOR<SavingGoalUpdateManyMutationInput, SavingGoalUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type SavingGoalScalarWhereInput = {
+    AND?: SavingGoalScalarWhereInput | SavingGoalScalarWhereInput[]
+    OR?: SavingGoalScalarWhereInput[]
+    NOT?: SavingGoalScalarWhereInput | SavingGoalScalarWhereInput[]
+    id?: StringFilter<"SavingGoal"> | string
+    userId?: StringFilter<"SavingGoal"> | string
+    name?: StringFilter<"SavingGoal"> | string
+    targetAmount?: DecimalFilter<"SavingGoal"> | Decimal | DecimalJsLike | number | string
+    currentAmount?: DecimalFilter<"SavingGoal"> | Decimal | DecimalJsLike | number | string
+    targetDate?: DateTimeNullableFilter<"SavingGoal"> | Date | string | null
+    notes?: StringNullableFilter<"SavingGoal"> | string | null
+    status?: EnumSavingGoalStatusFilter<"SavingGoal"> | $Enums.SavingGoalStatus
+    createdAt?: DateTimeFilter<"SavingGoal"> | Date | string
+    updatedAt?: DateTimeFilter<"SavingGoal"> | Date | string
+  }
+
   export type UserCreateWithoutWalletsInput = {
     id?: string
     email: string
@@ -15467,6 +17202,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutWalletsInput = {
@@ -15480,6 +17216,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutWalletsInput = {
@@ -15705,6 +17442,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutWalletsInput = {
@@ -15718,6 +17456,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutWalletInput = {
@@ -15795,6 +17534,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCategoriesInput = {
@@ -15808,6 +17548,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCategoriesInput = {
@@ -15929,6 +17670,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCategoriesInput = {
@@ -15942,6 +17684,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutCategoryInput = {
@@ -15987,6 +17730,7 @@ export namespace Prisma {
     categories?: CategoryCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -16000,6 +17744,7 @@ export namespace Prisma {
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -16248,6 +17993,7 @@ export namespace Prisma {
     categories?: CategoryUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -16261,6 +18007,7 @@ export namespace Prisma {
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutTransactionsInput = {
@@ -16523,6 +18270,7 @@ export namespace Prisma {
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutInstallmentsInput = {
@@ -16536,6 +18284,7 @@ export namespace Prisma {
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutInstallmentsInput = {
@@ -16694,6 +18443,7 @@ export namespace Prisma {
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutInstallmentsInput = {
@@ -16707,6 +18457,7 @@ export namespace Prisma {
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutInstallmentsInput = {
@@ -16826,6 +18577,7 @@ export namespace Prisma {
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutRecurringTransactionTemplatesInput = {
@@ -16839,6 +18591,7 @@ export namespace Prisma {
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutRecurringTransactionTemplatesInput = {
@@ -16984,6 +18737,7 @@ export namespace Prisma {
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutRecurringTransactionTemplatesInput = {
@@ -16997,6 +18751,7 @@ export namespace Prisma {
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutRecurringTransactionTemplatesInput = {
@@ -17403,6 +19158,78 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type UserCreateWithoutSavingGoalsInput = {
+    id?: string
+    email: string
+    name: string
+    avatarUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    wallets?: WalletCreateNestedManyWithoutUserInput
+    categories?: CategoryCreateNestedManyWithoutUserInput
+    transactions?: TransactionCreateNestedManyWithoutUserInput
+    installments?: InstallmentCreateNestedManyWithoutUserInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutSavingGoalsInput = {
+    id?: string
+    email: string
+    name: string
+    avatarUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
+    transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutSavingGoalsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutSavingGoalsInput, UserUncheckedCreateWithoutSavingGoalsInput>
+  }
+
+  export type UserUpsertWithoutSavingGoalsInput = {
+    update: XOR<UserUpdateWithoutSavingGoalsInput, UserUncheckedUpdateWithoutSavingGoalsInput>
+    create: XOR<UserCreateWithoutSavingGoalsInput, UserUncheckedCreateWithoutSavingGoalsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutSavingGoalsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutSavingGoalsInput, UserUncheckedUpdateWithoutSavingGoalsInput>
+  }
+
+  export type UserUpdateWithoutSavingGoalsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallets?: WalletUpdateManyWithoutUserNestedInput
+    categories?: CategoryUpdateManyWithoutUserNestedInput
+    transactions?: TransactionUpdateManyWithoutUserNestedInput
+    installments?: InstallmentUpdateManyWithoutUserNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutSavingGoalsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
+    transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
+  }
+
   export type WalletCreateManyUserInput = {
     id?: string
     name: string
@@ -17486,6 +19313,18 @@ export namespace Prisma {
     isActive?: boolean
     reminderEnabled?: boolean
     reminderOffsetDays?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SavingGoalCreateManyUserInput = {
+    id?: string
+    name: string
+    targetAmount: Decimal | DecimalJsLike | number | string
+    currentAmount?: Decimal | DecimalJsLike | number | string
+    targetDate?: Date | string | null
+    notes?: string | null
+    status?: $Enums.SavingGoalStatus
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -17767,6 +19606,42 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
     reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavingGoalUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    targetAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currentAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    targetDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSavingGoalStatusFieldUpdateOperationsInput | $Enums.SavingGoalStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavingGoalUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    targetAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currentAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    targetDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSavingGoalStatusFieldUpdateOperationsInput | $Enums.SavingGoalStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavingGoalUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    targetAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currentAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    targetDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumSavingGoalStatusFieldUpdateOperationsInput | $Enums.SavingGoalStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
