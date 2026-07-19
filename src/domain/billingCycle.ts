@@ -55,6 +55,23 @@ export function addBillingMonth(date: string, months: number): string {
   return clampDay(targetYear, targetMonthIndex, parsed.day);
 }
 
+/** Next monthly occurrence on/after `todayStr`, clamped to `endDate` (inclusive), or null once the recurrence has ended. */
+export function nextMonthlyOccurrence(startDate: string, endDate: string | null, todayStr: string): string | null {
+  if (startDate > todayStr) {
+    return endDate && startDate > endDate ? null : startDate;
+  }
+  const start = parseCalendarDate(startDate);
+  const today = parseCalendarDate(todayStr);
+  let months = (today.year - start.year) * 12 + (today.monthIndex - start.monthIndex);
+  let candidate = addBillingMonth(startDate, months);
+  if (candidate < todayStr) {
+    months += 1;
+    candidate = addBillingMonth(startDate, months);
+  }
+  if (endDate && candidate > endDate) return null;
+  return candidate;
+}
+
 export function calculateFirstDueDate(input: BillingCycleInput): string {
   if (input.timeZone !== 'Asia/Jakarta') throw new Error('Zona waktu tagihan tidak didukung');
   assertBillingDay('cutoffDay', input.cutoffDay);

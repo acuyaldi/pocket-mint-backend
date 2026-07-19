@@ -224,4 +224,115 @@ describe('recurring transaction service', () => {
       createRecurringTransactionService(db as any).deleteRecurringTransaction({ userId: 'user-1', id: 'rec-404' })
     ).rejects.toThrow(RecurringTransactionError);
   });
+
+  describe('reminder settings', () => {
+    it('defaults to disabled with a null offset when omitted', async () => {
+      const db = makeDb();
+      const created = await createRecurringTransactionService(db as any).createRecurringTransaction(baseInput);
+      expect(created).toMatchObject({ reminderEnabled: false, reminderOffsetDays: null });
+    });
+
+    it('rejects an offset when reminderEnabled is false', async () => {
+      const db = makeDb();
+      await expect(
+        createRecurringTransactionService(db as any).createRecurringTransaction({
+          ...baseInput,
+          reminderEnabled: false,
+          reminderOffsetDays: 3,
+        })
+      ).rejects.toThrow(RecurringTransactionError);
+    });
+
+    it('requires an offset when reminderEnabled is true', async () => {
+      const db = makeDb();
+      await expect(
+        createRecurringTransactionService(db as any).createRecurringTransaction({
+          ...baseInput,
+          reminderEnabled: true,
+        })
+      ).rejects.toThrow(RecurringTransactionError);
+    });
+
+    it.each([2, 4, 5, 30, 100, -1])('rejects an invalid offset of %i', async (reminderOffsetDays) => {
+      const db = makeDb();
+      await expect(
+        createRecurringTransactionService(db as any).createRecurringTransaction({
+          ...baseInput,
+          reminderEnabled: true,
+          reminderOffsetDays,
+        })
+      ).rejects.toThrow(RecurringTransactionError);
+    });
+
+    it.each([0, 1, 3, 7])('accepts a valid offset of %i', async (reminderOffsetDays) => {
+      const db = makeDb();
+      const created = await createRecurringTransactionService(db as any).createRecurringTransaction({
+        ...baseInput,
+        reminderEnabled: true,
+        reminderOffsetDays,
+      });
+      expect(created).toMatchObject({ reminderEnabled: true, reminderOffsetDays });
+    });
+
+    it('update merges reminder state: enabling later still requires a valid offset', async () => {
+      const db = makeDb();
+      db.recurringTransactionTemplate.findFirst.mockResolvedValue({
+        id: 'rec-1',
+        userId: 'user-1',
+        amountMode: 'FIXED',
+        amount: 54000,
+        startDate: new Date('2026-08-01'),
+        endDate: null,
+        reminderEnabled: false,
+        reminderOffsetDays: null,
+      } as any);
+
+      await expect(
+        createRecurringTransactionService(db as any).updateRecurringTransaction({
+          userId: 'user-1',
+          id: 'rec-1',
+          reminderEnabled: true,
+        })
+      ).rejects.toThrow(RecurringTransactionError);
+
+      const updated = await createRecurringTransactionService(db as any).updateRecurringTransaction({
+        userId: 'user-1',
+        id: 'rec-1',
+        reminderEnabled: true,
+        reminderOffsetDays: 1,
+      });
+      expect(updated).toMatchObject({ reminderEnabled: true, reminderOffsetDays: 1 });
+    });
+
+    it('update disabling reminder requires the caller to explicitly null out the offset', async () => {
+      const db = makeDb();
+      db.recurringTransactionTemplate.findFirst.mockResolvedValue({
+        id: 'rec-1',
+        userId: 'user-1',
+        amountMode: 'FIXED',
+        amount: 54000,
+        startDate: new Date('2026-08-01'),
+        endDate: null,
+        reminderEnabled: true,
+        reminderOffsetDays: 7,
+      } as any);
+
+      // Disabling without clearing the stale offset is rejected — no silent normalization.
+      await expect(
+        createRecurringTransactionService(db as any).updateRecurringTransaction({
+          userId: 'user-1',
+          id: 'rec-1',
+          reminderEnabled: false,
+        })
+      ).rejects.toThrow(RecurringTransactionError);
+
+      const updated = await createRecurringTransactionService(db as any).updateRecurringTransaction({
+        userId: 'user-1',
+        id: 'rec-1',
+        reminderEnabled: false,
+        reminderOffsetDays: null,
+      });
+      expect(updated).toMatchObject({ reminderEnabled: false, reminderOffsetDays: null });
+    });
+  });
 });

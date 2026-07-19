@@ -215,6 +215,8 @@ exports.Prisma.RecurringTransactionTemplateScalarFieldEnum = {
   startDate: 'startDate',
   endDate: 'endDate',
   isActive: 'isActive',
+  reminderEnabled: 'reminderEnabled',
+  reminderOffsetDays: 'reminderOffsetDays',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

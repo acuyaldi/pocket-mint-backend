@@ -8072,10 +8072,12 @@ export namespace Prisma {
 
   export type RecurringTransactionTemplateAvgAggregateOutputType = {
     amount: Decimal | null
+    reminderOffsetDays: number | null
   }
 
   export type RecurringTransactionTemplateSumAggregateOutputType = {
     amount: Decimal | null
+    reminderOffsetDays: number | null
   }
 
   export type RecurringTransactionTemplateMinAggregateOutputType = {
@@ -8092,6 +8094,8 @@ export namespace Prisma {
     startDate: Date | null
     endDate: Date | null
     isActive: boolean | null
+    reminderEnabled: boolean | null
+    reminderOffsetDays: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -8110,6 +8114,8 @@ export namespace Prisma {
     startDate: Date | null
     endDate: Date | null
     isActive: boolean | null
+    reminderEnabled: boolean | null
+    reminderOffsetDays: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -8128,6 +8134,8 @@ export namespace Prisma {
     startDate: number
     endDate: number
     isActive: number
+    reminderEnabled: number
+    reminderOffsetDays: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -8136,10 +8144,12 @@ export namespace Prisma {
 
   export type RecurringTransactionTemplateAvgAggregateInputType = {
     amount?: true
+    reminderOffsetDays?: true
   }
 
   export type RecurringTransactionTemplateSumAggregateInputType = {
     amount?: true
+    reminderOffsetDays?: true
   }
 
   export type RecurringTransactionTemplateMinAggregateInputType = {
@@ -8156,6 +8166,8 @@ export namespace Prisma {
     startDate?: true
     endDate?: true
     isActive?: true
+    reminderEnabled?: true
+    reminderOffsetDays?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -8174,6 +8186,8 @@ export namespace Prisma {
     startDate?: true
     endDate?: true
     isActive?: true
+    reminderEnabled?: true
+    reminderOffsetDays?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -8192,6 +8206,8 @@ export namespace Prisma {
     startDate?: true
     endDate?: true
     isActive?: true
+    reminderEnabled?: true
+    reminderOffsetDays?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -8297,6 +8313,8 @@ export namespace Prisma {
     startDate: Date
     endDate: Date | null
     isActive: boolean
+    reminderEnabled: boolean
+    reminderOffsetDays: number | null
     createdAt: Date
     updatedAt: Date
     _count: RecurringTransactionTemplateCountAggregateOutputType | null
@@ -8334,6 +8352,8 @@ export namespace Prisma {
     startDate?: boolean
     endDate?: boolean
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -8355,6 +8375,8 @@ export namespace Prisma {
     startDate?: boolean
     endDate?: boolean
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -8376,6 +8398,8 @@ export namespace Prisma {
     startDate?: boolean
     endDate?: boolean
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -8397,11 +8421,13 @@ export namespace Prisma {
     startDate?: boolean
     endDate?: boolean
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type RecurringTransactionTemplateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "walletId" | "categoryId" | "name" | "type" | "amountMode" | "amount" | "description" | "frequency" | "startDate" | "endDate" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["recurringTransactionTemplate"]>
+  export type RecurringTransactionTemplateOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "walletId" | "categoryId" | "name" | "type" | "amountMode" | "amount" | "description" | "frequency" | "startDate" | "endDate" | "isActive" | "reminderEnabled" | "reminderOffsetDays" | "createdAt" | "updatedAt", ExtArgs["result"]["recurringTransactionTemplate"]>
   export type RecurringTransactionTemplateInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     wallet?: boolean | WalletDefaultArgs<ExtArgs>
@@ -8439,6 +8465,8 @@ export namespace Prisma {
       startDate: Date
       endDate: Date | null
       isActive: boolean
+      reminderEnabled: boolean
+      reminderOffsetDays: number | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["recurringTransactionTemplate"]>
@@ -8880,6 +8908,8 @@ export namespace Prisma {
     readonly startDate: FieldRef<"RecurringTransactionTemplate", 'DateTime'>
     readonly endDate: FieldRef<"RecurringTransactionTemplate", 'DateTime'>
     readonly isActive: FieldRef<"RecurringTransactionTemplate", 'Boolean'>
+    readonly reminderEnabled: FieldRef<"RecurringTransactionTemplate", 'Boolean'>
+    readonly reminderOffsetDays: FieldRef<"RecurringTransactionTemplate", 'Int'>
     readonly createdAt: FieldRef<"RecurringTransactionTemplate", 'DateTime'>
     readonly updatedAt: FieldRef<"RecurringTransactionTemplate", 'DateTime'>
   }
@@ -9444,6 +9474,8 @@ export namespace Prisma {
     startDate: 'startDate',
     endDate: 'endDate',
     isActive: 'isActive',
+    reminderEnabled: 'reminderEnabled',
+    reminderOffsetDays: 'reminderOffsetDays',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -10224,6 +10256,8 @@ export namespace Prisma {
     startDate?: DateTimeFilter<"RecurringTransactionTemplate"> | Date | string
     endDate?: DateTimeNullableFilter<"RecurringTransactionTemplate"> | Date | string | null
     isActive?: BoolFilter<"RecurringTransactionTemplate"> | boolean
+    reminderEnabled?: BoolFilter<"RecurringTransactionTemplate"> | boolean
+    reminderOffsetDays?: IntNullableFilter<"RecurringTransactionTemplate"> | number | null
     createdAt?: DateTimeFilter<"RecurringTransactionTemplate"> | Date | string
     updatedAt?: DateTimeFilter<"RecurringTransactionTemplate"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -10245,6 +10279,8 @@ export namespace Prisma {
     startDate?: SortOrder
     endDate?: SortOrderInput | SortOrder
     isActive?: SortOrder
+    reminderEnabled?: SortOrder
+    reminderOffsetDays?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
@@ -10269,6 +10305,8 @@ export namespace Prisma {
     startDate?: DateTimeFilter<"RecurringTransactionTemplate"> | Date | string
     endDate?: DateTimeNullableFilter<"RecurringTransactionTemplate"> | Date | string | null
     isActive?: BoolFilter<"RecurringTransactionTemplate"> | boolean
+    reminderEnabled?: BoolFilter<"RecurringTransactionTemplate"> | boolean
+    reminderOffsetDays?: IntNullableFilter<"RecurringTransactionTemplate"> | number | null
     createdAt?: DateTimeFilter<"RecurringTransactionTemplate"> | Date | string
     updatedAt?: DateTimeFilter<"RecurringTransactionTemplate"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -10290,6 +10328,8 @@ export namespace Prisma {
     startDate?: SortOrder
     endDate?: SortOrderInput | SortOrder
     isActive?: SortOrder
+    reminderEnabled?: SortOrder
+    reminderOffsetDays?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: RecurringTransactionTemplateCountOrderByAggregateInput
@@ -10316,6 +10356,8 @@ export namespace Prisma {
     startDate?: DateTimeWithAggregatesFilter<"RecurringTransactionTemplate"> | Date | string
     endDate?: DateTimeNullableWithAggregatesFilter<"RecurringTransactionTemplate"> | Date | string | null
     isActive?: BoolWithAggregatesFilter<"RecurringTransactionTemplate"> | boolean
+    reminderEnabled?: BoolWithAggregatesFilter<"RecurringTransactionTemplate"> | boolean
+    reminderOffsetDays?: IntNullableWithAggregatesFilter<"RecurringTransactionTemplate"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"RecurringTransactionTemplate"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"RecurringTransactionTemplate"> | Date | string
   }
@@ -10937,6 +10979,8 @@ export namespace Prisma {
     startDate: Date | string
     endDate?: Date | string | null
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutRecurringTransactionTemplatesInput
@@ -10958,6 +11002,8 @@ export namespace Prisma {
     startDate: Date | string
     endDate?: Date | string | null
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -10973,6 +11019,8 @@ export namespace Prisma {
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutRecurringTransactionTemplatesNestedInput
@@ -10994,6 +11042,8 @@ export namespace Prisma {
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -11012,6 +11062,8 @@ export namespace Prisma {
     startDate: Date | string
     endDate?: Date | string | null
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -11027,6 +11079,8 @@ export namespace Prisma {
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -11045,6 +11099,8 @@ export namespace Prisma {
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -11769,12 +11825,15 @@ export namespace Prisma {
     startDate?: SortOrder
     endDate?: SortOrder
     isActive?: SortOrder
+    reminderEnabled?: SortOrder
+    reminderOffsetDays?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type RecurringTransactionTemplateAvgOrderByAggregateInput = {
     amount?: SortOrder
+    reminderOffsetDays?: SortOrder
   }
 
   export type RecurringTransactionTemplateMaxOrderByAggregateInput = {
@@ -11791,6 +11850,8 @@ export namespace Prisma {
     startDate?: SortOrder
     endDate?: SortOrder
     isActive?: SortOrder
+    reminderEnabled?: SortOrder
+    reminderOffsetDays?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -11809,12 +11870,15 @@ export namespace Prisma {
     startDate?: SortOrder
     endDate?: SortOrder
     isActive?: SortOrder
+    reminderEnabled?: SortOrder
+    reminderOffsetDays?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type RecurringTransactionTemplateSumOrderByAggregateInput = {
     amount?: SortOrder
+    reminderOffsetDays?: SortOrder
   }
 
   export type EnumRecurringAmountModeWithAggregatesFilter<$PrismaModel = never> = {
@@ -13223,6 +13287,8 @@ export namespace Prisma {
     startDate: Date | string
     endDate?: Date | string | null
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     wallet: WalletCreateNestedOneWithoutRecurringTransactionTemplatesInput
@@ -13242,6 +13308,8 @@ export namespace Prisma {
     startDate: Date | string
     endDate?: Date | string | null
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -13437,6 +13505,8 @@ export namespace Prisma {
     startDate?: DateTimeFilter<"RecurringTransactionTemplate"> | Date | string
     endDate?: DateTimeNullableFilter<"RecurringTransactionTemplate"> | Date | string | null
     isActive?: BoolFilter<"RecurringTransactionTemplate"> | boolean
+    reminderEnabled?: BoolFilter<"RecurringTransactionTemplate"> | boolean
+    reminderOffsetDays?: IntNullableFilter<"RecurringTransactionTemplate"> | number | null
     createdAt?: DateTimeFilter<"RecurringTransactionTemplate"> | Date | string
     updatedAt?: DateTimeFilter<"RecurringTransactionTemplate"> | Date | string
   }
@@ -13623,6 +13693,8 @@ export namespace Prisma {
     startDate: Date | string
     endDate?: Date | string | null
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutRecurringTransactionTemplatesInput
@@ -13642,6 +13714,8 @@ export namespace Prisma {
     startDate: Date | string
     endDate?: Date | string | null
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -13839,6 +13913,8 @@ export namespace Prisma {
     startDate: Date | string
     endDate?: Date | string | null
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutRecurringTransactionTemplatesInput
@@ -13858,6 +13934,8 @@ export namespace Prisma {
     startDate: Date | string
     endDate?: Date | string | null
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -14958,6 +15036,8 @@ export namespace Prisma {
     startDate: Date | string
     endDate?: Date | string | null
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -15191,6 +15271,8 @@ export namespace Prisma {
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallet?: WalletUpdateOneRequiredWithoutRecurringTransactionTemplatesNestedInput
@@ -15210,6 +15292,8 @@ export namespace Prisma {
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -15227,6 +15311,8 @@ export namespace Prisma {
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -15298,6 +15384,8 @@ export namespace Prisma {
     startDate: Date | string
     endDate?: Date | string | null
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -15477,6 +15565,8 @@ export namespace Prisma {
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutRecurringTransactionTemplatesNestedInput
@@ -15496,6 +15586,8 @@ export namespace Prisma {
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -15513,6 +15605,8 @@ export namespace Prisma {
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -15545,6 +15639,8 @@ export namespace Prisma {
     startDate: Date | string
     endDate?: Date | string | null
     isActive?: boolean
+    reminderEnabled?: boolean
+    reminderOffsetDays?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -15605,6 +15701,8 @@ export namespace Prisma {
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutRecurringTransactionTemplatesNestedInput
@@ -15624,6 +15722,8 @@ export namespace Prisma {
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -15641,6 +15741,8 @@ export namespace Prisma {
     startDate?: DateTimeFieldUpdateOperationsInput | Date | string
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
+    reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

@@ -45,7 +45,7 @@ describe('recurring transaction controller', () => {
     const response = await request(app()).get('/recurring-transactions');
 
     expect(response.status).toBe(200);
-    expect(response.body.data).toEqual([{ id: 'rec-1', name: 'Netflix', amount: 54000 }]);
+    expect(response.body.data).toEqual([{ id: 'rec-1', name: 'Netflix', amount: 54000, nextDueDate: null }]);
     expect(h.listRecurringTransactions).toHaveBeenCalledWith('user-1');
   });
 
@@ -57,7 +57,38 @@ describe('recurring transaction controller', () => {
     const response = await request(app()).get('/recurring-transactions');
 
     expect(response.status).toBe(200);
-    expect(response.body.data).toEqual([{ id: 'rec-2', name: 'Groceries', amountMode: 'FLEXIBLE', amount: null }]);
+    expect(response.body.data).toEqual([
+      { id: 'rec-2', name: 'Groceries', amountMode: 'FLEXIBLE', amount: null, nextDueDate: null },
+    ]);
+  });
+
+  it('derives nextDueDate for active monthly templates and omits it for paused ones', async () => {
+    h.listRecurringTransactions.mockResolvedValue([
+      {
+        id: 'rec-3',
+        name: 'Internet',
+        amount: decimalLike(350000),
+        isActive: true,
+        frequency: 'MONTHLY',
+        startDate: new Date('2026-01-15T00:00:00Z'),
+        endDate: null,
+      },
+      {
+        id: 'rec-4',
+        name: 'Gym',
+        amount: decimalLike(200000),
+        isActive: false,
+        frequency: 'MONTHLY',
+        startDate: new Date('2026-01-15T00:00:00Z'),
+        endDate: null,
+      },
+    ]);
+
+    const response = await request(app()).get('/recurring-transactions');
+
+    expect(response.status).toBe(200);
+    expect(response.body.data[0].nextDueDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(response.body.data[1].nextDueDate).toBe(null);
   });
 
   it('rejects a missing authenticated identity on every route', async () => {
@@ -103,6 +134,28 @@ describe('recurring transaction controller', () => {
     });
   });
 
+  it('creates a template with reminder settings from the body', async () => {
+    h.createRecurringTransaction.mockResolvedValue({ id: 'rec-1', name: 'Netflix', amount: decimalLike(54000) });
+
+    await request(app())
+      .post('/recurring-transactions')
+      .send({
+        name: 'Netflix',
+        walletId: 'wallet-1',
+        type: 'EXPENSE',
+        amountMode: 'FIXED',
+        amount: 54000,
+        frequency: 'MONTHLY',
+        startDate: '2026-08-01',
+        reminderEnabled: true,
+        reminderOffsetDays: 3,
+      });
+
+    expect(h.createRecurringTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({ reminderEnabled: true, reminderOffsetDays: 3 })
+    );
+  });
+
   it('updates a template by id from an allowlisted body', async () => {
     h.updateRecurringTransaction.mockResolvedValue({ id: 'rec-1', name: 'Netflix', amount: decimalLike(60000) });
 
@@ -113,6 +166,18 @@ describe('recurring transaction controller', () => {
     expect(response.status).toBe(200);
     expect(h.updateRecurringTransaction).toHaveBeenCalledWith(
       expect.objectContaining({ userId: 'user-1', id: 'rec-1', isActive: false })
+    );
+  });
+
+  it('updates a template with reminder settings from the body', async () => {
+    h.updateRecurringTransaction.mockResolvedValue({ id: 'rec-1', name: 'Netflix', amount: decimalLike(60000) });
+
+    await request(app())
+      .put('/recurring-transactions/rec-1')
+      .send({ reminderEnabled: false, reminderOffsetDays: null });
+
+    expect(h.updateRecurringTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({ reminderEnabled: false, reminderOffsetDays: null })
     );
   });
 

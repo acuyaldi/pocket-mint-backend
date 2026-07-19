@@ -22,6 +22,20 @@ const recurringTransaction_types_1 = require("./recurringTransaction.types");
 const VALID_TYPES = ['INCOME', 'EXPENSE'];
 const VALID_FREQUENCIES = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
 const VALID_AMOUNT_MODES = ['FIXED', 'FLEXIBLE'];
+const VALID_REMINDER_OFFSET_DAYS = [0, 1, 3, 7];
+/** Disabled requires a null offset; enabled requires one of VALID_REMINDER_OFFSET_DAYS. */
+function resolveReminder(reminderEnabled, reminderOffsetDays) {
+    if (!reminderEnabled) {
+        if (reminderOffsetDays !== undefined && reminderOffsetDays !== null) {
+            throw new recurringTransaction_errors_1.RecurringTransactionError('reminderOffsetDays must be null when reminderEnabled is false', 400, 'BAD_REQUEST');
+        }
+        return { reminderEnabled: false, reminderOffsetDays: null };
+    }
+    if (typeof reminderOffsetDays !== 'number' || !VALID_REMINDER_OFFSET_DAYS.includes(reminderOffsetDays)) {
+        throw new recurringTransaction_errors_1.RecurringTransactionError(`reminderOffsetDays is required and must be one of: ${VALID_REMINDER_OFFSET_DAYS.join(', ')}`, 400, 'BAD_REQUEST');
+    }
+    return { reminderEnabled: true, reminderOffsetDays };
+}
 /** FIXED requires a positive amount; FLEXIBLE always persists a null amount. */
 function resolveAmount(amountMode, amount) {
     if (amountMode === 'FLEXIBLE') {
@@ -83,6 +97,7 @@ function createRecurringTransactionService(db) {
         if (endDate && endDate < startDate) {
             throw new recurringTransaction_errors_1.RecurringTransactionError('endDate must be on or after startDate', 400, 'BAD_REQUEST');
         }
+        const reminder = resolveReminder(input.reminderEnabled ?? false, input.reminderOffsetDays);
         await assertWalletOwnership(userId, walletId);
         if (categoryId) {
             await assertCategoryOwnership(userId, categoryId);
@@ -100,6 +115,8 @@ function createRecurringTransactionService(db) {
                 frequency: input.frequency,
                 startDate,
                 endDate,
+                reminderEnabled: reminder.reminderEnabled,
+                reminderOffsetDays: reminder.reminderOffsetDays,
             },
             include: recurringTransaction_types_1.RECURRING_TRANSACTION_INCLUDE,
         });
@@ -132,6 +149,9 @@ function createRecurringTransactionService(db) {
         if (endDate && endDate < startDate) {
             throw new recurringTransaction_errors_1.RecurringTransactionError('endDate must be on or after startDate', 400, 'BAD_REQUEST');
         }
+        const finalReminderEnabled = input.reminderEnabled ?? existing.reminderEnabled;
+        const reminderOffsetSource = input.reminderOffsetDays !== undefined ? input.reminderOffsetDays : existing.reminderOffsetDays;
+        const reminder = resolveReminder(finalReminderEnabled, reminderOffsetSource);
         if (input.walletId !== undefined) {
             await assertWalletOwnership(userId, input.walletId);
         }
@@ -152,6 +172,8 @@ function createRecurringTransactionService(db) {
                 startDate: input.startDate !== undefined ? startDate : undefined,
                 endDate: input.endDate !== undefined ? endDate : undefined,
                 isActive: input.isActive,
+                reminderEnabled: reminder.reminderEnabled,
+                reminderOffsetDays: reminder.reminderOffsetDays,
             },
             include: recurringTransaction_types_1.RECURRING_TRANSACTION_INCLUDE,
         });
