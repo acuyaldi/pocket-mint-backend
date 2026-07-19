@@ -5,5 +5,10 @@ export declare class NotificationController {
         id: string;
     }>, res: Response, next: NextFunction): Promise<void>;
     static markAllRead(req: Request, res: Response, next: NextFunction): Promise<void>;
+    static confirm(req: Request<{
+        id: string;
+    }, unknown, {
+        amount?: string | number;
+    }>, res: Response, next: NextFunction): Promise<void>;
 }
 //# sourceMappingURL=notification.controller.d.ts.map

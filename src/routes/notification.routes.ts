@@ -11,5 +11,6 @@ notificationRouter.get('/', requireUser, NotificationController.getAll);
 // Mutating routes: authenticate first so the mutation limiter keys by user id.
 notificationRouter.patch('/read-all', requireUser, mutationLimiter, NotificationController.markAllRead);
 notificationRouter.patch('/:id/read', requireUser, mutationLimiter, NotificationController.markRead);
+notificationRouter.post('/:id/confirm', requireUser, mutationLimiter, NotificationController.confirm);
 
 export { notificationRouter };

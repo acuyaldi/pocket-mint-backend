@@ -5765,6 +5765,7 @@ export namespace Prisma {
     toWallet?: boolean | Transaction$toWalletArgs<ExtArgs>
     category?: boolean | Transaction$categoryArgs<ExtArgs>
     installment?: boolean | Transaction$installmentArgs<ExtArgs>
+    reminderEvent?: boolean | Transaction$reminderEventArgs<ExtArgs>
   }, ExtArgs["result"]["transaction"]>
 
   export type TransactionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -5832,6 +5833,7 @@ export namespace Prisma {
     toWallet?: boolean | Transaction$toWalletArgs<ExtArgs>
     category?: boolean | Transaction$categoryArgs<ExtArgs>
     installment?: boolean | Transaction$installmentArgs<ExtArgs>
+    reminderEvent?: boolean | Transaction$reminderEventArgs<ExtArgs>
   }
   export type TransactionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -5856,6 +5858,7 @@ export namespace Prisma {
       toWallet: Prisma.$WalletPayload<ExtArgs> | null
       category: Prisma.$CategoryPayload<ExtArgs> | null
       installment: Prisma.$InstallmentPayload<ExtArgs> | null
+      reminderEvent: Prisma.$RecurringReminderEventPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -6270,6 +6273,7 @@ export namespace Prisma {
     toWallet<T extends Transaction$toWalletArgs<ExtArgs> = {}>(args?: Subset<T, Transaction$toWalletArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     category<T extends Transaction$categoryArgs<ExtArgs> = {}>(args?: Subset<T, Transaction$categoryArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     installment<T extends Transaction$installmentArgs<ExtArgs> = {}>(args?: Subset<T, Transaction$installmentArgs<ExtArgs>>): Prisma__InstallmentClient<$Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    reminderEvent<T extends Transaction$reminderEventArgs<ExtArgs> = {}>(args?: Subset<T, Transaction$reminderEventArgs<ExtArgs>>): Prisma__RecurringReminderEventClient<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6767,6 +6771,25 @@ export namespace Prisma {
      */
     include?: InstallmentInclude<ExtArgs> | null
     where?: InstallmentWhereInput
+  }
+
+  /**
+   * Transaction.reminderEvent
+   */
+  export type Transaction$reminderEventArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RecurringReminderEvent
+     */
+    select?: RecurringReminderEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RecurringReminderEvent
+     */
+    omit?: RecurringReminderEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RecurringReminderEventInclude<ExtArgs> | null
+    where?: RecurringReminderEventWhereInput
   }
 
   /**
@@ -9530,6 +9553,8 @@ export namespace Prisma {
     offsetDays: number | null
     reminderDate: Date | null
     readAt: Date | null
+    completedAt: Date | null
+    generatedTransactionId: string | null
     createdAt: Date | null
   }
 
@@ -9541,6 +9566,8 @@ export namespace Prisma {
     offsetDays: number | null
     reminderDate: Date | null
     readAt: Date | null
+    completedAt: Date | null
+    generatedTransactionId: string | null
     createdAt: Date | null
   }
 
@@ -9552,6 +9579,8 @@ export namespace Prisma {
     offsetDays: number
     reminderDate: number
     readAt: number
+    completedAt: number
+    generatedTransactionId: number
     createdAt: number
     _all: number
   }
@@ -9573,6 +9602,8 @@ export namespace Prisma {
     offsetDays?: true
     reminderDate?: true
     readAt?: true
+    completedAt?: true
+    generatedTransactionId?: true
     createdAt?: true
   }
 
@@ -9584,6 +9615,8 @@ export namespace Prisma {
     offsetDays?: true
     reminderDate?: true
     readAt?: true
+    completedAt?: true
+    generatedTransactionId?: true
     createdAt?: true
   }
 
@@ -9595,6 +9628,8 @@ export namespace Prisma {
     offsetDays?: true
     reminderDate?: true
     readAt?: true
+    completedAt?: true
+    generatedTransactionId?: true
     createdAt?: true
     _all?: true
   }
@@ -9693,6 +9728,8 @@ export namespace Prisma {
     offsetDays: number
     reminderDate: Date
     readAt: Date | null
+    completedAt: Date | null
+    generatedTransactionId: string | null
     createdAt: Date
     _count: RecurringReminderEventCountAggregateOutputType | null
     _avg: RecurringReminderEventAvgAggregateOutputType | null
@@ -9723,8 +9760,11 @@ export namespace Prisma {
     offsetDays?: boolean
     reminderDate?: boolean
     readAt?: boolean
+    completedAt?: boolean
+    generatedTransactionId?: boolean
     createdAt?: boolean
     template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
+    generatedTransaction?: boolean | RecurringReminderEvent$generatedTransactionArgs<ExtArgs>
   }, ExtArgs["result"]["recurringReminderEvent"]>
 
   export type RecurringReminderEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -9735,8 +9775,11 @@ export namespace Prisma {
     offsetDays?: boolean
     reminderDate?: boolean
     readAt?: boolean
+    completedAt?: boolean
+    generatedTransactionId?: boolean
     createdAt?: boolean
     template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
+    generatedTransaction?: boolean | RecurringReminderEvent$generatedTransactionArgs<ExtArgs>
   }, ExtArgs["result"]["recurringReminderEvent"]>
 
   export type RecurringReminderEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -9747,8 +9790,11 @@ export namespace Prisma {
     offsetDays?: boolean
     reminderDate?: boolean
     readAt?: boolean
+    completedAt?: boolean
+    generatedTransactionId?: boolean
     createdAt?: boolean
     template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
+    generatedTransaction?: boolean | RecurringReminderEvent$generatedTransactionArgs<ExtArgs>
   }, ExtArgs["result"]["recurringReminderEvent"]>
 
   export type RecurringReminderEventSelectScalar = {
@@ -9759,24 +9805,30 @@ export namespace Prisma {
     offsetDays?: boolean
     reminderDate?: boolean
     readAt?: boolean
+    completedAt?: boolean
+    generatedTransactionId?: boolean
     createdAt?: boolean
   }
 
-  export type RecurringReminderEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "templateId" | "userId" | "occurrenceDate" | "offsetDays" | "reminderDate" | "readAt" | "createdAt", ExtArgs["result"]["recurringReminderEvent"]>
+  export type RecurringReminderEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "templateId" | "userId" | "occurrenceDate" | "offsetDays" | "reminderDate" | "readAt" | "completedAt" | "generatedTransactionId" | "createdAt", ExtArgs["result"]["recurringReminderEvent"]>
   export type RecurringReminderEventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
+    generatedTransaction?: boolean | RecurringReminderEvent$generatedTransactionArgs<ExtArgs>
   }
   export type RecurringReminderEventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
+    generatedTransaction?: boolean | RecurringReminderEvent$generatedTransactionArgs<ExtArgs>
   }
   export type RecurringReminderEventIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
+    generatedTransaction?: boolean | RecurringReminderEvent$generatedTransactionArgs<ExtArgs>
   }
 
   export type $RecurringReminderEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "RecurringReminderEvent"
     objects: {
       template: Prisma.$RecurringTransactionTemplatePayload<ExtArgs>
+      generatedTransaction: Prisma.$TransactionPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -9786,6 +9838,8 @@ export namespace Prisma {
       offsetDays: number
       reminderDate: Date
       readAt: Date | null
+      completedAt: Date | null
+      generatedTransactionId: string | null
       createdAt: Date
     }, ExtArgs["result"]["recurringReminderEvent"]>
     composites: {}
@@ -10182,6 +10236,7 @@ export namespace Prisma {
   export interface Prisma__RecurringReminderEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     template<T extends RecurringTransactionTemplateDefaultArgs<ExtArgs> = {}>(args?: Subset<T, RecurringTransactionTemplateDefaultArgs<ExtArgs>>): Prisma__RecurringTransactionTemplateClient<$Result.GetResult<Prisma.$RecurringTransactionTemplatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    generatedTransaction<T extends RecurringReminderEvent$generatedTransactionArgs<ExtArgs> = {}>(args?: Subset<T, RecurringReminderEvent$generatedTransactionArgs<ExtArgs>>): Prisma__TransactionClient<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -10218,6 +10273,8 @@ export namespace Prisma {
     readonly offsetDays: FieldRef<"RecurringReminderEvent", 'Int'>
     readonly reminderDate: FieldRef<"RecurringReminderEvent", 'DateTime'>
     readonly readAt: FieldRef<"RecurringReminderEvent", 'DateTime'>
+    readonly completedAt: FieldRef<"RecurringReminderEvent", 'DateTime'>
+    readonly generatedTransactionId: FieldRef<"RecurringReminderEvent", 'String'>
     readonly createdAt: FieldRef<"RecurringReminderEvent", 'DateTime'>
   }
     
@@ -10620,6 +10677,25 @@ export namespace Prisma {
   }
 
   /**
+   * RecurringReminderEvent.generatedTransaction
+   */
+  export type RecurringReminderEvent$generatedTransactionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionInclude<ExtArgs> | null
+    where?: TransactionWhereInput
+  }
+
+  /**
    * RecurringReminderEvent without action
    */
   export type RecurringReminderEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -10779,6 +10855,8 @@ export namespace Prisma {
     offsetDays: 'offsetDays',
     reminderDate: 'reminderDate',
     readAt: 'readAt',
+    completedAt: 'completedAt',
+    generatedTransactionId: 'generatedTransactionId',
     createdAt: 'createdAt'
   };
 
@@ -11306,6 +11384,7 @@ export namespace Prisma {
     toWallet?: XOR<WalletNullableScalarRelationFilter, WalletWhereInput> | null
     category?: XOR<CategoryNullableScalarRelationFilter, CategoryWhereInput> | null
     installment?: XOR<InstallmentNullableScalarRelationFilter, InstallmentWhereInput> | null
+    reminderEvent?: XOR<RecurringReminderEventNullableScalarRelationFilter, RecurringReminderEventWhereInput> | null
   }
 
   export type TransactionOrderByWithRelationInput = {
@@ -11327,6 +11406,7 @@ export namespace Prisma {
     toWallet?: WalletOrderByWithRelationInput
     category?: CategoryOrderByWithRelationInput
     installment?: InstallmentOrderByWithRelationInput
+    reminderEvent?: RecurringReminderEventOrderByWithRelationInput
   }
 
   export type TransactionWhereUniqueInput = Prisma.AtLeast<{
@@ -11351,6 +11431,7 @@ export namespace Prisma {
     toWallet?: XOR<WalletNullableScalarRelationFilter, WalletWhereInput> | null
     category?: XOR<CategoryNullableScalarRelationFilter, CategoryWhereInput> | null
     installment?: XOR<InstallmentNullableScalarRelationFilter, InstallmentWhereInput> | null
+    reminderEvent?: XOR<RecurringReminderEventNullableScalarRelationFilter, RecurringReminderEventWhereInput> | null
   }, "id">
 
   export type TransactionOrderByWithAggregationInput = {
@@ -11678,8 +11759,11 @@ export namespace Prisma {
     offsetDays?: IntFilter<"RecurringReminderEvent"> | number
     reminderDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
     readAt?: DateTimeNullableFilter<"RecurringReminderEvent"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"RecurringReminderEvent"> | Date | string | null
+    generatedTransactionId?: StringNullableFilter<"RecurringReminderEvent"> | string | null
     createdAt?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
     template?: XOR<RecurringTransactionTemplateScalarRelationFilter, RecurringTransactionTemplateWhereInput>
+    generatedTransaction?: XOR<TransactionNullableScalarRelationFilter, TransactionWhereInput> | null
   }
 
   export type RecurringReminderEventOrderByWithRelationInput = {
@@ -11690,12 +11774,16 @@ export namespace Prisma {
     offsetDays?: SortOrder
     reminderDate?: SortOrder
     readAt?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    generatedTransactionId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     template?: RecurringTransactionTemplateOrderByWithRelationInput
+    generatedTransaction?: TransactionOrderByWithRelationInput
   }
 
   export type RecurringReminderEventWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    generatedTransactionId?: string
     templateId_occurrenceDate_offsetDays?: RecurringReminderEventTemplateIdOccurrenceDateOffsetDaysCompoundUniqueInput
     AND?: RecurringReminderEventWhereInput | RecurringReminderEventWhereInput[]
     OR?: RecurringReminderEventWhereInput[]
@@ -11706,9 +11794,11 @@ export namespace Prisma {
     offsetDays?: IntFilter<"RecurringReminderEvent"> | number
     reminderDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
     readAt?: DateTimeNullableFilter<"RecurringReminderEvent"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"RecurringReminderEvent"> | Date | string | null
     createdAt?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
     template?: XOR<RecurringTransactionTemplateScalarRelationFilter, RecurringTransactionTemplateWhereInput>
-  }, "id" | "templateId_occurrenceDate_offsetDays">
+    generatedTransaction?: XOR<TransactionNullableScalarRelationFilter, TransactionWhereInput> | null
+  }, "id" | "generatedTransactionId" | "templateId_occurrenceDate_offsetDays">
 
   export type RecurringReminderEventOrderByWithAggregationInput = {
     id?: SortOrder
@@ -11718,6 +11808,8 @@ export namespace Prisma {
     offsetDays?: SortOrder
     reminderDate?: SortOrder
     readAt?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    generatedTransactionId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: RecurringReminderEventCountOrderByAggregateInput
     _avg?: RecurringReminderEventAvgOrderByAggregateInput
@@ -11737,6 +11829,8 @@ export namespace Prisma {
     offsetDays?: IntWithAggregatesFilter<"RecurringReminderEvent"> | number
     reminderDate?: DateTimeWithAggregatesFilter<"RecurringReminderEvent"> | Date | string
     readAt?: DateTimeNullableWithAggregatesFilter<"RecurringReminderEvent"> | Date | string | null
+    completedAt?: DateTimeNullableWithAggregatesFilter<"RecurringReminderEvent"> | Date | string | null
+    generatedTransactionId?: StringNullableWithAggregatesFilter<"RecurringReminderEvent"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"RecurringReminderEvent"> | Date | string
   }
 
@@ -12076,6 +12170,7 @@ export namespace Prisma {
     toWallet?: WalletCreateNestedOneWithoutToTransactionsInput
     category?: CategoryCreateNestedOneWithoutTransactionsInput
     installment?: InstallmentCreateNestedOneWithoutTransactionsInput
+    reminderEvent?: RecurringReminderEventCreateNestedOneWithoutGeneratedTransactionInput
   }
 
   export type TransactionUncheckedCreateInput = {
@@ -12092,6 +12187,7 @@ export namespace Prisma {
     date: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
+    reminderEvent?: RecurringReminderEventUncheckedCreateNestedOneWithoutGeneratedTransactionInput
   }
 
   export type TransactionUpdateInput = {
@@ -12108,6 +12204,7 @@ export namespace Prisma {
     toWallet?: WalletUpdateOneWithoutToTransactionsNestedInput
     category?: CategoryUpdateOneWithoutTransactionsNestedInput
     installment?: InstallmentUpdateOneWithoutTransactionsNestedInput
+    reminderEvent?: RecurringReminderEventUpdateOneWithoutGeneratedTransactionNestedInput
   }
 
   export type TransactionUncheckedUpdateInput = {
@@ -12124,6 +12221,7 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reminderEvent?: RecurringReminderEventUncheckedUpdateOneWithoutGeneratedTransactionNestedInput
   }
 
   export type TransactionCreateManyInput = {
@@ -12494,8 +12592,10 @@ export namespace Prisma {
     offsetDays: number
     reminderDate: Date | string
     readAt?: Date | string | null
+    completedAt?: Date | string | null
     createdAt?: Date | string
     template: RecurringTransactionTemplateCreateNestedOneWithoutReminderEventsInput
+    generatedTransaction?: TransactionCreateNestedOneWithoutReminderEventInput
   }
 
   export type RecurringReminderEventUncheckedCreateInput = {
@@ -12506,6 +12606,8 @@ export namespace Prisma {
     offsetDays: number
     reminderDate: Date | string
     readAt?: Date | string | null
+    completedAt?: Date | string | null
+    generatedTransactionId?: string | null
     createdAt?: Date | string
   }
 
@@ -12516,8 +12618,10 @@ export namespace Prisma {
     offsetDays?: IntFieldUpdateOperationsInput | number
     reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     template?: RecurringTransactionTemplateUpdateOneRequiredWithoutReminderEventsNestedInput
+    generatedTransaction?: TransactionUpdateOneWithoutReminderEventNestedInput
   }
 
   export type RecurringReminderEventUncheckedUpdateInput = {
@@ -12528,6 +12632,8 @@ export namespace Prisma {
     offsetDays?: IntFieldUpdateOperationsInput | number
     reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    generatedTransactionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -12539,6 +12645,8 @@ export namespace Prisma {
     offsetDays: number
     reminderDate: Date | string
     readAt?: Date | string | null
+    completedAt?: Date | string | null
+    generatedTransactionId?: string | null
     createdAt?: Date | string
   }
 
@@ -12549,6 +12657,7 @@ export namespace Prisma {
     offsetDays?: IntFieldUpdateOperationsInput | number
     reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -12560,6 +12669,8 @@ export namespace Prisma {
     offsetDays?: IntFieldUpdateOperationsInput | number
     reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    generatedTransactionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -13005,6 +13116,11 @@ export namespace Prisma {
     isNot?: InstallmentWhereInput | null
   }
 
+  export type RecurringReminderEventNullableScalarRelationFilter = {
+    is?: RecurringReminderEventWhereInput | null
+    isNot?: RecurringReminderEventWhereInput | null
+  }
+
   export type TransactionCountOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
@@ -13404,6 +13520,11 @@ export namespace Prisma {
     isNot?: RecurringTransactionTemplateWhereInput
   }
 
+  export type TransactionNullableScalarRelationFilter = {
+    is?: TransactionWhereInput | null
+    isNot?: TransactionWhereInput | null
+  }
+
   export type RecurringReminderEventTemplateIdOccurrenceDateOffsetDaysCompoundUniqueInput = {
     templateId: string
     occurrenceDate: Date | string
@@ -13418,6 +13539,8 @@ export namespace Prisma {
     offsetDays?: SortOrder
     reminderDate?: SortOrder
     readAt?: SortOrder
+    completedAt?: SortOrder
+    generatedTransactionId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -13433,6 +13556,8 @@ export namespace Prisma {
     offsetDays?: SortOrder
     reminderDate?: SortOrder
     readAt?: SortOrder
+    completedAt?: SortOrder
+    generatedTransactionId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -13444,6 +13569,8 @@ export namespace Prisma {
     offsetDays?: SortOrder
     reminderDate?: SortOrder
     readAt?: SortOrder
+    completedAt?: SortOrder
+    generatedTransactionId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -14015,6 +14142,18 @@ export namespace Prisma {
     connect?: InstallmentWhereUniqueInput
   }
 
+  export type RecurringReminderEventCreateNestedOneWithoutGeneratedTransactionInput = {
+    create?: XOR<RecurringReminderEventCreateWithoutGeneratedTransactionInput, RecurringReminderEventUncheckedCreateWithoutGeneratedTransactionInput>
+    connectOrCreate?: RecurringReminderEventCreateOrConnectWithoutGeneratedTransactionInput
+    connect?: RecurringReminderEventWhereUniqueInput
+  }
+
+  export type RecurringReminderEventUncheckedCreateNestedOneWithoutGeneratedTransactionInput = {
+    create?: XOR<RecurringReminderEventCreateWithoutGeneratedTransactionInput, RecurringReminderEventUncheckedCreateWithoutGeneratedTransactionInput>
+    connectOrCreate?: RecurringReminderEventCreateOrConnectWithoutGeneratedTransactionInput
+    connect?: RecurringReminderEventWhereUniqueInput
+  }
+
   export type EnumTransactionTypeFieldUpdateOperationsInput = {
     set?: $Enums.TransactionType
   }
@@ -14063,6 +14202,26 @@ export namespace Prisma {
     delete?: InstallmentWhereInput | boolean
     connect?: InstallmentWhereUniqueInput
     update?: XOR<XOR<InstallmentUpdateToOneWithWhereWithoutTransactionsInput, InstallmentUpdateWithoutTransactionsInput>, InstallmentUncheckedUpdateWithoutTransactionsInput>
+  }
+
+  export type RecurringReminderEventUpdateOneWithoutGeneratedTransactionNestedInput = {
+    create?: XOR<RecurringReminderEventCreateWithoutGeneratedTransactionInput, RecurringReminderEventUncheckedCreateWithoutGeneratedTransactionInput>
+    connectOrCreate?: RecurringReminderEventCreateOrConnectWithoutGeneratedTransactionInput
+    upsert?: RecurringReminderEventUpsertWithoutGeneratedTransactionInput
+    disconnect?: RecurringReminderEventWhereInput | boolean
+    delete?: RecurringReminderEventWhereInput | boolean
+    connect?: RecurringReminderEventWhereUniqueInput
+    update?: XOR<XOR<RecurringReminderEventUpdateToOneWithWhereWithoutGeneratedTransactionInput, RecurringReminderEventUpdateWithoutGeneratedTransactionInput>, RecurringReminderEventUncheckedUpdateWithoutGeneratedTransactionInput>
+  }
+
+  export type RecurringReminderEventUncheckedUpdateOneWithoutGeneratedTransactionNestedInput = {
+    create?: XOR<RecurringReminderEventCreateWithoutGeneratedTransactionInput, RecurringReminderEventUncheckedCreateWithoutGeneratedTransactionInput>
+    connectOrCreate?: RecurringReminderEventCreateOrConnectWithoutGeneratedTransactionInput
+    upsert?: RecurringReminderEventUpsertWithoutGeneratedTransactionInput
+    disconnect?: RecurringReminderEventWhereInput | boolean
+    delete?: RecurringReminderEventWhereInput | boolean
+    connect?: RecurringReminderEventWhereUniqueInput
+    update?: XOR<XOR<RecurringReminderEventUpdateToOneWithWhereWithoutGeneratedTransactionInput, RecurringReminderEventUpdateWithoutGeneratedTransactionInput>, RecurringReminderEventUncheckedUpdateWithoutGeneratedTransactionInput>
   }
 
   export type UserCreateNestedOneWithoutInstallmentsInput = {
@@ -14263,12 +14422,28 @@ export namespace Prisma {
     connect?: RecurringTransactionTemplateWhereUniqueInput
   }
 
+  export type TransactionCreateNestedOneWithoutReminderEventInput = {
+    create?: XOR<TransactionCreateWithoutReminderEventInput, TransactionUncheckedCreateWithoutReminderEventInput>
+    connectOrCreate?: TransactionCreateOrConnectWithoutReminderEventInput
+    connect?: TransactionWhereUniqueInput
+  }
+
   export type RecurringTransactionTemplateUpdateOneRequiredWithoutReminderEventsNestedInput = {
     create?: XOR<RecurringTransactionTemplateCreateWithoutReminderEventsInput, RecurringTransactionTemplateUncheckedCreateWithoutReminderEventsInput>
     connectOrCreate?: RecurringTransactionTemplateCreateOrConnectWithoutReminderEventsInput
     upsert?: RecurringTransactionTemplateUpsertWithoutReminderEventsInput
     connect?: RecurringTransactionTemplateWhereUniqueInput
     update?: XOR<XOR<RecurringTransactionTemplateUpdateToOneWithWhereWithoutReminderEventsInput, RecurringTransactionTemplateUpdateWithoutReminderEventsInput>, RecurringTransactionTemplateUncheckedUpdateWithoutReminderEventsInput>
+  }
+
+  export type TransactionUpdateOneWithoutReminderEventNestedInput = {
+    create?: XOR<TransactionCreateWithoutReminderEventInput, TransactionUncheckedCreateWithoutReminderEventInput>
+    connectOrCreate?: TransactionCreateOrConnectWithoutReminderEventInput
+    upsert?: TransactionUpsertWithoutReminderEventInput
+    disconnect?: TransactionWhereInput | boolean
+    delete?: TransactionWhereInput | boolean
+    connect?: TransactionWhereUniqueInput
+    update?: XOR<XOR<TransactionUpdateToOneWithWhereWithoutReminderEventInput, TransactionUpdateWithoutReminderEventInput>, TransactionUncheckedUpdateWithoutReminderEventInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -14765,6 +14940,7 @@ export namespace Prisma {
     toWallet?: WalletCreateNestedOneWithoutToTransactionsInput
     category?: CategoryCreateNestedOneWithoutTransactionsInput
     installment?: InstallmentCreateNestedOneWithoutTransactionsInput
+    reminderEvent?: RecurringReminderEventCreateNestedOneWithoutGeneratedTransactionInput
   }
 
   export type TransactionUncheckedCreateWithoutUserInput = {
@@ -14780,6 +14956,7 @@ export namespace Prisma {
     date: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
+    reminderEvent?: RecurringReminderEventUncheckedCreateNestedOneWithoutGeneratedTransactionInput
   }
 
   export type TransactionCreateOrConnectWithoutUserInput = {
@@ -15133,6 +15310,7 @@ export namespace Prisma {
     toWallet?: WalletCreateNestedOneWithoutToTransactionsInput
     category?: CategoryCreateNestedOneWithoutTransactionsInput
     installment?: InstallmentCreateNestedOneWithoutTransactionsInput
+    reminderEvent?: RecurringReminderEventCreateNestedOneWithoutGeneratedTransactionInput
   }
 
   export type TransactionUncheckedCreateWithoutWalletInput = {
@@ -15148,6 +15326,7 @@ export namespace Prisma {
     date: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
+    reminderEvent?: RecurringReminderEventUncheckedCreateNestedOneWithoutGeneratedTransactionInput
   }
 
   export type TransactionCreateOrConnectWithoutWalletInput = {
@@ -15173,6 +15352,7 @@ export namespace Prisma {
     wallet: WalletCreateNestedOneWithoutTransactionsInput
     category?: CategoryCreateNestedOneWithoutTransactionsInput
     installment?: InstallmentCreateNestedOneWithoutTransactionsInput
+    reminderEvent?: RecurringReminderEventCreateNestedOneWithoutGeneratedTransactionInput
   }
 
   export type TransactionUncheckedCreateWithoutToWalletInput = {
@@ -15188,6 +15368,7 @@ export namespace Prisma {
     date: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
+    reminderEvent?: RecurringReminderEventUncheckedCreateNestedOneWithoutGeneratedTransactionInput
   }
 
   export type TransactionCreateOrConnectWithoutToWalletInput = {
@@ -15455,6 +15636,7 @@ export namespace Prisma {
     wallet: WalletCreateNestedOneWithoutTransactionsInput
     toWallet?: WalletCreateNestedOneWithoutToTransactionsInput
     installment?: InstallmentCreateNestedOneWithoutTransactionsInput
+    reminderEvent?: RecurringReminderEventCreateNestedOneWithoutGeneratedTransactionInput
   }
 
   export type TransactionUncheckedCreateWithoutCategoryInput = {
@@ -15470,6 +15652,7 @@ export namespace Prisma {
     date: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
+    reminderEvent?: RecurringReminderEventUncheckedCreateNestedOneWithoutGeneratedTransactionInput
   }
 
   export type TransactionCreateOrConnectWithoutCategoryInput = {
@@ -15818,6 +16001,35 @@ export namespace Prisma {
     create: XOR<InstallmentCreateWithoutTransactionsInput, InstallmentUncheckedCreateWithoutTransactionsInput>
   }
 
+  export type RecurringReminderEventCreateWithoutGeneratedTransactionInput = {
+    id?: string
+    userId: string
+    occurrenceDate: Date | string
+    offsetDays: number
+    reminderDate: Date | string
+    readAt?: Date | string | null
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    template: RecurringTransactionTemplateCreateNestedOneWithoutReminderEventsInput
+  }
+
+  export type RecurringReminderEventUncheckedCreateWithoutGeneratedTransactionInput = {
+    id?: string
+    templateId: string
+    userId: string
+    occurrenceDate: Date | string
+    offsetDays: number
+    reminderDate: Date | string
+    readAt?: Date | string | null
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type RecurringReminderEventCreateOrConnectWithoutGeneratedTransactionInput = {
+    where: RecurringReminderEventWhereUniqueInput
+    create: XOR<RecurringReminderEventCreateWithoutGeneratedTransactionInput, RecurringReminderEventUncheckedCreateWithoutGeneratedTransactionInput>
+  }
+
   export type UserUpsertWithoutTransactionsInput = {
     update: XOR<UserUpdateWithoutTransactionsInput, UserUncheckedUpdateWithoutTransactionsInput>
     create: XOR<UserCreateWithoutTransactionsInput, UserUncheckedCreateWithoutTransactionsInput>
@@ -16065,6 +16277,41 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type RecurringReminderEventUpsertWithoutGeneratedTransactionInput = {
+    update: XOR<RecurringReminderEventUpdateWithoutGeneratedTransactionInput, RecurringReminderEventUncheckedUpdateWithoutGeneratedTransactionInput>
+    create: XOR<RecurringReminderEventCreateWithoutGeneratedTransactionInput, RecurringReminderEventUncheckedCreateWithoutGeneratedTransactionInput>
+    where?: RecurringReminderEventWhereInput
+  }
+
+  export type RecurringReminderEventUpdateToOneWithWhereWithoutGeneratedTransactionInput = {
+    where?: RecurringReminderEventWhereInput
+    data: XOR<RecurringReminderEventUpdateWithoutGeneratedTransactionInput, RecurringReminderEventUncheckedUpdateWithoutGeneratedTransactionInput>
+  }
+
+  export type RecurringReminderEventUpdateWithoutGeneratedTransactionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    offsetDays?: IntFieldUpdateOperationsInput | number
+    reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    template?: RecurringTransactionTemplateUpdateOneRequiredWithoutReminderEventsNestedInput
+  }
+
+  export type RecurringReminderEventUncheckedUpdateWithoutGeneratedTransactionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    templateId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    offsetDays?: IntFieldUpdateOperationsInput | number
+    reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type UserCreateWithoutInstallmentsInput = {
     id?: string
     email: string
@@ -16160,6 +16407,7 @@ export namespace Prisma {
     wallet: WalletCreateNestedOneWithoutTransactionsInput
     toWallet?: WalletCreateNestedOneWithoutToTransactionsInput
     category?: CategoryCreateNestedOneWithoutTransactionsInput
+    reminderEvent?: RecurringReminderEventCreateNestedOneWithoutGeneratedTransactionInput
   }
 
   export type TransactionUncheckedCreateWithoutInstallmentInput = {
@@ -16175,6 +16423,7 @@ export namespace Prisma {
     date: Date | string
     createdAt?: Date | string
     updatedAt?: Date | string
+    reminderEvent?: RecurringReminderEventUncheckedCreateNestedOneWithoutGeneratedTransactionInput
   }
 
   export type TransactionCreateOrConnectWithoutInstallmentInput = {
@@ -16415,7 +16664,9 @@ export namespace Prisma {
     offsetDays: number
     reminderDate: Date | string
     readAt?: Date | string | null
+    completedAt?: Date | string | null
     createdAt?: Date | string
+    generatedTransaction?: TransactionCreateNestedOneWithoutReminderEventInput
   }
 
   export type RecurringReminderEventUncheckedCreateWithoutTemplateInput = {
@@ -16425,6 +16676,8 @@ export namespace Prisma {
     offsetDays: number
     reminderDate: Date | string
     readAt?: Date | string | null
+    completedAt?: Date | string | null
+    generatedTransactionId?: string | null
     createdAt?: Date | string
   }
 
@@ -16594,6 +16847,8 @@ export namespace Prisma {
     offsetDays?: IntFilter<"RecurringReminderEvent"> | number
     reminderDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
     readAt?: DateTimeNullableFilter<"RecurringReminderEvent"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"RecurringReminderEvent"> | Date | string | null
+    generatedTransactionId?: StringNullableFilter<"RecurringReminderEvent"> | string | null
     createdAt?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
   }
 
@@ -16640,6 +16895,43 @@ export namespace Prisma {
   export type RecurringTransactionTemplateCreateOrConnectWithoutReminderEventsInput = {
     where: RecurringTransactionTemplateWhereUniqueInput
     create: XOR<RecurringTransactionTemplateCreateWithoutReminderEventsInput, RecurringTransactionTemplateUncheckedCreateWithoutReminderEventsInput>
+  }
+
+  export type TransactionCreateWithoutReminderEventInput = {
+    id?: string
+    type: $Enums.TransactionType
+    amount: Decimal | DecimalJsLike | number | string
+    description?: string | null
+    isInstallment?: boolean
+    date: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutTransactionsInput
+    wallet: WalletCreateNestedOneWithoutTransactionsInput
+    toWallet?: WalletCreateNestedOneWithoutToTransactionsInput
+    category?: CategoryCreateNestedOneWithoutTransactionsInput
+    installment?: InstallmentCreateNestedOneWithoutTransactionsInput
+  }
+
+  export type TransactionUncheckedCreateWithoutReminderEventInput = {
+    id?: string
+    userId: string
+    walletId: string
+    toWalletId?: string | null
+    categoryId?: string | null
+    type: $Enums.TransactionType
+    amount: Decimal | DecimalJsLike | number | string
+    description?: string | null
+    isInstallment?: boolean
+    installmentId?: string | null
+    date: Date | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type TransactionCreateOrConnectWithoutReminderEventInput = {
+    where: TransactionWhereUniqueInput
+    create: XOR<TransactionCreateWithoutReminderEventInput, TransactionUncheckedCreateWithoutReminderEventInput>
   }
 
   export type RecurringTransactionTemplateUpsertWithoutReminderEventsInput = {
@@ -16689,6 +16981,49 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     reminderEnabled?: BoolFieldUpdateOperationsInput | boolean
     reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TransactionUpsertWithoutReminderEventInput = {
+    update: XOR<TransactionUpdateWithoutReminderEventInput, TransactionUncheckedUpdateWithoutReminderEventInput>
+    create: XOR<TransactionCreateWithoutReminderEventInput, TransactionUncheckedCreateWithoutReminderEventInput>
+    where?: TransactionWhereInput
+  }
+
+  export type TransactionUpdateToOneWithWhereWithoutReminderEventInput = {
+    where?: TransactionWhereInput
+    data: XOR<TransactionUpdateWithoutReminderEventInput, TransactionUncheckedUpdateWithoutReminderEventInput>
+  }
+
+  export type TransactionUpdateWithoutReminderEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isInstallment?: BoolFieldUpdateOperationsInput | boolean
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutTransactionsNestedInput
+    wallet?: WalletUpdateOneRequiredWithoutTransactionsNestedInput
+    toWallet?: WalletUpdateOneWithoutToTransactionsNestedInput
+    category?: CategoryUpdateOneWithoutTransactionsNestedInput
+    installment?: InstallmentUpdateOneWithoutTransactionsNestedInput
+  }
+
+  export type TransactionUncheckedUpdateWithoutReminderEventInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    walletId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isInstallment?: BoolFieldUpdateOperationsInput | boolean
+    installmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -16892,6 +17227,7 @@ export namespace Prisma {
     toWallet?: WalletUpdateOneWithoutToTransactionsNestedInput
     category?: CategoryUpdateOneWithoutTransactionsNestedInput
     installment?: InstallmentUpdateOneWithoutTransactionsNestedInput
+    reminderEvent?: RecurringReminderEventUpdateOneWithoutGeneratedTransactionNestedInput
   }
 
   export type TransactionUncheckedUpdateWithoutUserInput = {
@@ -16907,6 +17243,7 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reminderEvent?: RecurringReminderEventUncheckedUpdateOneWithoutGeneratedTransactionNestedInput
   }
 
   export type TransactionUncheckedUpdateManyWithoutUserInput = {
@@ -17143,6 +17480,7 @@ export namespace Prisma {
     toWallet?: WalletUpdateOneWithoutToTransactionsNestedInput
     category?: CategoryUpdateOneWithoutTransactionsNestedInput
     installment?: InstallmentUpdateOneWithoutTransactionsNestedInput
+    reminderEvent?: RecurringReminderEventUpdateOneWithoutGeneratedTransactionNestedInput
   }
 
   export type TransactionUncheckedUpdateWithoutWalletInput = {
@@ -17158,6 +17496,7 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reminderEvent?: RecurringReminderEventUncheckedUpdateOneWithoutGeneratedTransactionNestedInput
   }
 
   export type TransactionUncheckedUpdateManyWithoutWalletInput = {
@@ -17188,6 +17527,7 @@ export namespace Prisma {
     wallet?: WalletUpdateOneRequiredWithoutTransactionsNestedInput
     category?: CategoryUpdateOneWithoutTransactionsNestedInput
     installment?: InstallmentUpdateOneWithoutTransactionsNestedInput
+    reminderEvent?: RecurringReminderEventUpdateOneWithoutGeneratedTransactionNestedInput
   }
 
   export type TransactionUncheckedUpdateWithoutToWalletInput = {
@@ -17203,6 +17543,7 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reminderEvent?: RecurringReminderEventUncheckedUpdateOneWithoutGeneratedTransactionNestedInput
   }
 
   export type TransactionUncheckedUpdateManyWithoutToWalletInput = {
@@ -17400,6 +17741,7 @@ export namespace Prisma {
     wallet?: WalletUpdateOneRequiredWithoutTransactionsNestedInput
     toWallet?: WalletUpdateOneWithoutToTransactionsNestedInput
     installment?: InstallmentUpdateOneWithoutTransactionsNestedInput
+    reminderEvent?: RecurringReminderEventUpdateOneWithoutGeneratedTransactionNestedInput
   }
 
   export type TransactionUncheckedUpdateWithoutCategoryInput = {
@@ -17415,6 +17757,7 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reminderEvent?: RecurringReminderEventUncheckedUpdateOneWithoutGeneratedTransactionNestedInput
   }
 
   export type TransactionUncheckedUpdateManyWithoutCategoryInput = {
@@ -17519,6 +17862,7 @@ export namespace Prisma {
     wallet?: WalletUpdateOneRequiredWithoutTransactionsNestedInput
     toWallet?: WalletUpdateOneWithoutToTransactionsNestedInput
     category?: CategoryUpdateOneWithoutTransactionsNestedInput
+    reminderEvent?: RecurringReminderEventUpdateOneWithoutGeneratedTransactionNestedInput
   }
 
   export type TransactionUncheckedUpdateWithoutInstallmentInput = {
@@ -17534,6 +17878,7 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    reminderEvent?: RecurringReminderEventUncheckedUpdateOneWithoutGeneratedTransactionNestedInput
   }
 
   export type TransactionUncheckedUpdateManyWithoutInstallmentInput = {
@@ -17558,6 +17903,8 @@ export namespace Prisma {
     offsetDays: number
     reminderDate: Date | string
     readAt?: Date | string | null
+    completedAt?: Date | string | null
+    generatedTransactionId?: string | null
     createdAt?: Date | string
   }
 
@@ -17568,7 +17915,9 @@ export namespace Prisma {
     offsetDays?: IntFieldUpdateOperationsInput | number
     reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    generatedTransaction?: TransactionUpdateOneWithoutReminderEventNestedInput
   }
 
   export type RecurringReminderEventUncheckedUpdateWithoutTemplateInput = {
@@ -17578,6 +17927,8 @@ export namespace Prisma {
     offsetDays?: IntFieldUpdateOperationsInput | number
     reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    generatedTransactionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -17588,6 +17939,8 @@ export namespace Prisma {
     offsetDays?: IntFieldUpdateOperationsInput | number
     reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
     readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    generatedTransactionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

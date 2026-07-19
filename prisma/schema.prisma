@@ -150,6 +150,7 @@ model Transaction {
   toWallet    Wallet?      @relation("WalletToTransactions", fields: [toWalletId], references: [id], onDelete: SetNull)
   category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   installment Installment? @relation(fields: [installmentId], references: [id], onDelete: SetNull)
+  reminderEvent RecurringReminderEvent?
 
   @@index([userId, date])
   @@index([userId, type])
@@ -279,9 +280,14 @@ model RecurringReminderEvent {
   offsetDays     Int      @map("offset_days")
   reminderDate   DateTime @map("reminder_date")
   readAt         DateTime? @map("read_at")
+  // Phase 6: NULL = still waiting: non-null = a real transaction was created
+  // from this reminder and it must never be processed again.
+  completedAt            DateTime? @map("completed_at")
+  generatedTransactionId String?   @unique @map("generated_transaction_id")
   createdAt      DateTime @default(now()) @map("created_at")
 
-  template RecurringTransactionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  template             RecurringTransactionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  generatedTransaction Transaction?                 @relation(fields: [generatedTransactionId], references: [id], onDelete: SetNull)
 
   @@unique([templateId, occurrenceDate, offsetDays])
   @@index([userId, reminderDate])
