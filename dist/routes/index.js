@@ -9,6 +9,7 @@ const dashboardRoutes_1 = require("./dashboardRoutes");
 const installmentRoutes_1 = require("./installmentRoutes");
 const categoryRoutes_1 = require("./categoryRoutes");
 const recurringTransaction_routes_1 = require("./recurringTransaction.routes");
+const notification_routes_1 = require("./notification.routes");
 const router = (0, express_1.Router)();
 exports.router = router;
 // API v1
@@ -20,4 +21,5 @@ router.use('/v1/categories', categoryRoutes_1.categoryRouter);
 router.use('/v1/bills', installmentRoutes_1.installmentRouter);
 router.use('/v1/installments', installmentRoutes_1.installmentRouter);
 router.use('/v1/recurring-transactions', recurringTransaction_routes_1.recurringTransactionRouter);
+router.use('/v1/notifications', notification_routes_1.notificationRouter);
 //# sourceMappingURL=index.js.map

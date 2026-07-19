@@ -9529,6 +9529,7 @@ export namespace Prisma {
     occurrenceDate: Date | null
     offsetDays: number | null
     reminderDate: Date | null
+    readAt: Date | null
     createdAt: Date | null
   }
 
@@ -9539,6 +9540,7 @@ export namespace Prisma {
     occurrenceDate: Date | null
     offsetDays: number | null
     reminderDate: Date | null
+    readAt: Date | null
     createdAt: Date | null
   }
 
@@ -9549,6 +9551,7 @@ export namespace Prisma {
     occurrenceDate: number
     offsetDays: number
     reminderDate: number
+    readAt: number
     createdAt: number
     _all: number
   }
@@ -9569,6 +9572,7 @@ export namespace Prisma {
     occurrenceDate?: true
     offsetDays?: true
     reminderDate?: true
+    readAt?: true
     createdAt?: true
   }
 
@@ -9579,6 +9583,7 @@ export namespace Prisma {
     occurrenceDate?: true
     offsetDays?: true
     reminderDate?: true
+    readAt?: true
     createdAt?: true
   }
 
@@ -9589,6 +9594,7 @@ export namespace Prisma {
     occurrenceDate?: true
     offsetDays?: true
     reminderDate?: true
+    readAt?: true
     createdAt?: true
     _all?: true
   }
@@ -9686,6 +9692,7 @@ export namespace Prisma {
     occurrenceDate: Date
     offsetDays: number
     reminderDate: Date
+    readAt: Date | null
     createdAt: Date
     _count: RecurringReminderEventCountAggregateOutputType | null
     _avg: RecurringReminderEventAvgAggregateOutputType | null
@@ -9715,6 +9722,7 @@ export namespace Prisma {
     occurrenceDate?: boolean
     offsetDays?: boolean
     reminderDate?: boolean
+    readAt?: boolean
     createdAt?: boolean
     template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["recurringReminderEvent"]>
@@ -9726,6 +9734,7 @@ export namespace Prisma {
     occurrenceDate?: boolean
     offsetDays?: boolean
     reminderDate?: boolean
+    readAt?: boolean
     createdAt?: boolean
     template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["recurringReminderEvent"]>
@@ -9737,6 +9746,7 @@ export namespace Prisma {
     occurrenceDate?: boolean
     offsetDays?: boolean
     reminderDate?: boolean
+    readAt?: boolean
     createdAt?: boolean
     template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["recurringReminderEvent"]>
@@ -9748,10 +9758,11 @@ export namespace Prisma {
     occurrenceDate?: boolean
     offsetDays?: boolean
     reminderDate?: boolean
+    readAt?: boolean
     createdAt?: boolean
   }
 
-  export type RecurringReminderEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "templateId" | "userId" | "occurrenceDate" | "offsetDays" | "reminderDate" | "createdAt", ExtArgs["result"]["recurringReminderEvent"]>
+  export type RecurringReminderEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "templateId" | "userId" | "occurrenceDate" | "offsetDays" | "reminderDate" | "readAt" | "createdAt", ExtArgs["result"]["recurringReminderEvent"]>
   export type RecurringReminderEventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     template?: boolean | RecurringTransactionTemplateDefaultArgs<ExtArgs>
   }
@@ -9774,6 +9785,7 @@ export namespace Prisma {
       occurrenceDate: Date
       offsetDays: number
       reminderDate: Date
+      readAt: Date | null
       createdAt: Date
     }, ExtArgs["result"]["recurringReminderEvent"]>
     composites: {}
@@ -10205,6 +10217,7 @@ export namespace Prisma {
     readonly occurrenceDate: FieldRef<"RecurringReminderEvent", 'DateTime'>
     readonly offsetDays: FieldRef<"RecurringReminderEvent", 'Int'>
     readonly reminderDate: FieldRef<"RecurringReminderEvent", 'DateTime'>
+    readonly readAt: FieldRef<"RecurringReminderEvent", 'DateTime'>
     readonly createdAt: FieldRef<"RecurringReminderEvent", 'DateTime'>
   }
     
@@ -10765,6 +10778,7 @@ export namespace Prisma {
     occurrenceDate: 'occurrenceDate',
     offsetDays: 'offsetDays',
     reminderDate: 'reminderDate',
+    readAt: 'readAt',
     createdAt: 'createdAt'
   };
 
@@ -11663,6 +11677,7 @@ export namespace Prisma {
     occurrenceDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
     offsetDays?: IntFilter<"RecurringReminderEvent"> | number
     reminderDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
+    readAt?: DateTimeNullableFilter<"RecurringReminderEvent"> | Date | string | null
     createdAt?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
     template?: XOR<RecurringTransactionTemplateScalarRelationFilter, RecurringTransactionTemplateWhereInput>
   }
@@ -11674,6 +11689,7 @@ export namespace Prisma {
     occurrenceDate?: SortOrder
     offsetDays?: SortOrder
     reminderDate?: SortOrder
+    readAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     template?: RecurringTransactionTemplateOrderByWithRelationInput
   }
@@ -11689,6 +11705,7 @@ export namespace Prisma {
     occurrenceDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
     offsetDays?: IntFilter<"RecurringReminderEvent"> | number
     reminderDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
+    readAt?: DateTimeNullableFilter<"RecurringReminderEvent"> | Date | string | null
     createdAt?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
     template?: XOR<RecurringTransactionTemplateScalarRelationFilter, RecurringTransactionTemplateWhereInput>
   }, "id" | "templateId_occurrenceDate_offsetDays">
@@ -11700,6 +11717,7 @@ export namespace Prisma {
     occurrenceDate?: SortOrder
     offsetDays?: SortOrder
     reminderDate?: SortOrder
+    readAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: RecurringReminderEventCountOrderByAggregateInput
     _avg?: RecurringReminderEventAvgOrderByAggregateInput
@@ -11718,6 +11736,7 @@ export namespace Prisma {
     occurrenceDate?: DateTimeWithAggregatesFilter<"RecurringReminderEvent"> | Date | string
     offsetDays?: IntWithAggregatesFilter<"RecurringReminderEvent"> | number
     reminderDate?: DateTimeWithAggregatesFilter<"RecurringReminderEvent"> | Date | string
+    readAt?: DateTimeNullableWithAggregatesFilter<"RecurringReminderEvent"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"RecurringReminderEvent"> | Date | string
   }
 
@@ -12474,6 +12493,7 @@ export namespace Prisma {
     occurrenceDate: Date | string
     offsetDays: number
     reminderDate: Date | string
+    readAt?: Date | string | null
     createdAt?: Date | string
     template: RecurringTransactionTemplateCreateNestedOneWithoutReminderEventsInput
   }
@@ -12485,6 +12505,7 @@ export namespace Prisma {
     occurrenceDate: Date | string
     offsetDays: number
     reminderDate: Date | string
+    readAt?: Date | string | null
     createdAt?: Date | string
   }
 
@@ -12494,6 +12515,7 @@ export namespace Prisma {
     occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
     offsetDays?: IntFieldUpdateOperationsInput | number
     reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     template?: RecurringTransactionTemplateUpdateOneRequiredWithoutReminderEventsNestedInput
   }
@@ -12505,6 +12527,7 @@ export namespace Prisma {
     occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
     offsetDays?: IntFieldUpdateOperationsInput | number
     reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -12515,6 +12538,7 @@ export namespace Prisma {
     occurrenceDate: Date | string
     offsetDays: number
     reminderDate: Date | string
+    readAt?: Date | string | null
     createdAt?: Date | string
   }
 
@@ -12524,6 +12548,7 @@ export namespace Prisma {
     occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
     offsetDays?: IntFieldUpdateOperationsInput | number
     reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -12534,6 +12559,7 @@ export namespace Prisma {
     occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
     offsetDays?: IntFieldUpdateOperationsInput | number
     reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -13391,6 +13417,7 @@ export namespace Prisma {
     occurrenceDate?: SortOrder
     offsetDays?: SortOrder
     reminderDate?: SortOrder
+    readAt?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -13405,6 +13432,7 @@ export namespace Prisma {
     occurrenceDate?: SortOrder
     offsetDays?: SortOrder
     reminderDate?: SortOrder
+    readAt?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -13415,6 +13443,7 @@ export namespace Prisma {
     occurrenceDate?: SortOrder
     offsetDays?: SortOrder
     reminderDate?: SortOrder
+    readAt?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -16385,6 +16414,7 @@ export namespace Prisma {
     occurrenceDate: Date | string
     offsetDays: number
     reminderDate: Date | string
+    readAt?: Date | string | null
     createdAt?: Date | string
   }
 
@@ -16394,6 +16424,7 @@ export namespace Prisma {
     occurrenceDate: Date | string
     offsetDays: number
     reminderDate: Date | string
+    readAt?: Date | string | null
     createdAt?: Date | string
   }
 
@@ -16562,6 +16593,7 @@ export namespace Prisma {
     occurrenceDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
     offsetDays?: IntFilter<"RecurringReminderEvent"> | number
     reminderDate?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
+    readAt?: DateTimeNullableFilter<"RecurringReminderEvent"> | Date | string | null
     createdAt?: DateTimeFilter<"RecurringReminderEvent"> | Date | string
   }
 
@@ -17525,6 +17557,7 @@ export namespace Prisma {
     occurrenceDate: Date | string
     offsetDays: number
     reminderDate: Date | string
+    readAt?: Date | string | null
     createdAt?: Date | string
   }
 
@@ -17534,6 +17567,7 @@ export namespace Prisma {
     occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
     offsetDays?: IntFieldUpdateOperationsInput | number
     reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -17543,6 +17577,7 @@ export namespace Prisma {
     occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
     offsetDays?: IntFieldUpdateOperationsInput | number
     reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -17552,6 +17587,7 @@ export namespace Prisma {
     occurrenceDate?: DateTimeFieldUpdateOperationsInput | Date | string
     offsetDays?: IntFieldUpdateOperationsInput | number
     reminderDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

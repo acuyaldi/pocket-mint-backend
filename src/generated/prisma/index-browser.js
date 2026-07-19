@@ -228,6 +228,7 @@ exports.Prisma.RecurringReminderEventScalarFieldEnum = {
   occurrenceDate: 'occurrenceDate',
   offsetDays: 'offsetDays',
   reminderDate: 'reminderDate',
+  readAt: 'readAt',
   createdAt: 'createdAt'
 };
 

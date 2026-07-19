@@ -278,6 +278,7 @@ model RecurringReminderEvent {
   occurrenceDate DateTime @map("occurrence_date")
   offsetDays     Int      @map("offset_days")
   reminderDate   DateTime @map("reminder_date")
+  readAt         DateTime? @map("read_at")
   createdAt      DateTime @default(now()) @map("created_at")
 
   template RecurringTransactionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)

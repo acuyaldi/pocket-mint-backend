@@ -270,13 +270,14 @@ model RecurringTransactionTemplate {
 // has already fired — the unique constraint is what makes re-running the
 // engine for the same evaluation date a no-op instead of a duplicate.
 model RecurringReminderEvent {
-  id             String   @id @default(cuid())
-  templateId     String   @map("template_id")
-  userId         String   @map("user_id")
-  occurrenceDate DateTime @map("occurrence_date")
-  offsetDays     Int      @map("offset_days")
-  reminderDate   DateTime @map("reminder_date")
-  createdAt      DateTime @default(now()) @map("created_at")
+  id             String    @id @default(cuid())
+  templateId     String    @map("template_id")
+  userId         String    @map("user_id")
+  occurrenceDate DateTime  @map("occurrence_date")
+  offsetDays     Int       @map("offset_days")
+  reminderDate   DateTime  @map("reminder_date")
+  readAt         DateTime? @map("read_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
 
   template RecurringTransactionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
 

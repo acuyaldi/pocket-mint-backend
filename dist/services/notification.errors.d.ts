@@ -1,0 +1,7 @@
+export declare class NotificationError extends Error {
+    readonly statusCode: number;
+    readonly code: string;
+    readonly isOperational = true;
+    constructor(message: string, statusCode: number, code: string);
+}
+//# sourceMappingURL=notification.errors.d.ts.map
