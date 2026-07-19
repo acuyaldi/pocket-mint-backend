@@ -6,6 +6,7 @@ import {
   getReportingMonthRange,
   getRollingDayRanges,
   parseBusinessDate,
+  parseReportingAnchor,
 } from '../src/domain/reportingTime';
 
 describe('reporting time', () => {
@@ -48,6 +49,10 @@ describe('reporting time', () => {
       .toBe('2026-07-10T17:00:00.000Z');
   });
 
+  it('rejects month-only input on the shared business-date parser', () => {
+    expect(() => parseBusinessDate('2026-07', 'Asia/Jakarta')).toThrow(/offset/);
+  });
+
   it('preserves a full timestamp instant and rejects ambiguous or invalid dates', () => {
     expect(parseBusinessDate('2026-07-11T00:00:00+07:00', 'Asia/Jakarta').toISOString())
       .toBe('2026-07-10T17:00:00.000Z');
@@ -57,5 +62,21 @@ describe('reporting time', () => {
 
   it('formats labels in the reporting timezone rather than UTC', () => {
     expect(formatReportingDate(new Date('2026-07-10T18:00:00Z'), 'Asia/Jakarta')).toBe('2026-07-11');
+  });
+
+  it('parses a YYYY-MM reporting anchor as the first reporting-local day of that month', () => {
+    expect(parseReportingAnchor('2026-07', 'Asia/Jakarta').toISOString())
+      .toBe('2026-06-30T17:00:00.000Z');
+  });
+
+  it('defaults the reporting anchor to now when omitted', () => {
+    const now = new Date('2026-07-11T10:00:00.000Z');
+    expect(parseReportingAnchor(undefined, 'Asia/Jakarta', now).getTime()).toBe(now.getTime());
+  });
+
+  it('rejects malformed or invalid reporting anchors', () => {
+    expect(() => parseReportingAnchor('2026-07-11', 'Asia/Jakarta')).toThrow(/YYYY-MM/);
+    expect(() => parseReportingAnchor('2026-13', 'Asia/Jakarta')).toThrow(/valid calendar month/);
+    expect(() => parseReportingAnchor('not-a-date', 'Asia/Jakarta')).toThrow(/YYYY-MM/);
   });
 });

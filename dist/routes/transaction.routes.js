@@ -13,6 +13,9 @@ transactionRouter.get('/', apiKeyAuth_1.requireUser, transaction_controller_1.Tr
 transactionRouter.get('/all', apiKeyAuth_1.requireUser, transaction_controller_1.TransactionController.getAllTime);
 // GET /api/v1/transactions/summary?month=YYYY-MM — monthly P&L
 transactionRouter.get('/summary', apiKeyAuth_1.requireUser, transaction_controller_1.TransactionController.summary);
+// GET /api/v1/transactions/export?period=month|quarter|six-months — CSV export.
+// Registered before any dynamic /:id route so "export" is never read as an id.
+transactionRouter.get('/export', apiKeyAuth_1.requireUser, transaction_controller_1.TransactionController.export);
 // Mutating routes: authenticate first so the mutation limiter keys by user id.
 transactionRouter.put('/:id', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, transaction_controller_1.TransactionController.update);
 transactionRouter.delete('/:id', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, transaction_controller_1.TransactionController.delete);

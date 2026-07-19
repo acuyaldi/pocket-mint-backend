@@ -7,6 +7,7 @@ exports.getReportingMonthRange = getReportingMonthRange;
 exports.getPreviousReportingMonthRange = getPreviousReportingMonthRange;
 exports.getRollingDayRanges = getRollingDayRanges;
 exports.parseBusinessDate = parseBusinessDate;
+exports.parseReportingAnchor = parseReportingAnchor;
 const formatters = new Map();
 function formatter(zone) {
     let value = formatters.get(zone);
@@ -118,5 +119,23 @@ function parseBusinessDate(value, zone, now = new Date()) {
     if (!Number.isFinite(parsed.getTime()))
         throw new Error('date must be a valid date');
     return parsed;
+}
+/**
+ * Reporting/export-scoped parser for a `YYYY-MM` anchor month (e.g. the
+ * Analytics-page export's `anchor` query param). Deliberately separate from
+ * `parseBusinessDate`, which is shared by unrelated domains (transactions,
+ * recurring, installments, saving goals, the reminder engine) and must not
+ * silently accept month-only input.
+ */
+function parseReportingAnchor(value, zone, now = new Date()) {
+    if (value === undefined)
+        return new Date(now.getTime());
+    const match = /^(\d{4})-(\d{2})$/.exec(value);
+    if (!match)
+        throw new Error('anchor must be in YYYY-MM format');
+    const month = Number(match[2]);
+    if (month < 1 || month > 12)
+        throw new Error('anchor must be a valid calendar month');
+    return localMidnight({ year: Number(match[1]), month, day: 1 }, zone);
 }
 //# sourceMappingURL=reportingTime.js.map
