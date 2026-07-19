@@ -82,6 +82,9 @@ const serialize = <T extends { amount: Prisma.Decimal }>(tx: T) => ({
   amount: parseFloat(tx.amount.toString()),
 });
 
+/** Exported so other controllers generating a Transaction (e.g. notification confirm) reuse the same serializer. */
+export const serializeTransaction = serialize;
+
 /**
  * Parse the summary `month=YYYY-MM` query into service input. A missing,
  * non-scalar, or malformed value yields `{}` so the query service falls back to

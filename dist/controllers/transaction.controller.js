@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TransactionController = void 0;
+exports.TransactionController = exports.serializeTransaction = void 0;
 const response_1 = require("../utils/response");
 const transaction_service_1 = require("../services/transaction.service");
 const transaction_query_service_1 = require("../services/transaction-query.service");
@@ -66,6 +66,8 @@ const serialize = (tx) => ({
     ...tx,
     amount: parseFloat(tx.amount.toString()),
 });
+/** Exported so other controllers generating a Transaction (e.g. notification confirm) reuse the same serializer. */
+exports.serializeTransaction = serialize;
 /**
  * Parse the summary `month=YYYY-MM` query into service input. A missing,
  * non-scalar, or malformed value yields `{}` so the query service falls back to
