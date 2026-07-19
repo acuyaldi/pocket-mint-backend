@@ -5,6 +5,7 @@ import { walletRouter } from './walletRoutes';
 import { dashboardRouter } from './dashboardRoutes';
 import { installmentRouter } from './installmentRoutes';
 import { categoryRouter } from './categoryRoutes';
+import { recurringTransactionRouter } from './recurringTransaction.routes';
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use('/v1/users', userRouter);
 router.use('/v1/categories', categoryRouter);
 router.use('/v1/bills', installmentRouter);
 router.use('/v1/installments', installmentRouter);
+router.use('/v1/recurring-transactions', recurringTransactionRouter);
 
 export { router };

@@ -29,10 +29,11 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  wallets      Wallet[]
-  categories   Category[]
-  transactions Transaction[]
-  installments Installment[]
+  wallets                       Wallet[]
+  categories                    Category[]
+  transactions                  Transaction[]
+  installments                  Installment[]
+  recurringTransactionTemplates RecurringTransactionTemplate[]
 
 
   @@map("users")
@@ -76,11 +77,12 @@ model Wallet {
   updatedAt      DateTime     @updatedAt @map("updated_at")
 
   // Relations
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions   Transaction[] @relation("WalletTransactions")
+  user                          User                            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions                  Transaction[]                   @relation("WalletTransactions")
   // Transfers whose destination is this wallet (Transaction.toWalletId).
-  toTransactions Transaction[] @relation("WalletToTransactions")
-  installments   Installment[]
+  toTransactions                Transaction[]                   @relation("WalletToTransactions")
+  installments                  Installment[]
+  recurringTransactionTemplates RecurringTransactionTemplate[]
 
 
   @@index([userId])
@@ -106,8 +108,9 @@ model Category {
   updatedAt DateTime     @updatedAt @map("updated_at")
 
   // Relations
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
+  user                          User                            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions                  Transaction[]
+  recurringTransactionTemplates RecurringTransactionTemplate[]
 
   @@unique([userId, name, type])
   @@index([userId, type])
@@ -219,6 +222,41 @@ model Installment {
   @@index([userId, status])
   @@index([walletId])
   @@map("installments")
+}
+
+// ─────────────────────────────────────────────
+// RECURRING TRANSACTION TEMPLATE  (transaksi rutin)
+// ─────────────────────────────────────────────
+enum RecurrenceFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+model RecurringTransactionTemplate {
+  id          String              @id @default(cuid())
+  userId      String              @map("user_id")
+  walletId    String              @map("wallet_id")
+  categoryId  String?             @map("category_id")
+  name        String
+  type        TransactionType
+  amount      Decimal             @db.Decimal(15, 2)
+  description String?
+  frequency   RecurrenceFrequency
+  startDate   DateTime            @map("start_date")
+  endDate     DateTime?           @map("end_date")
+  isActive    Boolean             @default(true) @map("is_active")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet   Wallet    @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId, isActive])
+  @@map("recurring_transaction_templates")
 }
 
 
