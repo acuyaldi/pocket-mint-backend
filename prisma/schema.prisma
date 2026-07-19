@@ -34,6 +34,7 @@ model User {
   transactions                  Transaction[]
   installments                  Installment[]
   recurringTransactionTemplates RecurringTransactionTemplate[]
+  savingGoals                   SavingGoal[]
 
 
   @@map("users")
@@ -304,4 +305,35 @@ model RecurringReminderEvent {
   @@map("recurring_reminder_events")
 }
 
+// ─────────────────────────────────────────────
+// SAVING GOAL  (target tabungan)
+// ─────────────────────────────────────────────
+// Phase 8: a planning/tracking record only — it never creates a transaction,
+// mutates a wallet balance, or affects net worth. Progress is stored directly
+// on the row (currentAmount) with no contribution ledger; see
+// financial-logic.skill.md before adding one.
+enum SavingGoalStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+model SavingGoal {
+  id            String           @id @default(cuid())
+  userId        String           @map("user_id")
+  name          String
+  targetAmount  Decimal          @map("target_amount") @db.Decimal(15, 2)
+  currentAmount Decimal          @default(0) @map("current_amount") @db.Decimal(15, 2)
+  targetDate    DateTime?        @map("target_date")
+  notes         String?
+  status        SavingGoalStatus @default(ACTIVE)
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("saving_goals")
+}
 
