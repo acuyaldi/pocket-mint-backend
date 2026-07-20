@@ -48,24 +48,44 @@ const notification = {
   createdAt: new Date('2026-07-20'),
 };
 
+const pagination = { page: 1, limit: 10, total: 1, totalPages: 1, hasMore: false };
+
 describe('notification controller', () => {
-  it('lists notifications for the authenticated user, serializing the template relation', async () => {
-    h.listNotifications.mockResolvedValue([notification]);
+  it('lists notifications for the authenticated user, serializing the template relation, with pagination metadata', async () => {
+    h.listNotifications.mockResolvedValue({ items: [notification], pagination });
 
     const response = await request(app()).get('/notifications');
 
     expect(response.status).toBe(200);
-    expect(response.body.data[0]).toMatchObject({ id: 'evt-1', templateId: 'rec-1', templateName: 'Netflix' });
-    expect(h.listNotifications).toHaveBeenCalledWith('user-1');
+    expect(response.body.data.items[0]).toMatchObject({ id: 'evt-1', templateId: 'rec-1', templateName: 'Netflix' });
+    expect(response.body.data.pagination).toEqual(pagination);
+    expect(h.listNotifications).toHaveBeenCalledWith({ userId: 'user-1', page: undefined, limit: undefined, filter: 'all' });
   });
 
-  it('refreshes notifications for the authenticated user and returns the up-to-date list', async () => {
-    h.refreshNotifications.mockResolvedValue([notification]);
+  it('parses page, limit, and filter from the query string', async () => {
+    h.listNotifications.mockResolvedValue({ items: [], pagination });
+
+    await request(app()).get('/notifications').query({ page: '2', limit: '20', filter: 'unread' });
+
+    expect(h.listNotifications).toHaveBeenCalledWith({ userId: 'user-1', page: 2, limit: 20, filter: 'unread' });
+  });
+
+  it('falls back to the "all" filter for an unrecognized filter value', async () => {
+    h.listNotifications.mockResolvedValue({ items: [], pagination });
+
+    await request(app()).get('/notifications').query({ filter: 'bogus' });
+
+    expect(h.listNotifications).toHaveBeenCalledWith({ userId: 'user-1', page: undefined, limit: undefined, filter: 'all' });
+  });
+
+  it('refreshes notifications for the authenticated user and returns the up-to-date first page', async () => {
+    h.refreshNotifications.mockResolvedValue({ items: [notification], pagination });
 
     const response = await request(app()).post('/notifications/refresh');
 
     expect(response.status).toBe(200);
-    expect(response.body.data[0]).toMatchObject({ id: 'evt-1', templateId: 'rec-1' });
+    expect(response.body.data.items[0]).toMatchObject({ id: 'evt-1', templateId: 'rec-1' });
+    expect(response.body.data.pagination).toEqual(pagination);
     expect(h.refreshNotifications).toHaveBeenCalledWith('user-1');
     expect(h.listNotifications).not.toHaveBeenCalled();
   });

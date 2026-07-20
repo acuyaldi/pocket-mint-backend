@@ -23,27 +23,57 @@ import {
   type MarkAllNotificationsReadResult,
   type ConfirmReminderInput,
   type ConfirmReminderResult,
+  type ListNotificationsInput,
+  type ListNotificationsResult,
 } from './notification.types';
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 100;
+
+/** Validated positive integers only; anything else (absent, 0, negative, non-integer) falls back to the default. */
+function resolvePagination(page?: number, limit?: number): { page: number; limit: number; skip: number; take: number } {
+  const p = Number.isInteger(page) && page! > 0 ? page! : DEFAULT_PAGE;
+  const l = Number.isInteger(limit) && limit! > 0 ? Math.min(limit!, MAX_LIMIT) : DEFAULT_LIMIT;
+  return { page: p, limit: l, skip: (p - 1) * l, take: l };
+}
+
 export function createNotificationService(db: NotificationPrismaClient) {
-  async function listNotifications(userId: string): Promise<NotificationWithTemplate[]> {
-    return db.recurringReminderEvent.findMany({
-      where: { userId },
-      include: NOTIFICATION_INCLUDE,
-      orderBy: { reminderDate: 'desc' },
-    });
+  /**
+   * Database-level pagination — never a silent truncation. `total` (a
+   * user-scoped, filter-scoped count) lets every notification remain
+   * reachable through page/limit, however large the history grows.
+   */
+  async function listNotifications(input: ListNotificationsInput): Promise<ListNotificationsResult> {
+    const { userId, filter } = input;
+    const { page, limit, skip, take } = resolvePagination(input.page, input.limit);
+    const where = { userId, ...(filter === 'unread' && { readAt: null }) };
+
+    const [items, total] = await Promise.all([
+      db.recurringReminderEvent.findMany({
+        where,
+        include: NOTIFICATION_INCLUDE,
+        orderBy: [{ reminderDate: 'desc' }, { id: 'desc' }],
+        skip,
+        take,
+      }),
+      db.recurringReminderEvent.count({ where }),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    return { items, pagination: { page, limit, total, totalPages, hasMore: page < totalPages } };
   }
 
   /**
    * Explicit, on-demand materialization for the calling user only: runs the
    * reminder engine scoped to userId for "today" (reportingConfig timezone),
-   * then returns the up-to-date list. GET /notifications never calls this —
-   * it stays purely read-only (see notification.controller.ts getAll).
+   * then returns the up-to-date first page. GET /notifications never calls
+   * this — it stays purely read-only (see notification.controller.ts getAll).
    */
-  async function refreshNotifications(userId: string): Promise<NotificationWithTemplate[]> {
+  async function refreshNotifications(userId: string): Promise<ListNotificationsResult> {
     const today = formatReportingDate(new Date(), reportingConfig.timezone);
     await recurringReminderEngineService.evaluateReminders(today, userId);
-    return listNotifications(userId);
+    return listNotifications({ userId });
   }
 
   async function markNotificationRead(input: MarkNotificationReadInput): Promise<NotificationWithTemplate> {

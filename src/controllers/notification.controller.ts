@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { sendSuccess, sendError } from '../utils/response';
 import { notificationService } from '../services/notification.service';
-import type { NotificationWithTemplate } from '../services/notification.types';
+import type { ListNotificationsResult, NotificationWithTemplate } from '../services/notification.types';
 import { serializeTransaction } from './transaction.controller';
 import { getAuthenticatedUserId } from '../http/authContext';
 import { forwardError } from '../http/forwardError';
+import { scalarInt, scalarString } from '../http/queryParsers';
 
 const serialize = (notification: NotificationWithTemplate) => {
   const installment = notification.installment;
@@ -39,16 +40,27 @@ const serialize = (notification: NotificationWithTemplate) => {
   };
 };
 
+/** Shared envelope for both the initial list and the refresh response. */
+const serializePage = (result: ListNotificationsResult) => ({
+  items: result.items.map(serialize),
+  pagination: result.pagination,
+});
+
 export class NotificationController {
-  // GET /api/v1/notifications
+  // GET /api/v1/notifications?page=&limit=&filter=all|unread
   static async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = getAuthenticatedUserId(req);
       if (!userId) {
         return sendError(res, 'Unauthorized', 401);
       }
-      const notifications = await notificationService.listNotifications(userId);
-      sendSuccess(res, notifications.map(serialize), 'Retrieved notifications');
+      const result = await notificationService.listNotifications({
+        userId,
+        page: scalarInt(req.query.page),
+        limit: scalarInt(req.query.limit),
+        filter: scalarString(req.query.filter) === 'unread' ? 'unread' : 'all',
+      });
+      sendSuccess(res, serializePage(result), 'Retrieved notifications');
     } catch (err) {
       forwardError(err, res, next);
     }
@@ -61,8 +73,8 @@ export class NotificationController {
       if (!userId) {
         return sendError(res, 'Unauthorized', 401);
       }
-      const notifications = await notificationService.refreshNotifications(userId);
-      sendSuccess(res, notifications.map(serialize), 'Notifications refreshed');
+      const result = await notificationService.refreshNotifications(userId);
+      sendSuccess(res, serializePage(result), 'Notifications refreshed');
     } catch (err) {
       forwardError(err, res, next);
     }
