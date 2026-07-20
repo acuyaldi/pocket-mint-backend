@@ -100,7 +100,7 @@ function createTransactionQueryService(db) {
         return db.transaction.findMany({
             where,
             include: transaction_query_types_1.TRANSACTION_INCLUDE,
-            orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+            orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
             ...(take && { take }),
         });
     }
