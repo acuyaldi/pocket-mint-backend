@@ -11,6 +11,7 @@ export declare class TransactionController {
     static getAll(req: Request, res: Response, next: NextFunction): Promise<void>;
     static summary(req: Request, res: Response, next: NextFunction): Promise<void>;
     static getAllTime(req: Request, res: Response, next: NextFunction): Promise<void>;
+    static export(req: Request, res: Response, next: NextFunction): Promise<void>;
     static create(req: Request<unknown, unknown, CreateTransactionDto>, res: Response, next: NextFunction): Promise<void>;
     static update(req: Request<{
         id: string;

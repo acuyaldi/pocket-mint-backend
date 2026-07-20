@@ -81,12 +81,21 @@ function createTransactionQueryService(db) {
     async function listTransactions(input) {
         assertValidType(input.type);
         const take = resolveTake(input.limit);
-        const dateFilter = input.allTime ? undefined : resolveMonthRange(input.month, input.year).range;
+        const dateFilter = input.startDate || input.endDate
+            ? { startInclusive: input.startDate, endExclusive: input.endDate }
+            : input.allTime
+                ? undefined
+                : resolveMonthRange(input.month, input.year).range;
         const where = {
             userId: input.userId,
             ...(input.walletId && { walletId: input.walletId }),
             ...(input.type && { type: input.type }),
-            ...(dateFilter && { date: { gte: dateFilter.startInclusive, lt: dateFilter.endExclusive } }),
+            ...(dateFilter && {
+                date: {
+                    ...(dateFilter.startInclusive && { gte: dateFilter.startInclusive }),
+                    ...(dateFilter.endExclusive && { lt: dateFilter.endExclusive }),
+                },
+            }),
         };
         return db.transaction.findMany({
             where,

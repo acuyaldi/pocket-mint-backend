@@ -14,6 +14,10 @@ transactionRouter.get('/all', requireUser, TransactionController.getAllTime);
 // GET /api/v1/transactions/summary?month=YYYY-MM — monthly P&L
 transactionRouter.get('/summary', requireUser, TransactionController.summary);
 
+// GET /api/v1/transactions/export?period=month|quarter|six-months — CSV export.
+// Registered before any dynamic /:id route so "export" is never read as an id.
+transactionRouter.get('/export', requireUser, TransactionController.export);
+
 // Mutating routes: authenticate first so the mutation limiter keys by user id.
 transactionRouter.put('/:id', requireUser, mutationLimiter, TransactionController.update);
 transactionRouter.delete('/:id', requireUser, mutationLimiter, TransactionController.delete);

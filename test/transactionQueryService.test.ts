@@ -72,6 +72,17 @@ describe('transactionQueryService.listTransactions', () => {
     expect(where.walletId).toBe('someone-elses-wallet');
   });
 
+  it('an explicit startDate/endDate range overrides month/year/allTime (DB-level filtering for export)', async () => {
+    const { transaction } = makeDb();
+    const startDate = new Date('2026-01-01T00:00:00.000Z');
+    const endDate = new Date('2026-07-01T00:00:00.000Z');
+    await svc({ transaction }).listTransactions({ userId: 'u1', startDate, endDate, month: 1, year: 2020, allTime: true });
+
+    const where = firstArg(transaction.findMany).where;
+    expect(where.date.gte).toBe(startDate);
+    expect(where.date.lt).toBe(endDate);
+  });
+
   it('skips the date filter entirely for all-time listing', async () => {
     const { transaction } = makeDb();
     await svc({ transaction }).listTransactions({ userId: 'u1', allTime: true, month: 7, year: 2026 });
