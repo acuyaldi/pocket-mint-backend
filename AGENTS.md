@@ -21,3 +21,24 @@ repo root):
 
 Frontend-era skills were archived to `.claude/archive/frontend/` and are not
 part of the load order.
+
+## Repository Reading Rules
+
+- Read only files directly related to the current task.
+- Do not perform repository-wide audits unless explicitly requested.
+- Do not inspect dependencies, coverage, reports, logs, temporary files, or
+  lockfiles unless they are directly required by the task.
+- Treat `dist/` as generated build output: do not browse it routinely, but
+  inspect or compare the specific generated files when the repository workflow
+  requires artifact verification.
+- Do not inspect generated Prisma client files routinely. Inspect only the
+  specific generated file needed when debugging Prisma generation, imports, or
+  runtime compatibility.
+- Never skip `prisma/schema.prisma` or relevant migration files when working on
+  database behavior.
+- Prefer scoped `git diff`, `git grep`, and targeted path searches.
+- Do not reread unchanged files already inspected in the current session.
+- Run focused tests first; run the full suite only when required by the task,
+  repository workflow, or final verification gate.
+- Summarize command output and failures instead of reproducing complete logs,
+  generated files, migration output, or large diffs.
