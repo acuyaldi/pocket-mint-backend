@@ -128,7 +128,7 @@ describe.skipIf(!TEST_DATABASE_URL)('Notification refresh — isolated E2E (disp
         .set('Authorization', `Bearer ${userA.token}`);
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(Array.isArray(res.body.data)).toBe(true);
+      expect(Array.isArray(res.body.data.items)).toBe(true);
     });
   });
 
@@ -146,8 +146,8 @@ describe.skipIf(!TEST_DATABASE_URL)('Notification refresh — isolated E2E (disp
         .post('/api/v1/notifications/refresh')
         .set('Authorization', `Bearer ${userA.token}`);
       expect(resA.status).toBe(200);
-      expect(resA.body.data).toHaveLength(1);
-      expect(resA.body.data[0].templateName).toBe('A Rent');
+      expect(resA.body.data.items).toHaveLength(1);
+      expect(resA.body.data.items[0].templateName).toBe('A Rent');
 
       // User B's due template was never touched by A's refresh.
       const eventsForB = await db().recurringReminderEvent.findMany({ where: { userId: userB.id } });
@@ -167,7 +167,7 @@ describe.skipIf(!TEST_DATABASE_URL)('Notification refresh — isolated E2E (disp
       const listAsA = await request(app)
         .get('/api/v1/notifications')
         .set('Authorization', `Bearer ${userA.token}`);
-      expect(listAsA.body.data).toHaveLength(0);
+      expect(listAsA.body.data.items).toHaveLength(0);
 
       const readAsA = await request(app)
         .patch(`/api/v1/notifications/${bEvent.id}/read`)
@@ -194,9 +194,9 @@ describe.skipIf(!TEST_DATABASE_URL)('Notification refresh — isolated E2E (disp
         .set('Authorization', `Bearer ${user.token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data).toHaveLength(2);
+      expect(res.body.data.items).toHaveLength(2);
 
-      const templateEvent = res.body.data.find((n: any) => n.templateName === 'Rent Reminder');
+      const templateEvent = res.body.data.items.find((n: any) => n.templateName === 'Rent Reminder');
       expect(templateEvent).toMatchObject({
         templateType: 'EXPENSE',
         templateAmountMode: 'FIXED',
@@ -207,7 +207,7 @@ describe.skipIf(!TEST_DATABASE_URL)('Notification refresh — isolated E2E (disp
         generatedTransactionId: null,
       });
 
-      const installmentEvent = res.body.data.find((n: any) => n.installmentId === installment.id);
+      const installmentEvent = res.body.data.items.find((n: any) => n.installmentId === installment.id);
       expect(installmentEvent).toMatchObject({
         templateId: null,
         installmentDescription: 'Laptop Cicilan',
@@ -216,7 +216,7 @@ describe.skipIf(!TEST_DATABASE_URL)('Notification refresh — isolated E2E (disp
       });
 
       // Newest-first: reminderDate never increases down the list.
-      const dates = res.body.data.map((n: any) => new Date(n.reminderDate).getTime());
+      const dates = res.body.data.items.map((n: any) => new Date(n.reminderDate).getTime());
       expect(dates).toEqual([...dates].sort((a, b) => b - a));
 
       // GET /notifications (read-only) returns the identical serialized shape.
@@ -240,9 +240,9 @@ describe.skipIf(!TEST_DATABASE_URL)('Notification refresh — isolated E2E (disp
         .post('/api/v1/notifications/refresh')
         .set('Authorization', `Bearer ${user.token}`);
 
-      expect(first.body.data).toHaveLength(2);
-      expect(second.body.data).toHaveLength(2);
-      expect(second.body.data.map((n: any) => n.id).sort()).toEqual(first.body.data.map((n: any) => n.id).sort());
+      expect(first.body.data.items).toHaveLength(2);
+      expect(second.body.data.items).toHaveLength(2);
+      expect(second.body.data.items.map((n: any) => n.id).sort()).toEqual(first.body.data.items.map((n: any) => n.id).sort());
 
       const rows = await db().recurringReminderEvent.findMany({ where: { userId: user.id } });
       expect(rows).toHaveLength(2);
@@ -260,8 +260,8 @@ describe.skipIf(!TEST_DATABASE_URL)('Notification refresh — isolated E2E (disp
       const refreshed = await request(app)
         .post('/api/v1/notifications/refresh')
         .set('Authorization', `Bearer ${user.token}`);
-      const [first, second] = refreshed.body.data;
-      expect(refreshed.body.data.filter((n: any) => !n.readAt)).toHaveLength(2);
+      const [first, second] = refreshed.body.data.items;
+      expect(refreshed.body.data.items.filter((n: any) => !n.readAt)).toHaveLength(2);
 
       const markOne = await request(app)
         .patch(`/api/v1/notifications/${first.id}/read`)
@@ -270,7 +270,7 @@ describe.skipIf(!TEST_DATABASE_URL)('Notification refresh — isolated E2E (disp
       expect(markOne.body.data.readAt).not.toBeNull();
 
       const afterOne = await request(app).get('/api/v1/notifications').set('Authorization', `Bearer ${user.token}`);
-      expect(afterOne.body.data.filter((n: any) => !n.readAt)).toHaveLength(1);
+      expect(afterOne.body.data.items.filter((n: any) => !n.readAt)).toHaveLength(1);
 
       const markAll = await request(app)
         .patch('/api/v1/notifications/read-all')
@@ -281,7 +281,7 @@ describe.skipIf(!TEST_DATABASE_URL)('Notification refresh — isolated E2E (disp
       const afterAllRead = await request(app)
         .get('/api/v1/notifications')
         .set('Authorization', `Bearer ${user.token}`);
-      expect(afterAllRead.body.data.every((n: any) => n.readAt !== null)).toBe(true);
+      expect(afterAllRead.body.data.items.every((n: any) => n.readAt !== null)).toBe(true);
       void second;
       void inst;
     });

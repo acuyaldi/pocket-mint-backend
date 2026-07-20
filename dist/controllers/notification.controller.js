@@ -6,6 +6,7 @@ const notification_service_1 = require("../services/notification.service");
 const transaction_controller_1 = require("./transaction.controller");
 const authContext_1 = require("../http/authContext");
 const forwardError_1 = require("../http/forwardError");
+const queryParsers_1 = require("../http/queryParsers");
 const serialize = (notification) => {
     const installment = notification.installment;
     // Installment reminders have no atomic confirm step (payment is a separate
@@ -37,16 +38,26 @@ const serialize = (notification) => {
         createdAt: notification.createdAt,
     };
 };
+/** Shared envelope for both the initial list and the refresh response. */
+const serializePage = (result) => ({
+    items: result.items.map(serialize),
+    pagination: result.pagination,
+});
 class NotificationController {
-    // GET /api/v1/notifications
+    // GET /api/v1/notifications?page=&limit=&filter=all|unread
     static async getAll(req, res, next) {
         try {
             const userId = (0, authContext_1.getAuthenticatedUserId)(req);
             if (!userId) {
                 return (0, response_1.sendError)(res, 'Unauthorized', 401);
             }
-            const notifications = await notification_service_1.notificationService.listNotifications(userId);
-            (0, response_1.sendSuccess)(res, notifications.map(serialize), 'Retrieved notifications');
+            const result = await notification_service_1.notificationService.listNotifications({
+                userId,
+                page: (0, queryParsers_1.scalarInt)(req.query.page),
+                limit: (0, queryParsers_1.scalarInt)(req.query.limit),
+                filter: (0, queryParsers_1.scalarString)(req.query.filter) === 'unread' ? 'unread' : 'all',
+            });
+            (0, response_1.sendSuccess)(res, serializePage(result), 'Retrieved notifications');
         }
         catch (err) {
             (0, forwardError_1.forwardError)(err, res, next);
@@ -59,8 +70,8 @@ class NotificationController {
             if (!userId) {
                 return (0, response_1.sendError)(res, 'Unauthorized', 401);
             }
-            const notifications = await notification_service_1.notificationService.refreshNotifications(userId);
-            (0, response_1.sendSuccess)(res, notifications.map(serialize), 'Notifications refreshed');
+            const result = await notification_service_1.notificationService.refreshNotifications(userId);
+            (0, response_1.sendSuccess)(res, serializePage(result), 'Notifications refreshed');
         }
         catch (err) {
             (0, forwardError_1.forwardError)(err, res, next);

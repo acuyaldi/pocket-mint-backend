@@ -31,6 +31,23 @@ export declare const NOTIFICATION_INCLUDE: {
 export type NotificationWithTemplate = Prisma.RecurringReminderEventGetPayload<{
     include: typeof NOTIFICATION_INCLUDE;
 }>;
+export interface ListNotificationsInput {
+    userId: string;
+    page?: number;
+    limit?: number;
+    filter?: 'all' | 'unread';
+}
+export interface PaginationMeta {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasMore: boolean;
+}
+export interface ListNotificationsResult {
+    items: NotificationWithTemplate[];
+    pagination: PaginationMeta;
+}
 export interface MarkNotificationReadInput {
     userId: string;
     id: string;

@@ -82,10 +82,11 @@ function makeConfirmDb(reminder: ReturnType<typeof baseReminder> | null, opts: {
   return { db, committed, transactionCreates };
 }
 
-function makeDb() {
+function makeDb(rows: unknown[] = [], total = 0) {
   return {
     recurringReminderEvent: {
-      findMany: vi.fn(async () => []),
+      findMany: vi.fn(async () => rows),
+      count: vi.fn(async () => total),
       findFirst: vi.fn(async () => null),
       findUniqueOrThrow: vi.fn(async ({ where }: any) => ({
         id: where.id,
@@ -104,16 +105,79 @@ function makeDb() {
   };
 }
 
-describe('notification service', () => {
-  it('lists notifications scoped to the user, newest reminder first', async () => {
+describe('notification service — pagination', () => {
+  it('defaults to page 1, limit 10, ordered newest reminder first', async () => {
     const db = makeDb();
-    await createNotificationService(db as any).listNotifications('user-1');
+    await createNotificationService(db as any).listNotifications({ userId: 'user-1' });
     expect(db.recurringReminderEvent.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { userId: 'user-1' }, orderBy: { reminderDate: 'desc' } })
+      expect.objectContaining({
+        where: { userId: 'user-1' },
+        orderBy: [{ reminderDate: 'desc' }, { id: 'desc' }],
+        skip: 0,
+        take: 10,
+      })
     );
   });
 
-  it('refreshes notifications by evaluating reminders for the authenticated user only, then re-lists', async () => {
+  it('computes skip/take from an explicit page and limit', async () => {
+    const db = makeDb();
+    await createNotificationService(db as any).listNotifications({ userId: 'user-1', page: 3, limit: 20 });
+    expect(db.recurringReminderEvent.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skip: 40, take: 20 })
+    );
+  });
+
+  it('enforces a hard maximum limit of 100', async () => {
+    const db = makeDb();
+    await createNotificationService(db as any).listNotifications({ userId: 'user-1', limit: 9999 });
+    expect(db.recurringReminderEvent.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 100 }));
+  });
+
+  it('falls back to defaults for invalid page/limit (0, negative, non-integer)', async () => {
+    const db = makeDb();
+    await createNotificationService(db as any).listNotifications({ userId: 'user-1', page: -1, limit: 0 });
+    expect(db.recurringReminderEvent.findMany).toHaveBeenCalledWith(expect.objectContaining({ skip: 0, take: 10 }));
+
+    const db2 = makeDb();
+    await createNotificationService(db2 as any).listNotifications({ userId: 'user-1', page: 1.5, limit: 2.5 });
+    expect(db2.recurringReminderEvent.findMany).toHaveBeenCalledWith(expect.objectContaining({ skip: 0, take: 10 }));
+  });
+
+  it('applies the unread filter to both the rows query and the count query', async () => {
+    const db = makeDb();
+    await createNotificationService(db as any).listNotifications({ userId: 'user-1', filter: 'unread' });
+    expect(db.recurringReminderEvent.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { userId: 'user-1', readAt: null } })
+    );
+    expect(db.recurringReminderEvent.count).toHaveBeenCalledWith({ where: { userId: 'user-1', readAt: null } });
+  });
+
+  it('scopes the count query to the user (never another user’s rows)', async () => {
+    const db = makeDb();
+    await createNotificationService(db as any).listNotifications({ userId: 'user-1' });
+    expect(db.recurringReminderEvent.count).toHaveBeenCalledWith({ where: { userId: 'user-1' } });
+  });
+
+  it('returns pagination metadata: total, totalPages, hasMore', async () => {
+    const db = makeDb([{ id: 'evt-1' }], 25);
+    const result = await createNotificationService(db as any).listNotifications({ userId: 'user-1', page: 2, limit: 10 });
+    expect(result.pagination).toEqual({ page: 2, limit: 10, total: 25, totalPages: 3, hasMore: true });
+  });
+
+  it('hasMore is false on the last page', async () => {
+    const db = makeDb([], 25);
+    const result = await createNotificationService(db as any).listNotifications({ userId: 'user-1', page: 3, limit: 10 });
+    expect(result.pagination.hasMore).toBe(false);
+  });
+
+  it('every row beyond the first page remains reachable (no silent truncation of a growing history)', async () => {
+    const db = makeDb([{ id: 'evt-501' }], 1000);
+    const result = await createNotificationService(db as any).listNotifications({ userId: 'user-1', page: 51, limit: 10 });
+    expect(db.recurringReminderEvent.findMany).toHaveBeenCalledWith(expect.objectContaining({ skip: 500, take: 10 }));
+    expect(result.pagination.total).toBe(1000);
+  });
+
+  it('refreshes notifications by evaluating reminders for the authenticated user only, then re-lists the first page', async () => {
     const db = makeDb();
     evaluateReminders.mockClear();
 
@@ -122,9 +186,12 @@ describe('notification service', () => {
     expect(evaluateReminders).toHaveBeenCalledTimes(1);
     expect(evaluateReminders).toHaveBeenCalledWith(expect.any(String), 'user-1');
     expect(db.recurringReminderEvent.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { userId: 'user-1' } })
+      expect.objectContaining({ where: { userId: 'user-1' }, skip: 0, take: 10 })
     );
   });
+});
+
+describe('notification service', () => {
 
   it('marks an unread notification as read', async () => {
     const db = makeDb();

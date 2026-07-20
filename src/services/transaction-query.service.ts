@@ -110,7 +110,7 @@ export function createTransactionQueryService(db: TransactionQueryPrismaClient) 
     return db.transaction.findMany({
       where,
       include: TRANSACTION_INCLUDE,
-      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       ...(take && { take }),
     });
   }
