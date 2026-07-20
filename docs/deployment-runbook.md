@@ -217,6 +217,23 @@ DROP TABLE IF EXISTS "transfers";
   code deploy. Rollback = re-add the table via a new migration (Prisma has no
   down-migrations); no data loss risk since nothing ever wrote to it.
 
+### `20260719001706_add_recurring_transaction_templates` through `20260719181136_add_saving_goals` — ADDITIVE / SAFE
+
+Eight migrations, all additive only (new tables, new nullable/defaulted
+columns — no drops, renames, or narrowing):
+
+- `20260719001706_add_recurring_transaction_templates` — `recurring_transaction_templates` table + `RecurrenceFrequency` enum
+- `20260719101529_add_recurring_amount_mode` — `amount_mode` column + `RecurringAmountMode` enum, `amount` made nullable
+- `20260719120000_add_recurring_reminder_settings` — `reminder_enabled` / `reminder_offset_days` on templates
+- `20260719130000_add_recurring_reminder_events` — `recurring_reminder_events` table
+- `20260719150918_add_recurring_reminder_read_state` — `read_at` on reminder events
+- `20260719160000_add_recurring_reminder_completion` — `completed_at` / `generated_transaction_id` on reminder events
+- `20260719173135_add_installment_reminder_events` — `installment_id` on reminder events, `template_id` made nullable (events can now belong to either a recurring template or an installment)
+- `20260719181136_add_saving_goals` — `saving_goals` table + `SavingGoalStatus` enum
+
+Old code ignores all of the above — safe to apply before the new code, no
+ordering constraint. Rollback = restore from backup (no down-migrations).
+
 ### ⚠️ Migration-history drift — provisioning blocker for a FRESH database (RESOLVED, re-verified 2026-07-18)
 
 `prisma migrate status` used to report **"last common migration: null"**
@@ -229,22 +246,21 @@ be provisioned from the migration repository alone (PM-STAB-004).
 
 Current state, on a disposable PostgreSQL 18 instance:
 
-- **Fresh/empty database**: `prisma migrate deploy` applies all five
-  migrations (`baseline` → `remove_local_user_password` →
-  `add_transaction_to_wallet` → `generalize_wallets_and_bills` →
-  `drop_unused_transfer_model`) in order and reaches a schema **identical** to
+- **Fresh/empty database**: `prisma migrate deploy` applies all 13 migrations
+  in `prisma/migrations/` (`baseline` through `add_saving_goals`, see §5 above
+  for the full list) in order and reaches a schema **identical** to
   `prisma/schema.prisma` (empty `migrate diff`, `migrate status` reports
   "Database schema is up to date"). No manual SQL, no `db push`, no dependency
-  on any other database. All five migrations have been replayed end-to-end
-  this way, independently, more than once — see
+  on any other database. The original five migrations have been replayed
+  end-to-end this way, independently, more than once — see
   `docs/prisma-migration-reconciliation.md` §6 and the cross-repo evidence in
   `pocket-mint-fe/docs/releases/mvp-stable-rc-validation.md` §7, §17.5, and
-  §18 (dated 2026-07-18). ✅
+  §18 (dated 2026-07-18). ✅ The eight newer migrations follow the same
+  additive pattern and have not surfaced any drift.
 - **Existing database** (the one in `DATABASE_URL`, a snapshot/branch of it, or
-  staging/production): still has only the legacy `_init`/`_rename` history
-  applied — none of the five repo migrations have been deployed there yet.
-  Provisioning it is a `migrate resolve --applied 20260710000000_baseline`
-  (metadata only) followed by `migrate deploy` for the four newer migrations —
+  staging/production): provisioning is a `migrate resolve --applied
+  20260710000000_baseline` (metadata only) followed by `migrate deploy` for
+  the remaining migrations —
   see `docs/prisma-migration-reconciliation.md` §7–§9. This step is still
   **manual and not yet executed against any real staging/production database**;
   it requires a backup window and is not something to run against `.env`'s
@@ -337,6 +353,17 @@ symmetry preserved on both wallets.
 supported.
 
 **Dashboard:** summary loads; wallet totals match.
+
+**Recurring transactions:** create/update/delete a template; `nextDueDate`
+computes correctly for daily/weekly/monthly/yearly frequency; reminder
+settings (`reminderEnabled`/`reminderOffsetDays`) persist.
+
+**Reminders & notifications:** reminder events generate for due templates and
+installments; read/confirm state persists; `GET /v1/notifications` and
+`POST /v1/notifications/refresh` return expected shape.
+
+**Saving goals:** create/update/progress/archive a goal; status transitions
+(`ACTIVE` → `COMPLETED`/`ARCHIVED`) enforced.
 
 **Security:** CORS preflight with `Authorization` succeeds; unknown origin
 rejected; mutation limiter keys by verified user; logs contain no token; errors

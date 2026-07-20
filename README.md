@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pocket Mint — Backend
 
-## Getting Started
+Express + TypeScript API for Pocket Mint, a personal finance tracker. Uses Prisma ORM against PostgreSQL (Supabase), authenticates via verified Supabase JWTs, and deploys to Railway.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Runtime**: Node 22.x, Express 5, TypeScript
+- **Database**: PostgreSQL (Supabase), Prisma 7 (`client` engine, `pg` driver adapter)
+- **Auth**: Supabase JWT verification only — no shared API keys, no `x-user-id` headers
+- **Hosting**: Railway (Git-integration auto-deploy on push)
+
+## Project structure
+
+```text
+src/
+├── app.ts, server.ts    Express app wiring and entrypoint
+├── config/               Env var reading (single source of truth: config/index.ts)
+├── controllers/          HTTP request handlers per domain
+├── domain/                Pure business logic (billing cycles, installments, reporting)
+├── middleware/            Auth, CORS, rate limiting, error handling
+├── models/                 Query/persistence helpers
+├── routes/                 Express routers, mounted under /api/v1
+├── services/                Domain services (one per feature area, + *.types.ts / *.errors.ts)
+└── utils/                    Shared helpers (JWT verification, financial math)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Architecture notes for individual services live under [`docs/`](docs/) (e.g. `architecture-wallet-service.md`, `architecture-transaction-service.md`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Local setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+cp .env.example .env   # fill in real values, see below
+npm run dev             # ts-node-dev, binds $PORT (default 5001)
+```
 
-## Learn More
+## Environment variables
 
-To learn more about Next.js, take a look at the following resources:
+See [`.env.example`](.env.example) for the full annotated list. Required in production:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `DATABASE_URL` — Postgres connection string
+- Exactly one of `SUPABASE_JWT_SECRET` (HS256 shared secret) or `SUPABASE_URL` (JWKS)
+- `CORS_ALLOWED_ORIGINS` — comma-separated exact origins, no wildcard
+- `NODE_ENV=production`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Everything else (rate limiting, connection pool sizing, reporting timezone) has a safe default — see the file comments.
 
-## Deploy on Vercel
+## Testing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm test               # vitest run — unit + service tests
+npm run test:integration  # requires TEST_DATABASE_URL, a disposable Postgres DB
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [`docs/database-testing.md`](docs/database-testing.md) for setting up the integration test database.
+
+## Build & deploy
+
+```bash
+npm run build   # prisma generate && tsc && copy generated client into dist/
+npm start        # node dist/server.js
+```
+
+Deployment is to Railway via Git-integration auto-deploy. Full deployment, rollback, and migration procedures are documented in [`docs/deployment-runbook.md`](docs/deployment-runbook.md).
+
+### Migration policy
+
+**`prisma migrate deploy` is never run automatically against a real database.** CI only applies migrations to an ephemeral, disposable Postgres container for testing. Railway does not run migrations as part of deploy. Applying migrations to staging/production is a manual, deliberate step — see [`docs/deployment-runbook.md`](docs/deployment-runbook.md) for the exact procedure.
+
+## Backup & restore
+
+See [`docs/backup-restore-runbook.md`](docs/backup-restore-runbook.md) and the `db:backup` / `db:restore` / `db:verify` npm scripts.
