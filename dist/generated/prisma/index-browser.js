@@ -201,6 +201,53 @@ exports.Prisma.InstallmentScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.RecurringTransactionTemplateScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  walletId: 'walletId',
+  categoryId: 'categoryId',
+  name: 'name',
+  type: 'type',
+  amountMode: 'amountMode',
+  amount: 'amount',
+  description: 'description',
+  frequency: 'frequency',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  isActive: 'isActive',
+  reminderEnabled: 'reminderEnabled',
+  reminderOffsetDays: 'reminderOffsetDays',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.RecurringReminderEventScalarFieldEnum = {
+  id: 'id',
+  templateId: 'templateId',
+  installmentId: 'installmentId',
+  userId: 'userId',
+  occurrenceDate: 'occurrenceDate',
+  offsetDays: 'offsetDays',
+  reminderDate: 'reminderDate',
+  readAt: 'readAt',
+  completedAt: 'completedAt',
+  generatedTransactionId: 'generatedTransactionId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.SavingGoalScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  targetAmount: 'targetAmount',
+  currentAmount: 'currentAmount',
+  targetDate: 'targetDate',
+  notes: 'notes',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -251,12 +298,33 @@ exports.InstallmentStatus = exports.$Enums.InstallmentStatus = {
   CANCELLED: 'CANCELLED'
 };
 
+exports.RecurringAmountMode = exports.$Enums.RecurringAmountMode = {
+  FIXED: 'FIXED',
+  FLEXIBLE: 'FLEXIBLE'
+};
+
+exports.RecurrenceFrequency = exports.$Enums.RecurrenceFrequency = {
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY',
+  MONTHLY: 'MONTHLY',
+  YEARLY: 'YEARLY'
+};
+
+exports.SavingGoalStatus = exports.$Enums.SavingGoalStatus = {
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  ARCHIVED: 'ARCHIVED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Wallet: 'Wallet',
   Category: 'Category',
   Transaction: 'Transaction',
-  Installment: 'Installment'
+  Installment: 'Installment',
+  RecurringTransactionTemplate: 'RecurringTransactionTemplate',
+  RecurringReminderEvent: 'RecurringReminderEvent',
+  SavingGoal: 'SavingGoal'
 };
 
 /**

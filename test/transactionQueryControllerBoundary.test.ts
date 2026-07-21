@@ -35,6 +35,7 @@ function buildApp(): Express {
   app.get('/tx', TransactionController.getAll);
   app.get('/tx/all', TransactionController.getAllTime);
   app.get('/tx/summary', TransactionController.summary);
+  app.get('/tx/export', TransactionController.export);
   app.use(errorHandler);
   return app;
 }
@@ -112,6 +113,93 @@ describe('transaction read controllers — boundary', () => {
     await request(buildApp()).get('/tx/summary');
 
     expect(h.queryService.getSummary).toHaveBeenCalledWith({ userId: USER });
+  });
+
+  it('export: resolves a DB-level date range for the period, streams CSV, never fetches all-time', async () => {
+    h.queryService.listTransactions.mockResolvedValue([
+      {
+        id: 't1',
+        date: new Date('2026-07-05T00:00:00.000Z'),
+        type: 'EXPENSE',
+        description: 'Coffee, "iced"',
+        amount: D('25000'),
+        wallet: { name: 'BCA' },
+        category: { name: 'Food' },
+      },
+    ]);
+
+    const res = await request(buildApp())
+      .get('/tx/export')
+      .query({ period: 'month', anchor: '2026-07' });
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('text/csv');
+    expect(res.headers['content-disposition']).toContain('attachment');
+    expect(res.headers['content-disposition']).toContain('financial-report-2026-07-01_to_2026-07-31.csv');
+    expect(res.text).toContain('"Coffee, ""iced"""');
+    expect(res.text).toContain('BCA');
+
+    const arg = h.queryService.listTransactions.mock.calls[0][0];
+    expect(arg.userId).toBe(USER);
+    expect(arg.startDate).toBeInstanceOf(Date);
+    expect(arg.endDate).toBeInstanceOf(Date);
+    expect(arg.allTime).toBeUndefined();
+    expectPrismaUntouched();
+  });
+
+  it('export: rejects a full YYYY-MM-DD anchor — only YYYY-MM is accepted', async () => {
+    const res = await request(buildApp())
+      .get('/tx/export')
+      .query({ period: 'month', anchor: '2026-07-15' });
+
+    expect(res.status).toBe(400);
+    expect(h.queryService.listTransactions).not.toHaveBeenCalled();
+  });
+
+  it('export: rejects an unsupported period before querying', async () => {
+    const res = await request(buildApp()).get('/tx/export').query({ period: 'year' });
+    expect(res.status).toBe(400);
+    expect(h.queryService.listTransactions).not.toHaveBeenCalled();
+  });
+
+  it('export: prefixes leading =, +, -, @ in text fields with an apostrophe to prevent formula injection', async () => {
+    h.queryService.listTransactions.mockResolvedValue([
+      {
+        id: 't1', date: new Date('2026-07-05T00:00:00.000Z'), type: 'EXPENSE',
+        description: '=SUM(A1:A9)', amount: D('1000'),
+        wallet: { name: '+CMD|/c calc' }, category: { name: '-1+1' },
+      },
+      {
+        id: 't2', date: new Date('2026-07-06T00:00:00.000Z'), type: 'INCOME',
+        description: '@import', amount: D('-500'),
+        wallet: { name: 'BCA' }, category: { name: 'Food' },
+      },
+    ]);
+
+    const res = await request(buildApp())
+      .get('/tx/export')
+      .query({ period: 'month', anchor: '2026-07' });
+
+    expect(res.text).toContain("'=SUM(A1:A9)");
+    expect(res.text).toContain("'+CMD|/c calc");
+    expect(res.text).toContain("'-1+1");
+    expect(res.text).toContain("'@import");
+    // Amount stays untouched/numeric even for a negative value.
+    expect(res.text).toContain(',1000');
+    expect(res.text).toContain(',-500');
+    expect(res.text).not.toContain(",'1000");
+    expect(res.text).not.toContain(",'-500");
+  });
+
+  it('export: header uses Date, Description, Wallet, Category, Type, Amount order and a UTF-8 BOM', async () => {
+    h.queryService.listTransactions.mockResolvedValue([]);
+
+    const res = await request(buildApp())
+      .get('/tx/export')
+      .query({ period: 'month', anchor: '2026-07' });
+
+    expect(res.text.charCodeAt(0)).toBe(0xfeff);
+    expect(res.text).toContain('Date,Description,Wallet,Category,Type,Amount');
   });
 
   it('forwards a typed TransactionError with its exact status and code', async () => {

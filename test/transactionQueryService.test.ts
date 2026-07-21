@@ -50,8 +50,8 @@ describe('transactionQueryService.listTransactions', () => {
     expect(args.where.date.lt.toISOString()).toBe(JULY_2026.lt);
     expect(args.where.date.lte).toBeUndefined(); // half-open, never lte
     expect(args.include).toEqual(READ_INCLUDE);
-    expect(args.orderBy).toEqual([{ date: 'desc' }, { createdAt: 'desc' }]);
-    expect(args.take).toBeUndefined(); // no default cap
+    expect(args.orderBy).toEqual([{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }]);
+    expect(args.take).toBeUndefined(); // no default cap for the month-scoped list
   });
 
   it('applies the wallet and type filters alongside an explicit month/year window', async () => {
@@ -72,6 +72,17 @@ describe('transactionQueryService.listTransactions', () => {
     expect(where.walletId).toBe('someone-elses-wallet');
   });
 
+  it('an explicit startDate/endDate range overrides month/year/allTime (DB-level filtering for export)', async () => {
+    const { transaction } = makeDb();
+    const startDate = new Date('2026-01-01T00:00:00.000Z');
+    const endDate = new Date('2026-07-01T00:00:00.000Z');
+    await svc({ transaction }).listTransactions({ userId: 'u1', startDate, endDate, month: 1, year: 2020, allTime: true });
+
+    const where = firstArg(transaction.findMany).where;
+    expect(where.date.gte).toBe(startDate);
+    expect(where.date.lt).toBe(endDate);
+  });
+
   it('skips the date filter entirely for all-time listing', async () => {
     const { transaction } = makeDb();
     await svc({ transaction }).listTransactions({ userId: 'u1', allTime: true, month: 7, year: 2026 });
@@ -86,18 +97,39 @@ describe('transactionQueryService.listTransactions', () => {
     expect(transaction.findMany).not.toHaveBeenCalled();
   });
 
-  it('clamps the limit to 200 and treats 0/absent as no cap', async () => {
+  it('clamps an explicit limit to 200, and 0/absent means no cap', async () => {
     const cases: Array<[number | undefined, number | undefined]> = [
       [500, 200],
       [50, 50],
-      [0, undefined],
-      [undefined, undefined],
+      [0, undefined], // 0 resolves to "no explicit cap"
     ];
     for (const [limit, expected] of cases) {
       const { transaction } = makeDb();
       await svc({ transaction }).listTransactions({ userId: 'u1', allTime: true, limit });
       expect(firstArg(transaction.findMany).take).toBe(expected);
     }
+  });
+
+  it('does NOT apply any cap to all-time listing when no client limit is given (silent truncation is not acceptable)', async () => {
+    const { transaction } = makeDb();
+    await svc({ transaction }).listTransactions({ userId: 'u1', allTime: true });
+    expect(firstArg(transaction.findMany).take).toBeUndefined();
+  });
+
+  it('does NOT apply any cap to the month-scoped list (no allTime, no limit)', async () => {
+    const { transaction } = makeDb();
+    await svc({ transaction }).listTransactions({ userId: 'u1' });
+    expect(firstArg(transaction.findMany).take).toBeUndefined();
+  });
+
+  it('does NOT apply any cap to an explicit date-range query (export must stay complete)', async () => {
+    const { transaction } = makeDb();
+    await svc({ transaction }).listTransactions({
+      userId: 'u1',
+      startDate: new Date('2026-01-01T00:00:00.000Z'),
+      endDate: new Date('2026-07-01T00:00:00.000Z'),
+    });
+    expect(firstArg(transaction.findMany).take).toBeUndefined();
   });
 
   it('returns rows unchanged with Decimals intact (serialization is the controller boundary)', async () => {

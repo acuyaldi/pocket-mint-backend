@@ -27,6 +27,13 @@ export interface ListTransactionsInput {
     limit?: number;
     /** True for the `/all` endpoint: skip the month/year date filter entirely. */
     allTime?: boolean;
+    /**
+     * Explicit half-open date range (e.g. for the transaction export). When set,
+     * this replaces the month/year/allTime resolution entirely — `startDate` maps
+     * to `date >= startDate`, `endDate` to `date < endDate`.
+     */
+    startDate?: Date;
+    endDate?: Date;
 }
 /** Input for the monthly summary (`GET /transactions/summary`). */
 export interface TransactionSummaryInput {

@@ -1,0 +1,39 @@
+export type RecurringTransactionType = 'INCOME' | 'EXPENSE';
+export type RecurrenceFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+export type RecurringAmountMode = 'FIXED' | 'FLEXIBLE';
+
+// Payload untuk membuat template transaksi rutin (POST /api/v1/recurring-transactions)
+export interface CreateRecurringTransactionDto {
+  name: string;
+  walletId: string;
+  categoryId?: string;
+  type: RecurringTransactionType;
+  amountMode: RecurringAmountMode;
+  /** Required when amountMode is FIXED; ignored (stored as null) when FLEXIBLE. */
+  amount?: number;
+  description?: string;
+  frequency: RecurrenceFrequency;
+  startDate: string; // YYYY-MM-DD in REPORTING_TIMEZONE, or ISO timestamp with Z/offset
+  endDate?: string;
+  /** When true, reminderOffsetDays is required and must be one of 0/1/3/7. */
+  reminderEnabled?: boolean;
+  reminderOffsetDays?: number | null;
+}
+
+// Payload untuk memperbarui template transaksi rutin (PUT /api/v1/recurring-transactions/:id)
+// Semua field opsional — hanya field yang dikirim yang akan diperbarui
+export interface UpdateRecurringTransactionDto {
+  name?: string;
+  walletId?: string;
+  categoryId?: string;
+  type?: RecurringTransactionType;
+  amountMode?: RecurringAmountMode;
+  amount?: number;
+  description?: string;
+  frequency?: RecurrenceFrequency;
+  startDate?: string;
+  endDate?: string;
+  isActive?: boolean;
+  reminderEnabled?: boolean;
+  reminderOffsetDays?: number | null;
+}

@@ -6,10 +6,12 @@ import { CreateTransactionDto, UpdateTransactionDto, type TransactionType } from
 import { transactionService } from '../services/transaction.service';
 import { transactionQueryService } from '../services/transaction-query.service';
 import type { CreateTransactionInput, UpdateTransactionInput } from '../services/transaction.types';
-import type { ListTransactionsInput, TransactionSummaryResult } from '../services/transaction-query.types';
+import type { ListTransactionsInput, TransactionSummaryResult, TransactionWithRelations } from '../services/transaction-query.types';
 import { getAuthenticatedUserId } from '../http/authContext';
 import { scalarInt, scalarString } from '../http/queryParsers';
 import { forwardError } from '../http/forwardError';
+import { reportingConfig } from '../config';
+import { formatReportingDate, getReportingMonthRange, parseReportingAnchor } from '../domain/reportingTime';
 
 /** Allowlist create fields from the request body into the service input. */
 function mapCreateTransactionRequest(
@@ -82,6 +84,9 @@ const serialize = <T extends { amount: Prisma.Decimal }>(tx: T) => ({
   amount: parseFloat(tx.amount.toString()),
 });
 
+/** Exported so other controllers generating a Transaction (e.g. notification confirm) reuse the same serializer. */
+export const serializeTransaction = serialize;
+
 /**
  * Parse the summary `month=YYYY-MM` query into service input. A missing,
  * non-scalar, or malformed value yields `{}` so the query service falls back to
@@ -100,6 +105,78 @@ function serializeSummary(result: TransactionSummaryResult) {
     netSavings: Number(result.netSavings.toString()),
     month: result.month,
   };
+}
+
+const EXPORT_PERIOD_MONTHS = { month: 1, quarter: 3, 'six-months': 6 } as const;
+type ExportPeriod = keyof typeof EXPORT_PERIOD_MONTHS;
+
+/**
+ * The half-open date range for an Analytics-page export: the given number of
+ * calendar months (in the reporting timezone), ending at the reporting month
+ * containing `anchor`. Mirrors the frontend's `getPeriodMonthKeys`.
+ */
+function resolveExportRange(period: ExportPeriod, anchor: Date): { startDate: Date; endDate: Date } {
+  const tz = reportingConfig.timezone;
+  const [year, month] = formatReportingDate(anchor, tz).split('-').map(Number);
+  const endDate = getReportingMonthRange({ year, month }, tz).endExclusive;
+
+  const count = EXPORT_PERIOD_MONTHS[period];
+  let startMonth = month - (count - 1);
+  let startYear = year;
+  while (startMonth < 1) {
+    startMonth += 12;
+    startYear -= 1;
+  }
+  const startDate = getReportingMonthRange({ year: startYear, month: startMonth }, tz).startInclusive;
+
+  return { startDate, endDate };
+}
+
+/** Quote a CSV field only when it needs it (contains a comma, quote, or newline). */
+function csvField(value: string): string {
+  return /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+}
+
+/**
+ * CSV formula-injection guard (Excel/Google Sheets treat a leading =, +, -,
+ * or @ as a formula trigger). Prefixing with an apostrophe forces text
+ * interpretation while keeping the visible value unchanged. Applied only to
+ * free-text fields the user controls — never to Amount, which must stay
+ * numeric.
+ */
+function csvSanitizeText(value: string): string {
+  return /^[=+\-@]/.test(value) ? `'${value}` : value;
+}
+
+// UTF-8 BOM: Indonesian wallet/category/description text is typically plain
+// ASCII, but the field is free text and Excel on Windows mojibakes non-ASCII
+// UTF-8 CSVs without a BOM. Included so exported files open correctly there;
+// Google Sheets and modern Excel builds ignore the BOM harmlessly.
+const CSV_BOM = '﻿';
+
+function transactionsToCsv(transactions: TransactionWithRelations[]): string {
+  const header = ['Date', 'Description', 'Wallet', 'Category', 'Type', 'Amount'];
+  const rows = transactions.map((tx) => [
+    tx.date.toISOString().slice(0, 10),
+    csvSanitizeText(tx.description ?? ''),
+    csvSanitizeText(tx.wallet.name),
+    csvSanitizeText(tx.category?.name ?? ''),
+    tx.type,
+    tx.amount.toString(),
+  ]);
+  return CSV_BOM + [header, ...rows].map((row) => row.map(csvField).join(',')).join('\r\n');
+}
+
+/**
+ * Deterministic export filename derived from the actual reporting date
+ * range — never from user input. `endDate` is the half-open exclusive
+ * boundary from `resolveExportRange`; stepping back 1ms lands inside the
+ * last reporting day so it formats as that day's calendar date.
+ */
+function exportFilename(startDate: Date, endDate: Date, zone: string): string {
+  const start = formatReportingDate(startDate, zone);
+  const end = formatReportingDate(new Date(endDate.getTime() - 1), zone);
+  return `financial-report-${start}_to_${end}.csv`;
 }
 
 export class TransactionController {
@@ -155,6 +232,42 @@ export class TransactionController {
         ...mapListTransactionQuery(req.query),
       });
       sendSuccess(res, transactions.map(serialize), 'Retrieved all transactions');
+    } catch (err) {
+      forwardError(err, res, next);
+    }
+  }
+
+  // GET /api/v1/transactions/export?period=month|quarter|six-months&anchor=YYYY-MM
+  // CSV export of the Analytics page's currently selected period. `anchor` is
+  // the reporting-calendar month key the Analytics page is already showing
+  // (defaults to the current reporting month); date filtering happens in the
+  // database, not in memory.
+  static async export(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = getAuthenticatedUserId(req);
+      if (!userId) {
+        return sendError(res, 'Unauthorized', 401);
+      }
+
+      const period = scalarString(req.query.period);
+      if (!period || !(period in EXPORT_PERIOD_MONTHS)) {
+        return sendError(res, 'Invalid period. Allowed: month, quarter, six-months', 400);
+      }
+
+      let anchor: Date;
+      try {
+        anchor = parseReportingAnchor(scalarString(req.query.anchor), reportingConfig.timezone);
+      } catch {
+        return sendError(res, 'Invalid anchor date', 400);
+      }
+
+      const { startDate, endDate } = resolveExportRange(period as ExportPeriod, anchor);
+      const transactions = await transactionQueryService.listTransactions({ userId, startDate, endDate });
+      const filename = exportFilename(startDate, endDate, reportingConfig.timezone);
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.status(200).send(transactionsToCsv(transactions));
     } catch (err) {
       forwardError(err, res, next);
     }

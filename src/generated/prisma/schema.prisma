@@ -29,10 +29,12 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  wallets      Wallet[]
-  categories   Category[]
-  transactions Transaction[]
-  installments Installment[]
+  wallets                       Wallet[]
+  categories                    Category[]
+  transactions                  Transaction[]
+  installments                  Installment[]
+  recurringTransactionTemplates RecurringTransactionTemplate[]
+  savingGoals                   SavingGoal[]
 
   @@map("users")
 }
@@ -75,11 +77,12 @@ model Wallet {
   updatedAt      DateTime     @updatedAt @map("updated_at")
 
   // Relations
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions   Transaction[] @relation("WalletTransactions")
+  user                          User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions                  Transaction[]                  @relation("WalletTransactions")
   // Transfers whose destination is this wallet (Transaction.toWalletId).
-  toTransactions Transaction[] @relation("WalletToTransactions")
-  installments   Installment[]
+  toTransactions                Transaction[]                  @relation("WalletToTransactions")
+  installments                  Installment[]
+  recurringTransactionTemplates RecurringTransactionTemplate[]
 
   @@index([userId])
   @@map("wallets")
@@ -104,8 +107,9 @@ model Category {
   updatedAt DateTime     @updatedAt @map("updated_at")
 
   // Relations
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
+  user                          User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions                  Transaction[]
+  recurringTransactionTemplates RecurringTransactionTemplate[]
 
   @@unique([userId, name, type])
   @@index([userId, type])
@@ -140,11 +144,12 @@ model Transaction {
   updatedAt     DateTime        @updatedAt @map("updated_at")
 
   // Relations
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wallet      Wallet       @relation("WalletTransactions", fields: [walletId], references: [id], onDelete: Cascade)
-  toWallet    Wallet?      @relation("WalletToTransactions", fields: [toWalletId], references: [id], onDelete: SetNull)
-  category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  installment Installment? @relation(fields: [installmentId], references: [id], onDelete: SetNull)
+  user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet        Wallet                  @relation("WalletTransactions", fields: [walletId], references: [id], onDelete: Cascade)
+  toWallet      Wallet?                 @relation("WalletToTransactions", fields: [toWalletId], references: [id], onDelete: SetNull)
+  category      Category?               @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  installment   Installment?            @relation(fields: [installmentId], references: [id], onDelete: SetNull)
+  reminderEvent RecurringReminderEvent?
 
   @@index([userId, date])
   @@index([userId, type])
@@ -210,11 +215,122 @@ model Installment {
   updatedAt         DateTime          @updatedAt @map("updated_at")
 
   // Relations
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wallet       Wallet        @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
+  user           User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet         Wallet                   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  transactions   Transaction[]
+  reminderEvents RecurringReminderEvent[]
 
   @@index([userId, status])
   @@index([walletId])
   @@map("installments")
+}
+
+// ─────────────────────────────────────────────
+// RECURRING TRANSACTION TEMPLATE  (transaksi rutin)
+// ─────────────────────────────────────────────
+enum RecurrenceFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum RecurringAmountMode {
+  FIXED
+  FLEXIBLE
+}
+
+model RecurringTransactionTemplate {
+  id                 String              @id @default(cuid())
+  userId             String              @map("user_id")
+  walletId           String              @map("wallet_id")
+  categoryId         String?             @map("category_id")
+  name               String
+  type               TransactionType
+  amountMode         RecurringAmountMode @default(FIXED) @map("amount_mode")
+  amount             Decimal?            @db.Decimal(15, 2)
+  description        String?
+  frequency          RecurrenceFrequency
+  startDate          DateTime            @map("start_date")
+  endDate            DateTime?           @map("end_date")
+  isActive           Boolean             @default(true) @map("is_active")
+  reminderEnabled    Boolean             @default(false) @map("reminder_enabled")
+  reminderOffsetDays Int?                @map("reminder_offset_days")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  // Relations
+  user           User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet         Wallet                   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  category       Category?                @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  reminderEvents RecurringReminderEvent[]
+
+  @@index([userId, isActive])
+  @@map("recurring_transaction_templates")
+}
+
+// Phase 4: one row per (template, occurrence, offset) that the reminder engine
+// has already fired — the unique constraint is what makes re-running the
+// engine for the same evaluation date a no-op instead of a duplicate.
+// Phase 7: a row is sourced from either a recurring template OR an
+// installment, never both — templateId/installmentId are each optional so
+// the same table serves both without a parallel pipeline. The engine is the
+// only writer and is responsible for setting exactly one of them.
+model RecurringReminderEvent {
+  id                     String    @id @default(cuid())
+  templateId             String?   @map("template_id")
+  installmentId          String?   @map("installment_id")
+  userId                 String    @map("user_id")
+  occurrenceDate         DateTime  @map("occurrence_date")
+  offsetDays             Int       @map("offset_days")
+  reminderDate           DateTime  @map("reminder_date")
+  readAt                 DateTime? @map("read_at")
+  // Phase 6: NULL = still waiting: non-null = a real transaction was created
+  // from this reminder and it must never be processed again. Template-sourced
+  // rows only — installment-sourced completion is derived, see notification
+  // controller.
+  completedAt            DateTime? @map("completed_at")
+  generatedTransactionId String?   @unique @map("generated_transaction_id")
+  createdAt              DateTime  @default(now()) @map("created_at")
+
+  template             RecurringTransactionTemplate? @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  installment          Installment?                  @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+  generatedTransaction Transaction?                  @relation(fields: [generatedTransactionId], references: [id], onDelete: SetNull)
+
+  @@unique([templateId, occurrenceDate, offsetDays])
+  @@unique([installmentId, occurrenceDate, offsetDays])
+  @@index([userId, reminderDate])
+  @@map("recurring_reminder_events")
+}
+
+// ─────────────────────────────────────────────
+// SAVING GOAL  (target tabungan)
+// ─────────────────────────────────────────────
+// Phase 8: a planning/tracking record only — it never creates a transaction,
+// mutates a wallet balance, or affects net worth. Progress is stored directly
+// on the row (currentAmount) with no contribution ledger; see
+// financial-logic.skill.md before adding one.
+enum SavingGoalStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+model SavingGoal {
+  id            String           @id @default(cuid())
+  userId        String           @map("user_id")
+  name          String
+  targetAmount  Decimal          @map("target_amount") @db.Decimal(15, 2)
+  currentAmount Decimal          @default(0) @map("current_amount") @db.Decimal(15, 2)
+  targetDate    DateTime?        @map("target_date")
+  notes         String?
+  status        SavingGoalStatus @default(ACTIVE)
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("saving_goals")
 }

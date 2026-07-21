@@ -88,19 +88,29 @@ export function createTransactionQueryService(db: TransactionQueryPrismaClient) 
   async function listTransactions(input: ListTransactionsInput): Promise<TransactionWithRelations[]> {
     assertValidType(input.type);
     const take = resolveTake(input.limit);
-    const dateFilter = input.allTime ? undefined : resolveMonthRange(input.month, input.year).range;
+    const dateFilter =
+      input.startDate || input.endDate
+        ? { startInclusive: input.startDate, endExclusive: input.endDate }
+        : input.allTime
+          ? undefined
+          : resolveMonthRange(input.month, input.year).range;
 
     const where: Prisma.TransactionWhereInput = {
       userId: input.userId,
       ...(input.walletId && { walletId: input.walletId }),
       ...(input.type && { type: input.type }),
-      ...(dateFilter && { date: { gte: dateFilter.startInclusive, lt: dateFilter.endExclusive } }),
+      ...(dateFilter && {
+        date: {
+          ...(dateFilter.startInclusive && { gte: dateFilter.startInclusive }),
+          ...(dateFilter.endExclusive && { lt: dateFilter.endExclusive }),
+        },
+      }),
     };
 
     return db.transaction.findMany({
       where,
       include: TRANSACTION_INCLUDE,
-      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       ...(take && { take }),
     });
   }
