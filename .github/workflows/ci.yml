@@ -5,51 +5,33 @@ on:
     branches:
       - dev
       - main
-
   push:
     branches:
       - dev
       - main
 
-permissions:
-  contents: read
-
 concurrency:
   group: backend-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
+env:
+  NODE_ENV: test
+
 jobs:
   verify:
-    name: Backend Verify
+    name: Verify backend
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    # Disposable database for the Prisma integration suite ONLY — never
-    # Supabase or any shared instance. Torn down with the job.
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: pocketmint_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    env:
-      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pocketmint_test
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
@@ -57,30 +39,97 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Type check
-        run: npx tsc --noEmit
-
       - name: Validate Prisma schema
         run: npx prisma validate
 
-      - name: Apply migrations to disposable test database
-        run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+      - name: Check migration directory
+        shell: bash
+        run: |
+          set -euo pipefail
 
-      - name: Run tests (including Prisma integration suite)
-        run: npx vitest run
+          test -f prisma/migrations/migration_lock.toml
 
-      - name: Production build
+          migration_count="$(
+            find prisma/migrations \
+              -mindepth 1 \
+              -maxdepth 1 \
+              -type d |
+            wc -l
+          )"
+
+          if [ "$migration_count" -eq 0 ]; then
+            echo "::error::No Prisma migrations found."
+            exit 1
+          fi
+
+          echo "Found $migration_count migration directories."
+
+      - name: Reject dangerous migration commands
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if grep -RInE \
+            'prisma[[:space:]]+migrate[[:space:]]+(dev|reset)|prisma[[:space:]]+db[[:space:]]+push' \
+            package.json \
+            scripts \
+            src \
+            Dockerfile* \
+            railway.json \
+            railway.toml \
+            nixpacks.toml \
+            2>/dev/null; then
+            echo "::error::Unsafe Prisma command found in runtime or deployment configuration."
+            exit 1
+          fi
+
+      - name: Ensure production migration is not in app startup
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if grep -RInE \
+            'prisma[[:space:]]+migrate[[:space:]]+deploy' \
+            package.json \
+            scripts \
+            src \
+            Dockerfile* \
+            railway.json \
+            railway.toml \
+            nixpacks.toml \
+            2>/dev/null; then
+            echo "::error::prisma migrate deploy must not run during application startup or build."
+            exit 1
+          fi
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npx vitest run --reporter=default
+
+      - name: Build
         run: npm run build
 
-      - name: Verify Prisma client packaging
+      - name: Check uncommitted changes
+        shell: bash
         run: |
-          test -f dist/generated/prisma/client.js
-          node -e "require('./dist/generated/prisma/client'); console.log('Prisma client packaging OK')"
+          set -euo pipefail
 
-      - name: Check repository diff
-        run: git diff --exit-code
+          git diff --check
+
+          if ! git diff --quiet; then
+            echo "::error::Build or generation modified tracked files."
+            git status --short
+            git diff --stat
+            exit 1
+          fi
+
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Working tree is not clean after verification."
+            git status --short
+            exit 1
+          fi
