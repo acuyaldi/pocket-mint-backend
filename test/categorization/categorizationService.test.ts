@@ -8,12 +8,18 @@ vi.mock('../../src/lib/prisma', () => ({ default: {} }));
 
 import { createCategorizationService } from '../../src/services/categorization.service';
 
-function makeDb(categories: Array<{ id: string; name: string; type: string }> = []) {
+function makeDb(
+  categories: Array<{ id: string; name: string; type: string }> = [],
+  mapping: any = null,
+) {
   return {
     category: {
       findMany: vi.fn(async ({ where }: any) =>
         categories.filter((c) => c.type === where.type),
       ),
+    },
+    merchantMapping: {
+      findFirst: vi.fn(async () => mapping),
     },
   };
 }
@@ -113,5 +119,47 @@ describe('categorization service', () => {
     const service = createCategorizationService(db as any);
     const suggestions = await service.getSuggestions('user-1', 'xyz abc unknown', 'EXPENSE');
     expect(suggestions).toEqual([]);
+  });
+
+  describe('merchant mapping precedence (Phase 19)', () => {
+    it('returns the mapped category and skips keyword matching entirely', async () => {
+      const mapping = {
+        merchantName: 'Warung Bu Siti',
+        category: { id: 'cat-custom', name: 'Custom Category' },
+      };
+      const db = makeDb(allCategories, mapping);
+      const service = createCategorizationService(db as any);
+      const suggestions = await service.getSuggestions('user-1', 'Warung Bu Siti', 'EXPENSE');
+
+      expect(suggestions).toEqual([{
+        categoryId: 'cat-custom',
+        categoryName: 'Custom Category',
+        confidence: 'HIGH',
+        reason: 'Merchant mapping: "Warung Bu Siti"',
+        matchedKeyword: 'Warung Bu Siti',
+        normalizedMerchant: 'warung bu siti',
+      }]);
+      expect(db.category.findMany).not.toHaveBeenCalled();
+    });
+
+    it('scopes the mapping lookup to the requested type and normalized merchant, per user', async () => {
+      const db = makeDb(allCategories, null);
+      const service = createCategorizationService(db as any);
+      await service.getSuggestions('user-1', 'INDOMARET #123', 'EXPENSE');
+
+      expect(db.merchantMapping.findFirst).toHaveBeenCalledWith({
+        where: { userId: 'user-1', normalizedMerchant: 'indomaret', category: { type: 'EXPENSE' } },
+        include: { category: true },
+      });
+    });
+
+    it('falls back to keyword matching when no mapping exists', async () => {
+      const db = makeDb(allCategories, null);
+      const service = createCategorizationService(db as any);
+      const suggestions = await service.getSuggestions('user-1', 'INDOMARET #123', 'EXPENSE');
+
+      expect(suggestions[0].categoryName).toBe('Belanja');
+      expect(db.category.findMany).toHaveBeenCalled();
+    });
   });
 });

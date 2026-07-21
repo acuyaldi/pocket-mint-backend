@@ -29,6 +29,11 @@ export type Wallet = $Result.DefaultSelection<Prisma.$WalletPayload>
  */
 export type Category = $Result.DefaultSelection<Prisma.$CategoryPayload>
 /**
+ * Model MerchantMapping
+ * 
+ */
+export type MerchantMapping = $Result.DefaultSelection<Prisma.$MerchantMappingPayload>
+/**
  * Model Transaction
  * 
  */
@@ -331,6 +336,16 @@ export class PrismaClient<
     * ```
     */
   get category(): Prisma.CategoryDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.merchantMapping`: Exposes CRUD operations for the **MerchantMapping** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MerchantMappings
+    * const merchantMappings = await prisma.merchantMapping.findMany()
+    * ```
+    */
+  get merchantMapping(): Prisma.MerchantMappingDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.transaction`: Exposes CRUD operations for the **Transaction** model.
@@ -828,6 +843,7 @@ export namespace Prisma {
     User: 'User',
     Wallet: 'Wallet',
     Category: 'Category',
+    MerchantMapping: 'MerchantMapping',
     Transaction: 'Transaction',
     Installment: 'Installment',
     RecurringTransactionTemplate: 'RecurringTransactionTemplate',
@@ -849,7 +865,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "wallet" | "category" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent" | "savingGoal" | "budget"
+      modelProps: "user" | "wallet" | "category" | "merchantMapping" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent" | "savingGoal" | "budget"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1072,6 +1088,80 @@ export namespace Prisma {
           count: {
             args: Prisma.CategoryCountArgs<ExtArgs>
             result: $Utils.Optional<CategoryCountAggregateOutputType> | number
+          }
+        }
+      }
+      MerchantMapping: {
+        payload: Prisma.$MerchantMappingPayload<ExtArgs>
+        fields: Prisma.MerchantMappingFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MerchantMappingFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantMappingPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MerchantMappingFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantMappingPayload>
+          }
+          findFirst: {
+            args: Prisma.MerchantMappingFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantMappingPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MerchantMappingFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantMappingPayload>
+          }
+          findMany: {
+            args: Prisma.MerchantMappingFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantMappingPayload>[]
+          }
+          create: {
+            args: Prisma.MerchantMappingCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantMappingPayload>
+          }
+          createMany: {
+            args: Prisma.MerchantMappingCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MerchantMappingCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantMappingPayload>[]
+          }
+          delete: {
+            args: Prisma.MerchantMappingDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantMappingPayload>
+          }
+          update: {
+            args: Prisma.MerchantMappingUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantMappingPayload>
+          }
+          deleteMany: {
+            args: Prisma.MerchantMappingDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MerchantMappingUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MerchantMappingUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantMappingPayload>[]
+          }
+          upsert: {
+            args: Prisma.MerchantMappingUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MerchantMappingPayload>
+          }
+          aggregate: {
+            args: Prisma.MerchantMappingAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMerchantMapping>
+          }
+          groupBy: {
+            args: Prisma.MerchantMappingGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MerchantMappingGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MerchantMappingCountArgs<ExtArgs>
+            result: $Utils.Optional<MerchantMappingCountAggregateOutputType> | number
           }
         }
       }
@@ -1630,6 +1720,7 @@ export namespace Prisma {
     user?: UserOmit
     wallet?: WalletOmit
     category?: CategoryOmit
+    merchantMapping?: MerchantMappingOmit
     transaction?: TransactionOmit
     installment?: InstallmentOmit
     recurringTransactionTemplate?: RecurringTransactionTemplateOmit
@@ -1723,6 +1814,7 @@ export namespace Prisma {
     recurringTransactionTemplates: number
     savingGoals: number
     budgets: number
+    merchantMappings: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1733,6 +1825,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: boolean | UserCountOutputTypeCountRecurringTransactionTemplatesArgs
     savingGoals?: boolean | UserCountOutputTypeCountSavingGoalsArgs
     budgets?: boolean | UserCountOutputTypeCountBudgetsArgs
+    merchantMappings?: boolean | UserCountOutputTypeCountMerchantMappingsArgs
   }
 
   // Custom InputTypes
@@ -1793,6 +1886,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountBudgetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: BudgetWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountMerchantMappingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MerchantMappingWhereInput
   }
 
 
@@ -1862,12 +1962,14 @@ export namespace Prisma {
     transactions: number
     recurringTransactionTemplates: number
     budgets: number
+    merchantMappings: number
   }
 
   export type CategoryCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     transactions?: boolean | CategoryCountOutputTypeCountTransactionsArgs
     recurringTransactionTemplates?: boolean | CategoryCountOutputTypeCountRecurringTransactionTemplatesArgs
     budgets?: boolean | CategoryCountOutputTypeCountBudgetsArgs
+    merchantMappings?: boolean | CategoryCountOutputTypeCountMerchantMappingsArgs
   }
 
   // Custom InputTypes
@@ -1900,6 +2002,13 @@ export namespace Prisma {
    */
   export type CategoryCountOutputTypeCountBudgetsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: BudgetWhereInput
+  }
+
+  /**
+   * CategoryCountOutputType without action
+   */
+  export type CategoryCountOutputTypeCountMerchantMappingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MerchantMappingWhereInput
   }
 
 
@@ -2157,6 +2266,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: boolean | User$recurringTransactionTemplatesArgs<ExtArgs>
     savingGoals?: boolean | User$savingGoalsArgs<ExtArgs>
     budgets?: boolean | User$budgetsArgs<ExtArgs>
+    merchantMappings?: boolean | User$merchantMappingsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2196,6 +2306,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: boolean | User$recurringTransactionTemplatesArgs<ExtArgs>
     savingGoals?: boolean | User$savingGoalsArgs<ExtArgs>
     budgets?: boolean | User$budgetsArgs<ExtArgs>
+    merchantMappings?: boolean | User$merchantMappingsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2211,6 +2322,7 @@ export namespace Prisma {
       recurringTransactionTemplates: Prisma.$RecurringTransactionTemplatePayload<ExtArgs>[]
       savingGoals: Prisma.$SavingGoalPayload<ExtArgs>[]
       budgets: Prisma.$BudgetPayload<ExtArgs>[]
+      merchantMappings: Prisma.$MerchantMappingPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2620,6 +2732,7 @@ export namespace Prisma {
     recurringTransactionTemplates<T extends User$recurringTransactionTemplatesArgs<ExtArgs> = {}>(args?: Subset<T, User$recurringTransactionTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringTransactionTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     savingGoals<T extends User$savingGoalsArgs<ExtArgs> = {}>(args?: Subset<T, User$savingGoalsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     budgets<T extends User$budgetsArgs<ExtArgs> = {}>(args?: Subset<T, User$budgetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    merchantMappings<T extends User$merchantMappingsArgs<ExtArgs> = {}>(args?: Subset<T, User$merchantMappingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3213,6 +3326,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: BudgetScalarFieldEnum | BudgetScalarFieldEnum[]
+  }
+
+  /**
+   * User.merchantMappings
+   */
+  export type User$merchantMappingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantMapping
+     */
+    select?: MerchantMappingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MerchantMapping
+     */
+    omit?: MerchantMappingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantMappingInclude<ExtArgs> | null
+    where?: MerchantMappingWhereInput
+    orderBy?: MerchantMappingOrderByWithRelationInput | MerchantMappingOrderByWithRelationInput[]
+    cursor?: MerchantMappingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MerchantMappingScalarFieldEnum | MerchantMappingScalarFieldEnum[]
   }
 
   /**
@@ -4817,6 +4954,7 @@ export namespace Prisma {
     transactions?: boolean | Category$transactionsArgs<ExtArgs>
     recurringTransactionTemplates?: boolean | Category$recurringTransactionTemplatesArgs<ExtArgs>
     budgets?: boolean | Category$budgetsArgs<ExtArgs>
+    merchantMappings?: boolean | Category$merchantMappingsArgs<ExtArgs>
     _count?: boolean | CategoryCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["category"]>
 
@@ -4861,6 +4999,7 @@ export namespace Prisma {
     transactions?: boolean | Category$transactionsArgs<ExtArgs>
     recurringTransactionTemplates?: boolean | Category$recurringTransactionTemplatesArgs<ExtArgs>
     budgets?: boolean | Category$budgetsArgs<ExtArgs>
+    merchantMappings?: boolean | Category$merchantMappingsArgs<ExtArgs>
     _count?: boolean | CategoryCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CategoryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4877,6 +5016,7 @@ export namespace Prisma {
       transactions: Prisma.$TransactionPayload<ExtArgs>[]
       recurringTransactionTemplates: Prisma.$RecurringTransactionTemplatePayload<ExtArgs>[]
       budgets: Prisma.$BudgetPayload<ExtArgs>[]
+      merchantMappings: Prisma.$MerchantMappingPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5285,6 +5425,7 @@ export namespace Prisma {
     transactions<T extends Category$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, Category$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     recurringTransactionTemplates<T extends Category$recurringTransactionTemplatesArgs<ExtArgs> = {}>(args?: Subset<T, Category$recurringTransactionTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringTransactionTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     budgets<T extends Category$budgetsArgs<ExtArgs> = {}>(args?: Subset<T, Category$budgetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    merchantMappings<T extends Category$merchantMappingsArgs<ExtArgs> = {}>(args?: Subset<T, Category$merchantMappingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5795,6 +5936,30 @@ export namespace Prisma {
   }
 
   /**
+   * Category.merchantMappings
+   */
+  export type Category$merchantMappingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantMapping
+     */
+    select?: MerchantMappingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MerchantMapping
+     */
+    omit?: MerchantMappingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantMappingInclude<ExtArgs> | null
+    where?: MerchantMappingWhereInput
+    orderBy?: MerchantMappingOrderByWithRelationInput | MerchantMappingOrderByWithRelationInput[]
+    cursor?: MerchantMappingWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MerchantMappingScalarFieldEnum | MerchantMappingScalarFieldEnum[]
+  }
+
+  /**
    * Category without action
    */
   export type CategoryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5810,6 +5975,1103 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: CategoryInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MerchantMapping
+   */
+
+  export type AggregateMerchantMapping = {
+    _count: MerchantMappingCountAggregateOutputType | null
+    _min: MerchantMappingMinAggregateOutputType | null
+    _max: MerchantMappingMaxAggregateOutputType | null
+  }
+
+  export type MerchantMappingMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    merchantName: string | null
+    normalizedMerchant: string | null
+    categoryId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MerchantMappingMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    merchantName: string | null
+    normalizedMerchant: string | null
+    categoryId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type MerchantMappingCountAggregateOutputType = {
+    id: number
+    userId: number
+    merchantName: number
+    normalizedMerchant: number
+    categoryId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type MerchantMappingMinAggregateInputType = {
+    id?: true
+    userId?: true
+    merchantName?: true
+    normalizedMerchant?: true
+    categoryId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MerchantMappingMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    merchantName?: true
+    normalizedMerchant?: true
+    categoryId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type MerchantMappingCountAggregateInputType = {
+    id?: true
+    userId?: true
+    merchantName?: true
+    normalizedMerchant?: true
+    categoryId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type MerchantMappingAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MerchantMapping to aggregate.
+     */
+    where?: MerchantMappingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MerchantMappings to fetch.
+     */
+    orderBy?: MerchantMappingOrderByWithRelationInput | MerchantMappingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MerchantMappingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MerchantMappings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MerchantMappings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MerchantMappings
+    **/
+    _count?: true | MerchantMappingCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MerchantMappingMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MerchantMappingMaxAggregateInputType
+  }
+
+  export type GetMerchantMappingAggregateType<T extends MerchantMappingAggregateArgs> = {
+        [P in keyof T & keyof AggregateMerchantMapping]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMerchantMapping[P]>
+      : GetScalarType<T[P], AggregateMerchantMapping[P]>
+  }
+
+
+
+
+  export type MerchantMappingGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MerchantMappingWhereInput
+    orderBy?: MerchantMappingOrderByWithAggregationInput | MerchantMappingOrderByWithAggregationInput[]
+    by: MerchantMappingScalarFieldEnum[] | MerchantMappingScalarFieldEnum
+    having?: MerchantMappingScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MerchantMappingCountAggregateInputType | true
+    _min?: MerchantMappingMinAggregateInputType
+    _max?: MerchantMappingMaxAggregateInputType
+  }
+
+  export type MerchantMappingGroupByOutputType = {
+    id: string
+    userId: string
+    merchantName: string
+    normalizedMerchant: string
+    categoryId: string
+    createdAt: Date
+    updatedAt: Date
+    _count: MerchantMappingCountAggregateOutputType | null
+    _min: MerchantMappingMinAggregateOutputType | null
+    _max: MerchantMappingMaxAggregateOutputType | null
+  }
+
+  type GetMerchantMappingGroupByPayload<T extends MerchantMappingGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MerchantMappingGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MerchantMappingGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MerchantMappingGroupByOutputType[P]>
+            : GetScalarType<T[P], MerchantMappingGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MerchantMappingSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    merchantName?: boolean
+    normalizedMerchant?: boolean
+    categoryId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["merchantMapping"]>
+
+  export type MerchantMappingSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    merchantName?: boolean
+    normalizedMerchant?: boolean
+    categoryId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["merchantMapping"]>
+
+  export type MerchantMappingSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    merchantName?: boolean
+    normalizedMerchant?: boolean
+    categoryId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["merchantMapping"]>
+
+  export type MerchantMappingSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    merchantName?: boolean
+    normalizedMerchant?: boolean
+    categoryId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type MerchantMappingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "merchantName" | "normalizedMerchant" | "categoryId" | "createdAt" | "updatedAt", ExtArgs["result"]["merchantMapping"]>
+  export type MerchantMappingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }
+  export type MerchantMappingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }
+  export type MerchantMappingIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }
+
+  export type $MerchantMappingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MerchantMapping"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      category: Prisma.$CategoryPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      merchantName: string
+      normalizedMerchant: string
+      categoryId: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["merchantMapping"]>
+    composites: {}
+  }
+
+  type MerchantMappingGetPayload<S extends boolean | null | undefined | MerchantMappingDefaultArgs> = $Result.GetResult<Prisma.$MerchantMappingPayload, S>
+
+  type MerchantMappingCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MerchantMappingFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MerchantMappingCountAggregateInputType | true
+    }
+
+  export interface MerchantMappingDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MerchantMapping'], meta: { name: 'MerchantMapping' } }
+    /**
+     * Find zero or one MerchantMapping that matches the filter.
+     * @param {MerchantMappingFindUniqueArgs} args - Arguments to find a MerchantMapping
+     * @example
+     * // Get one MerchantMapping
+     * const merchantMapping = await prisma.merchantMapping.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MerchantMappingFindUniqueArgs>(args: SelectSubset<T, MerchantMappingFindUniqueArgs<ExtArgs>>): Prisma__MerchantMappingClient<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MerchantMapping that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MerchantMappingFindUniqueOrThrowArgs} args - Arguments to find a MerchantMapping
+     * @example
+     * // Get one MerchantMapping
+     * const merchantMapping = await prisma.merchantMapping.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MerchantMappingFindUniqueOrThrowArgs>(args: SelectSubset<T, MerchantMappingFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MerchantMappingClient<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MerchantMapping that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MerchantMappingFindFirstArgs} args - Arguments to find a MerchantMapping
+     * @example
+     * // Get one MerchantMapping
+     * const merchantMapping = await prisma.merchantMapping.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MerchantMappingFindFirstArgs>(args?: SelectSubset<T, MerchantMappingFindFirstArgs<ExtArgs>>): Prisma__MerchantMappingClient<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MerchantMapping that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MerchantMappingFindFirstOrThrowArgs} args - Arguments to find a MerchantMapping
+     * @example
+     * // Get one MerchantMapping
+     * const merchantMapping = await prisma.merchantMapping.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MerchantMappingFindFirstOrThrowArgs>(args?: SelectSubset<T, MerchantMappingFindFirstOrThrowArgs<ExtArgs>>): Prisma__MerchantMappingClient<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MerchantMappings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MerchantMappingFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MerchantMappings
+     * const merchantMappings = await prisma.merchantMapping.findMany()
+     * 
+     * // Get first 10 MerchantMappings
+     * const merchantMappings = await prisma.merchantMapping.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const merchantMappingWithIdOnly = await prisma.merchantMapping.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MerchantMappingFindManyArgs>(args?: SelectSubset<T, MerchantMappingFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MerchantMapping.
+     * @param {MerchantMappingCreateArgs} args - Arguments to create a MerchantMapping.
+     * @example
+     * // Create one MerchantMapping
+     * const MerchantMapping = await prisma.merchantMapping.create({
+     *   data: {
+     *     // ... data to create a MerchantMapping
+     *   }
+     * })
+     * 
+     */
+    create<T extends MerchantMappingCreateArgs>(args: SelectSubset<T, MerchantMappingCreateArgs<ExtArgs>>): Prisma__MerchantMappingClient<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MerchantMappings.
+     * @param {MerchantMappingCreateManyArgs} args - Arguments to create many MerchantMappings.
+     * @example
+     * // Create many MerchantMappings
+     * const merchantMapping = await prisma.merchantMapping.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MerchantMappingCreateManyArgs>(args?: SelectSubset<T, MerchantMappingCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MerchantMappings and returns the data saved in the database.
+     * @param {MerchantMappingCreateManyAndReturnArgs} args - Arguments to create many MerchantMappings.
+     * @example
+     * // Create many MerchantMappings
+     * const merchantMapping = await prisma.merchantMapping.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MerchantMappings and only return the `id`
+     * const merchantMappingWithIdOnly = await prisma.merchantMapping.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MerchantMappingCreateManyAndReturnArgs>(args?: SelectSubset<T, MerchantMappingCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MerchantMapping.
+     * @param {MerchantMappingDeleteArgs} args - Arguments to delete one MerchantMapping.
+     * @example
+     * // Delete one MerchantMapping
+     * const MerchantMapping = await prisma.merchantMapping.delete({
+     *   where: {
+     *     // ... filter to delete one MerchantMapping
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MerchantMappingDeleteArgs>(args: SelectSubset<T, MerchantMappingDeleteArgs<ExtArgs>>): Prisma__MerchantMappingClient<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MerchantMapping.
+     * @param {MerchantMappingUpdateArgs} args - Arguments to update one MerchantMapping.
+     * @example
+     * // Update one MerchantMapping
+     * const merchantMapping = await prisma.merchantMapping.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MerchantMappingUpdateArgs>(args: SelectSubset<T, MerchantMappingUpdateArgs<ExtArgs>>): Prisma__MerchantMappingClient<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MerchantMappings.
+     * @param {MerchantMappingDeleteManyArgs} args - Arguments to filter MerchantMappings to delete.
+     * @example
+     * // Delete a few MerchantMappings
+     * const { count } = await prisma.merchantMapping.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MerchantMappingDeleteManyArgs>(args?: SelectSubset<T, MerchantMappingDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MerchantMappings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MerchantMappingUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MerchantMappings
+     * const merchantMapping = await prisma.merchantMapping.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MerchantMappingUpdateManyArgs>(args: SelectSubset<T, MerchantMappingUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MerchantMappings and returns the data updated in the database.
+     * @param {MerchantMappingUpdateManyAndReturnArgs} args - Arguments to update many MerchantMappings.
+     * @example
+     * // Update many MerchantMappings
+     * const merchantMapping = await prisma.merchantMapping.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MerchantMappings and only return the `id`
+     * const merchantMappingWithIdOnly = await prisma.merchantMapping.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MerchantMappingUpdateManyAndReturnArgs>(args: SelectSubset<T, MerchantMappingUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MerchantMapping.
+     * @param {MerchantMappingUpsertArgs} args - Arguments to update or create a MerchantMapping.
+     * @example
+     * // Update or create a MerchantMapping
+     * const merchantMapping = await prisma.merchantMapping.upsert({
+     *   create: {
+     *     // ... data to create a MerchantMapping
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MerchantMapping we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MerchantMappingUpsertArgs>(args: SelectSubset<T, MerchantMappingUpsertArgs<ExtArgs>>): Prisma__MerchantMappingClient<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MerchantMappings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MerchantMappingCountArgs} args - Arguments to filter MerchantMappings to count.
+     * @example
+     * // Count the number of MerchantMappings
+     * const count = await prisma.merchantMapping.count({
+     *   where: {
+     *     // ... the filter for the MerchantMappings we want to count
+     *   }
+     * })
+    **/
+    count<T extends MerchantMappingCountArgs>(
+      args?: Subset<T, MerchantMappingCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MerchantMappingCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MerchantMapping.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MerchantMappingAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MerchantMappingAggregateArgs>(args: Subset<T, MerchantMappingAggregateArgs>): Prisma.PrismaPromise<GetMerchantMappingAggregateType<T>>
+
+    /**
+     * Group by MerchantMapping.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MerchantMappingGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MerchantMappingGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MerchantMappingGroupByArgs['orderBy'] }
+        : { orderBy?: MerchantMappingGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MerchantMappingGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMerchantMappingGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MerchantMapping model
+   */
+  readonly fields: MerchantMappingFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MerchantMapping.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MerchantMappingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    category<T extends CategoryDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CategoryDefaultArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MerchantMapping model
+   */
+  interface MerchantMappingFieldRefs {
+    readonly id: FieldRef<"MerchantMapping", 'String'>
+    readonly userId: FieldRef<"MerchantMapping", 'String'>
+    readonly merchantName: FieldRef<"MerchantMapping", 'String'>
+    readonly normalizedMerchant: FieldRef<"MerchantMapping", 'String'>
+    readonly categoryId: FieldRef<"MerchantMapping", 'String'>
+    readonly createdAt: FieldRef<"MerchantMapping", 'DateTime'>
+    readonly updatedAt: FieldRef<"MerchantMapping", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MerchantMapping findUnique
+   */
+  export type MerchantMappingFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantMapping
+     */
+    select?: MerchantMappingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MerchantMapping
+     */
+    omit?: MerchantMappingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantMappingInclude<ExtArgs> | null
+    /**
+     * Filter, which MerchantMapping to fetch.
+     */
+    where: MerchantMappingWhereUniqueInput
+  }
+
+  /**
+   * MerchantMapping findUniqueOrThrow
+   */
+  export type MerchantMappingFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantMapping
+     */
+    select?: MerchantMappingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MerchantMapping
+     */
+    omit?: MerchantMappingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantMappingInclude<ExtArgs> | null
+    /**
+     * Filter, which MerchantMapping to fetch.
+     */
+    where: MerchantMappingWhereUniqueInput
+  }
+
+  /**
+   * MerchantMapping findFirst
+   */
+  export type MerchantMappingFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantMapping
+     */
+    select?: MerchantMappingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MerchantMapping
+     */
+    omit?: MerchantMappingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantMappingInclude<ExtArgs> | null
+    /**
+     * Filter, which MerchantMapping to fetch.
+     */
+    where?: MerchantMappingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MerchantMappings to fetch.
+     */
+    orderBy?: MerchantMappingOrderByWithRelationInput | MerchantMappingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MerchantMappings.
+     */
+    cursor?: MerchantMappingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MerchantMappings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MerchantMappings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MerchantMappings.
+     */
+    distinct?: MerchantMappingScalarFieldEnum | MerchantMappingScalarFieldEnum[]
+  }
+
+  /**
+   * MerchantMapping findFirstOrThrow
+   */
+  export type MerchantMappingFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantMapping
+     */
+    select?: MerchantMappingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MerchantMapping
+     */
+    omit?: MerchantMappingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantMappingInclude<ExtArgs> | null
+    /**
+     * Filter, which MerchantMapping to fetch.
+     */
+    where?: MerchantMappingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MerchantMappings to fetch.
+     */
+    orderBy?: MerchantMappingOrderByWithRelationInput | MerchantMappingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MerchantMappings.
+     */
+    cursor?: MerchantMappingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MerchantMappings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MerchantMappings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MerchantMappings.
+     */
+    distinct?: MerchantMappingScalarFieldEnum | MerchantMappingScalarFieldEnum[]
+  }
+
+  /**
+   * MerchantMapping findMany
+   */
+  export type MerchantMappingFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantMapping
+     */
+    select?: MerchantMappingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MerchantMapping
+     */
+    omit?: MerchantMappingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantMappingInclude<ExtArgs> | null
+    /**
+     * Filter, which MerchantMappings to fetch.
+     */
+    where?: MerchantMappingWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MerchantMappings to fetch.
+     */
+    orderBy?: MerchantMappingOrderByWithRelationInput | MerchantMappingOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MerchantMappings.
+     */
+    cursor?: MerchantMappingWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MerchantMappings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MerchantMappings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MerchantMappings.
+     */
+    distinct?: MerchantMappingScalarFieldEnum | MerchantMappingScalarFieldEnum[]
+  }
+
+  /**
+   * MerchantMapping create
+   */
+  export type MerchantMappingCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantMapping
+     */
+    select?: MerchantMappingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MerchantMapping
+     */
+    omit?: MerchantMappingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantMappingInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MerchantMapping.
+     */
+    data: XOR<MerchantMappingCreateInput, MerchantMappingUncheckedCreateInput>
+  }
+
+  /**
+   * MerchantMapping createMany
+   */
+  export type MerchantMappingCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MerchantMappings.
+     */
+    data: MerchantMappingCreateManyInput | MerchantMappingCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MerchantMapping createManyAndReturn
+   */
+  export type MerchantMappingCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantMapping
+     */
+    select?: MerchantMappingSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MerchantMapping
+     */
+    omit?: MerchantMappingOmit<ExtArgs> | null
+    /**
+     * The data used to create many MerchantMappings.
+     */
+    data: MerchantMappingCreateManyInput | MerchantMappingCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantMappingIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MerchantMapping update
+   */
+  export type MerchantMappingUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantMapping
+     */
+    select?: MerchantMappingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MerchantMapping
+     */
+    omit?: MerchantMappingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantMappingInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MerchantMapping.
+     */
+    data: XOR<MerchantMappingUpdateInput, MerchantMappingUncheckedUpdateInput>
+    /**
+     * Choose, which MerchantMapping to update.
+     */
+    where: MerchantMappingWhereUniqueInput
+  }
+
+  /**
+   * MerchantMapping updateMany
+   */
+  export type MerchantMappingUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MerchantMappings.
+     */
+    data: XOR<MerchantMappingUpdateManyMutationInput, MerchantMappingUncheckedUpdateManyInput>
+    /**
+     * Filter which MerchantMappings to update
+     */
+    where?: MerchantMappingWhereInput
+    /**
+     * Limit how many MerchantMappings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MerchantMapping updateManyAndReturn
+   */
+  export type MerchantMappingUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantMapping
+     */
+    select?: MerchantMappingSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MerchantMapping
+     */
+    omit?: MerchantMappingOmit<ExtArgs> | null
+    /**
+     * The data used to update MerchantMappings.
+     */
+    data: XOR<MerchantMappingUpdateManyMutationInput, MerchantMappingUncheckedUpdateManyInput>
+    /**
+     * Filter which MerchantMappings to update
+     */
+    where?: MerchantMappingWhereInput
+    /**
+     * Limit how many MerchantMappings to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantMappingIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MerchantMapping upsert
+   */
+  export type MerchantMappingUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantMapping
+     */
+    select?: MerchantMappingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MerchantMapping
+     */
+    omit?: MerchantMappingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantMappingInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MerchantMapping to update in case it exists.
+     */
+    where: MerchantMappingWhereUniqueInput
+    /**
+     * In case the MerchantMapping found by the `where` argument doesn't exist, create a new MerchantMapping with this data.
+     */
+    create: XOR<MerchantMappingCreateInput, MerchantMappingUncheckedCreateInput>
+    /**
+     * In case the MerchantMapping was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MerchantMappingUpdateInput, MerchantMappingUncheckedUpdateInput>
+  }
+
+  /**
+   * MerchantMapping delete
+   */
+  export type MerchantMappingDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantMapping
+     */
+    select?: MerchantMappingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MerchantMapping
+     */
+    omit?: MerchantMappingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantMappingInclude<ExtArgs> | null
+    /**
+     * Filter which MerchantMapping to delete.
+     */
+    where: MerchantMappingWhereUniqueInput
+  }
+
+  /**
+   * MerchantMapping deleteMany
+   */
+  export type MerchantMappingDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MerchantMappings to delete
+     */
+    where?: MerchantMappingWhereInput
+    /**
+     * Limit how many MerchantMappings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MerchantMapping without action
+   */
+  export type MerchantMappingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MerchantMapping
+     */
+    select?: MerchantMappingSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MerchantMapping
+     */
+    omit?: MerchantMappingOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MerchantMappingInclude<ExtArgs> | null
   }
 
 
@@ -13476,6 +14738,19 @@ export namespace Prisma {
   export type CategoryScalarFieldEnum = (typeof CategoryScalarFieldEnum)[keyof typeof CategoryScalarFieldEnum]
 
 
+  export const MerchantMappingScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    merchantName: 'merchantName',
+    normalizedMerchant: 'normalizedMerchant',
+    categoryId: 'categoryId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type MerchantMappingScalarFieldEnum = (typeof MerchantMappingScalarFieldEnum)[keyof typeof MerchantMappingScalarFieldEnum]
+
+
   export const TransactionScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
@@ -13844,6 +15119,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateListRelationFilter
     savingGoals?: SavingGoalListRelationFilter
     budgets?: BudgetListRelationFilter
+    merchantMappings?: MerchantMappingListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -13860,6 +15136,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateOrderByRelationAggregateInput
     savingGoals?: SavingGoalOrderByRelationAggregateInput
     budgets?: BudgetOrderByRelationAggregateInput
+    merchantMappings?: MerchantMappingOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -13879,6 +15156,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateListRelationFilter
     savingGoals?: SavingGoalListRelationFilter
     budgets?: BudgetListRelationFilter
+    merchantMappings?: MerchantMappingListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -14050,6 +15328,7 @@ export namespace Prisma {
     transactions?: TransactionListRelationFilter
     recurringTransactionTemplates?: RecurringTransactionTemplateListRelationFilter
     budgets?: BudgetListRelationFilter
+    merchantMappings?: MerchantMappingListRelationFilter
   }
 
   export type CategoryOrderByWithRelationInput = {
@@ -14065,6 +15344,7 @@ export namespace Prisma {
     transactions?: TransactionOrderByRelationAggregateInput
     recurringTransactionTemplates?: RecurringTransactionTemplateOrderByRelationAggregateInput
     budgets?: BudgetOrderByRelationAggregateInput
+    merchantMappings?: MerchantMappingOrderByRelationAggregateInput
   }
 
   export type CategoryWhereUniqueInput = Prisma.AtLeast<{
@@ -14084,6 +15364,7 @@ export namespace Prisma {
     transactions?: TransactionListRelationFilter
     recurringTransactionTemplates?: RecurringTransactionTemplateListRelationFilter
     budgets?: BudgetListRelationFilter
+    merchantMappings?: MerchantMappingListRelationFilter
   }, "id" | "userId_name_type">
 
   export type CategoryOrderByWithAggregationInput = {
@@ -14112,6 +15393,75 @@ export namespace Prisma {
     color?: StringNullableWithAggregatesFilter<"Category"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Category"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Category"> | Date | string
+  }
+
+  export type MerchantMappingWhereInput = {
+    AND?: MerchantMappingWhereInput | MerchantMappingWhereInput[]
+    OR?: MerchantMappingWhereInput[]
+    NOT?: MerchantMappingWhereInput | MerchantMappingWhereInput[]
+    id?: StringFilter<"MerchantMapping"> | string
+    userId?: StringFilter<"MerchantMapping"> | string
+    merchantName?: StringFilter<"MerchantMapping"> | string
+    normalizedMerchant?: StringFilter<"MerchantMapping"> | string
+    categoryId?: StringFilter<"MerchantMapping"> | string
+    createdAt?: DateTimeFilter<"MerchantMapping"> | Date | string
+    updatedAt?: DateTimeFilter<"MerchantMapping"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    category?: XOR<CategoryScalarRelationFilter, CategoryWhereInput>
+  }
+
+  export type MerchantMappingOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    merchantName?: SortOrder
+    normalizedMerchant?: SortOrder
+    categoryId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    category?: CategoryOrderByWithRelationInput
+  }
+
+  export type MerchantMappingWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId_normalizedMerchant?: MerchantMappingUserIdNormalizedMerchantCompoundUniqueInput
+    AND?: MerchantMappingWhereInput | MerchantMappingWhereInput[]
+    OR?: MerchantMappingWhereInput[]
+    NOT?: MerchantMappingWhereInput | MerchantMappingWhereInput[]
+    userId?: StringFilter<"MerchantMapping"> | string
+    merchantName?: StringFilter<"MerchantMapping"> | string
+    normalizedMerchant?: StringFilter<"MerchantMapping"> | string
+    categoryId?: StringFilter<"MerchantMapping"> | string
+    createdAt?: DateTimeFilter<"MerchantMapping"> | Date | string
+    updatedAt?: DateTimeFilter<"MerchantMapping"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    category?: XOR<CategoryScalarRelationFilter, CategoryWhereInput>
+  }, "id" | "userId_normalizedMerchant">
+
+  export type MerchantMappingOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    merchantName?: SortOrder
+    normalizedMerchant?: SortOrder
+    categoryId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: MerchantMappingCountOrderByAggregateInput
+    _max?: MerchantMappingMaxOrderByAggregateInput
+    _min?: MerchantMappingMinOrderByAggregateInput
+  }
+
+  export type MerchantMappingScalarWhereWithAggregatesInput = {
+    AND?: MerchantMappingScalarWhereWithAggregatesInput | MerchantMappingScalarWhereWithAggregatesInput[]
+    OR?: MerchantMappingScalarWhereWithAggregatesInput[]
+    NOT?: MerchantMappingScalarWhereWithAggregatesInput | MerchantMappingScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"MerchantMapping"> | string
+    userId?: StringWithAggregatesFilter<"MerchantMapping"> | string
+    merchantName?: StringWithAggregatesFilter<"MerchantMapping"> | string
+    normalizedMerchant?: StringWithAggregatesFilter<"MerchantMapping"> | string
+    categoryId?: StringWithAggregatesFilter<"MerchantMapping"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"MerchantMapping"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MerchantMapping"> | Date | string
   }
 
   export type TransactionWhereInput = {
@@ -14765,6 +16115,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -14781,6 +16132,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -14797,6 +16149,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -14813,6 +16166,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -15009,6 +16363,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutCategoryInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutCategoryInput
     budgets?: BudgetCreateNestedManyWithoutCategoryInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUncheckedCreateInput = {
@@ -15023,6 +16378,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutCategoryInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutCategoryInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUpdateInput = {
@@ -15037,6 +16393,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutCategoryNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUpdateManyWithoutCategoryNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateInput = {
@@ -15051,6 +16408,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutCategoryNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryCreateManyInput = {
@@ -15081,6 +16439,74 @@ export namespace Prisma {
     type?: EnumCategoryTypeFieldUpdateOperationsInput | $Enums.CategoryType
     icon?: NullableStringFieldUpdateOperationsInput | string | null
     color?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MerchantMappingCreateInput = {
+    id?: string
+    merchantName: string
+    normalizedMerchant: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutMerchantMappingsInput
+    category: CategoryCreateNestedOneWithoutMerchantMappingsInput
+  }
+
+  export type MerchantMappingUncheckedCreateInput = {
+    id?: string
+    userId: string
+    merchantName: string
+    normalizedMerchant: string
+    categoryId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MerchantMappingUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    merchantName?: StringFieldUpdateOperationsInput | string
+    normalizedMerchant?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutMerchantMappingsNestedInput
+    category?: CategoryUpdateOneRequiredWithoutMerchantMappingsNestedInput
+  }
+
+  export type MerchantMappingUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    merchantName?: StringFieldUpdateOperationsInput | string
+    normalizedMerchant?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MerchantMappingCreateManyInput = {
+    id?: string
+    userId: string
+    merchantName: string
+    normalizedMerchant: string
+    categoryId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MerchantMappingUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    merchantName?: StringFieldUpdateOperationsInput | string
+    normalizedMerchant?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MerchantMappingUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    merchantName?: StringFieldUpdateOperationsInput | string
+    normalizedMerchant?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -15854,6 +17280,12 @@ export namespace Prisma {
     none?: BudgetWhereInput
   }
 
+  export type MerchantMappingListRelationFilter = {
+    every?: MerchantMappingWhereInput
+    some?: MerchantMappingWhereInput
+    none?: MerchantMappingWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -15884,6 +17316,10 @@ export namespace Prisma {
   }
 
   export type BudgetOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MerchantMappingOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -16204,6 +17640,46 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumCategoryTypeFilter<$PrismaModel>
     _max?: NestedEnumCategoryTypeFilter<$PrismaModel>
+  }
+
+  export type CategoryScalarRelationFilter = {
+    is?: CategoryWhereInput
+    isNot?: CategoryWhereInput
+  }
+
+  export type MerchantMappingUserIdNormalizedMerchantCompoundUniqueInput = {
+    userId: string
+    normalizedMerchant: string
+  }
+
+  export type MerchantMappingCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    merchantName?: SortOrder
+    normalizedMerchant?: SortOrder
+    categoryId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MerchantMappingMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    merchantName?: SortOrder
+    normalizedMerchant?: SortOrder
+    categoryId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type MerchantMappingMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    merchantName?: SortOrder
+    normalizedMerchant?: SortOrder
+    categoryId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type EnumTransactionTypeFilter<$PrismaModel = never> = {
@@ -16770,11 +18246,6 @@ export namespace Prisma {
     _max?: NestedEnumSavingGoalStatusFilter<$PrismaModel>
   }
 
-  export type CategoryScalarRelationFilter = {
-    is?: CategoryWhereInput
-    isNot?: CategoryWhereInput
-  }
-
   export type BudgetUserIdCategoryIdCompoundUniqueInput = {
     userId: string
     categoryId: string
@@ -16867,6 +18338,13 @@ export namespace Prisma {
     connect?: BudgetWhereUniqueInput | BudgetWhereUniqueInput[]
   }
 
+  export type MerchantMappingCreateNestedManyWithoutUserInput = {
+    create?: XOR<MerchantMappingCreateWithoutUserInput, MerchantMappingUncheckedCreateWithoutUserInput> | MerchantMappingCreateWithoutUserInput[] | MerchantMappingUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: MerchantMappingCreateOrConnectWithoutUserInput | MerchantMappingCreateOrConnectWithoutUserInput[]
+    createMany?: MerchantMappingCreateManyUserInputEnvelope
+    connect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+  }
+
   export type WalletUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<WalletCreateWithoutUserInput, WalletUncheckedCreateWithoutUserInput> | WalletCreateWithoutUserInput[] | WalletUncheckedCreateWithoutUserInput[]
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
@@ -16914,6 +18392,13 @@ export namespace Prisma {
     connectOrCreate?: BudgetCreateOrConnectWithoutUserInput | BudgetCreateOrConnectWithoutUserInput[]
     createMany?: BudgetCreateManyUserInputEnvelope
     connect?: BudgetWhereUniqueInput | BudgetWhereUniqueInput[]
+  }
+
+  export type MerchantMappingUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<MerchantMappingCreateWithoutUserInput, MerchantMappingUncheckedCreateWithoutUserInput> | MerchantMappingCreateWithoutUserInput[] | MerchantMappingUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: MerchantMappingCreateOrConnectWithoutUserInput | MerchantMappingCreateOrConnectWithoutUserInput[]
+    createMany?: MerchantMappingCreateManyUserInputEnvelope
+    connect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -17026,6 +18511,20 @@ export namespace Prisma {
     deleteMany?: BudgetScalarWhereInput | BudgetScalarWhereInput[]
   }
 
+  export type MerchantMappingUpdateManyWithoutUserNestedInput = {
+    create?: XOR<MerchantMappingCreateWithoutUserInput, MerchantMappingUncheckedCreateWithoutUserInput> | MerchantMappingCreateWithoutUserInput[] | MerchantMappingUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: MerchantMappingCreateOrConnectWithoutUserInput | MerchantMappingCreateOrConnectWithoutUserInput[]
+    upsert?: MerchantMappingUpsertWithWhereUniqueWithoutUserInput | MerchantMappingUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: MerchantMappingCreateManyUserInputEnvelope
+    set?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    disconnect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    delete?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    connect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    update?: MerchantMappingUpdateWithWhereUniqueWithoutUserInput | MerchantMappingUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: MerchantMappingUpdateManyWithWhereWithoutUserInput | MerchantMappingUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: MerchantMappingScalarWhereInput | MerchantMappingScalarWhereInput[]
+  }
+
   export type WalletUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<WalletCreateWithoutUserInput, WalletUncheckedCreateWithoutUserInput> | WalletCreateWithoutUserInput[] | WalletUncheckedCreateWithoutUserInput[]
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
@@ -17122,6 +18621,20 @@ export namespace Prisma {
     update?: BudgetUpdateWithWhereUniqueWithoutUserInput | BudgetUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: BudgetUpdateManyWithWhereWithoutUserInput | BudgetUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: BudgetScalarWhereInput | BudgetScalarWhereInput[]
+  }
+
+  export type MerchantMappingUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<MerchantMappingCreateWithoutUserInput, MerchantMappingUncheckedCreateWithoutUserInput> | MerchantMappingCreateWithoutUserInput[] | MerchantMappingUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: MerchantMappingCreateOrConnectWithoutUserInput | MerchantMappingCreateOrConnectWithoutUserInput[]
+    upsert?: MerchantMappingUpsertWithWhereUniqueWithoutUserInput | MerchantMappingUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: MerchantMappingCreateManyUserInputEnvelope
+    set?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    disconnect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    delete?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    connect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    update?: MerchantMappingUpdateWithWhereUniqueWithoutUserInput | MerchantMappingUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: MerchantMappingUpdateManyWithWhereWithoutUserInput | MerchantMappingUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: MerchantMappingScalarWhereInput | MerchantMappingScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutWalletsInput = {
@@ -17361,6 +18874,13 @@ export namespace Prisma {
     connect?: BudgetWhereUniqueInput | BudgetWhereUniqueInput[]
   }
 
+  export type MerchantMappingCreateNestedManyWithoutCategoryInput = {
+    create?: XOR<MerchantMappingCreateWithoutCategoryInput, MerchantMappingUncheckedCreateWithoutCategoryInput> | MerchantMappingCreateWithoutCategoryInput[] | MerchantMappingUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: MerchantMappingCreateOrConnectWithoutCategoryInput | MerchantMappingCreateOrConnectWithoutCategoryInput[]
+    createMany?: MerchantMappingCreateManyCategoryInputEnvelope
+    connect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+  }
+
   export type TransactionUncheckedCreateNestedManyWithoutCategoryInput = {
     create?: XOR<TransactionCreateWithoutCategoryInput, TransactionUncheckedCreateWithoutCategoryInput> | TransactionCreateWithoutCategoryInput[] | TransactionUncheckedCreateWithoutCategoryInput[]
     connectOrCreate?: TransactionCreateOrConnectWithoutCategoryInput | TransactionCreateOrConnectWithoutCategoryInput[]
@@ -17380,6 +18900,13 @@ export namespace Prisma {
     connectOrCreate?: BudgetCreateOrConnectWithoutCategoryInput | BudgetCreateOrConnectWithoutCategoryInput[]
     createMany?: BudgetCreateManyCategoryInputEnvelope
     connect?: BudgetWhereUniqueInput | BudgetWhereUniqueInput[]
+  }
+
+  export type MerchantMappingUncheckedCreateNestedManyWithoutCategoryInput = {
+    create?: XOR<MerchantMappingCreateWithoutCategoryInput, MerchantMappingUncheckedCreateWithoutCategoryInput> | MerchantMappingCreateWithoutCategoryInput[] | MerchantMappingUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: MerchantMappingCreateOrConnectWithoutCategoryInput | MerchantMappingCreateOrConnectWithoutCategoryInput[]
+    createMany?: MerchantMappingCreateManyCategoryInputEnvelope
+    connect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
   }
 
   export type EnumCategoryTypeFieldUpdateOperationsInput = {
@@ -17436,6 +18963,20 @@ export namespace Prisma {
     deleteMany?: BudgetScalarWhereInput | BudgetScalarWhereInput[]
   }
 
+  export type MerchantMappingUpdateManyWithoutCategoryNestedInput = {
+    create?: XOR<MerchantMappingCreateWithoutCategoryInput, MerchantMappingUncheckedCreateWithoutCategoryInput> | MerchantMappingCreateWithoutCategoryInput[] | MerchantMappingUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: MerchantMappingCreateOrConnectWithoutCategoryInput | MerchantMappingCreateOrConnectWithoutCategoryInput[]
+    upsert?: MerchantMappingUpsertWithWhereUniqueWithoutCategoryInput | MerchantMappingUpsertWithWhereUniqueWithoutCategoryInput[]
+    createMany?: MerchantMappingCreateManyCategoryInputEnvelope
+    set?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    disconnect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    delete?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    connect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    update?: MerchantMappingUpdateWithWhereUniqueWithoutCategoryInput | MerchantMappingUpdateWithWhereUniqueWithoutCategoryInput[]
+    updateMany?: MerchantMappingUpdateManyWithWhereWithoutCategoryInput | MerchantMappingUpdateManyWithWhereWithoutCategoryInput[]
+    deleteMany?: MerchantMappingScalarWhereInput | MerchantMappingScalarWhereInput[]
+  }
+
   export type TransactionUncheckedUpdateManyWithoutCategoryNestedInput = {
     create?: XOR<TransactionCreateWithoutCategoryInput, TransactionUncheckedCreateWithoutCategoryInput> | TransactionCreateWithoutCategoryInput[] | TransactionUncheckedCreateWithoutCategoryInput[]
     connectOrCreate?: TransactionCreateOrConnectWithoutCategoryInput | TransactionCreateOrConnectWithoutCategoryInput[]
@@ -17476,6 +19017,48 @@ export namespace Prisma {
     update?: BudgetUpdateWithWhereUniqueWithoutCategoryInput | BudgetUpdateWithWhereUniqueWithoutCategoryInput[]
     updateMany?: BudgetUpdateManyWithWhereWithoutCategoryInput | BudgetUpdateManyWithWhereWithoutCategoryInput[]
     deleteMany?: BudgetScalarWhereInput | BudgetScalarWhereInput[]
+  }
+
+  export type MerchantMappingUncheckedUpdateManyWithoutCategoryNestedInput = {
+    create?: XOR<MerchantMappingCreateWithoutCategoryInput, MerchantMappingUncheckedCreateWithoutCategoryInput> | MerchantMappingCreateWithoutCategoryInput[] | MerchantMappingUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: MerchantMappingCreateOrConnectWithoutCategoryInput | MerchantMappingCreateOrConnectWithoutCategoryInput[]
+    upsert?: MerchantMappingUpsertWithWhereUniqueWithoutCategoryInput | MerchantMappingUpsertWithWhereUniqueWithoutCategoryInput[]
+    createMany?: MerchantMappingCreateManyCategoryInputEnvelope
+    set?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    disconnect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    delete?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    connect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+    update?: MerchantMappingUpdateWithWhereUniqueWithoutCategoryInput | MerchantMappingUpdateWithWhereUniqueWithoutCategoryInput[]
+    updateMany?: MerchantMappingUpdateManyWithWhereWithoutCategoryInput | MerchantMappingUpdateManyWithWhereWithoutCategoryInput[]
+    deleteMany?: MerchantMappingScalarWhereInput | MerchantMappingScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutMerchantMappingsInput = {
+    create?: XOR<UserCreateWithoutMerchantMappingsInput, UserUncheckedCreateWithoutMerchantMappingsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutMerchantMappingsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type CategoryCreateNestedOneWithoutMerchantMappingsInput = {
+    create?: XOR<CategoryCreateWithoutMerchantMappingsInput, CategoryUncheckedCreateWithoutMerchantMappingsInput>
+    connectOrCreate?: CategoryCreateOrConnectWithoutMerchantMappingsInput
+    connect?: CategoryWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutMerchantMappingsNestedInput = {
+    create?: XOR<UserCreateWithoutMerchantMappingsInput, UserUncheckedCreateWithoutMerchantMappingsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutMerchantMappingsInput
+    upsert?: UserUpsertWithoutMerchantMappingsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutMerchantMappingsInput, UserUpdateWithoutMerchantMappingsInput>, UserUncheckedUpdateWithoutMerchantMappingsInput>
+  }
+
+  export type CategoryUpdateOneRequiredWithoutMerchantMappingsNestedInput = {
+    create?: XOR<CategoryCreateWithoutMerchantMappingsInput, CategoryUncheckedCreateWithoutMerchantMappingsInput>
+    connectOrCreate?: CategoryCreateOrConnectWithoutMerchantMappingsInput
+    upsert?: CategoryUpsertWithoutMerchantMappingsInput
+    connect?: CategoryWhereUniqueInput
+    update?: XOR<XOR<CategoryUpdateToOneWithWhereWithoutMerchantMappingsInput, CategoryUpdateWithoutMerchantMappingsInput>, CategoryUncheckedUpdateWithoutMerchantMappingsInput>
   }
 
   export type UserCreateNestedOneWithoutTransactionsInput = {
@@ -18393,6 +19976,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutCategoryInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutCategoryInput
     budgets?: BudgetCreateNestedManyWithoutCategoryInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUncheckedCreateWithoutUserInput = {
@@ -18406,6 +19990,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutCategoryInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutCategoryInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryCreateOrConnectWithoutUserInput = {
@@ -18631,6 +20216,34 @@ export namespace Prisma {
 
   export type BudgetCreateManyUserInputEnvelope = {
     data: BudgetCreateManyUserInput | BudgetCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MerchantMappingCreateWithoutUserInput = {
+    id?: string
+    merchantName: string
+    normalizedMerchant: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    category: CategoryCreateNestedOneWithoutMerchantMappingsInput
+  }
+
+  export type MerchantMappingUncheckedCreateWithoutUserInput = {
+    id?: string
+    merchantName: string
+    normalizedMerchant: string
+    categoryId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MerchantMappingCreateOrConnectWithoutUserInput = {
+    where: MerchantMappingWhereUniqueInput
+    create: XOR<MerchantMappingCreateWithoutUserInput, MerchantMappingUncheckedCreateWithoutUserInput>
+  }
+
+  export type MerchantMappingCreateManyUserInputEnvelope = {
+    data: MerchantMappingCreateManyUserInput | MerchantMappingCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -18882,6 +20495,35 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Budget"> | Date | string
   }
 
+  export type MerchantMappingUpsertWithWhereUniqueWithoutUserInput = {
+    where: MerchantMappingWhereUniqueInput
+    update: XOR<MerchantMappingUpdateWithoutUserInput, MerchantMappingUncheckedUpdateWithoutUserInput>
+    create: XOR<MerchantMappingCreateWithoutUserInput, MerchantMappingUncheckedCreateWithoutUserInput>
+  }
+
+  export type MerchantMappingUpdateWithWhereUniqueWithoutUserInput = {
+    where: MerchantMappingWhereUniqueInput
+    data: XOR<MerchantMappingUpdateWithoutUserInput, MerchantMappingUncheckedUpdateWithoutUserInput>
+  }
+
+  export type MerchantMappingUpdateManyWithWhereWithoutUserInput = {
+    where: MerchantMappingScalarWhereInput
+    data: XOR<MerchantMappingUpdateManyMutationInput, MerchantMappingUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type MerchantMappingScalarWhereInput = {
+    AND?: MerchantMappingScalarWhereInput | MerchantMappingScalarWhereInput[]
+    OR?: MerchantMappingScalarWhereInput[]
+    NOT?: MerchantMappingScalarWhereInput | MerchantMappingScalarWhereInput[]
+    id?: StringFilter<"MerchantMapping"> | string
+    userId?: StringFilter<"MerchantMapping"> | string
+    merchantName?: StringFilter<"MerchantMapping"> | string
+    normalizedMerchant?: StringFilter<"MerchantMapping"> | string
+    categoryId?: StringFilter<"MerchantMapping"> | string
+    createdAt?: DateTimeFilter<"MerchantMapping"> | Date | string
+    updatedAt?: DateTimeFilter<"MerchantMapping"> | Date | string
+  }
+
   export type UserCreateWithoutWalletsInput = {
     id?: string
     email: string
@@ -18895,6 +20537,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutWalletsInput = {
@@ -18910,6 +20553,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutWalletsInput = {
@@ -19137,6 +20781,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutWalletsInput = {
@@ -19152,6 +20797,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutWalletInput = {
@@ -19231,6 +20877,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCategoriesInput = {
@@ -19246,6 +20893,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCategoriesInput = {
@@ -19373,6 +21021,34 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type MerchantMappingCreateWithoutCategoryInput = {
+    id?: string
+    merchantName: string
+    normalizedMerchant: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutMerchantMappingsInput
+  }
+
+  export type MerchantMappingUncheckedCreateWithoutCategoryInput = {
+    id?: string
+    userId: string
+    merchantName: string
+    normalizedMerchant: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type MerchantMappingCreateOrConnectWithoutCategoryInput = {
+    where: MerchantMappingWhereUniqueInput
+    create: XOR<MerchantMappingCreateWithoutCategoryInput, MerchantMappingUncheckedCreateWithoutCategoryInput>
+  }
+
+  export type MerchantMappingCreateManyCategoryInputEnvelope = {
+    data: MerchantMappingCreateManyCategoryInput | MerchantMappingCreateManyCategoryInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutCategoriesInput = {
     update: XOR<UserUpdateWithoutCategoriesInput, UserUncheckedUpdateWithoutCategoriesInput>
     create: XOR<UserCreateWithoutCategoriesInput, UserUncheckedCreateWithoutCategoriesInput>
@@ -19397,6 +21073,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCategoriesInput = {
@@ -19412,6 +21089,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutCategoryInput = {
@@ -19462,6 +21140,174 @@ export namespace Prisma {
     data: XOR<BudgetUpdateManyMutationInput, BudgetUncheckedUpdateManyWithoutCategoryInput>
   }
 
+  export type MerchantMappingUpsertWithWhereUniqueWithoutCategoryInput = {
+    where: MerchantMappingWhereUniqueInput
+    update: XOR<MerchantMappingUpdateWithoutCategoryInput, MerchantMappingUncheckedUpdateWithoutCategoryInput>
+    create: XOR<MerchantMappingCreateWithoutCategoryInput, MerchantMappingUncheckedCreateWithoutCategoryInput>
+  }
+
+  export type MerchantMappingUpdateWithWhereUniqueWithoutCategoryInput = {
+    where: MerchantMappingWhereUniqueInput
+    data: XOR<MerchantMappingUpdateWithoutCategoryInput, MerchantMappingUncheckedUpdateWithoutCategoryInput>
+  }
+
+  export type MerchantMappingUpdateManyWithWhereWithoutCategoryInput = {
+    where: MerchantMappingScalarWhereInput
+    data: XOR<MerchantMappingUpdateManyMutationInput, MerchantMappingUncheckedUpdateManyWithoutCategoryInput>
+  }
+
+  export type UserCreateWithoutMerchantMappingsInput = {
+    id?: string
+    email: string
+    name: string
+    avatarUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    wallets?: WalletCreateNestedManyWithoutUserInput
+    categories?: CategoryCreateNestedManyWithoutUserInput
+    transactions?: TransactionCreateNestedManyWithoutUserInput
+    installments?: InstallmentCreateNestedManyWithoutUserInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
+    budgets?: BudgetCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutMerchantMappingsInput = {
+    id?: string
+    email: string
+    name: string
+    avatarUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
+    transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
+    budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutMerchantMappingsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutMerchantMappingsInput, UserUncheckedCreateWithoutMerchantMappingsInput>
+  }
+
+  export type CategoryCreateWithoutMerchantMappingsInput = {
+    id?: string
+    name: string
+    type: $Enums.CategoryType
+    icon?: string | null
+    color?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCategoriesInput
+    transactions?: TransactionCreateNestedManyWithoutCategoryInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutCategoryInput
+    budgets?: BudgetCreateNestedManyWithoutCategoryInput
+  }
+
+  export type CategoryUncheckedCreateWithoutMerchantMappingsInput = {
+    id?: string
+    userId: string
+    name: string
+    type: $Enums.CategoryType
+    icon?: string | null
+    color?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionUncheckedCreateNestedManyWithoutCategoryInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutCategoryInput
+    budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
+  }
+
+  export type CategoryCreateOrConnectWithoutMerchantMappingsInput = {
+    where: CategoryWhereUniqueInput
+    create: XOR<CategoryCreateWithoutMerchantMappingsInput, CategoryUncheckedCreateWithoutMerchantMappingsInput>
+  }
+
+  export type UserUpsertWithoutMerchantMappingsInput = {
+    update: XOR<UserUpdateWithoutMerchantMappingsInput, UserUncheckedUpdateWithoutMerchantMappingsInput>
+    create: XOR<UserCreateWithoutMerchantMappingsInput, UserUncheckedCreateWithoutMerchantMappingsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutMerchantMappingsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutMerchantMappingsInput, UserUncheckedUpdateWithoutMerchantMappingsInput>
+  }
+
+  export type UserUpdateWithoutMerchantMappingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallets?: WalletUpdateManyWithoutUserNestedInput
+    categories?: CategoryUpdateManyWithoutUserNestedInput
+    transactions?: TransactionUpdateManyWithoutUserNestedInput
+    installments?: InstallmentUpdateManyWithoutUserNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
+    budgets?: BudgetUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutMerchantMappingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
+    transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
+    budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type CategoryUpsertWithoutMerchantMappingsInput = {
+    update: XOR<CategoryUpdateWithoutMerchantMappingsInput, CategoryUncheckedUpdateWithoutMerchantMappingsInput>
+    create: XOR<CategoryCreateWithoutMerchantMappingsInput, CategoryUncheckedCreateWithoutMerchantMappingsInput>
+    where?: CategoryWhereInput
+  }
+
+  export type CategoryUpdateToOneWithWhereWithoutMerchantMappingsInput = {
+    where?: CategoryWhereInput
+    data: XOR<CategoryUpdateWithoutMerchantMappingsInput, CategoryUncheckedUpdateWithoutMerchantMappingsInput>
+  }
+
+  export type CategoryUpdateWithoutMerchantMappingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumCategoryTypeFieldUpdateOperationsInput | $Enums.CategoryType
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCategoriesNestedInput
+    transactions?: TransactionUpdateManyWithoutCategoryNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutCategoryNestedInput
+    budgets?: BudgetUpdateManyWithoutCategoryNestedInput
+  }
+
+  export type CategoryUncheckedUpdateWithoutMerchantMappingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumCategoryTypeFieldUpdateOperationsInput | $Enums.CategoryType
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUncheckedUpdateManyWithoutCategoryNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutCategoryNestedInput
+    budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
+  }
+
   export type UserCreateWithoutTransactionsInput = {
     id?: string
     email: string
@@ -19475,6 +21321,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -19490,6 +21337,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -19610,6 +21458,7 @@ export namespace Prisma {
     user: UserCreateNestedOneWithoutCategoriesInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutCategoryInput
     budgets?: BudgetCreateNestedManyWithoutCategoryInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUncheckedCreateWithoutTransactionsInput = {
@@ -19623,6 +21472,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutCategoryInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryCreateOrConnectWithoutTransactionsInput = {
@@ -19742,6 +21592,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -19757,6 +21608,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutTransactionsInput = {
@@ -19895,6 +21747,7 @@ export namespace Prisma {
     user?: UserUpdateOneRequiredWithoutCategoriesNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUpdateManyWithoutCategoryNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateWithoutTransactionsInput = {
@@ -19908,6 +21761,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type InstallmentUpsertWithoutTransactionsInput = {
@@ -20023,6 +21877,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutInstallmentsInput = {
@@ -20038,6 +21893,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutInstallmentsInput = {
@@ -20198,6 +22054,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutInstallmentsInput = {
@@ -20213,6 +22070,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutInstallmentsInput = {
@@ -20334,6 +22192,7 @@ export namespace Prisma {
     installments?: InstallmentCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutRecurringTransactionTemplatesInput = {
@@ -20349,6 +22208,7 @@ export namespace Prisma {
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutRecurringTransactionTemplatesInput = {
@@ -20418,6 +22278,7 @@ export namespace Prisma {
     user: UserCreateNestedOneWithoutCategoriesInput
     transactions?: TransactionCreateNestedManyWithoutCategoryInput
     budgets?: BudgetCreateNestedManyWithoutCategoryInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUncheckedCreateWithoutRecurringTransactionTemplatesInput = {
@@ -20431,6 +22292,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutCategoryInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryCreateOrConnectWithoutRecurringTransactionTemplatesInput = {
@@ -20498,6 +22360,7 @@ export namespace Prisma {
     installments?: InstallmentUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutRecurringTransactionTemplatesInput = {
@@ -20513,6 +22376,7 @@ export namespace Prisma {
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutRecurringTransactionTemplatesInput = {
@@ -20594,6 +22458,7 @@ export namespace Prisma {
     user?: UserUpdateOneRequiredWithoutCategoriesNestedInput
     transactions?: TransactionUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUpdateManyWithoutCategoryNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateWithoutRecurringTransactionTemplatesInput = {
@@ -20607,6 +22472,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type RecurringReminderEventUpsertWithWhereUniqueWithoutTemplateInput = {
@@ -20934,6 +22800,7 @@ export namespace Prisma {
     installments?: InstallmentCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSavingGoalsInput = {
@@ -20949,6 +22816,7 @@ export namespace Prisma {
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSavingGoalsInput = {
@@ -20980,6 +22848,7 @@ export namespace Prisma {
     installments?: InstallmentUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSavingGoalsInput = {
@@ -20995,6 +22864,7 @@ export namespace Prisma {
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutBudgetsInput = {
@@ -21010,6 +22880,7 @@ export namespace Prisma {
     installments?: InstallmentCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutBudgetsInput = {
@@ -21025,6 +22896,7 @@ export namespace Prisma {
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutBudgetsInput = {
@@ -21043,6 +22915,7 @@ export namespace Prisma {
     user: UserCreateNestedOneWithoutCategoriesInput
     transactions?: TransactionCreateNestedManyWithoutCategoryInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutCategoryInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUncheckedCreateWithoutBudgetsInput = {
@@ -21056,6 +22929,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutCategoryInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutCategoryInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryCreateOrConnectWithoutBudgetsInput = {
@@ -21087,6 +22961,7 @@ export namespace Prisma {
     installments?: InstallmentUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBudgetsInput = {
@@ -21102,6 +22977,7 @@ export namespace Prisma {
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type CategoryUpsertWithoutBudgetsInput = {
@@ -21126,6 +23002,7 @@ export namespace Prisma {
     user?: UserUpdateOneRequiredWithoutCategoriesNestedInput
     transactions?: TransactionUpdateManyWithoutCategoryNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutCategoryNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateWithoutBudgetsInput = {
@@ -21139,6 +23016,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutCategoryNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutCategoryNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type WalletCreateManyUserInput = {
@@ -21249,6 +23127,15 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type MerchantMappingCreateManyUserInput = {
+    id?: string
+    merchantName: string
+    normalizedMerchant: string
+    categoryId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type WalletUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -21325,6 +23212,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutCategoryNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUpdateManyWithoutCategoryNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateWithoutUserInput = {
@@ -21338,6 +23226,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutCategoryNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateManyWithoutUserInput = {
@@ -21591,6 +23480,33 @@ export namespace Prisma {
     categoryId?: StringFieldUpdateOperationsInput | string
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isArchived?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MerchantMappingUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    merchantName?: StringFieldUpdateOperationsInput | string
+    normalizedMerchant?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    category?: CategoryUpdateOneRequiredWithoutMerchantMappingsNestedInput
+  }
+
+  export type MerchantMappingUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    merchantName?: StringFieldUpdateOperationsInput | string
+    normalizedMerchant?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MerchantMappingUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    merchantName?: StringFieldUpdateOperationsInput | string
+    normalizedMerchant?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -21940,6 +23856,15 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type MerchantMappingCreateManyCategoryInput = {
+    id?: string
+    userId: string
+    merchantName: string
+    normalizedMerchant: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type TransactionUpdateWithoutCategoryInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -22069,6 +23994,33 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     isArchived?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MerchantMappingUpdateWithoutCategoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    merchantName?: StringFieldUpdateOperationsInput | string
+    normalizedMerchant?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutMerchantMappingsNestedInput
+  }
+
+  export type MerchantMappingUncheckedUpdateWithoutCategoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    merchantName?: StringFieldUpdateOperationsInput | string
+    normalizedMerchant?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MerchantMappingUncheckedUpdateManyWithoutCategoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    merchantName?: StringFieldUpdateOperationsInput | string
+    normalizedMerchant?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

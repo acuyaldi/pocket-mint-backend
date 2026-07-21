@@ -160,6 +160,16 @@ exports.Prisma.CategoryScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.MerchantMappingScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  merchantName: 'merchantName',
+  normalizedMerchant: 'normalizedMerchant',
+  categoryId: 'categoryId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.TransactionScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -330,6 +340,7 @@ exports.Prisma.ModelName = {
   User: 'User',
   Wallet: 'Wallet',
   Category: 'Category',
+  MerchantMapping: 'MerchantMapping',
   Transaction: 'Transaction',
   Installment: 'Installment',
   RecurringTransactionTemplate: 'RecurringTransactionTemplate',

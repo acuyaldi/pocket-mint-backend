@@ -10,6 +10,7 @@ import { notificationRouter } from './notification.routes';
 import { savingGoalRouter } from './savingGoal.routes';
 import { budgetRouter } from './budgetRoutes';
 import { analyticsRouter } from './analyticsRoutes';
+import { merchantMappingRouter } from './merchantMappingRoutes';
 
 const router = Router();
 
@@ -26,5 +27,6 @@ router.use('/v1/notifications', notificationRouter);
 router.use('/v1/saving-goals', savingGoalRouter);
 router.use('/v1/budgets', budgetRouter);
 router.use('/v1/analytics', analyticsRouter);
+router.use('/v1/merchant-mappings', merchantMappingRouter);
 
 export { router };
