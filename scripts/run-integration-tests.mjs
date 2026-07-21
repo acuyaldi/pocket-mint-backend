@@ -48,7 +48,7 @@ async function main() {
     assertTestDatabaseUrl(existing);
     console.log('Using existing TEST_DATABASE_URL.');
     run('npx', ['prisma', 'migrate', 'deploy'], { DATABASE_URL: existing });
-    run('npx', ['vitest', 'run', 'test/prismaAdapter.integration.test.ts', 'test/notificationRefreshE2E.integration.test.ts'], { TEST_DATABASE_URL: existing });
+    run('npx', ['vitest', 'run', 'test/prismaAdapter.integration.test.ts', 'test/notificationRefreshE2E.integration.test.ts', 'test/analytics.integration.test.ts'], { TEST_DATABASE_URL: existing });
     return;
   }
 
@@ -73,7 +73,7 @@ async function main() {
 
   try {
     run('npx', ['prisma', 'migrate', 'deploy'], { DATABASE_URL: testDatabaseUrl });
-    run('npx', ['vitest', 'run', 'test/prismaAdapter.integration.test.ts', 'test/notificationRefreshE2E.integration.test.ts'], { TEST_DATABASE_URL: testDatabaseUrl });
+    run('npx', ['vitest', 'run', 'test/prismaAdapter.integration.test.ts', 'test/notificationRefreshE2E.integration.test.ts', 'test/analytics.integration.test.ts'], { TEST_DATABASE_URL: testDatabaseUrl });
   } finally {
     console.log('Stopping disposable Postgres...');
     await pg.stop();
