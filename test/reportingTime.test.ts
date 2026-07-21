@@ -4,9 +4,12 @@ import {
   formatReportingDate,
   getReportingDayRange,
   getReportingMonthRange,
+  getReportingMonthsRange,
+  getReportingYearRange,
   getRollingDayRanges,
   parseBusinessDate,
   parseReportingAnchor,
+  shiftCalendarMonth,
 } from '../src/domain/reportingTime';
 
 describe('reporting time', () => {
@@ -78,5 +81,44 @@ describe('reporting time', () => {
     expect(() => parseReportingAnchor('2026-07-11', 'Asia/Jakarta')).toThrow(/YYYY-MM/);
     expect(() => parseReportingAnchor('2026-13', 'Asia/Jakarta')).toThrow(/valid calendar month/);
     expect(() => parseReportingAnchor('not-a-date', 'Asia/Jakarta')).toThrow(/YYYY-MM/);
+  });
+
+  describe('shiftCalendarMonth', () => {
+    it('shifts within a year', () => {
+      expect(shiftCalendarMonth({ year: 2026, month: 7 }, -2)).toEqual({ year: 2026, month: 5 });
+      expect(shiftCalendarMonth({ year: 2026, month: 7 }, 2)).toEqual({ year: 2026, month: 9 });
+    });
+
+    it('rolls over year boundaries in both directions', () => {
+      expect(shiftCalendarMonth({ year: 2026, month: 1 }, -1)).toEqual({ year: 2025, month: 12 });
+      expect(shiftCalendarMonth({ year: 2026, month: 12 }, 1)).toEqual({ year: 2027, month: 1 });
+      expect(shiftCalendarMonth({ year: 2026, month: 1 }, -13)).toEqual({ year: 2024, month: 12 });
+    });
+  });
+
+  describe('getReportingMonthsRange', () => {
+    it('spans monthsBack calendar months ending at (and including) the anchor', () => {
+      const range = getReportingMonthsRange({ year: 2026, month: 7 }, 3, 'UTC');
+      expect(range.startInclusive.toISOString()).toBe('2026-05-01T00:00:00.000Z');
+      expect(range.endExclusive.toISOString()).toBe('2026-08-01T00:00:00.000Z');
+    });
+
+    it('rolls over a year boundary', () => {
+      const range = getReportingMonthsRange({ year: 2026, month: 1 }, 6, 'UTC');
+      expect(range.startInclusive.toISOString()).toBe('2025-08-01T00:00:00.000Z');
+      expect(range.endExclusive.toISOString()).toBe('2026-02-01T00:00:00.000Z');
+    });
+
+    it('rejects a non-positive monthsBack', () => {
+      expect(() => getReportingMonthsRange({ year: 2026, month: 7 }, 0, 'UTC')).toThrow(/positive integer/);
+    });
+  });
+
+  describe('getReportingYearRange', () => {
+    it('spans Jan 1 through the start of the following Jan 1', () => {
+      const range = getReportingYearRange(2026, 'Asia/Jakarta');
+      expect(range.startInclusive.toISOString()).toBe('2025-12-31T17:00:00.000Z');
+      expect(range.endExclusive.toISOString()).toBe('2026-12-31T17:00:00.000Z');
+    });
   });
 });

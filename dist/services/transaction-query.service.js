@@ -70,39 +70,59 @@ function assertValidType(type) {
         throw new transaction_errors_1.TransactionError(`Invalid type. Allowed: ${VALID_TYPES.join(', ')}`, 400, 'BAD_REQUEST');
     }
 }
+/**
+ * Build the ownership-scoped `where` shared by `listTransactions` and
+ * `countTransactions`, so pagination's total-count query can never drift from
+ * the page query's filters. A wallet/category filter is combined with
+ * `userId` in the same `where`, so a wallet/category the caller does not own
+ * simply yields zero rows (cross-user data is impossible).
+ */
+function buildWhere(input) {
+    assertValidType(input.type);
+    const dateFilter = input.startDate || input.endDate
+        ? { startInclusive: input.startDate, endExclusive: input.endDate }
+        : input.allTime
+            ? undefined
+            : resolveMonthRange(input.month, input.year).range;
+    return {
+        userId: input.userId,
+        ...(input.walletId && { walletId: input.walletId }),
+        ...(input.categoryId && { categoryId: input.categoryId }),
+        ...(input.type && { type: input.type }),
+        ...(dateFilter && {
+            date: {
+                ...(dateFilter.startInclusive && { gte: dateFilter.startInclusive }),
+                ...(dateFilter.endExclusive && { lt: dateFilter.endExclusive }),
+            },
+        }),
+    };
+}
 function createTransactionQueryService(db) {
     /**
-     * List a user's transactions, ownership-scoped. Applies the optional wallet and
-     * type filters, and — unless `allTime` — the reporting month/year window. A
-     * wallet filter is combined with `userId` in the same `where`, so a wallet the
-     * caller does not own simply yields zero rows (cross-user data is impossible).
-     * Ordering, relation includes, and the (uncapped-by-default) limit match today.
+     * List a user's transactions, ownership-scoped. Applies the optional wallet,
+     * category, and type filters, and — unless `allTime` — the reporting
+     * month/year window. Ordering and the relation include match today; `limit`
+     * is capped (0/absent → no cap) and `skip` offsets for page-based
+     * pagination (Analytics v2 drill-down only — pre-existing callers never set it).
      */
     async function listTransactions(input) {
-        assertValidType(input.type);
+        const where = buildWhere(input);
         const take = resolveTake(input.limit);
-        const dateFilter = input.startDate || input.endDate
-            ? { startInclusive: input.startDate, endExclusive: input.endDate }
-            : input.allTime
-                ? undefined
-                : resolveMonthRange(input.month, input.year).range;
-        const where = {
-            userId: input.userId,
-            ...(input.walletId && { walletId: input.walletId }),
-            ...(input.type && { type: input.type }),
-            ...(dateFilter && {
-                date: {
-                    ...(dateFilter.startInclusive && { gte: dateFilter.startInclusive }),
-                    ...(dateFilter.endExclusive && { lt: dateFilter.endExclusive }),
-                },
-            }),
-        };
         return db.transaction.findMany({
             where,
             include: transaction_query_types_1.TRANSACTION_INCLUDE,
             orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
             ...(take && { take }),
+            ...(input.skip && { skip: input.skip }),
         });
+    }
+    /**
+     * Total matching rows for the same filters `listTransactions` would apply
+     * (ignoring `limit`/`skip`) — the pagination total for Analytics v2's
+     * drill-down endpoint.
+     */
+    async function countTransactions(input) {
+        return db.transaction.count({ where: buildWhere(input) });
     }
     /**
      * Monthly P&L for the given (or current) reporting month, ownership-scoped.
@@ -139,7 +159,7 @@ function createTransactionQueryService(db) {
             month: `${year}-${String(month).padStart(2, '0')}`,
         };
     }
-    return { listTransactions, getSummary };
+    return { listTransactions, countTransactions, getSummary };
 }
 /** Production instance bound to the shared Prisma singleton. */
 exports.transactionQueryService = createTransactionQueryService(prisma_1.default);

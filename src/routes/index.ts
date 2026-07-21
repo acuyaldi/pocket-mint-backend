@@ -9,6 +9,7 @@ import { recurringTransactionRouter } from './recurringTransaction.routes';
 import { notificationRouter } from './notification.routes';
 import { savingGoalRouter } from './savingGoal.routes';
 import { budgetRouter } from './budgetRoutes';
+import { analyticsRouter } from './analyticsRoutes';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/v1/recurring-transactions', recurringTransactionRouter);
 router.use('/v1/notifications', notificationRouter);
 router.use('/v1/saving-goals', savingGoalRouter);
 router.use('/v1/budgets', budgetRouter);
+router.use('/v1/analytics', analyticsRouter);
 
 export { router };
