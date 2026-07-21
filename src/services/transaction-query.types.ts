@@ -30,6 +30,8 @@ export type TransactionQueryPrismaClient = Pick<PrismaClient, 'transaction'>;
 export interface ListTransactionsInput {
   userId: string;
   walletId?: string;
+  /** Analytics v2 drill-down filter (`GET /analytics/transactions?categoryId=`); unused by the pre-existing endpoints. */
+  categoryId?: string;
   type?: TransactionType;
   /** 1–12; omitted → current reporting month. Ignored when `allTime` is true. */
   month?: number;
@@ -37,6 +39,8 @@ export interface ListTransactionsInput {
   year?: number;
   /** Result cap, clamped to 0–200 (0/absent → no cap, as today). */
   limit?: number;
+  /** Offset for page-based pagination (Analytics v2 drill-down). Omitted/0 → no offset. */
+  skip?: number;
   /** True for the `/all` endpoint: skip the month/year date filter entirely. */
   allTime?: boolean;
   /**

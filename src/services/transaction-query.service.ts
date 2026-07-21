@@ -77,42 +77,64 @@ function assertValidType(type?: string): void {
   }
 }
 
+/**
+ * Build the ownership-scoped `where` shared by `listTransactions` and
+ * `countTransactions`, so pagination's total-count query can never drift from
+ * the page query's filters. A wallet/category filter is combined with
+ * `userId` in the same `where`, so a wallet/category the caller does not own
+ * simply yields zero rows (cross-user data is impossible).
+ */
+function buildWhere(input: ListTransactionsInput): Prisma.TransactionWhereInput {
+  assertValidType(input.type);
+  const dateFilter =
+    input.startDate || input.endDate
+      ? { startInclusive: input.startDate, endExclusive: input.endDate }
+      : input.allTime
+        ? undefined
+        : resolveMonthRange(input.month, input.year).range;
+
+  return {
+    userId: input.userId,
+    ...(input.walletId && { walletId: input.walletId }),
+    ...(input.categoryId && { categoryId: input.categoryId }),
+    ...(input.type && { type: input.type }),
+    ...(dateFilter && {
+      date: {
+        ...(dateFilter.startInclusive && { gte: dateFilter.startInclusive }),
+        ...(dateFilter.endExclusive && { lt: dateFilter.endExclusive }),
+      },
+    }),
+  };
+}
+
 export function createTransactionQueryService(db: TransactionQueryPrismaClient) {
   /**
-   * List a user's transactions, ownership-scoped. Applies the optional wallet and
-   * type filters, and — unless `allTime` — the reporting month/year window. A
-   * wallet filter is combined with `userId` in the same `where`, so a wallet the
-   * caller does not own simply yields zero rows (cross-user data is impossible).
-   * Ordering, relation includes, and the (uncapped-by-default) limit match today.
+   * List a user's transactions, ownership-scoped. Applies the optional wallet,
+   * category, and type filters, and — unless `allTime` — the reporting
+   * month/year window. Ordering and the relation include match today; `limit`
+   * is capped (0/absent → no cap) and `skip` offsets for page-based
+   * pagination (Analytics v2 drill-down only — pre-existing callers never set it).
    */
   async function listTransactions(input: ListTransactionsInput): Promise<TransactionWithRelations[]> {
-    assertValidType(input.type);
+    const where = buildWhere(input);
     const take = resolveTake(input.limit);
-    const dateFilter =
-      input.startDate || input.endDate
-        ? { startInclusive: input.startDate, endExclusive: input.endDate }
-        : input.allTime
-          ? undefined
-          : resolveMonthRange(input.month, input.year).range;
-
-    const where: Prisma.TransactionWhereInput = {
-      userId: input.userId,
-      ...(input.walletId && { walletId: input.walletId }),
-      ...(input.type && { type: input.type }),
-      ...(dateFilter && {
-        date: {
-          ...(dateFilter.startInclusive && { gte: dateFilter.startInclusive }),
-          ...(dateFilter.endExclusive && { lt: dateFilter.endExclusive }),
-        },
-      }),
-    };
 
     return db.transaction.findMany({
       where,
       include: TRANSACTION_INCLUDE,
       orderBy: [{ date: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       ...(take && { take }),
+      ...(input.skip && { skip: input.skip }),
     });
+  }
+
+  /**
+   * Total matching rows for the same filters `listTransactions` would apply
+   * (ignoring `limit`/`skip`) — the pagination total for Analytics v2's
+   * drill-down endpoint.
+   */
+  async function countTransactions(input: ListTransactionsInput): Promise<number> {
+    return db.transaction.count({ where: buildWhere(input) });
   }
 
   /**
@@ -154,7 +176,7 @@ export function createTransactionQueryService(db: TransactionQueryPrismaClient) 
     };
   }
 
-  return { listTransactions, getSummary };
+  return { listTransactions, countTransactions, getSummary };
 }
 
 /** Production instance bound to the shared Prisma singleton. */

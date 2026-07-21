@@ -13,11 +13,12 @@ import type { TransactionQueryPrismaClient } from '../src/services/transaction-q
 const D = (n: number | string) => new Prisma.Decimal(n);
 
 /** Fake read-only Prisma: findMany/groupBy return injected rows and capture args. */
-function makeDb(rows: { findMany?: unknown[]; groupBy?: unknown[] } = {}) {
+function makeDb(rows: { findMany?: unknown[]; groupBy?: unknown[]; count?: number } = {}) {
   return {
     transaction: {
       findMany: vi.fn(async () => rows.findMany ?? []),
       groupBy: vi.fn(async () => rows.groupBy ?? []),
+      count: vi.fn(async () => rows.count ?? 0),
     },
   };
 }
@@ -142,6 +143,46 @@ describe('transactionQueryService.listTransactions', () => {
   it('propagates a Prisma failure instead of swallowing it', async () => {
     const transaction = { findMany: vi.fn(async () => { throw new Error('db down'); }), groupBy: vi.fn() };
     await expect(svc({ transaction }).listTransactions({ userId: 'u1', allTime: true })).rejects.toThrow('db down');
+  });
+
+  it('combines a categoryId filter WITH userId (Analytics v2 drill-down) so cross-user data is impossible', async () => {
+    const { transaction } = makeDb();
+    await svc({ transaction }).listTransactions({ userId: 'owner', categoryId: 'someone-elses-category', allTime: true });
+    const where = firstArg(transaction.findMany).where;
+    expect(where.userId).toBe('owner');
+    expect(where.categoryId).toBe('someone-elses-category');
+  });
+
+  it('applies `skip` for page-based pagination alongside `take`', async () => {
+    const { transaction } = makeDb();
+    await svc({ transaction }).listTransactions({ userId: 'u1', allTime: true, limit: 20, skip: 40 });
+    const args = firstArg(transaction.findMany);
+    expect(args.take).toBe(20);
+    expect(args.skip).toBe(40);
+  });
+
+  it('omits `skip` when 0/absent (first page)', async () => {
+    const { transaction } = makeDb();
+    await svc({ transaction }).listTransactions({ userId: 'u1', allTime: true, skip: 0 });
+    expect(firstArg(transaction.findMany)).not.toHaveProperty('skip');
+  });
+});
+
+describe('transactionQueryService.countTransactions', () => {
+  it('counts with the same filters listTransactions would apply, ignoring limit/skip', async () => {
+    const { transaction } = makeDb({ count: 7 });
+    const total = await svc({ transaction }).countTransactions({ userId: 'u1', walletId: 'w1', type: 'EXPENSE', allTime: true });
+    expect(total).toBe(7);
+    const where = firstArg(transaction.count).where;
+    expect(where).toMatchObject({ userId: 'u1', walletId: 'w1', type: 'EXPENSE' });
+  });
+
+  it('rejects an unsupported type before counting', async () => {
+    const { transaction } = makeDb();
+    await expect(svc({ transaction }).countTransactions({ userId: 'u1', type: 'NONSENSE' as never })).rejects.toMatchObject({
+      statusCode: 400,
+    });
+    expect(transaction.count).not.toHaveBeenCalled();
   });
 });
 
