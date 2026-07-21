@@ -1,6 +1,6 @@
 import type { PrismaClient } from '../generated/prisma/client';
 import type { CategorySuggestion } from '../domain/categorization';
-type CategorizationPrismaClient = Pick<PrismaClient, 'category'>;
+type CategorizationPrismaClient = Pick<PrismaClient, 'category' | 'merchantMapping'>;
 export declare function createCategorizationService(db: CategorizationPrismaClient): {
     getSuggestions: (userId: string, description: string, type: "INCOME" | "EXPENSE") => Promise<CategorySuggestion[]>;
 };

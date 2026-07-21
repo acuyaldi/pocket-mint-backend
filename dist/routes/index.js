@@ -13,6 +13,7 @@ const notification_routes_1 = require("./notification.routes");
 const savingGoal_routes_1 = require("./savingGoal.routes");
 const budgetRoutes_1 = require("./budgetRoutes");
 const analyticsRoutes_1 = require("./analyticsRoutes");
+const merchantMappingRoutes_1 = require("./merchantMappingRoutes");
 const router = (0, express_1.Router)();
 exports.router = router;
 // API v1
@@ -28,4 +29,5 @@ router.use('/v1/notifications', notification_routes_1.notificationRouter);
 router.use('/v1/saving-goals', savingGoal_routes_1.savingGoalRouter);
 router.use('/v1/budgets', budgetRoutes_1.budgetRouter);
 router.use('/v1/analytics', analyticsRoutes_1.analyticsRouter);
+router.use('/v1/merchant-mappings', merchantMappingRoutes_1.merchantMappingRouter);
 //# sourceMappingURL=index.js.map

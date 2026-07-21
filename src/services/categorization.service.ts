@@ -8,7 +8,7 @@
 
 import prisma from '../lib/prisma';
 import type { PrismaClient } from '../generated/prisma/client';
-import { generateSuggestions } from '../domain/categorization';
+import { generateSuggestions, normalizeMerchant } from '../domain/categorization';
 import type { CategorySuggestion, CategoryCandidate } from '../domain/categorization';
 
 // ============================================================
@@ -18,9 +18,8 @@ import type { CategorySuggestion, CategoryCandidate } from '../domain/categoriza
 // Keywords are matched against the user's actual categories by
 // name at query time, so the service works with any category set.
 //
-// ponytail: a static Map is fine for this phase. When Merchant
-// Mapping (Phase 19) lands, this becomes the fallback after
-// merchant-alias lookup.
+// Fallback source: the user's merchant mappings (Phase 19) are checked
+// first, before this static map, in getSuggestions() below.
 // ============================================================
 
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
@@ -109,18 +108,20 @@ function buildCandidates(
 // Service factory
 // ============================================================
 
-type CategorizationPrismaClient = Pick<PrismaClient, 'category'>;
+type CategorizationPrismaClient = Pick<PrismaClient, 'category' | 'merchantMapping'>;
 
 export function createCategorizationService(db: CategorizationPrismaClient) {
   /**
    * Get category suggestions for a transaction description.
    *
-   * Fetches the user's categories, builds keyword candidates, and
-   * runs the deterministic matching engine. Returns up to 5 ranked
-   * suggestions ordered by confidence.
+   * Highest priority: an exact user-defined merchant mapping (Phase 19) for
+   * this normalized description — if found, it is returned immediately and
+   * keyword matching is skipped entirely. Otherwise falls back to the
+   * deterministic keyword-matching engine (Phase 18). Returns up to 5
+   * ranked suggestions ordered by confidence.
    *
-   * Returns an empty array when the description is empty or no
-   * keywords match.
+   * Returns an empty array when the description is empty or no source
+   * matches.
    */
   async function getSuggestions(
     userId: string,
@@ -129,6 +130,24 @@ export function createCategorizationService(db: CategorizationPrismaClient) {
   ): Promise<CategorySuggestion[]> {
     const descriptionTrimmed = description?.trim() ?? '';
     if (descriptionTrimmed.length === 0) return [];
+
+    const normalizedMerchant = normalizeMerchant(descriptionTrimmed);
+    if (normalizedMerchant.length > 0) {
+      const mapping = await db.merchantMapping.findFirst({
+        where: { userId, normalizedMerchant, category: { type } },
+        include: { category: true },
+      });
+      if (mapping) {
+        return [{
+          categoryId: mapping.category.id,
+          categoryName: mapping.category.name,
+          confidence: 'HIGH',
+          reason: `Merchant mapping: "${mapping.merchantName}"`,
+          matchedKeyword: mapping.merchantName,
+          normalizedMerchant,
+        }];
+      }
+    }
 
     // Fetch categories of the matching type for this user
     const categories = await db.category.findMany({

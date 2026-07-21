@@ -36,6 +36,7 @@ model User {
   recurringTransactionTemplates RecurringTransactionTemplate[]
   savingGoals                   SavingGoal[]
   budgets                       Budget[]
+  merchantMappings              MerchantMapping[]
 
   @@map("users")
 }
@@ -112,10 +113,32 @@ model Category {
   transactions                  Transaction[]
   recurringTransactionTemplates RecurringTransactionTemplate[]
   budgets                       Budget[]
+  merchantMappings              MerchantMapping[]
 
   @@unique([userId, name, type])
   @@index([userId, type])
   @@map("categories")
+}
+
+// ─────────────────────────────────────────────
+// MERCHANT MAPPING  (Phase 19 — per-user merchant → category alias)
+// ─────────────────────────────────────────────
+model MerchantMapping {
+  id                 String   @id @default(cuid())
+  userId             String   @map("user_id")
+  merchantName       String   @map("merchant_name")
+  normalizedMerchant String   @map("normalized_merchant")
+  categoryId         String   @map("category_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, normalizedMerchant])
+  @@index([userId])
+  @@map("merchant_mappings")
 }
 
 // ─────────────────────────────────────────────
