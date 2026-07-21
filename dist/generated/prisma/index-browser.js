@@ -248,6 +248,16 @@ exports.Prisma.SavingGoalScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.BudgetScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  categoryId: 'categoryId',
+  amount: 'amount',
+  isArchived: 'isArchived',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -324,7 +334,8 @@ exports.Prisma.ModelName = {
   Installment: 'Installment',
   RecurringTransactionTemplate: 'RecurringTransactionTemplate',
   RecurringReminderEvent: 'RecurringReminderEvent',
-  SavingGoal: 'SavingGoal'
+  SavingGoal: 'SavingGoal',
+  Budget: 'Budget'
 };
 
 /**

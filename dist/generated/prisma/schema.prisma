@@ -35,6 +35,7 @@ model User {
   installments                  Installment[]
   recurringTransactionTemplates RecurringTransactionTemplate[]
   savingGoals                   SavingGoal[]
+  budgets                       Budget[]
 
   @@map("users")
 }
@@ -110,6 +111,7 @@ model Category {
   user                          User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions                  Transaction[]
   recurringTransactionTemplates RecurringTransactionTemplate[]
+  budgets                       Budget[]
 
   @@unique([userId, name, type])
   @@index([userId, type])
@@ -333,4 +335,34 @@ model SavingGoal {
 
   @@index([userId, status])
   @@map("saving_goals")
+}
+
+// ─────────────────────────────────────────────
+// BUDGET  (anggaran)
+// ─────────────────────────────────────────────
+// Phase A (PD-009, Approved): a recurring monthly spend-limit definition per
+// user and expense Category — not a period-specific snapshot. Usage (spent,
+// remaining, percentUsed, status) is always derived at read time from posted
+// Transaction rows for the current reporting month; nothing is cached here.
+// One persistent Budget per (userId, categoryId), archived or not — archiving
+// does not free the category for a second Budget (PD-009 Decision L).
+// Category expense-eligibility (categoryId must reference an EXPENSE-type
+// Category owned by the same user) is enforced by the service layer, not the
+// database, matching PD-009 Decision D.
+model Budget {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  categoryId String   @map("category_id")
+  amount     Decimal  @db.Decimal(15, 2)
+  isArchived Boolean  @default(false) @map("is_archived")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId])
+  @@index([userId, isArchived])
+  @@map("budgets")
 }
