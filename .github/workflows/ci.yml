@@ -111,6 +111,22 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Normalize Prisma runtime line endings
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # @prisma/client ships runtime/client.d.ts and
+          # runtime/index-browser.d.ts with CRLF inside the npm package.
+          # `prisma generate` copies them byte-for-byte, so they land on disk
+          # with CRLF even though the repo stores them as LF. Strip the CR so
+          # the working tree matches what's committed.
+          sed -i 's/\r$//' \
+            src/generated/prisma/runtime/client.d.ts \
+            src/generated/prisma/runtime/index-browser.d.ts \
+            dist/generated/prisma/runtime/client.d.ts \
+            dist/generated/prisma/runtime/index-browser.d.ts
+
       - name: Check uncommitted changes
         shell: bash
         run: |
