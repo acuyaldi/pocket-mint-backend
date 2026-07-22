@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  MAX_ASSISTANT_MESSAGE_LENGTH,
+  assertAssistantMessageLength,
   normalizeProvidedMessage,
   safeRejectedUserMessage,
   monthlySummaryFallback,
@@ -16,7 +18,13 @@ describe('Assistant persistence projections', () => {
   it('trims provided messages and rejects non-strings or oversized content', () => {
     expect(normalizeProvidedMessage('  Halo  ')).toBe('Halo');
     expect(() => normalizeProvidedMessage(42)).toThrow(/string/i);
-    expect(() => normalizeProvidedMessage('x'.repeat(100_001))).toThrow(/100000/);
+    expect(normalizeProvidedMessage('x'.repeat(MAX_ASSISTANT_MESSAGE_LENGTH))).toHaveLength(MAX_ASSISTANT_MESSAGE_LENGTH);
+    expect(() => normalizeProvidedMessage('x'.repeat(MAX_ASSISTANT_MESSAGE_LENGTH + 1))).toThrow(/10000/);
+  });
+
+  it('defensively rejects oversized canonical messages without truncating them', () => {
+    expect(assertAssistantMessageLength('safe')).toBe('safe');
+    expect(() => assertAssistantMessageLength('x'.repeat(MAX_ASSISTANT_MESSAGE_LENGTH + 1))).toThrow(/10000/);
   });
 
   it('builds fallback and audit input only from validated monthly arguments', () => {

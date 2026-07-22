@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
 import { createPrismaResources } from '../../src/lib/prismaFactory';
@@ -20,10 +20,10 @@ afterEach(async () => { if (resources && users.length) await resources.prisma.us
 
 describe.skipIf(!url)('Assistant conversation HTTP lifecycle (disposable PostgreSQL)', () => {
   async function user(name: string) { const row = await resources!.prisma.user.create({ data: { email: `${name}-${Date.now()}-${Math.random()}@test.local`, name } }); users.push(row.id); return row.id; }
-  function app() {
+  function app(handler = vi.fn(async (input: any) => ({ month: input.month, totalIncome: 100, totalExpense: 40, netSavings: 60, transactionCount: 2, topCategories: [] }))) {
     const conversations = createAssistantConversationService(resources!.prisma);
     const registry = new ToolRegistry(); registry.register(monthlySpendingSummary);
-    const application = createAssistantApplicationService({ conversations, toolRegistry: registry, handlerRegistry: new Map([[monthlySpendingSummary.id, async (input: any) => ({ month: input.month, totalIncome: 100, totalExpense: 40, netSavings: 60, transactionCount: 2, topCategories: [] })]]) });
+    const application = createAssistantApplicationService({ conversations, toolRegistry: registry, handlerRegistry: new Map([[monthlySpendingSummary.id, handler]]) });
     const controllers = createAssistantControllers(application, conversations);
     const server = express(); server.use(express.json()); server.use(correlationMiddleware);
     server.use((req, _res, next) => { (req as any).auth = { userId: req.header('x-test-user') }; next(); });
@@ -48,5 +48,35 @@ describe.skipIf(!url)('Assistant conversation HTTP lifecycle (disposable Postgre
     expect((await request(server).get(`/conversations/${conversationId}`).set('x-test-user', other)).status).toBe(404);
     expect((await request(server).post(`/conversations/${conversationId}/archive`).set('x-test-user', owner)).status).toBe(200);
     expect((await request(server).post('/execute').set('x-test-user', owner).send({ conversationId, intent: monthlySpendingSummary.id, arguments: { month: '2026-09' } })).status).toBe(409);
+  });
+
+  it.each([
+    ['unsupported intent', { intent: JSON.stringify({ raw: 'secret-request' }), arguments: { raw: 'secret-arguments' } }],
+    ['malformed arguments', { intent: monthlySpendingSummary.id, arguments: { month: 'secret-month' } }],
+  ])('persists a safe rejected lifecycle without execution for %s', async (_label, body) => {
+    const owner = await user('rejected');
+    const handler = vi.fn();
+    const response = await request(app(handler)).post('/execute').set('x-test-user', owner).send(body);
+    expect(response.status).toBe(400);
+    expect(handler).not.toHaveBeenCalled();
+    const turn = await resources!.prisma.assistantTurn.findFirstOrThrow({ where: { conversation: { userId: owner } }, include: { messages: { orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] }, toolExecutions: true } });
+    expect(turn.status).toBe('REJECTED');
+    expect(turn.intent).toBe('unresolved');
+    expect(turn.toolExecutions).toHaveLength(0);
+    expect(turn.messages).toHaveLength(2);
+    expect(turn.messages[0]).toMatchObject({ role: 'USER', source: 'SAFE_REQUEST_SUMMARY', content: 'Permintaan Assistant tidak dapat diproses.' });
+    expect(JSON.stringify(turn)).not.toContain('secret-request');
+    expect(JSON.stringify(turn)).not.toContain('secret-arguments');
+    expect(JSON.stringify(turn)).not.toContain('secret-month');
+  });
+
+  it('rejects an oversized message before creating lifecycle records or calling finance', async () => {
+    const owner = await user('oversized-http');
+    const handler = vi.fn();
+    const response = await request(app(handler)).post('/execute').set('x-test-user', owner).send({ message: 'x'.repeat(10_001), intent: monthlySpendingSummary.id, arguments: { month: '2026-07' } });
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe('ASSISTANT_INVALID_REQUEST');
+    expect(handler).not.toHaveBeenCalled();
+    expect(await resources!.prisma.assistantConversation.count({ where: { userId: owner } })).toBe(0);
   });
 });

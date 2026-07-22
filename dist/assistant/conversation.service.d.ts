@@ -19,7 +19,6 @@ export declare function createAssistantConversationService(db: PrismaClient): {
         content: string;
         safeErrorCode: string;
     }) => Promise<void>;
-    recoverFailedFinalization: (turnId: string, executionId: string) => Promise<void>;
     listOwnedConversations: (userId: string, page?: number, limit?: number) => Promise<Page<ConversationSummaryDto>>;
     getOwnedConversation: (userId: string, id: string, page?: number, limit?: number) => Promise<{
         conversation: {

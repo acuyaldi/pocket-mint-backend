@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAssistantConversationService = createAssistantConversationService;
 const errors_1 = require("./errors");
+const persistence_1 = require("./persistence");
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 const pageArgs = (page, limit) => {
@@ -22,6 +23,7 @@ function createAssistantConversationService(db) {
             throw errors_1.AssistantError.conversationNotContinuable();
     }
     async function beginTurn(input) {
+        (0, persistence_1.assertAssistantMessageLength)(input.content);
         return db.$transaction(async (tx) => {
             let conversationId = input.conversationId;
             if (conversationId) {
@@ -54,6 +56,7 @@ function createAssistantConversationService(db) {
         return row.id;
     }
     async function finalize(input) {
+        (0, persistence_1.assertAssistantMessageLength)(input.assistantContent);
         await db.$transaction(async (tx) => {
             const now = new Date();
             await tx.assistantToolExecution.update({ where: { id: input.executionId }, data: {
@@ -71,19 +74,13 @@ function createAssistantConversationService(db) {
         });
     }
     async function finalizeRejected(input) {
+        (0, persistence_1.assertAssistantMessageLength)(input.content);
         await db.$transaction(async (tx) => {
             const now = new Date();
             await tx.assistantMessage.create({ data: { conversationId: input.conversationId, turnId: input.turnId, role: 'ASSISTANT', source: 'SAFE_ERROR', content: input.content } });
             await tx.assistantTurn.update({ where: { id: input.turnId }, data: { status: 'REJECTED', safeErrorCode: input.safeErrorCode, finishedAt: now } });
             await tx.assistantConversation.update({ where: { id: input.conversationId }, data: { lastActivityAt: now } });
         });
-    }
-    async function recoverFailedFinalization(turnId, executionId) {
-        const now = new Date();
-        await db.$transaction([
-            db.assistantToolExecution.update({ where: { id: executionId }, data: { status: 'FAILED', completedAt: now, safeErrorCode: 'ASSISTANT_FINALIZATION_FAILED' } }),
-            db.assistantTurn.update({ where: { id: turnId }, data: { status: 'FAILED', finishedAt: now, safeErrorCode: 'ASSISTANT_FINALIZATION_FAILED' } }),
-        ]);
     }
     async function listOwnedConversations(userId, page, limit) {
         const p = pageArgs(page, limit);
@@ -125,6 +122,6 @@ function createAssistantConversationService(db) {
         const updated = await db.assistantConversation.update({ where: { id }, data: { status: 'ARCHIVED', archivedAt: new Date() } });
         return { id: updated.id, status: updated.status, archivedAt: updated.archivedAt };
     }
-    return { assertContinuable, beginTurn, markTurnRunning, beginToolExecution, finalize, finalizeRejected, recoverFailedFinalization, listOwnedConversations, getOwnedConversation, archiveOwnedConversation };
+    return { assertContinuable, beginTurn, markTurnRunning, beginToolExecution, finalize, finalizeRejected, listOwnedConversations, getOwnedConversation, archiveOwnedConversation };
 }
 //# sourceMappingURL=conversation.service.js.map

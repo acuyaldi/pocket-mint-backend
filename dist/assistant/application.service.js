@@ -25,9 +25,10 @@ function createAssistantApplicationService(deps) {
         }
         catch (error) {
             const operational = error instanceof errors_1.AssistantError ? error : errors_1.AssistantError.invalidRequest('request cannot be validated');
-            const turn = await deps.conversations.beginTurn({ userId, conversationId: request.conversationId, correlationId, intent: request.intent, locale, content: (0, persistence_1.safeRejectedUserMessage)(), source: 'SAFE_REQUEST_SUMMARY' });
-            await deps.conversations.finalizeRejected({ ...turn, content: operational.message, safeErrorCode: operational.code });
-            return { httpStatus: operational.statusCode, response: { status: 'rejected', code: operational.code, message: operational.message, correlationId, ...turn } };
+            const safeMessage = (0, persistence_1.safeRejectedAssistantMessage)(operational.code);
+            const turn = await deps.conversations.beginTurn({ userId, conversationId: request.conversationId, correlationId, intent: persistence_1.SAFE_REJECTED_INTENT, locale, content: (0, persistence_1.safeRejectedUserMessage)(), source: 'SAFE_REQUEST_SUMMARY' });
+            await deps.conversations.finalizeRejected({ ...turn, content: safeMessage, safeErrorCode: operational.code });
+            return { httpStatus: operational.statusCode, response: { status: 'rejected', code: operational.code, message: safeMessage, correlationId, ...turn } };
         }
         const turn = await deps.conversations.beginTurn({ userId, conversationId: request.conversationId, correlationId, intent: request.intent, locale, content: provided ?? (0, persistence_1.monthlySummaryFallback)(validatedInput), source: provided ? 'USER_PROVIDED' : 'CANONICAL_FALLBACK' });
         await deps.conversations.markTurnRunning(turn.turnId);
@@ -35,18 +36,9 @@ function createAssistantApplicationService(deps) {
         const policy = (0, policy_1.evaluatePolicy)(contract);
         const executionId = await deps.conversations.beginToolExecution({ ...turn, correlationId, toolId: contract.id, capability: contract.capability, riskLevel: contract.riskLevel, policyDecision: policy.action, redactedInput: (0, persistence_1.monthlySummaryInputForAudit)(validatedInput) });
         const startedAt = Date.now();
+        let result;
         try {
-            const result = await (0, executor_1.executeTool)(resolved.toolId, validatedInput, { userId, correlationId, ...turn, timestamp: new Date() }, deps.toolRegistry, deps.handlerRegistry);
-            const renderedText = (0, renderer_1.renderMonthlySpendingSummary)(result.output);
-            try {
-                await deps.conversations.finalize({ executionId, ...turn, status: 'SUCCEEDED', turnStatus: 'SUCCEEDED', assistantContent: renderedText, assistantSource: 'DETERMINISTIC_RENDERER', durationMs: result.durationMs, outputSummary: (0, persistence_1.monthlySummaryOutputForAudit)(result.output) });
-            }
-            catch (error) {
-                logger_1.logger.error('assistant_finalization_failed', { correlationId, conversationId: turn.conversationId, turnId: turn.turnId });
-                await deps.conversations.recoverFailedFinalization(turn.turnId, executionId).catch(() => undefined);
-                throw error;
-            }
-            return { httpStatus: 200, response: { status: 'success', renderedText, data: result.output, correlationId, ...turn } };
+            result = await (0, executor_1.executeTool)(resolved.toolId, validatedInput, { userId, correlationId, ...turn, timestamp: new Date() }, deps.toolRegistry, deps.handlerRegistry);
         }
         catch (error) {
             const operational = error instanceof errors_1.AssistantError ? error : { message: 'Assistant execution failed', statusCode: 500, code: 'ASSISTANT_EXECUTION_FAILED' };
@@ -56,6 +48,15 @@ function createAssistantApplicationService(deps) {
             await deps.conversations.finalize({ executionId, ...turn, status, turnStatus: 'FAILED', assistantContent: operational.message, assistantSource: 'SAFE_ERROR', durationMs: Date.now() - startedAt, safeErrorCode: operational.code }).catch(() => undefined);
             return { httpStatus: operational.statusCode, response: { status: 'error', code: operational.code, message: operational.message, correlationId, ...turn } };
         }
+        const renderedText = (0, persistence_1.assertAssistantMessageLength)((0, renderer_1.renderMonthlySpendingSummary)(result.output));
+        try {
+            await deps.conversations.finalize({ executionId, ...turn, status: 'SUCCEEDED', turnStatus: 'SUCCEEDED', assistantContent: renderedText, assistantSource: 'DETERMINISTIC_RENDERER', durationMs: result.durationMs, outputSummary: (0, persistence_1.monthlySummaryOutputForAudit)(result.output) });
+        }
+        catch (error) {
+            logger_1.logger.error('assistant_finalization_failed', { correlationId, conversationId: turn.conversationId, turnId: turn.turnId });
+            throw error;
+        }
+        return { httpStatus: 200, response: { status: 'success', renderedText, data: result.output, correlationId, ...turn } };
     }
     return { execute };
 }

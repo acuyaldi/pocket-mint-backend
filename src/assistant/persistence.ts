@@ -1,8 +1,16 @@
 import { AssistantError } from './errors';
 import type { Prisma } from '../generated/prisma/client';
 
-export const ASSISTANT_MESSAGE_MAX_LENGTH = 100_000;
+export const MAX_ASSISTANT_MESSAGE_LENGTH = 10_000;
 const SAFE_REJECTED_MESSAGE = 'Permintaan Assistant tidak dapat diproses.';
+export const SAFE_REJECTED_INTENT = 'unresolved';
+
+export function assertAssistantMessageLength(content: string): string {
+  if (content.length > MAX_ASSISTANT_MESSAGE_LENGTH) {
+    throw AssistantError.invalidRequest(`message must not exceed ${MAX_ASSISTANT_MESSAGE_LENGTH} characters`);
+  }
+  return content;
+}
 
 export function normalizeProvidedMessage(value: unknown): string | undefined {
   if (value === undefined || value === null) return undefined;
@@ -11,14 +19,17 @@ export function normalizeProvidedMessage(value: unknown): string | undefined {
   }
   const content = value.trim();
   if (!content) return undefined;
-  if (content.length > ASSISTANT_MESSAGE_MAX_LENGTH) {
-    throw AssistantError.invalidRequest(`message must not exceed ${ASSISTANT_MESSAGE_MAX_LENGTH} characters`);
-  }
-  return content;
+  return assertAssistantMessageLength(content);
 }
 
 export function safeRejectedUserMessage(): string {
   return SAFE_REJECTED_MESSAGE;
+}
+
+export function safeRejectedAssistantMessage(code: string): string {
+  if (code === 'ASSISTANT_UNSUPPORTED_INTENT') return 'Assistant intent is not supported.';
+  if (code === 'ASSISTANT_INVALID_INPUT' || code === 'ASSISTANT_INVALID_REQUEST') return 'Assistant request is invalid.';
+  return 'Assistant request could not be processed.';
 }
 
 export function monthlySummaryFallback(input: { month: string }): string {

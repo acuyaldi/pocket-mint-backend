@@ -58,4 +58,26 @@ describe.skipIf(!url)('Assistant conversation service (disposable PostgreSQL)', 
     expect(first.status).toBe('ARCHIVED'); expect(second.archivedAt).toEqual(first.archivedAt);
     await expect(service().beginTurn({ userId: owner, conversationId: turn.conversationId, correlationId: `next-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' })).rejects.toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_CONTINUABLE' });
   });
+
+  it('caps pagination at 100 and exposes a RUNNING turn as incomplete without retrying it', async () => {
+    const owner = await user('running');
+    const turn = await service().beginTurn({ userId: owner, correlationId: `corr-running-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' });
+    await service().markTurnRunning(turn.turnId);
+    const executionId = await service().beginToolExecution({ ...turn, correlationId: `tool-running-${Date.now()}`, toolId: 'analytics.monthly-spending-summary', capability: 'analytics.read', riskLevel: 'LOW', policyDecision: 'EXECUTE_IMMEDIATELY' });
+
+    const detail = await service().getOwnedConversation(owner, turn.conversationId, 1, 1000);
+    expect(detail.messages.limit).toBe(100);
+    expect(detail.turns[0]).toMatchObject({ status: 'RUNNING', finishedAt: null });
+    expect(detail.turns[0].toolExecutions[0]).toMatchObject({ id: executionId, status: 'RUNNING', completedAt: null });
+    expect(await db().assistantToolExecution.count({ where: { turnId: turn.turnId } })).toBe(1);
+  });
+
+  it('rejects oversized content at the persistence boundary without creating records', async () => {
+    const owner = await user('oversized');
+    await expect(service().beginTurn({ userId: owner, correlationId: `corr-large-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'x'.repeat(10_001), source: 'USER_PROVIDED' })).rejects.toMatchObject({ code: 'ASSISTANT_INVALID_REQUEST' });
+    expect(await db().assistantConversation.count({ where: { userId: owner } })).toBe(0);
+    expect(await db().assistantTurn.count()).toBe(0);
+    expect(await db().assistantMessage.count()).toBe(0);
+    expect(await db().assistantToolExecution.count()).toBe(0);
+  });
 });

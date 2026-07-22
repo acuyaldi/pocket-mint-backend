@@ -1,7 +1,10 @@
 import type { Prisma } from '../generated/prisma/client';
-export declare const ASSISTANT_MESSAGE_MAX_LENGTH = 100000;
+export declare const MAX_ASSISTANT_MESSAGE_LENGTH = 10000;
+export declare const SAFE_REJECTED_INTENT = "unresolved";
+export declare function assertAssistantMessageLength(content: string): string;
 export declare function normalizeProvidedMessage(value: unknown): string | undefined;
 export declare function safeRejectedUserMessage(): string;
+export declare function safeRejectedAssistantMessage(code: string): string;
 export declare function monthlySummaryFallback(input: {
     month: string;
 }): string;

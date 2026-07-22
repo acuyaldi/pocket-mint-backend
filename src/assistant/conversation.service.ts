@@ -1,5 +1,6 @@
 import type { PrismaClient, Prisma } from '../generated/prisma/client';
 import { AssistantError } from './errors';
+import { assertAssistantMessageLength } from './persistence';
 import type { BeginTurnInput, BeginTurnResult, ConversationMessageDto, ConversationSummaryDto, FinalizeToolInput, Page } from './conversation.types';
 
 const DEFAULT_LIMIT = 20;
@@ -23,6 +24,7 @@ export function createAssistantConversationService(db: PrismaClient) {
   }
 
   async function beginTurn(input: BeginTurnInput): Promise<BeginTurnResult> {
+    assertAssistantMessageLength(input.content);
     return db.$transaction(async (tx) => {
       let conversationId = input.conversationId;
       if (conversationId) {
@@ -58,6 +60,7 @@ export function createAssistantConversationService(db: PrismaClient) {
   }
 
   async function finalize(input: FinalizeToolInput): Promise<void> {
+    assertAssistantMessageLength(input.assistantContent);
     await db.$transaction(async (tx) => {
       const now = new Date();
       await tx.assistantToolExecution.update({ where: { id: input.executionId }, data: {
@@ -76,20 +79,13 @@ export function createAssistantConversationService(db: PrismaClient) {
   }
 
   async function finalizeRejected(input: BeginTurnResult & { content: string; safeErrorCode: string }): Promise<void> {
+    assertAssistantMessageLength(input.content);
     await db.$transaction(async (tx) => {
       const now = new Date();
       await tx.assistantMessage.create({ data: { conversationId: input.conversationId, turnId: input.turnId, role: 'ASSISTANT', source: 'SAFE_ERROR', content: input.content } });
       await tx.assistantTurn.update({ where: { id: input.turnId }, data: { status: 'REJECTED', safeErrorCode: input.safeErrorCode, finishedAt: now } });
       await tx.assistantConversation.update({ where: { id: input.conversationId }, data: { lastActivityAt: now } });
     });
-  }
-
-  async function recoverFailedFinalization(turnId: string, executionId: string): Promise<void> {
-    const now = new Date();
-    await db.$transaction([
-      db.assistantToolExecution.update({ where: { id: executionId }, data: { status: 'FAILED', completedAt: now, safeErrorCode: 'ASSISTANT_FINALIZATION_FAILED' } }),
-      db.assistantTurn.update({ where: { id: turnId }, data: { status: 'FAILED', finishedAt: now, safeErrorCode: 'ASSISTANT_FINALIZATION_FAILED' } }),
-    ]);
   }
 
   async function listOwnedConversations(userId: string, page?: number, limit?: number): Promise<Page<ConversationSummaryDto>> {
@@ -133,7 +129,7 @@ export function createAssistantConversationService(db: PrismaClient) {
     return { id: updated.id, status: updated.status, archivedAt: updated.archivedAt };
   }
 
-  return { assertContinuable, beginTurn, markTurnRunning, beginToolExecution, finalize, finalizeRejected, recoverFailedFinalization, listOwnedConversations, getOwnedConversation, archiveOwnedConversation };
+  return { assertContinuable, beginTurn, markTurnRunning, beginToolExecution, finalize, finalizeRejected, listOwnedConversations, getOwnedConversation, archiveOwnedConversation };
 }
 
 export type AssistantConversationService = ReturnType<typeof createAssistantConversationService>;

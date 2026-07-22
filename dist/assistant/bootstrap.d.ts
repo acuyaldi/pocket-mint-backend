@@ -23,7 +23,6 @@ export declare const assistantConversationService: {
         content: string;
         safeErrorCode: string;
     }) => Promise<void>;
-    recoverFailedFinalization: (turnId: string, executionId: string) => Promise<void>;
     listOwnedConversations: (userId: string, page?: number, limit?: number) => Promise<import("./conversation.types").Page<import("./conversation.types").ConversationSummaryDto>>;
     getOwnedConversation: (userId: string, id: string, page?: number, limit?: number) => Promise<{
         conversation: {

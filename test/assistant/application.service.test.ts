@@ -7,7 +7,7 @@ function setup() {
   const conversations = {
     assertContinuable: vi.fn(), beginTurn: vi.fn().mockResolvedValue({ conversationId: 'c1', turnId: 't1' }),
     markTurnRunning: vi.fn().mockResolvedValue(undefined), beginToolExecution: vi.fn().mockResolvedValue('e1'), finalize: vi.fn().mockResolvedValue(undefined),
-    finalizeRejected: vi.fn().mockResolvedValue(undefined), recoverFailedFinalization: vi.fn().mockResolvedValue(undefined),
+    finalizeRejected: vi.fn().mockResolvedValue(undefined),
   } as any;
   const registry = new ToolRegistry(); registry.register(monthlySpendingSummary);
   const handler = vi.fn().mockResolvedValue({ month: '2026-07', totalIncome: 10, totalExpense: 4, netSavings: 6, transactionCount: 2, topCategories: [] });
@@ -28,6 +28,19 @@ describe('Assistant application lifecycle', () => {
     const result = await service.execute('u1', 'corr2', { intent: monthlySpendingSummary.id, arguments: { month: '<secret>' }, message: 'raw user text' });
     expect(result.response.status).toBe('rejected');
     expect(conversations.beginTurn).toHaveBeenCalledWith(expect.objectContaining({ content: 'Permintaan Assistant tidak dapat diproses.', source: 'SAFE_REQUEST_SUMMARY' }));
+    expect(handler).not.toHaveBeenCalled();
+    expect(conversations.beginToolExecution).not.toHaveBeenCalled();
+    expect(conversations.finalizeRejected).toHaveBeenCalledWith(expect.objectContaining({ safeErrorCode: 'ASSISTANT_INVALID_INPUT' }));
+  });
+
+  it('persists a safe rejection without execution for unsupported intent', async () => {
+    const { service, conversations, handler } = setup();
+    const raw = JSON.stringify({ intent: 'finance.destroy', arguments: { secret: 'do-not-store' } });
+    const result = await service.execute('u1', 'corr-unsupported', { intent: raw, arguments: { secret: 'do-not-store' } });
+    expect(result.response.status).toBe('rejected');
+    expect(conversations.beginTurn).toHaveBeenCalledWith(expect.objectContaining({ content: 'Permintaan Assistant tidak dapat diproses.', source: 'SAFE_REQUEST_SUMMARY' }));
+    expect(JSON.stringify(conversations.beginTurn.mock.calls)).not.toContain('do-not-store');
+    expect(conversations.beginToolExecution).not.toHaveBeenCalled();
     expect(handler).not.toHaveBeenCalled();
   });
 
@@ -54,11 +67,10 @@ describe('Assistant application lifecycle', () => {
     expect(conversations.finalize).toHaveBeenCalledWith(expect.objectContaining({ status: 'FAILED', turnStatus: 'FAILED', assistantSource: 'SAFE_ERROR' }));
   });
 
-  it('never returns success and attempts recovery when final persistence fails', async () => {
+  it('never returns success or rewrites execution state when final persistence fails', async () => {
     const { service, conversations } = setup();
     conversations.finalize.mockRejectedValue(new Error('final persistence unavailable'));
-    const result = await service.execute('u1', 'corr6', { intent: monthlySpendingSummary.id, arguments: { month: '2026-07' } });
-    expect(result.response.status).toBe('error');
-    expect(conversations.recoverFailedFinalization).toHaveBeenCalledWith('t1', 'e1');
+    await expect(service.execute('u1', 'corr6', { intent: monthlySpendingSummary.id, arguments: { month: '2026-07' } })).rejects.toThrow('final persistence unavailable');
+    expect(conversations.finalize).toHaveBeenCalledTimes(1);
   });
 });
