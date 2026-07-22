@@ -170,6 +170,20 @@ exports.Prisma.MerchantMappingScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.RuleScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  enabled: 'enabled',
+  priority: 'priority',
+  matchType: 'matchType',
+  operator: 'operator',
+  value: 'value',
+  categoryId: 'categoryId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.TransactionScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -301,6 +315,19 @@ exports.CategoryType = exports.$Enums.CategoryType = {
   EXPENSE: 'EXPENSE'
 };
 
+exports.RuleMatchType = exports.$Enums.RuleMatchType = {
+  DESCRIPTION: 'DESCRIPTION',
+  MERCHANT: 'MERCHANT',
+  TRANSACTION_TYPE: 'TRANSACTION_TYPE'
+};
+
+exports.RuleOperator = exports.$Enums.RuleOperator = {
+  CONTAINS: 'CONTAINS',
+  EQUALS: 'EQUALS',
+  STARTS_WITH: 'STARTS_WITH',
+  ENDS_WITH: 'ENDS_WITH'
+};
+
 exports.TransactionType = exports.$Enums.TransactionType = {
   INCOME: 'INCOME',
   EXPENSE: 'EXPENSE',
@@ -341,6 +368,7 @@ exports.Prisma.ModelName = {
   Wallet: 'Wallet',
   Category: 'Category',
   MerchantMapping: 'MerchantMapping',
+  Rule: 'Rule',
   Transaction: 'Transaction',
   Installment: 'Installment',
   RecurringTransactionTemplate: 'RecurringTransactionTemplate',

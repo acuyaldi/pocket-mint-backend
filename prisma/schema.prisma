@@ -37,6 +37,7 @@ model User {
   savingGoals                   SavingGoal[]
   budgets                       Budget[]
   merchantMappings              MerchantMapping[]
+  rules                         Rule[]
 
   @@map("users")
 }
@@ -114,6 +115,7 @@ model Category {
   recurringTransactionTemplates RecurringTransactionTemplate[]
   budgets                       Budget[]
   merchantMappings              MerchantMapping[]
+  rules                         Rule[]
 
   @@unique([userId, name, type])
   @@index([userId, type])
@@ -139,6 +141,50 @@ model MerchantMapping {
   @@unique([userId, normalizedMerchant])
   @@index([userId])
   @@map("merchant_mappings")
+}
+
+// ─────────────────────────────────────────────
+// RULE  (Phase 20 — deterministic user-defined categorization rule)
+// ─────────────────────────────────────────────
+// Highest-priority stage of the categorization pipeline: evaluated before
+// Merchant Mapping. Rules are ordered per-user by `priority` (ascending —
+// lower runs first); the service layer owns renumbering on create/reorder,
+// there is no uniqueness constraint on priority itself. `matchType` selects
+// the transaction field being matched, `operator` selects the comparison —
+// see PD-0XX ADR for why TRANSACTION_TYPE rules ignore `operator` and always
+// compare by equality.
+enum RuleMatchType {
+  DESCRIPTION
+  MERCHANT
+  TRANSACTION_TYPE
+}
+
+enum RuleOperator {
+  CONTAINS
+  EQUALS
+  STARTS_WITH
+  ENDS_WITH
+}
+
+model Rule {
+  id         String        @id @default(cuid())
+  userId     String        @map("user_id")
+  name       String
+  enabled    Boolean       @default(true)
+  priority   Int
+  matchType  RuleMatchType @map("match_type")
+  operator   RuleOperator
+  value      String
+  categoryId String        @map("category_id")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([userId, enabled, priority])
+  @@map("rules")
 }
 
 // ─────────────────────────────────────────────

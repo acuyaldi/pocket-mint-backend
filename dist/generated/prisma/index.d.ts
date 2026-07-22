@@ -34,6 +34,11 @@ export type Category = $Result.DefaultSelection<Prisma.$CategoryPayload>
  */
 export type MerchantMapping = $Result.DefaultSelection<Prisma.$MerchantMappingPayload>
 /**
+ * Model Rule
+ * 
+ */
+export type Rule = $Result.DefaultSelection<Prisma.$RulePayload>
+/**
  * Model Transaction
  * 
  */
@@ -86,6 +91,25 @@ export const CategoryType: {
 };
 
 export type CategoryType = (typeof CategoryType)[keyof typeof CategoryType]
+
+
+export const RuleMatchType: {
+  DESCRIPTION: 'DESCRIPTION',
+  MERCHANT: 'MERCHANT',
+  TRANSACTION_TYPE: 'TRANSACTION_TYPE'
+};
+
+export type RuleMatchType = (typeof RuleMatchType)[keyof typeof RuleMatchType]
+
+
+export const RuleOperator: {
+  CONTAINS: 'CONTAINS',
+  EQUALS: 'EQUALS',
+  STARTS_WITH: 'STARTS_WITH',
+  ENDS_WITH: 'ENDS_WITH'
+};
+
+export type RuleOperator = (typeof RuleOperator)[keyof typeof RuleOperator]
 
 
 export const TransactionType: {
@@ -157,6 +181,14 @@ export const WalletType: typeof $Enums.WalletType
 export type CategoryType = $Enums.CategoryType
 
 export const CategoryType: typeof $Enums.CategoryType
+
+export type RuleMatchType = $Enums.RuleMatchType
+
+export const RuleMatchType: typeof $Enums.RuleMatchType
+
+export type RuleOperator = $Enums.RuleOperator
+
+export const RuleOperator: typeof $Enums.RuleOperator
 
 export type TransactionType = $Enums.TransactionType
 
@@ -346,6 +378,16 @@ export class PrismaClient<
     * ```
     */
   get merchantMapping(): Prisma.MerchantMappingDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.rule`: Exposes CRUD operations for the **Rule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Rules
+    * const rules = await prisma.rule.findMany()
+    * ```
+    */
+  get rule(): Prisma.RuleDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.transaction`: Exposes CRUD operations for the **Transaction** model.
@@ -844,6 +886,7 @@ export namespace Prisma {
     Wallet: 'Wallet',
     Category: 'Category',
     MerchantMapping: 'MerchantMapping',
+    Rule: 'Rule',
     Transaction: 'Transaction',
     Installment: 'Installment',
     RecurringTransactionTemplate: 'RecurringTransactionTemplate',
@@ -865,7 +908,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "wallet" | "category" | "merchantMapping" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent" | "savingGoal" | "budget"
+      modelProps: "user" | "wallet" | "category" | "merchantMapping" | "rule" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent" | "savingGoal" | "budget"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1162,6 +1205,80 @@ export namespace Prisma {
           count: {
             args: Prisma.MerchantMappingCountArgs<ExtArgs>
             result: $Utils.Optional<MerchantMappingCountAggregateOutputType> | number
+          }
+        }
+      }
+      Rule: {
+        payload: Prisma.$RulePayload<ExtArgs>
+        fields: Prisma.RuleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.RuleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.RuleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RulePayload>
+          }
+          findFirst: {
+            args: Prisma.RuleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.RuleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RulePayload>
+          }
+          findMany: {
+            args: Prisma.RuleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RulePayload>[]
+          }
+          create: {
+            args: Prisma.RuleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RulePayload>
+          }
+          createMany: {
+            args: Prisma.RuleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.RuleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RulePayload>[]
+          }
+          delete: {
+            args: Prisma.RuleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RulePayload>
+          }
+          update: {
+            args: Prisma.RuleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RulePayload>
+          }
+          deleteMany: {
+            args: Prisma.RuleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.RuleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.RuleUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RulePayload>[]
+          }
+          upsert: {
+            args: Prisma.RuleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RulePayload>
+          }
+          aggregate: {
+            args: Prisma.RuleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateRule>
+          }
+          groupBy: {
+            args: Prisma.RuleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<RuleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.RuleCountArgs<ExtArgs>
+            result: $Utils.Optional<RuleCountAggregateOutputType> | number
           }
         }
       }
@@ -1721,6 +1838,7 @@ export namespace Prisma {
     wallet?: WalletOmit
     category?: CategoryOmit
     merchantMapping?: MerchantMappingOmit
+    rule?: RuleOmit
     transaction?: TransactionOmit
     installment?: InstallmentOmit
     recurringTransactionTemplate?: RecurringTransactionTemplateOmit
@@ -1815,6 +1933,7 @@ export namespace Prisma {
     savingGoals: number
     budgets: number
     merchantMappings: number
+    rules: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1826,6 +1945,7 @@ export namespace Prisma {
     savingGoals?: boolean | UserCountOutputTypeCountSavingGoalsArgs
     budgets?: boolean | UserCountOutputTypeCountBudgetsArgs
     merchantMappings?: boolean | UserCountOutputTypeCountMerchantMappingsArgs
+    rules?: boolean | UserCountOutputTypeCountRulesArgs
   }
 
   // Custom InputTypes
@@ -1893,6 +2013,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountMerchantMappingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MerchantMappingWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RuleWhereInput
   }
 
 
@@ -1963,6 +2090,7 @@ export namespace Prisma {
     recurringTransactionTemplates: number
     budgets: number
     merchantMappings: number
+    rules: number
   }
 
   export type CategoryCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1970,6 +2098,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: boolean | CategoryCountOutputTypeCountRecurringTransactionTemplatesArgs
     budgets?: boolean | CategoryCountOutputTypeCountBudgetsArgs
     merchantMappings?: boolean | CategoryCountOutputTypeCountMerchantMappingsArgs
+    rules?: boolean | CategoryCountOutputTypeCountRulesArgs
   }
 
   // Custom InputTypes
@@ -2009,6 +2138,13 @@ export namespace Prisma {
    */
   export type CategoryCountOutputTypeCountMerchantMappingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MerchantMappingWhereInput
+  }
+
+  /**
+   * CategoryCountOutputType without action
+   */
+  export type CategoryCountOutputTypeCountRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RuleWhereInput
   }
 
 
@@ -2267,6 +2403,7 @@ export namespace Prisma {
     savingGoals?: boolean | User$savingGoalsArgs<ExtArgs>
     budgets?: boolean | User$budgetsArgs<ExtArgs>
     merchantMappings?: boolean | User$merchantMappingsArgs<ExtArgs>
+    rules?: boolean | User$rulesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2307,6 +2444,7 @@ export namespace Prisma {
     savingGoals?: boolean | User$savingGoalsArgs<ExtArgs>
     budgets?: boolean | User$budgetsArgs<ExtArgs>
     merchantMappings?: boolean | User$merchantMappingsArgs<ExtArgs>
+    rules?: boolean | User$rulesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2323,6 +2461,7 @@ export namespace Prisma {
       savingGoals: Prisma.$SavingGoalPayload<ExtArgs>[]
       budgets: Prisma.$BudgetPayload<ExtArgs>[]
       merchantMappings: Prisma.$MerchantMappingPayload<ExtArgs>[]
+      rules: Prisma.$RulePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2733,6 +2872,7 @@ export namespace Prisma {
     savingGoals<T extends User$savingGoalsArgs<ExtArgs> = {}>(args?: Subset<T, User$savingGoalsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     budgets<T extends User$budgetsArgs<ExtArgs> = {}>(args?: Subset<T, User$budgetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     merchantMappings<T extends User$merchantMappingsArgs<ExtArgs> = {}>(args?: Subset<T, User$merchantMappingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    rules<T extends User$rulesArgs<ExtArgs> = {}>(args?: Subset<T, User$rulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3350,6 +3490,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MerchantMappingScalarFieldEnum | MerchantMappingScalarFieldEnum[]
+  }
+
+  /**
+   * User.rules
+   */
+  export type User$rulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rule
+     */
+    select?: RuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Rule
+     */
+    omit?: RuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RuleInclude<ExtArgs> | null
+    where?: RuleWhereInput
+    orderBy?: RuleOrderByWithRelationInput | RuleOrderByWithRelationInput[]
+    cursor?: RuleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RuleScalarFieldEnum | RuleScalarFieldEnum[]
   }
 
   /**
@@ -4955,6 +5119,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: boolean | Category$recurringTransactionTemplatesArgs<ExtArgs>
     budgets?: boolean | Category$budgetsArgs<ExtArgs>
     merchantMappings?: boolean | Category$merchantMappingsArgs<ExtArgs>
+    rules?: boolean | Category$rulesArgs<ExtArgs>
     _count?: boolean | CategoryCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["category"]>
 
@@ -5000,6 +5165,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: boolean | Category$recurringTransactionTemplatesArgs<ExtArgs>
     budgets?: boolean | Category$budgetsArgs<ExtArgs>
     merchantMappings?: boolean | Category$merchantMappingsArgs<ExtArgs>
+    rules?: boolean | Category$rulesArgs<ExtArgs>
     _count?: boolean | CategoryCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CategoryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5017,6 +5183,7 @@ export namespace Prisma {
       recurringTransactionTemplates: Prisma.$RecurringTransactionTemplatePayload<ExtArgs>[]
       budgets: Prisma.$BudgetPayload<ExtArgs>[]
       merchantMappings: Prisma.$MerchantMappingPayload<ExtArgs>[]
+      rules: Prisma.$RulePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5426,6 +5593,7 @@ export namespace Prisma {
     recurringTransactionTemplates<T extends Category$recurringTransactionTemplatesArgs<ExtArgs> = {}>(args?: Subset<T, Category$recurringTransactionTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringTransactionTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     budgets<T extends Category$budgetsArgs<ExtArgs> = {}>(args?: Subset<T, Category$budgetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     merchantMappings<T extends Category$merchantMappingsArgs<ExtArgs> = {}>(args?: Subset<T, Category$merchantMappingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    rules<T extends Category$rulesArgs<ExtArgs> = {}>(args?: Subset<T, Category$rulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5957,6 +6125,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: MerchantMappingScalarFieldEnum | MerchantMappingScalarFieldEnum[]
+  }
+
+  /**
+   * Category.rules
+   */
+  export type Category$rulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rule
+     */
+    select?: RuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Rule
+     */
+    omit?: RuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RuleInclude<ExtArgs> | null
+    where?: RuleWhereInput
+    orderBy?: RuleOrderByWithRelationInput | RuleOrderByWithRelationInput[]
+    cursor?: RuleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RuleScalarFieldEnum | RuleScalarFieldEnum[]
   }
 
   /**
@@ -7072,6 +7264,1189 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: MerchantMappingInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Rule
+   */
+
+  export type AggregateRule = {
+    _count: RuleCountAggregateOutputType | null
+    _avg: RuleAvgAggregateOutputType | null
+    _sum: RuleSumAggregateOutputType | null
+    _min: RuleMinAggregateOutputType | null
+    _max: RuleMaxAggregateOutputType | null
+  }
+
+  export type RuleAvgAggregateOutputType = {
+    priority: number | null
+  }
+
+  export type RuleSumAggregateOutputType = {
+    priority: number | null
+  }
+
+  export type RuleMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    name: string | null
+    enabled: boolean | null
+    priority: number | null
+    matchType: $Enums.RuleMatchType | null
+    operator: $Enums.RuleOperator | null
+    value: string | null
+    categoryId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type RuleMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    name: string | null
+    enabled: boolean | null
+    priority: number | null
+    matchType: $Enums.RuleMatchType | null
+    operator: $Enums.RuleOperator | null
+    value: string | null
+    categoryId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type RuleCountAggregateOutputType = {
+    id: number
+    userId: number
+    name: number
+    enabled: number
+    priority: number
+    matchType: number
+    operator: number
+    value: number
+    categoryId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type RuleAvgAggregateInputType = {
+    priority?: true
+  }
+
+  export type RuleSumAggregateInputType = {
+    priority?: true
+  }
+
+  export type RuleMinAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    enabled?: true
+    priority?: true
+    matchType?: true
+    operator?: true
+    value?: true
+    categoryId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type RuleMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    enabled?: true
+    priority?: true
+    matchType?: true
+    operator?: true
+    value?: true
+    categoryId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type RuleCountAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    enabled?: true
+    priority?: true
+    matchType?: true
+    operator?: true
+    value?: true
+    categoryId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type RuleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Rule to aggregate.
+     */
+    where?: RuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Rules to fetch.
+     */
+    orderBy?: RuleOrderByWithRelationInput | RuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: RuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Rules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Rules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Rules
+    **/
+    _count?: true | RuleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: RuleAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: RuleSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: RuleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: RuleMaxAggregateInputType
+  }
+
+  export type GetRuleAggregateType<T extends RuleAggregateArgs> = {
+        [P in keyof T & keyof AggregateRule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateRule[P]>
+      : GetScalarType<T[P], AggregateRule[P]>
+  }
+
+
+
+
+  export type RuleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RuleWhereInput
+    orderBy?: RuleOrderByWithAggregationInput | RuleOrderByWithAggregationInput[]
+    by: RuleScalarFieldEnum[] | RuleScalarFieldEnum
+    having?: RuleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: RuleCountAggregateInputType | true
+    _avg?: RuleAvgAggregateInputType
+    _sum?: RuleSumAggregateInputType
+    _min?: RuleMinAggregateInputType
+    _max?: RuleMaxAggregateInputType
+  }
+
+  export type RuleGroupByOutputType = {
+    id: string
+    userId: string
+    name: string
+    enabled: boolean
+    priority: number
+    matchType: $Enums.RuleMatchType
+    operator: $Enums.RuleOperator
+    value: string
+    categoryId: string
+    createdAt: Date
+    updatedAt: Date
+    _count: RuleCountAggregateOutputType | null
+    _avg: RuleAvgAggregateOutputType | null
+    _sum: RuleSumAggregateOutputType | null
+    _min: RuleMinAggregateOutputType | null
+    _max: RuleMaxAggregateOutputType | null
+  }
+
+  type GetRuleGroupByPayload<T extends RuleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<RuleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof RuleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], RuleGroupByOutputType[P]>
+            : GetScalarType<T[P], RuleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type RuleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    enabled?: boolean
+    priority?: boolean
+    matchType?: boolean
+    operator?: boolean
+    value?: boolean
+    categoryId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["rule"]>
+
+  export type RuleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    enabled?: boolean
+    priority?: boolean
+    matchType?: boolean
+    operator?: boolean
+    value?: boolean
+    categoryId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["rule"]>
+
+  export type RuleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    enabled?: boolean
+    priority?: boolean
+    matchType?: boolean
+    operator?: boolean
+    value?: boolean
+    categoryId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["rule"]>
+
+  export type RuleSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    enabled?: boolean
+    priority?: boolean
+    matchType?: boolean
+    operator?: boolean
+    value?: boolean
+    categoryId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type RuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "enabled" | "priority" | "matchType" | "operator" | "value" | "categoryId" | "createdAt" | "updatedAt", ExtArgs["result"]["rule"]>
+  export type RuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }
+  export type RuleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }
+  export type RuleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }
+
+  export type $RulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Rule"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      category: Prisma.$CategoryPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      name: string
+      enabled: boolean
+      priority: number
+      matchType: $Enums.RuleMatchType
+      operator: $Enums.RuleOperator
+      value: string
+      categoryId: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["rule"]>
+    composites: {}
+  }
+
+  type RuleGetPayload<S extends boolean | null | undefined | RuleDefaultArgs> = $Result.GetResult<Prisma.$RulePayload, S>
+
+  type RuleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<RuleFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: RuleCountAggregateInputType | true
+    }
+
+  export interface RuleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Rule'], meta: { name: 'Rule' } }
+    /**
+     * Find zero or one Rule that matches the filter.
+     * @param {RuleFindUniqueArgs} args - Arguments to find a Rule
+     * @example
+     * // Get one Rule
+     * const rule = await prisma.rule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends RuleFindUniqueArgs>(args: SelectSubset<T, RuleFindUniqueArgs<ExtArgs>>): Prisma__RuleClient<$Result.GetResult<Prisma.$RulePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Rule that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {RuleFindUniqueOrThrowArgs} args - Arguments to find a Rule
+     * @example
+     * // Get one Rule
+     * const rule = await prisma.rule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends RuleFindUniqueOrThrowArgs>(args: SelectSubset<T, RuleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__RuleClient<$Result.GetResult<Prisma.$RulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Rule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RuleFindFirstArgs} args - Arguments to find a Rule
+     * @example
+     * // Get one Rule
+     * const rule = await prisma.rule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends RuleFindFirstArgs>(args?: SelectSubset<T, RuleFindFirstArgs<ExtArgs>>): Prisma__RuleClient<$Result.GetResult<Prisma.$RulePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Rule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RuleFindFirstOrThrowArgs} args - Arguments to find a Rule
+     * @example
+     * // Get one Rule
+     * const rule = await prisma.rule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends RuleFindFirstOrThrowArgs>(args?: SelectSubset<T, RuleFindFirstOrThrowArgs<ExtArgs>>): Prisma__RuleClient<$Result.GetResult<Prisma.$RulePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Rules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RuleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Rules
+     * const rules = await prisma.rule.findMany()
+     * 
+     * // Get first 10 Rules
+     * const rules = await prisma.rule.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const ruleWithIdOnly = await prisma.rule.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends RuleFindManyArgs>(args?: SelectSubset<T, RuleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Rule.
+     * @param {RuleCreateArgs} args - Arguments to create a Rule.
+     * @example
+     * // Create one Rule
+     * const Rule = await prisma.rule.create({
+     *   data: {
+     *     // ... data to create a Rule
+     *   }
+     * })
+     * 
+     */
+    create<T extends RuleCreateArgs>(args: SelectSubset<T, RuleCreateArgs<ExtArgs>>): Prisma__RuleClient<$Result.GetResult<Prisma.$RulePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Rules.
+     * @param {RuleCreateManyArgs} args - Arguments to create many Rules.
+     * @example
+     * // Create many Rules
+     * const rule = await prisma.rule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends RuleCreateManyArgs>(args?: SelectSubset<T, RuleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Rules and returns the data saved in the database.
+     * @param {RuleCreateManyAndReturnArgs} args - Arguments to create many Rules.
+     * @example
+     * // Create many Rules
+     * const rule = await prisma.rule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Rules and only return the `id`
+     * const ruleWithIdOnly = await prisma.rule.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends RuleCreateManyAndReturnArgs>(args?: SelectSubset<T, RuleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RulePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Rule.
+     * @param {RuleDeleteArgs} args - Arguments to delete one Rule.
+     * @example
+     * // Delete one Rule
+     * const Rule = await prisma.rule.delete({
+     *   where: {
+     *     // ... filter to delete one Rule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends RuleDeleteArgs>(args: SelectSubset<T, RuleDeleteArgs<ExtArgs>>): Prisma__RuleClient<$Result.GetResult<Prisma.$RulePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Rule.
+     * @param {RuleUpdateArgs} args - Arguments to update one Rule.
+     * @example
+     * // Update one Rule
+     * const rule = await prisma.rule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends RuleUpdateArgs>(args: SelectSubset<T, RuleUpdateArgs<ExtArgs>>): Prisma__RuleClient<$Result.GetResult<Prisma.$RulePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Rules.
+     * @param {RuleDeleteManyArgs} args - Arguments to filter Rules to delete.
+     * @example
+     * // Delete a few Rules
+     * const { count } = await prisma.rule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends RuleDeleteManyArgs>(args?: SelectSubset<T, RuleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Rules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RuleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Rules
+     * const rule = await prisma.rule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends RuleUpdateManyArgs>(args: SelectSubset<T, RuleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Rules and returns the data updated in the database.
+     * @param {RuleUpdateManyAndReturnArgs} args - Arguments to update many Rules.
+     * @example
+     * // Update many Rules
+     * const rule = await prisma.rule.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Rules and only return the `id`
+     * const ruleWithIdOnly = await prisma.rule.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends RuleUpdateManyAndReturnArgs>(args: SelectSubset<T, RuleUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RulePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Rule.
+     * @param {RuleUpsertArgs} args - Arguments to update or create a Rule.
+     * @example
+     * // Update or create a Rule
+     * const rule = await prisma.rule.upsert({
+     *   create: {
+     *     // ... data to create a Rule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Rule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends RuleUpsertArgs>(args: SelectSubset<T, RuleUpsertArgs<ExtArgs>>): Prisma__RuleClient<$Result.GetResult<Prisma.$RulePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Rules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RuleCountArgs} args - Arguments to filter Rules to count.
+     * @example
+     * // Count the number of Rules
+     * const count = await prisma.rule.count({
+     *   where: {
+     *     // ... the filter for the Rules we want to count
+     *   }
+     * })
+    **/
+    count<T extends RuleCountArgs>(
+      args?: Subset<T, RuleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], RuleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Rule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RuleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends RuleAggregateArgs>(args: Subset<T, RuleAggregateArgs>): Prisma.PrismaPromise<GetRuleAggregateType<T>>
+
+    /**
+     * Group by Rule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RuleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends RuleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: RuleGroupByArgs['orderBy'] }
+        : { orderBy?: RuleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, RuleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetRuleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Rule model
+   */
+  readonly fields: RuleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Rule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__RuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    category<T extends CategoryDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CategoryDefaultArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Rule model
+   */
+  interface RuleFieldRefs {
+    readonly id: FieldRef<"Rule", 'String'>
+    readonly userId: FieldRef<"Rule", 'String'>
+    readonly name: FieldRef<"Rule", 'String'>
+    readonly enabled: FieldRef<"Rule", 'Boolean'>
+    readonly priority: FieldRef<"Rule", 'Int'>
+    readonly matchType: FieldRef<"Rule", 'RuleMatchType'>
+    readonly operator: FieldRef<"Rule", 'RuleOperator'>
+    readonly value: FieldRef<"Rule", 'String'>
+    readonly categoryId: FieldRef<"Rule", 'String'>
+    readonly createdAt: FieldRef<"Rule", 'DateTime'>
+    readonly updatedAt: FieldRef<"Rule", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Rule findUnique
+   */
+  export type RuleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rule
+     */
+    select?: RuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Rule
+     */
+    omit?: RuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RuleInclude<ExtArgs> | null
+    /**
+     * Filter, which Rule to fetch.
+     */
+    where: RuleWhereUniqueInput
+  }
+
+  /**
+   * Rule findUniqueOrThrow
+   */
+  export type RuleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rule
+     */
+    select?: RuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Rule
+     */
+    omit?: RuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RuleInclude<ExtArgs> | null
+    /**
+     * Filter, which Rule to fetch.
+     */
+    where: RuleWhereUniqueInput
+  }
+
+  /**
+   * Rule findFirst
+   */
+  export type RuleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rule
+     */
+    select?: RuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Rule
+     */
+    omit?: RuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RuleInclude<ExtArgs> | null
+    /**
+     * Filter, which Rule to fetch.
+     */
+    where?: RuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Rules to fetch.
+     */
+    orderBy?: RuleOrderByWithRelationInput | RuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Rules.
+     */
+    cursor?: RuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Rules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Rules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Rules.
+     */
+    distinct?: RuleScalarFieldEnum | RuleScalarFieldEnum[]
+  }
+
+  /**
+   * Rule findFirstOrThrow
+   */
+  export type RuleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rule
+     */
+    select?: RuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Rule
+     */
+    omit?: RuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RuleInclude<ExtArgs> | null
+    /**
+     * Filter, which Rule to fetch.
+     */
+    where?: RuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Rules to fetch.
+     */
+    orderBy?: RuleOrderByWithRelationInput | RuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Rules.
+     */
+    cursor?: RuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Rules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Rules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Rules.
+     */
+    distinct?: RuleScalarFieldEnum | RuleScalarFieldEnum[]
+  }
+
+  /**
+   * Rule findMany
+   */
+  export type RuleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rule
+     */
+    select?: RuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Rule
+     */
+    omit?: RuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RuleInclude<ExtArgs> | null
+    /**
+     * Filter, which Rules to fetch.
+     */
+    where?: RuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Rules to fetch.
+     */
+    orderBy?: RuleOrderByWithRelationInput | RuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Rules.
+     */
+    cursor?: RuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Rules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Rules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Rules.
+     */
+    distinct?: RuleScalarFieldEnum | RuleScalarFieldEnum[]
+  }
+
+  /**
+   * Rule create
+   */
+  export type RuleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rule
+     */
+    select?: RuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Rule
+     */
+    omit?: RuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RuleInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Rule.
+     */
+    data: XOR<RuleCreateInput, RuleUncheckedCreateInput>
+  }
+
+  /**
+   * Rule createMany
+   */
+  export type RuleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Rules.
+     */
+    data: RuleCreateManyInput | RuleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Rule createManyAndReturn
+   */
+  export type RuleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rule
+     */
+    select?: RuleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Rule
+     */
+    omit?: RuleOmit<ExtArgs> | null
+    /**
+     * The data used to create many Rules.
+     */
+    data: RuleCreateManyInput | RuleCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RuleIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Rule update
+   */
+  export type RuleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rule
+     */
+    select?: RuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Rule
+     */
+    omit?: RuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RuleInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Rule.
+     */
+    data: XOR<RuleUpdateInput, RuleUncheckedUpdateInput>
+    /**
+     * Choose, which Rule to update.
+     */
+    where: RuleWhereUniqueInput
+  }
+
+  /**
+   * Rule updateMany
+   */
+  export type RuleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Rules.
+     */
+    data: XOR<RuleUpdateManyMutationInput, RuleUncheckedUpdateManyInput>
+    /**
+     * Filter which Rules to update
+     */
+    where?: RuleWhereInput
+    /**
+     * Limit how many Rules to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Rule updateManyAndReturn
+   */
+  export type RuleUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rule
+     */
+    select?: RuleSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Rule
+     */
+    omit?: RuleOmit<ExtArgs> | null
+    /**
+     * The data used to update Rules.
+     */
+    data: XOR<RuleUpdateManyMutationInput, RuleUncheckedUpdateManyInput>
+    /**
+     * Filter which Rules to update
+     */
+    where?: RuleWhereInput
+    /**
+     * Limit how many Rules to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RuleIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Rule upsert
+   */
+  export type RuleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rule
+     */
+    select?: RuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Rule
+     */
+    omit?: RuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RuleInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Rule to update in case it exists.
+     */
+    where: RuleWhereUniqueInput
+    /**
+     * In case the Rule found by the `where` argument doesn't exist, create a new Rule with this data.
+     */
+    create: XOR<RuleCreateInput, RuleUncheckedCreateInput>
+    /**
+     * In case the Rule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<RuleUpdateInput, RuleUncheckedUpdateInput>
+  }
+
+  /**
+   * Rule delete
+   */
+  export type RuleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rule
+     */
+    select?: RuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Rule
+     */
+    omit?: RuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RuleInclude<ExtArgs> | null
+    /**
+     * Filter which Rule to delete.
+     */
+    where: RuleWhereUniqueInput
+  }
+
+  /**
+   * Rule deleteMany
+   */
+  export type RuleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Rules to delete
+     */
+    where?: RuleWhereInput
+    /**
+     * Limit how many Rules to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Rule without action
+   */
+  export type RuleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Rule
+     */
+    select?: RuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Rule
+     */
+    omit?: RuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RuleInclude<ExtArgs> | null
   }
 
 
@@ -14751,6 +16126,23 @@ export namespace Prisma {
   export type MerchantMappingScalarFieldEnum = (typeof MerchantMappingScalarFieldEnum)[keyof typeof MerchantMappingScalarFieldEnum]
 
 
+  export const RuleScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    name: 'name',
+    enabled: 'enabled',
+    priority: 'priority',
+    matchType: 'matchType',
+    operator: 'operator',
+    value: 'value',
+    categoryId: 'categoryId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type RuleScalarFieldEnum = (typeof RuleScalarFieldEnum)[keyof typeof RuleScalarFieldEnum]
+
+
   export const TransactionScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
@@ -15002,6 +16394,34 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'RuleMatchType'
+   */
+  export type EnumRuleMatchTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RuleMatchType'>
+    
+
+
+  /**
+   * Reference to a field of type 'RuleMatchType[]'
+   */
+  export type ListEnumRuleMatchTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RuleMatchType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'RuleOperator'
+   */
+  export type EnumRuleOperatorFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RuleOperator'>
+    
+
+
+  /**
+   * Reference to a field of type 'RuleOperator[]'
+   */
+  export type ListEnumRuleOperatorFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RuleOperator[]'>
+    
+
+
+  /**
    * Reference to a field of type 'TransactionType'
    */
   export type EnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType'>
@@ -15120,6 +16540,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalListRelationFilter
     budgets?: BudgetListRelationFilter
     merchantMappings?: MerchantMappingListRelationFilter
+    rules?: RuleListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -15137,6 +16558,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalOrderByRelationAggregateInput
     budgets?: BudgetOrderByRelationAggregateInput
     merchantMappings?: MerchantMappingOrderByRelationAggregateInput
+    rules?: RuleOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -15157,6 +16579,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalListRelationFilter
     budgets?: BudgetListRelationFilter
     merchantMappings?: MerchantMappingListRelationFilter
+    rules?: RuleListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -15329,6 +16752,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateListRelationFilter
     budgets?: BudgetListRelationFilter
     merchantMappings?: MerchantMappingListRelationFilter
+    rules?: RuleListRelationFilter
   }
 
   export type CategoryOrderByWithRelationInput = {
@@ -15345,6 +16769,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateOrderByRelationAggregateInput
     budgets?: BudgetOrderByRelationAggregateInput
     merchantMappings?: MerchantMappingOrderByRelationAggregateInput
+    rules?: RuleOrderByRelationAggregateInput
   }
 
   export type CategoryWhereUniqueInput = Prisma.AtLeast<{
@@ -15365,6 +16790,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateListRelationFilter
     budgets?: BudgetListRelationFilter
     merchantMappings?: MerchantMappingListRelationFilter
+    rules?: RuleListRelationFilter
   }, "id" | "userId_name_type">
 
   export type CategoryOrderByWithAggregationInput = {
@@ -15462,6 +16888,96 @@ export namespace Prisma {
     categoryId?: StringWithAggregatesFilter<"MerchantMapping"> | string
     createdAt?: DateTimeWithAggregatesFilter<"MerchantMapping"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"MerchantMapping"> | Date | string
+  }
+
+  export type RuleWhereInput = {
+    AND?: RuleWhereInput | RuleWhereInput[]
+    OR?: RuleWhereInput[]
+    NOT?: RuleWhereInput | RuleWhereInput[]
+    id?: StringFilter<"Rule"> | string
+    userId?: StringFilter<"Rule"> | string
+    name?: StringFilter<"Rule"> | string
+    enabled?: BoolFilter<"Rule"> | boolean
+    priority?: IntFilter<"Rule"> | number
+    matchType?: EnumRuleMatchTypeFilter<"Rule"> | $Enums.RuleMatchType
+    operator?: EnumRuleOperatorFilter<"Rule"> | $Enums.RuleOperator
+    value?: StringFilter<"Rule"> | string
+    categoryId?: StringFilter<"Rule"> | string
+    createdAt?: DateTimeFilter<"Rule"> | Date | string
+    updatedAt?: DateTimeFilter<"Rule"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    category?: XOR<CategoryScalarRelationFilter, CategoryWhereInput>
+  }
+
+  export type RuleOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    enabled?: SortOrder
+    priority?: SortOrder
+    matchType?: SortOrder
+    operator?: SortOrder
+    value?: SortOrder
+    categoryId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    category?: CategoryOrderByWithRelationInput
+  }
+
+  export type RuleWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: RuleWhereInput | RuleWhereInput[]
+    OR?: RuleWhereInput[]
+    NOT?: RuleWhereInput | RuleWhereInput[]
+    userId?: StringFilter<"Rule"> | string
+    name?: StringFilter<"Rule"> | string
+    enabled?: BoolFilter<"Rule"> | boolean
+    priority?: IntFilter<"Rule"> | number
+    matchType?: EnumRuleMatchTypeFilter<"Rule"> | $Enums.RuleMatchType
+    operator?: EnumRuleOperatorFilter<"Rule"> | $Enums.RuleOperator
+    value?: StringFilter<"Rule"> | string
+    categoryId?: StringFilter<"Rule"> | string
+    createdAt?: DateTimeFilter<"Rule"> | Date | string
+    updatedAt?: DateTimeFilter<"Rule"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    category?: XOR<CategoryScalarRelationFilter, CategoryWhereInput>
+  }, "id">
+
+  export type RuleOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    enabled?: SortOrder
+    priority?: SortOrder
+    matchType?: SortOrder
+    operator?: SortOrder
+    value?: SortOrder
+    categoryId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: RuleCountOrderByAggregateInput
+    _avg?: RuleAvgOrderByAggregateInput
+    _max?: RuleMaxOrderByAggregateInput
+    _min?: RuleMinOrderByAggregateInput
+    _sum?: RuleSumOrderByAggregateInput
+  }
+
+  export type RuleScalarWhereWithAggregatesInput = {
+    AND?: RuleScalarWhereWithAggregatesInput | RuleScalarWhereWithAggregatesInput[]
+    OR?: RuleScalarWhereWithAggregatesInput[]
+    NOT?: RuleScalarWhereWithAggregatesInput | RuleScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Rule"> | string
+    userId?: StringWithAggregatesFilter<"Rule"> | string
+    name?: StringWithAggregatesFilter<"Rule"> | string
+    enabled?: BoolWithAggregatesFilter<"Rule"> | boolean
+    priority?: IntWithAggregatesFilter<"Rule"> | number
+    matchType?: EnumRuleMatchTypeWithAggregatesFilter<"Rule"> | $Enums.RuleMatchType
+    operator?: EnumRuleOperatorWithAggregatesFilter<"Rule"> | $Enums.RuleOperator
+    value?: StringWithAggregatesFilter<"Rule"> | string
+    categoryId?: StringWithAggregatesFilter<"Rule"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Rule"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Rule"> | Date | string
   }
 
   export type TransactionWhereInput = {
@@ -16116,6 +17632,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    rules?: RuleCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -16133,6 +17650,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    rules?: RuleUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -16150,6 +17668,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    rules?: RuleUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -16167,6 +17686,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -16364,6 +17884,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutCategoryInput
     budgets?: BudgetCreateNestedManyWithoutCategoryInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutCategoryInput
+    rules?: RuleCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUncheckedCreateInput = {
@@ -16379,6 +17900,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutCategoryInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutCategoryInput
+    rules?: RuleUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUpdateInput = {
@@ -16394,6 +17916,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUpdateManyWithoutCategoryNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutCategoryNestedInput
+    rules?: RuleUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateInput = {
@@ -16409,6 +17932,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutCategoryNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryCreateManyInput = {
@@ -16506,6 +18030,102 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     merchantName?: StringFieldUpdateOperationsInput | string
     normalizedMerchant?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RuleCreateInput = {
+    id?: string
+    name: string
+    enabled?: boolean
+    priority: number
+    matchType: $Enums.RuleMatchType
+    operator: $Enums.RuleOperator
+    value: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutRulesInput
+    category: CategoryCreateNestedOneWithoutRulesInput
+  }
+
+  export type RuleUncheckedCreateInput = {
+    id?: string
+    userId: string
+    name: string
+    enabled?: boolean
+    priority: number
+    matchType: $Enums.RuleMatchType
+    operator: $Enums.RuleOperator
+    value: string
+    categoryId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RuleUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    priority?: IntFieldUpdateOperationsInput | number
+    matchType?: EnumRuleMatchTypeFieldUpdateOperationsInput | $Enums.RuleMatchType
+    operator?: EnumRuleOperatorFieldUpdateOperationsInput | $Enums.RuleOperator
+    value?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutRulesNestedInput
+    category?: CategoryUpdateOneRequiredWithoutRulesNestedInput
+  }
+
+  export type RuleUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    priority?: IntFieldUpdateOperationsInput | number
+    matchType?: EnumRuleMatchTypeFieldUpdateOperationsInput | $Enums.RuleMatchType
+    operator?: EnumRuleOperatorFieldUpdateOperationsInput | $Enums.RuleOperator
+    value?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RuleCreateManyInput = {
+    id?: string
+    userId: string
+    name: string
+    enabled?: boolean
+    priority: number
+    matchType: $Enums.RuleMatchType
+    operator: $Enums.RuleOperator
+    value: string
+    categoryId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RuleUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    priority?: IntFieldUpdateOperationsInput | number
+    matchType?: EnumRuleMatchTypeFieldUpdateOperationsInput | $Enums.RuleMatchType
+    operator?: EnumRuleOperatorFieldUpdateOperationsInput | $Enums.RuleOperator
+    value?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RuleUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    priority?: IntFieldUpdateOperationsInput | number
+    matchType?: EnumRuleMatchTypeFieldUpdateOperationsInput | $Enums.RuleMatchType
+    operator?: EnumRuleOperatorFieldUpdateOperationsInput | $Enums.RuleOperator
+    value?: StringFieldUpdateOperationsInput | string
     categoryId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -17286,6 +18906,12 @@ export namespace Prisma {
     none?: MerchantMappingWhereInput
   }
 
+  export type RuleListRelationFilter = {
+    every?: RuleWhereInput
+    some?: RuleWhereInput
+    none?: RuleWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -17320,6 +18946,10 @@ export namespace Prisma {
   }
 
   export type MerchantMappingOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type RuleOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -17682,6 +19312,117 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type EnumRuleMatchTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.RuleMatchType | EnumRuleMatchTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.RuleMatchType[] | ListEnumRuleMatchTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RuleMatchType[] | ListEnumRuleMatchTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRuleMatchTypeFilter<$PrismaModel> | $Enums.RuleMatchType
+  }
+
+  export type EnumRuleOperatorFilter<$PrismaModel = never> = {
+    equals?: $Enums.RuleOperator | EnumRuleOperatorFieldRefInput<$PrismaModel>
+    in?: $Enums.RuleOperator[] | ListEnumRuleOperatorFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RuleOperator[] | ListEnumRuleOperatorFieldRefInput<$PrismaModel>
+    not?: NestedEnumRuleOperatorFilter<$PrismaModel> | $Enums.RuleOperator
+  }
+
+  export type RuleCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    enabled?: SortOrder
+    priority?: SortOrder
+    matchType?: SortOrder
+    operator?: SortOrder
+    value?: SortOrder
+    categoryId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type RuleAvgOrderByAggregateInput = {
+    priority?: SortOrder
+  }
+
+  export type RuleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    enabled?: SortOrder
+    priority?: SortOrder
+    matchType?: SortOrder
+    operator?: SortOrder
+    value?: SortOrder
+    categoryId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type RuleMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    enabled?: SortOrder
+    priority?: SortOrder
+    matchType?: SortOrder
+    operator?: SortOrder
+    value?: SortOrder
+    categoryId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type RuleSumOrderByAggregateInput = {
+    priority?: SortOrder
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type EnumRuleMatchTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RuleMatchType | EnumRuleMatchTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.RuleMatchType[] | ListEnumRuleMatchTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RuleMatchType[] | ListEnumRuleMatchTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRuleMatchTypeWithAggregatesFilter<$PrismaModel> | $Enums.RuleMatchType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRuleMatchTypeFilter<$PrismaModel>
+    _max?: NestedEnumRuleMatchTypeFilter<$PrismaModel>
+  }
+
+  export type EnumRuleOperatorWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RuleOperator | EnumRuleOperatorFieldRefInput<$PrismaModel>
+    in?: $Enums.RuleOperator[] | ListEnumRuleOperatorFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RuleOperator[] | ListEnumRuleOperatorFieldRefInput<$PrismaModel>
+    not?: NestedEnumRuleOperatorWithAggregatesFilter<$PrismaModel> | $Enums.RuleOperator
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRuleOperatorFilter<$PrismaModel>
+    _max?: NestedEnumRuleOperatorFilter<$PrismaModel>
+  }
+
   export type EnumTransactionTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.TransactionType | EnumTransactionTypeFieldRefInput<$PrismaModel>
     in?: $Enums.TransactionType[] | ListEnumTransactionTypeFieldRefInput<$PrismaModel>
@@ -17778,17 +19519,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumTransactionTypeFilter<$PrismaModel>
     _max?: NestedEnumTransactionTypeFilter<$PrismaModel>
-  }
-
-  export type IntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
   }
 
   export type EnumBillKindFilter<$PrismaModel = never> = {
@@ -17914,22 +19644,6 @@ export namespace Prisma {
     currentTerm?: SortOrder
     monthlyAmount?: SortOrder
     paidTerms?: SortOrder
-  }
-
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type EnumBillKindWithAggregatesFilter<$PrismaModel = never> = {
@@ -18345,6 +20059,13 @@ export namespace Prisma {
     connect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
   }
 
+  export type RuleCreateNestedManyWithoutUserInput = {
+    create?: XOR<RuleCreateWithoutUserInput, RuleUncheckedCreateWithoutUserInput> | RuleCreateWithoutUserInput[] | RuleUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: RuleCreateOrConnectWithoutUserInput | RuleCreateOrConnectWithoutUserInput[]
+    createMany?: RuleCreateManyUserInputEnvelope
+    connect?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+  }
+
   export type WalletUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<WalletCreateWithoutUserInput, WalletUncheckedCreateWithoutUserInput> | WalletCreateWithoutUserInput[] | WalletUncheckedCreateWithoutUserInput[]
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
@@ -18399,6 +20120,13 @@ export namespace Prisma {
     connectOrCreate?: MerchantMappingCreateOrConnectWithoutUserInput | MerchantMappingCreateOrConnectWithoutUserInput[]
     createMany?: MerchantMappingCreateManyUserInputEnvelope
     connect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+  }
+
+  export type RuleUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<RuleCreateWithoutUserInput, RuleUncheckedCreateWithoutUserInput> | RuleCreateWithoutUserInput[] | RuleUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: RuleCreateOrConnectWithoutUserInput | RuleCreateOrConnectWithoutUserInput[]
+    createMany?: RuleCreateManyUserInputEnvelope
+    connect?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -18525,6 +20253,20 @@ export namespace Prisma {
     deleteMany?: MerchantMappingScalarWhereInput | MerchantMappingScalarWhereInput[]
   }
 
+  export type RuleUpdateManyWithoutUserNestedInput = {
+    create?: XOR<RuleCreateWithoutUserInput, RuleUncheckedCreateWithoutUserInput> | RuleCreateWithoutUserInput[] | RuleUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: RuleCreateOrConnectWithoutUserInput | RuleCreateOrConnectWithoutUserInput[]
+    upsert?: RuleUpsertWithWhereUniqueWithoutUserInput | RuleUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: RuleCreateManyUserInputEnvelope
+    set?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    disconnect?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    delete?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    connect?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    update?: RuleUpdateWithWhereUniqueWithoutUserInput | RuleUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: RuleUpdateManyWithWhereWithoutUserInput | RuleUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: RuleScalarWhereInput | RuleScalarWhereInput[]
+  }
+
   export type WalletUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<WalletCreateWithoutUserInput, WalletUncheckedCreateWithoutUserInput> | WalletCreateWithoutUserInput[] | WalletUncheckedCreateWithoutUserInput[]
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
@@ -18635,6 +20377,20 @@ export namespace Prisma {
     update?: MerchantMappingUpdateWithWhereUniqueWithoutUserInput | MerchantMappingUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: MerchantMappingUpdateManyWithWhereWithoutUserInput | MerchantMappingUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: MerchantMappingScalarWhereInput | MerchantMappingScalarWhereInput[]
+  }
+
+  export type RuleUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<RuleCreateWithoutUserInput, RuleUncheckedCreateWithoutUserInput> | RuleCreateWithoutUserInput[] | RuleUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: RuleCreateOrConnectWithoutUserInput | RuleCreateOrConnectWithoutUserInput[]
+    upsert?: RuleUpsertWithWhereUniqueWithoutUserInput | RuleUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: RuleCreateManyUserInputEnvelope
+    set?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    disconnect?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    delete?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    connect?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    update?: RuleUpdateWithWhereUniqueWithoutUserInput | RuleUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: RuleUpdateManyWithWhereWithoutUserInput | RuleUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: RuleScalarWhereInput | RuleScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutWalletsInput = {
@@ -18881,6 +20637,13 @@ export namespace Prisma {
     connect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
   }
 
+  export type RuleCreateNestedManyWithoutCategoryInput = {
+    create?: XOR<RuleCreateWithoutCategoryInput, RuleUncheckedCreateWithoutCategoryInput> | RuleCreateWithoutCategoryInput[] | RuleUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: RuleCreateOrConnectWithoutCategoryInput | RuleCreateOrConnectWithoutCategoryInput[]
+    createMany?: RuleCreateManyCategoryInputEnvelope
+    connect?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+  }
+
   export type TransactionUncheckedCreateNestedManyWithoutCategoryInput = {
     create?: XOR<TransactionCreateWithoutCategoryInput, TransactionUncheckedCreateWithoutCategoryInput> | TransactionCreateWithoutCategoryInput[] | TransactionUncheckedCreateWithoutCategoryInput[]
     connectOrCreate?: TransactionCreateOrConnectWithoutCategoryInput | TransactionCreateOrConnectWithoutCategoryInput[]
@@ -18907,6 +20670,13 @@ export namespace Prisma {
     connectOrCreate?: MerchantMappingCreateOrConnectWithoutCategoryInput | MerchantMappingCreateOrConnectWithoutCategoryInput[]
     createMany?: MerchantMappingCreateManyCategoryInputEnvelope
     connect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+  }
+
+  export type RuleUncheckedCreateNestedManyWithoutCategoryInput = {
+    create?: XOR<RuleCreateWithoutCategoryInput, RuleUncheckedCreateWithoutCategoryInput> | RuleCreateWithoutCategoryInput[] | RuleUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: RuleCreateOrConnectWithoutCategoryInput | RuleCreateOrConnectWithoutCategoryInput[]
+    createMany?: RuleCreateManyCategoryInputEnvelope
+    connect?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
   }
 
   export type EnumCategoryTypeFieldUpdateOperationsInput = {
@@ -18977,6 +20747,20 @@ export namespace Prisma {
     deleteMany?: MerchantMappingScalarWhereInput | MerchantMappingScalarWhereInput[]
   }
 
+  export type RuleUpdateManyWithoutCategoryNestedInput = {
+    create?: XOR<RuleCreateWithoutCategoryInput, RuleUncheckedCreateWithoutCategoryInput> | RuleCreateWithoutCategoryInput[] | RuleUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: RuleCreateOrConnectWithoutCategoryInput | RuleCreateOrConnectWithoutCategoryInput[]
+    upsert?: RuleUpsertWithWhereUniqueWithoutCategoryInput | RuleUpsertWithWhereUniqueWithoutCategoryInput[]
+    createMany?: RuleCreateManyCategoryInputEnvelope
+    set?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    disconnect?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    delete?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    connect?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    update?: RuleUpdateWithWhereUniqueWithoutCategoryInput | RuleUpdateWithWhereUniqueWithoutCategoryInput[]
+    updateMany?: RuleUpdateManyWithWhereWithoutCategoryInput | RuleUpdateManyWithWhereWithoutCategoryInput[]
+    deleteMany?: RuleScalarWhereInput | RuleScalarWhereInput[]
+  }
+
   export type TransactionUncheckedUpdateManyWithoutCategoryNestedInput = {
     create?: XOR<TransactionCreateWithoutCategoryInput, TransactionUncheckedCreateWithoutCategoryInput> | TransactionCreateWithoutCategoryInput[] | TransactionUncheckedCreateWithoutCategoryInput[]
     connectOrCreate?: TransactionCreateOrConnectWithoutCategoryInput | TransactionCreateOrConnectWithoutCategoryInput[]
@@ -19033,6 +20817,20 @@ export namespace Prisma {
     deleteMany?: MerchantMappingScalarWhereInput | MerchantMappingScalarWhereInput[]
   }
 
+  export type RuleUncheckedUpdateManyWithoutCategoryNestedInput = {
+    create?: XOR<RuleCreateWithoutCategoryInput, RuleUncheckedCreateWithoutCategoryInput> | RuleCreateWithoutCategoryInput[] | RuleUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: RuleCreateOrConnectWithoutCategoryInput | RuleCreateOrConnectWithoutCategoryInput[]
+    upsert?: RuleUpsertWithWhereUniqueWithoutCategoryInput | RuleUpsertWithWhereUniqueWithoutCategoryInput[]
+    createMany?: RuleCreateManyCategoryInputEnvelope
+    set?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    disconnect?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    delete?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    connect?: RuleWhereUniqueInput | RuleWhereUniqueInput[]
+    update?: RuleUpdateWithWhereUniqueWithoutCategoryInput | RuleUpdateWithWhereUniqueWithoutCategoryInput[]
+    updateMany?: RuleUpdateManyWithWhereWithoutCategoryInput | RuleUpdateManyWithWhereWithoutCategoryInput[]
+    deleteMany?: RuleScalarWhereInput | RuleScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutMerchantMappingsInput = {
     create?: XOR<UserCreateWithoutMerchantMappingsInput, UserUncheckedCreateWithoutMerchantMappingsInput>
     connectOrCreate?: UserCreateOrConnectWithoutMerchantMappingsInput
@@ -19059,6 +20857,50 @@ export namespace Prisma {
     upsert?: CategoryUpsertWithoutMerchantMappingsInput
     connect?: CategoryWhereUniqueInput
     update?: XOR<XOR<CategoryUpdateToOneWithWhereWithoutMerchantMappingsInput, CategoryUpdateWithoutMerchantMappingsInput>, CategoryUncheckedUpdateWithoutMerchantMappingsInput>
+  }
+
+  export type UserCreateNestedOneWithoutRulesInput = {
+    create?: XOR<UserCreateWithoutRulesInput, UserUncheckedCreateWithoutRulesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutRulesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type CategoryCreateNestedOneWithoutRulesInput = {
+    create?: XOR<CategoryCreateWithoutRulesInput, CategoryUncheckedCreateWithoutRulesInput>
+    connectOrCreate?: CategoryCreateOrConnectWithoutRulesInput
+    connect?: CategoryWhereUniqueInput
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type EnumRuleMatchTypeFieldUpdateOperationsInput = {
+    set?: $Enums.RuleMatchType
+  }
+
+  export type EnumRuleOperatorFieldUpdateOperationsInput = {
+    set?: $Enums.RuleOperator
+  }
+
+  export type UserUpdateOneRequiredWithoutRulesNestedInput = {
+    create?: XOR<UserCreateWithoutRulesInput, UserUncheckedCreateWithoutRulesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutRulesInput
+    upsert?: UserUpsertWithoutRulesInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutRulesInput, UserUpdateWithoutRulesInput>, UserUncheckedUpdateWithoutRulesInput>
+  }
+
+  export type CategoryUpdateOneRequiredWithoutRulesNestedInput = {
+    create?: XOR<CategoryCreateWithoutRulesInput, CategoryUncheckedCreateWithoutRulesInput>
+    connectOrCreate?: CategoryCreateOrConnectWithoutRulesInput
+    upsert?: CategoryUpsertWithoutRulesInput
+    connect?: CategoryWhereUniqueInput
+    update?: XOR<XOR<CategoryUpdateToOneWithWhereWithoutRulesInput, CategoryUpdateWithoutRulesInput>, CategoryUncheckedUpdateWithoutRulesInput>
   }
 
   export type UserCreateNestedOneWithoutTransactionsInput = {
@@ -19211,14 +21053,6 @@ export namespace Prisma {
     connectOrCreate?: RecurringReminderEventCreateOrConnectWithoutInstallmentInput | RecurringReminderEventCreateOrConnectWithoutInstallmentInput[]
     createMany?: RecurringReminderEventCreateManyInstallmentInputEnvelope
     connect?: RecurringReminderEventWhereUniqueInput | RecurringReminderEventWhereUniqueInput[]
-  }
-
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type EnumBillKindFieldUpdateOperationsInput = {
@@ -19728,6 +21562,67 @@ export namespace Prisma {
     _max?: NestedEnumCategoryTypeFilter<$PrismaModel>
   }
 
+  export type NestedEnumRuleMatchTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.RuleMatchType | EnumRuleMatchTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.RuleMatchType[] | ListEnumRuleMatchTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RuleMatchType[] | ListEnumRuleMatchTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRuleMatchTypeFilter<$PrismaModel> | $Enums.RuleMatchType
+  }
+
+  export type NestedEnumRuleOperatorFilter<$PrismaModel = never> = {
+    equals?: $Enums.RuleOperator | EnumRuleOperatorFieldRefInput<$PrismaModel>
+    in?: $Enums.RuleOperator[] | ListEnumRuleOperatorFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RuleOperator[] | ListEnumRuleOperatorFieldRefInput<$PrismaModel>
+    not?: NestedEnumRuleOperatorFilter<$PrismaModel> | $Enums.RuleOperator
+  }
+
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type NestedEnumRuleMatchTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RuleMatchType | EnumRuleMatchTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.RuleMatchType[] | ListEnumRuleMatchTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RuleMatchType[] | ListEnumRuleMatchTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRuleMatchTypeWithAggregatesFilter<$PrismaModel> | $Enums.RuleMatchType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRuleMatchTypeFilter<$PrismaModel>
+    _max?: NestedEnumRuleMatchTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumRuleOperatorWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RuleOperator | EnumRuleOperatorFieldRefInput<$PrismaModel>
+    in?: $Enums.RuleOperator[] | ListEnumRuleOperatorFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RuleOperator[] | ListEnumRuleOperatorFieldRefInput<$PrismaModel>
+    not?: NestedEnumRuleOperatorWithAggregatesFilter<$PrismaModel> | $Enums.RuleOperator
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRuleOperatorFilter<$PrismaModel>
+    _max?: NestedEnumRuleOperatorFilter<$PrismaModel>
+  }
+
   export type NestedEnumTransactionTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.TransactionType | EnumTransactionTypeFieldRefInput<$PrismaModel>
     in?: $Enums.TransactionType[] | ListEnumTransactionTypeFieldRefInput<$PrismaModel>
@@ -19757,33 +21652,6 @@ export namespace Prisma {
     in?: $Enums.InstallmentStatus[] | ListEnumInstallmentStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.InstallmentStatus[] | ListEnumInstallmentStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumInstallmentStatusFilter<$PrismaModel> | $Enums.InstallmentStatus
-  }
-
-  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
-  }
-
-  export type NestedFloatFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
   }
 
   export type NestedEnumBillKindWithAggregatesFilter<$PrismaModel = never> = {
@@ -19977,6 +21845,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutCategoryInput
     budgets?: BudgetCreateNestedManyWithoutCategoryInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutCategoryInput
+    rules?: RuleCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUncheckedCreateWithoutUserInput = {
@@ -19991,6 +21860,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutCategoryInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutCategoryInput
+    rules?: RuleUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryCreateOrConnectWithoutUserInput = {
@@ -20244,6 +22114,42 @@ export namespace Prisma {
 
   export type MerchantMappingCreateManyUserInputEnvelope = {
     data: MerchantMappingCreateManyUserInput | MerchantMappingCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type RuleCreateWithoutUserInput = {
+    id?: string
+    name: string
+    enabled?: boolean
+    priority: number
+    matchType: $Enums.RuleMatchType
+    operator: $Enums.RuleOperator
+    value: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    category: CategoryCreateNestedOneWithoutRulesInput
+  }
+
+  export type RuleUncheckedCreateWithoutUserInput = {
+    id?: string
+    name: string
+    enabled?: boolean
+    priority: number
+    matchType: $Enums.RuleMatchType
+    operator: $Enums.RuleOperator
+    value: string
+    categoryId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RuleCreateOrConnectWithoutUserInput = {
+    where: RuleWhereUniqueInput
+    create: XOR<RuleCreateWithoutUserInput, RuleUncheckedCreateWithoutUserInput>
+  }
+
+  export type RuleCreateManyUserInputEnvelope = {
+    data: RuleCreateManyUserInput | RuleCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -20524,6 +22430,39 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"MerchantMapping"> | Date | string
   }
 
+  export type RuleUpsertWithWhereUniqueWithoutUserInput = {
+    where: RuleWhereUniqueInput
+    update: XOR<RuleUpdateWithoutUserInput, RuleUncheckedUpdateWithoutUserInput>
+    create: XOR<RuleCreateWithoutUserInput, RuleUncheckedCreateWithoutUserInput>
+  }
+
+  export type RuleUpdateWithWhereUniqueWithoutUserInput = {
+    where: RuleWhereUniqueInput
+    data: XOR<RuleUpdateWithoutUserInput, RuleUncheckedUpdateWithoutUserInput>
+  }
+
+  export type RuleUpdateManyWithWhereWithoutUserInput = {
+    where: RuleScalarWhereInput
+    data: XOR<RuleUpdateManyMutationInput, RuleUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type RuleScalarWhereInput = {
+    AND?: RuleScalarWhereInput | RuleScalarWhereInput[]
+    OR?: RuleScalarWhereInput[]
+    NOT?: RuleScalarWhereInput | RuleScalarWhereInput[]
+    id?: StringFilter<"Rule"> | string
+    userId?: StringFilter<"Rule"> | string
+    name?: StringFilter<"Rule"> | string
+    enabled?: BoolFilter<"Rule"> | boolean
+    priority?: IntFilter<"Rule"> | number
+    matchType?: EnumRuleMatchTypeFilter<"Rule"> | $Enums.RuleMatchType
+    operator?: EnumRuleOperatorFilter<"Rule"> | $Enums.RuleOperator
+    value?: StringFilter<"Rule"> | string
+    categoryId?: StringFilter<"Rule"> | string
+    createdAt?: DateTimeFilter<"Rule"> | Date | string
+    updatedAt?: DateTimeFilter<"Rule"> | Date | string
+  }
+
   export type UserCreateWithoutWalletsInput = {
     id?: string
     email: string
@@ -20538,6 +22477,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    rules?: RuleCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutWalletsInput = {
@@ -20554,6 +22494,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    rules?: RuleUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutWalletsInput = {
@@ -20782,6 +22723,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    rules?: RuleUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutWalletsInput = {
@@ -20798,6 +22740,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutWalletInput = {
@@ -20878,6 +22821,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    rules?: RuleCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCategoriesInput = {
@@ -20894,6 +22838,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    rules?: RuleUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCategoriesInput = {
@@ -21049,6 +22994,42 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type RuleCreateWithoutCategoryInput = {
+    id?: string
+    name: string
+    enabled?: boolean
+    priority: number
+    matchType: $Enums.RuleMatchType
+    operator: $Enums.RuleOperator
+    value: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutRulesInput
+  }
+
+  export type RuleUncheckedCreateWithoutCategoryInput = {
+    id?: string
+    userId: string
+    name: string
+    enabled?: boolean
+    priority: number
+    matchType: $Enums.RuleMatchType
+    operator: $Enums.RuleOperator
+    value: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RuleCreateOrConnectWithoutCategoryInput = {
+    where: RuleWhereUniqueInput
+    create: XOR<RuleCreateWithoutCategoryInput, RuleUncheckedCreateWithoutCategoryInput>
+  }
+
+  export type RuleCreateManyCategoryInputEnvelope = {
+    data: RuleCreateManyCategoryInput | RuleCreateManyCategoryInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutCategoriesInput = {
     update: XOR<UserUpdateWithoutCategoriesInput, UserUncheckedUpdateWithoutCategoriesInput>
     create: XOR<UserCreateWithoutCategoriesInput, UserUncheckedCreateWithoutCategoriesInput>
@@ -21074,6 +23055,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    rules?: RuleUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCategoriesInput = {
@@ -21090,6 +23072,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutCategoryInput = {
@@ -21156,6 +23139,22 @@ export namespace Prisma {
     data: XOR<MerchantMappingUpdateManyMutationInput, MerchantMappingUncheckedUpdateManyWithoutCategoryInput>
   }
 
+  export type RuleUpsertWithWhereUniqueWithoutCategoryInput = {
+    where: RuleWhereUniqueInput
+    update: XOR<RuleUpdateWithoutCategoryInput, RuleUncheckedUpdateWithoutCategoryInput>
+    create: XOR<RuleCreateWithoutCategoryInput, RuleUncheckedCreateWithoutCategoryInput>
+  }
+
+  export type RuleUpdateWithWhereUniqueWithoutCategoryInput = {
+    where: RuleWhereUniqueInput
+    data: XOR<RuleUpdateWithoutCategoryInput, RuleUncheckedUpdateWithoutCategoryInput>
+  }
+
+  export type RuleUpdateManyWithWhereWithoutCategoryInput = {
+    where: RuleScalarWhereInput
+    data: XOR<RuleUpdateManyMutationInput, RuleUncheckedUpdateManyWithoutCategoryInput>
+  }
+
   export type UserCreateWithoutMerchantMappingsInput = {
     id?: string
     email: string
@@ -21170,6 +23169,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
+    rules?: RuleCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMerchantMappingsInput = {
@@ -21186,6 +23186,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    rules?: RuleUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMerchantMappingsInput = {
@@ -21205,6 +23206,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutCategoryInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutCategoryInput
     budgets?: BudgetCreateNestedManyWithoutCategoryInput
+    rules?: RuleCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUncheckedCreateWithoutMerchantMappingsInput = {
@@ -21219,6 +23221,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutCategoryInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutCategoryInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
+    rules?: RuleUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryCreateOrConnectWithoutMerchantMappingsInput = {
@@ -21251,6 +23254,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
+    rules?: RuleUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMerchantMappingsInput = {
@@ -21267,6 +23271,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type CategoryUpsertWithoutMerchantMappingsInput = {
@@ -21292,6 +23297,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutCategoryNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUpdateManyWithoutCategoryNestedInput
+    rules?: RuleUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateWithoutMerchantMappingsInput = {
@@ -21306,6 +23312,167 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutCategoryNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutCategoryNestedInput
+  }
+
+  export type UserCreateWithoutRulesInput = {
+    id?: string
+    email: string
+    name: string
+    avatarUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    wallets?: WalletCreateNestedManyWithoutUserInput
+    categories?: CategoryCreateNestedManyWithoutUserInput
+    transactions?: TransactionCreateNestedManyWithoutUserInput
+    installments?: InstallmentCreateNestedManyWithoutUserInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
+    budgets?: BudgetCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutRulesInput = {
+    id?: string
+    email: string
+    name: string
+    avatarUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
+    transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
+    budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutRulesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutRulesInput, UserUncheckedCreateWithoutRulesInput>
+  }
+
+  export type CategoryCreateWithoutRulesInput = {
+    id?: string
+    name: string
+    type: $Enums.CategoryType
+    icon?: string | null
+    color?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutCategoriesInput
+    transactions?: TransactionCreateNestedManyWithoutCategoryInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutCategoryInput
+    budgets?: BudgetCreateNestedManyWithoutCategoryInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutCategoryInput
+  }
+
+  export type CategoryUncheckedCreateWithoutRulesInput = {
+    id?: string
+    userId: string
+    name: string
+    type: $Enums.CategoryType
+    icon?: string | null
+    color?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionUncheckedCreateNestedManyWithoutCategoryInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutCategoryInput
+    budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutCategoryInput
+  }
+
+  export type CategoryCreateOrConnectWithoutRulesInput = {
+    where: CategoryWhereUniqueInput
+    create: XOR<CategoryCreateWithoutRulesInput, CategoryUncheckedCreateWithoutRulesInput>
+  }
+
+  export type UserUpsertWithoutRulesInput = {
+    update: XOR<UserUpdateWithoutRulesInput, UserUncheckedUpdateWithoutRulesInput>
+    create: XOR<UserCreateWithoutRulesInput, UserUncheckedCreateWithoutRulesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutRulesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutRulesInput, UserUncheckedUpdateWithoutRulesInput>
+  }
+
+  export type UserUpdateWithoutRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallets?: WalletUpdateManyWithoutUserNestedInput
+    categories?: CategoryUpdateManyWithoutUserNestedInput
+    transactions?: TransactionUpdateManyWithoutUserNestedInput
+    installments?: InstallmentUpdateManyWithoutUserNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
+    budgets?: BudgetUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
+    transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
+    budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type CategoryUpsertWithoutRulesInput = {
+    update: XOR<CategoryUpdateWithoutRulesInput, CategoryUncheckedUpdateWithoutRulesInput>
+    create: XOR<CategoryCreateWithoutRulesInput, CategoryUncheckedCreateWithoutRulesInput>
+    where?: CategoryWhereInput
+  }
+
+  export type CategoryUpdateToOneWithWhereWithoutRulesInput = {
+    where?: CategoryWhereInput
+    data: XOR<CategoryUpdateWithoutRulesInput, CategoryUncheckedUpdateWithoutRulesInput>
+  }
+
+  export type CategoryUpdateWithoutRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumCategoryTypeFieldUpdateOperationsInput | $Enums.CategoryType
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutCategoriesNestedInput
+    transactions?: TransactionUpdateManyWithoutCategoryNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutCategoryNestedInput
+    budgets?: BudgetUpdateManyWithoutCategoryNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutCategoryNestedInput
+  }
+
+  export type CategoryUncheckedUpdateWithoutRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumCategoryTypeFieldUpdateOperationsInput | $Enums.CategoryType
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUncheckedUpdateManyWithoutCategoryNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutCategoryNestedInput
+    budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type UserCreateWithoutTransactionsInput = {
@@ -21322,6 +23489,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    rules?: RuleCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -21338,6 +23506,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    rules?: RuleUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -21459,6 +23628,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutCategoryInput
     budgets?: BudgetCreateNestedManyWithoutCategoryInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutCategoryInput
+    rules?: RuleCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUncheckedCreateWithoutTransactionsInput = {
@@ -21473,6 +23643,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutCategoryInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutCategoryInput
+    rules?: RuleUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryCreateOrConnectWithoutTransactionsInput = {
@@ -21593,6 +23764,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    rules?: RuleUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -21609,6 +23781,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutTransactionsInput = {
@@ -21748,6 +23921,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUpdateManyWithoutCategoryNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutCategoryNestedInput
+    rules?: RuleUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateWithoutTransactionsInput = {
@@ -21762,6 +23936,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutCategoryNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type InstallmentUpsertWithoutTransactionsInput = {
@@ -21878,6 +24053,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    rules?: RuleCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutInstallmentsInput = {
@@ -21894,6 +24070,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    rules?: RuleUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutInstallmentsInput = {
@@ -22055,6 +24232,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    rules?: RuleUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutInstallmentsInput = {
@@ -22071,6 +24249,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutInstallmentsInput = {
@@ -22193,6 +24372,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    rules?: RuleCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutRecurringTransactionTemplatesInput = {
@@ -22209,6 +24389,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    rules?: RuleUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutRecurringTransactionTemplatesInput = {
@@ -22279,6 +24460,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutCategoryInput
     budgets?: BudgetCreateNestedManyWithoutCategoryInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutCategoryInput
+    rules?: RuleCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUncheckedCreateWithoutRecurringTransactionTemplatesInput = {
@@ -22293,6 +24475,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutCategoryInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutCategoryInput
+    rules?: RuleUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryCreateOrConnectWithoutRecurringTransactionTemplatesInput = {
@@ -22361,6 +24544,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    rules?: RuleUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutRecurringTransactionTemplatesInput = {
@@ -22377,6 +24561,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutRecurringTransactionTemplatesInput = {
@@ -22459,6 +24644,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUpdateManyWithoutCategoryNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutCategoryNestedInput
+    rules?: RuleUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateWithoutRecurringTransactionTemplatesInput = {
@@ -22473,6 +24659,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutCategoryNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type RecurringReminderEventUpsertWithWhereUniqueWithoutTemplateInput = {
@@ -22801,6 +24988,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    rules?: RuleCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSavingGoalsInput = {
@@ -22817,6 +25005,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    rules?: RuleUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSavingGoalsInput = {
@@ -22849,6 +25038,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    rules?: RuleUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSavingGoalsInput = {
@@ -22865,6 +25055,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutBudgetsInput = {
@@ -22881,6 +25072,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    rules?: RuleCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutBudgetsInput = {
@@ -22897,6 +25089,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    rules?: RuleUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutBudgetsInput = {
@@ -22916,6 +25109,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutCategoryInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutCategoryInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutCategoryInput
+    rules?: RuleCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUncheckedCreateWithoutBudgetsInput = {
@@ -22930,6 +25124,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutCategoryInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutCategoryInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutCategoryInput
+    rules?: RuleUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryCreateOrConnectWithoutBudgetsInput = {
@@ -22962,6 +25157,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    rules?: RuleUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBudgetsInput = {
@@ -22978,6 +25174,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type CategoryUpsertWithoutBudgetsInput = {
@@ -23003,6 +25200,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutCategoryNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutCategoryNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutCategoryNestedInput
+    rules?: RuleUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateWithoutBudgetsInput = {
@@ -23017,6 +25215,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutCategoryNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutCategoryNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutCategoryNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type WalletCreateManyUserInput = {
@@ -23136,6 +25335,19 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type RuleCreateManyUserInput = {
+    id?: string
+    name: string
+    enabled?: boolean
+    priority: number
+    matchType: $Enums.RuleMatchType
+    operator: $Enums.RuleOperator
+    value: string
+    categoryId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type WalletUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -23213,6 +25425,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUpdateManyWithoutCategoryNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutCategoryNestedInput
+    rules?: RuleUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateWithoutUserInput = {
@@ -23227,6 +25440,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutCategoryNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutCategoryNestedInput
+    rules?: RuleUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateManyWithoutUserInput = {
@@ -23506,6 +25720,45 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     merchantName?: StringFieldUpdateOperationsInput | string
     normalizedMerchant?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RuleUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    priority?: IntFieldUpdateOperationsInput | number
+    matchType?: EnumRuleMatchTypeFieldUpdateOperationsInput | $Enums.RuleMatchType
+    operator?: EnumRuleOperatorFieldUpdateOperationsInput | $Enums.RuleOperator
+    value?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    category?: CategoryUpdateOneRequiredWithoutRulesNestedInput
+  }
+
+  export type RuleUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    priority?: IntFieldUpdateOperationsInput | number
+    matchType?: EnumRuleMatchTypeFieldUpdateOperationsInput | $Enums.RuleMatchType
+    operator?: EnumRuleOperatorFieldUpdateOperationsInput | $Enums.RuleOperator
+    value?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RuleUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    priority?: IntFieldUpdateOperationsInput | number
+    matchType?: EnumRuleMatchTypeFieldUpdateOperationsInput | $Enums.RuleMatchType
+    operator?: EnumRuleOperatorFieldUpdateOperationsInput | $Enums.RuleOperator
+    value?: StringFieldUpdateOperationsInput | string
     categoryId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -23865,6 +26118,19 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type RuleCreateManyCategoryInput = {
+    id?: string
+    userId: string
+    name: string
+    enabled?: boolean
+    priority: number
+    matchType: $Enums.RuleMatchType
+    operator: $Enums.RuleOperator
+    value: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type TransactionUpdateWithoutCategoryInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -24021,6 +26287,45 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     merchantName?: StringFieldUpdateOperationsInput | string
     normalizedMerchant?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RuleUpdateWithoutCategoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    priority?: IntFieldUpdateOperationsInput | number
+    matchType?: EnumRuleMatchTypeFieldUpdateOperationsInput | $Enums.RuleMatchType
+    operator?: EnumRuleOperatorFieldUpdateOperationsInput | $Enums.RuleOperator
+    value?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutRulesNestedInput
+  }
+
+  export type RuleUncheckedUpdateWithoutCategoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    priority?: IntFieldUpdateOperationsInput | number
+    matchType?: EnumRuleMatchTypeFieldUpdateOperationsInput | $Enums.RuleMatchType
+    operator?: EnumRuleOperatorFieldUpdateOperationsInput | $Enums.RuleOperator
+    value?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RuleUncheckedUpdateManyWithoutCategoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    priority?: IntFieldUpdateOperationsInput | number
+    matchType?: EnumRuleMatchTypeFieldUpdateOperationsInput | $Enums.RuleMatchType
+    operator?: EnumRuleOperatorFieldUpdateOperationsInput | $Enums.RuleOperator
+    value?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

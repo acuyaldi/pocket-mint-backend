@@ -11,6 +11,7 @@ import { createCategorizationService } from '../../src/services/categorization.s
 function makeDb(
   categories: Array<{ id: string; name: string; type: string }> = [],
   mapping: any = null,
+  rules: any[] = [],
 ) {
   return {
     category: {
@@ -20,6 +21,9 @@ function makeDb(
     },
     merchantMapping: {
       findFirst: vi.fn(async () => mapping),
+    },
+    rule: {
+      findMany: vi.fn(async () => rules),
     },
   };
 }
@@ -119,6 +123,89 @@ describe('categorization service', () => {
     const service = createCategorizationService(db as any);
     const suggestions = await service.getSuggestions('user-1', 'xyz abc unknown', 'EXPENSE');
     expect(suggestions).toEqual([]);
+  });
+
+  describe('rule engine precedence (Phase 20)', () => {
+    function makeRule(over: Record<string, unknown> = {}) {
+      return {
+        id: 'rule-1',
+        name: 'Gopay → Transport',
+        enabled: true,
+        priority: 0,
+        matchType: 'DESCRIPTION',
+        operator: 'CONTAINS',
+        value: 'GOPAY',
+        category: { id: 'cat-transportasi', name: 'Transportasi' },
+        ...over,
+      };
+    }
+
+    it('returns the rule match and skips merchant mapping and keyword matching entirely', async () => {
+      const mapping = { merchantName: 'Gopay', category: { id: 'cat-other', name: 'Other' } };
+      const db = makeDb(allCategories, mapping, [makeRule()]);
+      const service = createCategorizationService(db as any);
+      const suggestions = await service.getSuggestions('user-1', 'top up gopay 50rb', 'EXPENSE');
+
+      expect(suggestions).toEqual([{
+        categoryId: 'cat-transportasi',
+        categoryName: 'Transportasi',
+        confidence: 'HIGH',
+        reason: 'Matched by rule: "Gopay → Transport"',
+        matchedKeyword: 'Gopay → Transport',
+        normalizedMerchant: 'top up gopay 50rb',
+      }]);
+      expect(db.merchantMapping.findFirst).not.toHaveBeenCalled();
+      expect(db.category.findMany).not.toHaveBeenCalled();
+    });
+
+    it('queries only this user\'s enabled rules for the matching category type, ordered by priority', async () => {
+      const db = makeDb(allCategories, null, []);
+      const service = createCategorizationService(db as any);
+      await service.getSuggestions('user-1', 'top up gopay', 'EXPENSE');
+
+      expect(db.rule.findMany).toHaveBeenCalledWith({
+        where: { userId: 'user-1', enabled: true, category: { type: 'EXPENSE' } },
+        orderBy: { priority: 'asc' },
+        include: { category: true },
+      });
+    });
+
+    it('falls back to merchant mapping when no rule matches', async () => {
+      const mapping = { merchantName: 'Warung Bu Siti', category: { id: 'cat-custom', name: 'Custom Category' } };
+      const db = makeDb(allCategories, mapping, [makeRule({ value: 'SOMETHING ELSE' })]);
+      const service = createCategorizationService(db as any);
+      const suggestions = await service.getSuggestions('user-1', 'Warung Bu Siti', 'EXPENSE');
+
+      expect(suggestions[0].categoryName).toBe('Custom Category');
+      expect(db.merchantMapping.findFirst).toHaveBeenCalled();
+    });
+
+    it('falls back to keyword matching when no rule and no merchant mapping match', async () => {
+      const db = makeDb(allCategories, null, [makeRule({ value: 'SOMETHING ELSE' })]);
+      const service = createCategorizationService(db as any);
+      const suggestions = await service.getSuggestions('user-1', 'INDOMARET #123', 'EXPENSE');
+
+      expect(suggestions[0].categoryName).toBe('Belanja');
+      expect(db.category.findMany).toHaveBeenCalled();
+    });
+
+    it('the first matching rule wins over a second, lower-priority matching rule', async () => {
+      const rules = [
+        makeRule({ id: 'rule-a', value: 'GOPAY', category: { id: 'cat-a', name: 'A' } }),
+        makeRule({ id: 'rule-b', value: 'GO', category: { id: 'cat-b', name: 'B' } }),
+      ];
+      const db = makeDb(allCategories, null, rules);
+      const service = createCategorizationService(db as any);
+      const suggestions = await service.getSuggestions('user-1', 'GOPAY topup', 'EXPENSE');
+      expect(suggestions[0].categoryId).toBe('cat-a');
+    });
+
+    it('a disabled rule is never fetched (enabled: true filter)', async () => {
+      const db = makeDb(allCategories, null, []);
+      const service = createCategorizationService(db as any);
+      await service.getSuggestions('user-1', 'gopay', 'EXPENSE');
+      expect(db.rule.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ enabled: true }) }));
+    });
   });
 
   describe('merchant mapping precedence (Phase 19)', () => {
