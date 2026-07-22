@@ -28,9 +28,9 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
     const category = await resources!.prisma.category.create({ data: { userId: user.id, name: 'Food', type: 'EXPENSE', icon: 'food', color: '#000000' } });
     return { user, wallet, category };
   }
-  function app() {
+  function app(clock?: () => Date) {
     const conversations = createAssistantConversationService(resources!.prisma);
-    const drafts = createAssistantFinancialDraftService(resources!.prisma, createTransactionService(resources!.prisma));
+    const drafts = createAssistantFinancialDraftService(resources!.prisma, createTransactionService(resources!.prisma), clock);
     const registry = new ToolRegistry(); registry.register(monthlySpendingSummary); registry.register(transactionCreate);
     const application = createAssistantApplicationService({ conversations, toolRegistry: registry, handlerRegistry: new Map(), financialDrafts: drafts });
     const controllers = createAssistantControllers(application, conversations, drafts);
@@ -68,6 +68,52 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
     const responses = await Promise.all(Array.from({ length: 6 }, (_, index) => request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', `concurrent-${index}`)));
     expect(responses.every((response) => response.status === 200)).toBe(true);
     expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(1);
+  });
+
+  it('replays six concurrent confirmations using the same key', async () => {
+    const { user, wallet, category } = await fixture('concurrent-same-key'); const server = app();
+    const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+    const draftId = prepared.body.data.data.draftId;
+    const responses = await Promise.all(Array.from({ length: 6 }, () => request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'one-concurrent-key')));
+    expect(responses.every((response) => response.status === 200)).toBe(true);
+    expect(new Set(responses.map((response) => response.body.data.transactionId)).size).toBe(1);
+    expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(1);
+  });
+
+  it('binds one concurrently reused key to at most one of two drafts', async () => {
+    const { user, wallet, category } = await fixture('concurrent-cross-draft'); const server = app();
+    const [first, second] = await Promise.all([
+      request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id)),
+      request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id)),
+    ]);
+    const responses = await Promise.all([first, second].map((prepared) => request(server).post(`/drafts/${prepared.body.data.data.draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'cross-draft-key')));
+    expect(responses.map((response) => response.status).sort()).toEqual([200, 409]);
+    expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(1);
+    expect(await resources!.prisma.assistantFinancialDraft.count({ where: { userId: user.id, status: 'PENDING_CONFIRMATION' } })).toBe(1);
+  });
+
+  it.each([
+    ['one millisecond before expiry', -1, 200, 'COMMITTED'],
+    ['exactly at expiry', 0, 409, 'EXPIRED'],
+    ['one millisecond after expiry', 1, 409, 'EXPIRED'],
+  ])('enforces expiry %s using the server clock', async (_label, offsetMs, expectedHttp, expectedStatus) => {
+    const { user, wallet, category } = await fixture(`expiry-${offsetMs}`);
+    const prepared = await request(app()).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+    const draftId = prepared.body.data.data.draftId;
+    const draft = await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } });
+    const server = app(() => new Date(draft.expiresAt.getTime() + offsetMs));
+    const response = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', `expiry-${offsetMs}`);
+    expect(response.status).toBe(expectedHttp);
+    expect((await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status).toBe(expectedStatus);
+    expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(offsetMs < 0 ? 1 : 0);
+  });
+
+  it('prevents deleting the authoritative transaction behind a committed draft', async () => {
+    const { user, wallet, category } = await fixture('delete-restrict'); const server = app();
+    const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+    const draftId = prepared.body.data.data.draftId;
+    const confirmed = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'delete-restrict-key');
+    await expect(resources!.prisma.transaction.delete({ where: { id: confirmed.body.data.transactionId } })).rejects.toMatchObject({ cause: { code: '23001' } });
   });
 
   it('rejects cross-user confirmation without revealing ownership', async () => {

@@ -15,6 +15,13 @@ const errors_1 = require("./errors");
 const TRANSACTION_KEYS = new Set(['type', 'amount', 'walletId', 'categoryId', 'date', 'description']);
 const MONEY_RE = /^(?:0|[1-9]\d{0,12})(?:\.\d{1,2})?$/;
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+function isCalendarDay(value) {
+    if (!DAY_RE.test(value))
+        return false;
+    const [year, month, day] = value.split('-').map(Number);
+    const parsed = new Date(Date.UTC(year, month - 1, day));
+    return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day;
+}
 function validateTransactionCreateInput(input) {
     if (typeof input !== 'object' || input === null || Array.isArray(input)) {
         throw errors_1.AssistantError.invalidInput('transaction.create', 'Input must be a non-null object');
@@ -26,7 +33,7 @@ function validateTransactionCreateInput(input) {
     if (value.type !== 'INCOME' && value.type !== 'EXPENSE') {
         throw errors_1.AssistantError.invalidInput('transaction.create', 'type must be INCOME or EXPENSE');
     }
-    const amount = typeof value.amount === 'number' ? String(value.amount) : value.amount;
+    const amount = value.amount;
     if (typeof amount !== 'string' || !MONEY_RE.test(amount) || amount === '0' || /^0(?:\.0{1,2})?$/.test(amount)) {
         throw errors_1.AssistantError.invalidInput('transaction.create', 'amount must be a positive decimal with at most two fraction digits');
     }
@@ -35,10 +42,10 @@ function validateTransactionCreateInput(input) {
             throw errors_1.AssistantError.invalidInput('transaction.create', `${key} must be a non-empty bounded string`);
         }
     }
-    if (typeof value.date !== 'string' || !DAY_RE.test(value.date) || Number.isNaN(Date.parse(`${value.date}T00:00:00Z`))) {
+    if (typeof value.date !== 'string' || !isCalendarDay(value.date)) {
         throw errors_1.AssistantError.invalidInput('transaction.create', 'date must be a valid YYYY-MM-DD day');
     }
-    if (value.description !== undefined && (typeof value.description !== 'string' || value.description.length > 500)) {
+    if (value.description !== undefined && (typeof value.description !== 'string' || !value.description.trim() || value.description.length > 500)) {
         throw errors_1.AssistantError.invalidInput('transaction.create', 'description must be at most 500 characters');
     }
     return {
@@ -47,7 +54,7 @@ function validateTransactionCreateInput(input) {
         walletId: value.walletId,
         categoryId: value.categoryId,
         date: value.date,
-        ...(value.description === undefined ? {} : { description: value.description }),
+        ...(value.description === undefined ? {} : { description: value.description.trim() }),
     };
 }
 // ---- Validation helpers ----------------------------------------------------

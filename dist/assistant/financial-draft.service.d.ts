@@ -1,7 +1,7 @@
 import { type PrismaClient } from '../generated/prisma/client';
 import type { TransactionService } from '../services/transaction.service';
 import type { TransactionCreateInput } from './tools';
-export declare function createAssistantFinancialDraftService(db: PrismaClient, transactions: TransactionService): {
+export declare function createAssistantFinancialDraftService(db: PrismaClient, transactions: TransactionService, clock?: () => Date): {
     prepare: (input: TransactionCreateInput & {
         userId: string;
         conversationId: string;

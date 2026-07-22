@@ -14,7 +14,7 @@ function preview(input: TransactionCreateInput) {
   return { type: input.type, amount: input.amount, walletId: input.walletId, categoryId: input.categoryId, date: input.date, ...(input.description === undefined ? {} : { description: input.description }) };
 }
 
-export function createAssistantFinancialDraftService(db: PrismaClient, transactions: TransactionService) {
+export function createAssistantFinancialDraftService(db: PrismaClient, transactions: TransactionService, clock: () => Date = () => new Date()) {
   async function prepare(input: TransactionCreateInput & { userId: string; conversationId: string; turnId: string; executionId: string; now?: Date }) {
     const wallet = await db.wallet.findFirst({ where: { id: input.walletId, userId: input.userId }, select: { id: true } });
     const category = await db.category.findFirst({ where: { id: input.categoryId, userId: input.userId, type: input.type }, select: { id: true } });
@@ -40,20 +40,21 @@ export function createAssistantFinancialDraftService(db: PrismaClient, transacti
         let draft = await tx.assistantFinancialDraft.findFirst({ where: { id: draftId, userId } });
         if (!draft) throw AssistantError.draftNotFound();
         if (draft.status === 'COMMITTED' && draft.transactionId) return committedResult(draft);
-        if (draft.status === 'PENDING_CONFIRMATION' && draft.expiresAt <= new Date()) {
+        const now = clock();
+        if (draft.status === 'PENDING_CONFIRMATION' && draft.expiresAt <= now) {
           draft = await tx.assistantFinancialDraft.update({ where: { id: draft.id }, data: { status: 'EXPIRED' } });
           return { error: AssistantError.draftConflict('EXPIRED') } as const;
         }
         if (draft.status !== 'PENDING_CONFIRMATION') throw AssistantError.draftConflict(draft.status);
 
-        const now = new Date();
         const turn = await tx.assistantTurn.create({ data: { conversationId: draft.conversationId, correlationId, intent: CONFIRM_INTENT, locale: 'id-ID', status: 'RUNNING' } });
         await tx.assistantMessage.create({ data: { conversationId: draft.conversationId, turnId: turn.id, role: 'USER', source: 'CANONICAL_FALLBACK', content: `Konfirmasi draft transaksi ${draft.id}.` } });
         const execution = await tx.assistantToolExecution.create({ data: { conversationId: draft.conversationId, turnId: turn.id, toolId: CONFIRM_INTENT, capability: 'transaction.create', riskLevel: 'HIGH', policyDecision: 'EXPLICITLY_CONFIRMED', status: 'RUNNING', correlationId, idempotencyKey: key, redactedInput: { draftId: draft.id } } });
         if (!existingKey) await tx.assistantIdempotencyRecord.create({ data: { userId, draftId, operation: CONFIRM_INTENT, key } });
 
         const created = await transactions.createTransaction({ userId, type: draft.transactionType, amount: draft.amount, walletId: draft.walletId, categoryId: draft.categoryId, date: draft.transactionDate.toISOString(), description: draft.description ?? undefined }, { transaction: tx });
-        await tx.assistantFinancialDraft.update({ where: { id: draft.id }, data: { status: 'COMMITTED', committedAt: now, transactionId: created.id } });
+        const claimed = await tx.assistantFinancialDraft.updateMany({ where: { id: draft.id, userId, status: 'PENDING_CONFIRMATION', transactionId: null }, data: { status: 'COMMITTED', committedAt: now, transactionId: created.id } });
+        if (claimed.count !== 1) throw AssistantError.draftConflict('TERMINAL');
         await tx.assistantIdempotencyRecord.update({ where: { userId_key: { userId, key } }, data: { transactionId: created.id } });
         const content = `Draft ${draft.id} dikonfirmasi. Transaksi ${created.id} berhasil dibuat.`;
         await tx.assistantMessage.create({ data: { conversationId: draft.conversationId, turnId: turn.id, role: 'ASSISTANT', source: 'DETERMINISTIC_RENDERER', content } });
@@ -66,6 +67,10 @@ export function createAssistantFinancialDraftService(db: PrismaClient, transacti
       return result;
     } catch (error) {
       if (error instanceof AssistantError) throw error;
+      if ((error as { code?: string }).code === 'P2002') {
+        const existingKey = await db.assistantIdempotencyRecord.findUnique({ where: { userId_key: { userId, key } }, select: { draftId: true } });
+        if (existingKey && existingKey.draftId !== draftId) throw AssistantError.idempotencyConflict();
+      }
       if (error instanceof TransactionError) {
         await db.$transaction(async (tx) => {
           const draft = await tx.assistantFinancialDraft.findFirst({ where: { id: draftId, userId, status: 'PENDING_CONFIRMATION' } });
@@ -92,12 +97,12 @@ export function createAssistantFinancialDraftService(db: PrismaClient, transacti
       let draft = await tx.assistantFinancialDraft.findFirst({ where: { id: draftId, userId } });
       if (!draft) throw AssistantError.draftNotFound();
       if (draft.status === 'CANCELLED') return cancelledResult(draft);
-      if (draft.status === 'PENDING_CONFIRMATION' && draft.expiresAt <= new Date()) {
+      const now = clock();
+      if (draft.status === 'PENDING_CONFIRMATION' && draft.expiresAt <= now) {
         draft = await tx.assistantFinancialDraft.update({ where: { id: draft.id }, data: { status: 'EXPIRED' } });
         return { draftId: draft.id, status: 'EXPIRED' as const, conversationId: draft.conversationId };
       }
       if (draft.status !== 'PENDING_CONFIRMATION') throw AssistantError.draftConflict(draft.status);
-      const now = new Date();
       const turn = await tx.assistantTurn.create({ data: { conversationId: draft.conversationId, correlationId, intent: CANCEL_INTENT, locale: 'id-ID', status: 'SUCCEEDED', finishedAt: now } });
       await tx.assistantMessage.createMany({ data: [
         { conversationId: draft.conversationId, turnId: turn.id, role: 'USER', source: 'CANONICAL_FALLBACK', content: `Batalkan draft transaksi ${draft.id}.` },

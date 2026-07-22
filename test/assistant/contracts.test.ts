@@ -91,7 +91,10 @@ describe('transaction.create input validation', () => {
 
   it.each([
     [{ ...valid, amount: 0 }],
+    [{ ...valid, amount: 1.25 }],
     [{ ...valid, amount: '1.234' }],
+    [{ ...valid, date: '2026-02-30' }],
+    [{ ...valid, description: '   ' }],
     [{ ...valid, type: 'TRANSFER' }],
     [{ ...valid, userId: 'attacker' }],
     [{ ...valid, balance: 999 }],

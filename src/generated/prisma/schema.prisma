@@ -177,7 +177,7 @@ model AssistantFinancialDraft {
   conversation         AssistantConversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   originatingTurn      AssistantTurn                @relation(fields: [originatingTurnId], references: [id], onDelete: Cascade)
   originatingExecution AssistantToolExecution       @relation(fields: [originatingExecutionId], references: [id], onDelete: Cascade)
-  transaction          Transaction?                 @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  transaction          Transaction?                 @relation(fields: [transactionId], references: [id], onDelete: Restrict)
   idempotencyRecords   AssistantIdempotencyRecord[]
 
   @@index([userId, status, expiresAt])
@@ -196,7 +196,7 @@ model AssistantIdempotencyRecord {
 
   user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   draft       AssistantFinancialDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
-  transaction Transaction?            @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  transaction Transaction?            @relation(fields: [transactionId], references: [id], onDelete: Restrict)
 
   @@unique([userId, key])
   @@index([draftId])
