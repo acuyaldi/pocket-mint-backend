@@ -30,7 +30,10 @@ const errorHandler = (err, _req, res, next) => {
     const statusCode = typeof err.statusCode === 'number' ? err.statusCode : 500;
     const isOperational = statusCode < 500;
     const code = codeForStatus(statusCode);
-    const requestId = (0, crypto_1.randomUUID)();
+    // Prefer the incoming correlation ID set by correlationMiddleware so the
+    // same ID flows through success and error paths; fall back to a fresh UUID
+    // when the middleware was not loaded (e.g. test harness without it).
+    const requestId = _req.correlationId ?? (0, crypto_1.randomUUID)();
     // Operational errors carry a safe, intentional message. Unexpected errors
     // reveal nothing internal in production; in development the real message is
     // returned to aid debugging (never a secret — messages are not credentials).

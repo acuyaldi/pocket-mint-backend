@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.assistantRouter = void 0;
+const express_1 = require("express");
+const assistant_controller_1 = require("../controllers/assistant.controller");
+const apiKeyAuth_1 = require("../middleware/apiKeyAuth");
+const assistantRouter = (0, express_1.Router)();
+exports.assistantRouter = assistantRouter;
+// All Assistant endpoints require a verified user — the
+// authenticated userId is the sole identity source.
+assistantRouter.post('/execute', apiKeyAuth_1.requireUser, assistant_controller_1.assistantExecute);
+//# sourceMappingURL=assistantRoutes.js.map

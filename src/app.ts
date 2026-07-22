@@ -7,6 +7,10 @@ import { errorHandler } from './middlewares/error.middleware';
 import { trustProxy, rateLimitConfig } from './config';
 import { generalLimiter } from './middleware/rateLimit';
 import { corsMiddleware } from './middleware/cors';
+import { correlationMiddleware } from './http/correlation';
+
+// Side-effect import: populates the tool registry at startup.
+import './assistant/bootstrap';
 
 const app = express();
 
@@ -17,6 +21,7 @@ app.set('trust proxy', trustProxy);
 // --------------- Middleware ---------------
 app.use(helmet());
 app.use(corsMiddleware);
+app.use(correlationMiddleware);
 app.use(morgan('dev'));
 
 // --------------- Rate limiting ---------------

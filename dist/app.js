@@ -11,6 +11,9 @@ const error_middleware_1 = require("./middlewares/error.middleware");
 const config_1 = require("./config");
 const rateLimit_1 = require("./middleware/rateLimit");
 const cors_1 = require("./middleware/cors");
+const correlation_1 = require("./http/correlation");
+// Side-effect import: populates the tool registry at startup.
+require("./assistant/bootstrap");
 const app = (0, express_1.default)();
 // Trust proxy governs how req.ip is derived (and thus rate-limit keying).
 // Defaults to false; set TRUST_PROXY to the reverse-proxy hop count in prod.
@@ -18,6 +21,7 @@ app.set('trust proxy', config_1.trustProxy);
 // --------------- Middleware ---------------
 app.use((0, helmet_1.default)());
 app.use(cors_1.corsMiddleware);
+app.use(correlation_1.correlationMiddleware);
 app.use((0, morgan_1.default)('dev'));
 // --------------- Rate limiting ---------------
 // PRE-AUTH layer: the general limiter runs before body parsing and before
