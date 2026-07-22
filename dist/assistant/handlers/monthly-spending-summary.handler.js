@@ -66,7 +66,7 @@ async function handleMonthlySpendingSummary(input, ctx) {
         totalIncome: num(summary.income),
         totalExpense: num(summary.expenses),
         netSavings: num(summary.netSavings),
-        transactionCount: categories.categories.reduce((sum, c) => sum + c.transactionCount, 0),
+        transactionCount: summary.transactionCount,
         topCategories,
     };
 }

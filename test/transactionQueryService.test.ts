@@ -192,8 +192,8 @@ describe('transactionQueryService.getSummary', () => {
   it('sums income and expense, excludes transfers, and nets with Decimal arithmetic', async () => {
     const { transaction } = makeDb({
       groupBy: [
-        { type: 'INCOME', _sum: { amount: D('10.20') } },
-        { type: 'EXPENSE', _sum: { amount: D('0.10') } },
+        { type: 'INCOME', _sum: { amount: D('10.20') }, _count: { _all: 1 } },
+        { type: 'EXPENSE', _sum: { amount: D('0.10') }, _count: { _all: 2 } },
       ],
     });
     const result = await svc({ transaction }).getSummary({ userId: 'u1', month: 7, year: 2026 });

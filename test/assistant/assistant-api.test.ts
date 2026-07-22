@@ -67,6 +67,7 @@ describe('POST /v1/assistant/execute — auth', () => {
       income: D(5_000_000),
       expenses: D(3_000_000),
       netSavings: D(2_000_000),
+      transactionCount: 10,
       month: '2026-07',
     });
     h.getCategoryBreakdown.mockResolvedValue({
@@ -154,6 +155,7 @@ describe('POST /v1/assistant/execute — input validation', () => {
       income: D(1_000_000),
       expenses: D(500_000),
       netSavings: D(500_000),
+      transactionCount: 5,
       month: '2026-07',
     });
     h.getCategoryBreakdown.mockResolvedValue({
@@ -189,6 +191,7 @@ describe('POST /v1/assistant/execute — success', () => {
       income: D(10_000_000),
       expenses: D(4_000_000),
       netSavings: D(6_000_000),
+      transactionCount: 15,
       month: '2026-07',
     });
     h.getCategoryBreakdown.mockResolvedValue({
@@ -230,6 +233,7 @@ describe('POST /v1/assistant/execute — success', () => {
       income: D(1_000),
       expenses: D(500),
       netSavings: D(500),
+      transactionCount: 2,
       month: '2026-07',
     });
     h.getCategoryBreakdown.mockResolvedValue({

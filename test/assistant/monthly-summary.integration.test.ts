@@ -5,12 +5,18 @@
 // ownership isolation, Jakarta month boundaries, Decimal
 // serialization, and the handler's contract with existing
 // domain services.
+//
+// IMPORTANT: The handler uses the default Prisma singleton
+// (bound to DATABASE_URL). When running against a disposable
+// PostgreSQL, DATABASE_URL must point to the SAME database as
+// TEST_DATABASE_URL. The integration-test runner script sets
+// both; in CI the job-level env provides both. Running vitest
+// directly without DATABASE_URL set will cause the handler to
+// query the wrong database.
 // ============================================================
 import { afterAll, afterEach, describe, expect, it } from 'vitest';
 import { createPrismaResources } from '../../src/lib/prismaFactory';
 import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
-import { createTransactionQueryService } from '../../src/services/transaction-query.service';
-import { createAnalyticsCategoriesService } from '../../src/services/analytics-categories.service';
 import { handleMonthlySpendingSummary } from '../../src/assistant/handlers/monthly-spending-summary.handler';
 import type { ExecutionContext } from '../../src/assistant';
 
@@ -42,8 +48,13 @@ describe.skipIf(!TEST_DATABASE_URL)(
       return user.id;
     }
 
+    // Cleanup: delete in reverse-dependency order so FK constraints don't fail.
     afterEach(async () => {
       if (createdUserIds.length === 0) return;
+      await db().transaction.deleteMany({ where: { userId: { in: createdUserIds } } });
+      await db().budget.deleteMany({ where: { userId: { in: createdUserIds } } });
+      await db().category.deleteMany({ where: { userId: { in: createdUserIds } } });
+      await db().wallet.deleteMany({ where: { userId: { in: createdUserIds } } });
       await db().user.deleteMany({ where: { id: { in: createdUserIds } } });
       createdUserIds = [];
     });
@@ -147,7 +158,7 @@ describe.skipIf(!TEST_DATABASE_URL)(
       expect(result.topCategories).toHaveLength(0);
     });
 
-    it('enforces ownership isolation — only returns the authenticated user’s data', async () => {
+    it('enforces ownership isolation — only returns the authenticated user\'s data', async () => {
       const userA = await createUser('owner-a');
       const userB = await createUser('owner-b');
       const walletA = await createWallet(userA);
