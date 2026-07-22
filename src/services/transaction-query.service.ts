@@ -162,16 +162,19 @@ export function createTransactionQueryService(db: TransactionQueryPrismaClient) 
         date: { gte: range.startInclusive, lt: range.endExclusive },
       },
       _sum: { amount: true },
+      _count: { _all: true },
     });
 
     const sumFor = (t: string): Prisma.Decimal => sums.find((s) => s.type === t)?._sum.amount ?? new Prisma.Decimal(0);
     const income = sumFor('INCOME');
     const expenses = sumFor('EXPENSE');
+    const transactionCount = sums.reduce((count, s) => count + s._count._all, 0);
 
     return {
       income,
       expenses,
       netSavings: income.minus(expenses),
+      transactionCount,
       month: `${year}-${String(month).padStart(2, '0')}`,
     };
   }

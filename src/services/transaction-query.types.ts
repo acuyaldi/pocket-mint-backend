@@ -69,6 +69,8 @@ export interface TransactionSummaryResult {
   income: Prisma.Decimal;
   expenses: Prisma.Decimal;
   netSavings: Prisma.Decimal;
+  /** Total INCOME + EXPENSE transactions for the month (excluding TRANSFERs). */
+  transactionCount: number;
   /** Canonical `YYYY-MM` label for the reporting month that was summarized. */
   month: string;
 }

@@ -24,6 +24,9 @@ export const corsOptions: CorsOptions = {
   // `Authorization: Bearer <jwt>`; the retired legacy identity headers
   // (x-api-key / x-user-id / x-user-email) are no longer accepted.
   allowedHeaders: ['Authorization', 'Content-Type'],
+  // Browser clients need explicit permission to read the correlation ID
+  // header that the correlation middleware sets on every response.
+  exposedHeaders: ['X-Correlation-Id'],
   credentials: false,
   optionsSuccessStatus: 204,
 };

@@ -11,6 +11,7 @@ import { savingGoalRouter } from './savingGoal.routes';
 import { budgetRouter } from './budgetRoutes';
 import { analyticsRouter } from './analyticsRoutes';
 import { merchantMappingRouter } from './merchantMappingRoutes';
+import { assistantRouter } from './assistantRoutes';
 
 const router = Router();
 
@@ -28,5 +29,6 @@ router.use('/v1/saving-goals', savingGoalRouter);
 router.use('/v1/budgets', budgetRouter);
 router.use('/v1/analytics', analyticsRouter);
 router.use('/v1/merchant-mappings', merchantMappingRouter);
+router.use('/v1/assistant', assistantRouter);
 
 export { router };
