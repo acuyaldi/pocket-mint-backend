@@ -104,4 +104,16 @@ export class AssistantError extends Error {
       'ASSISTANT_UNSUPPORTED_INTENT',
     );
   }
+
+  static invalidRequest(detail: string): AssistantError {
+    return new AssistantError(`Invalid Assistant request: ${detail}`, 400, 'ASSISTANT_INVALID_REQUEST');
+  }
+
+  static conversationNotFound(): AssistantError {
+    return new AssistantError('Conversation not found', 404, 'ASSISTANT_CONVERSATION_NOT_FOUND');
+  }
+
+  static conversationNotContinuable(): AssistantError {
+    return new AssistantError('Conversation cannot be continued', 409, 'ASSISTANT_CONVERSATION_NOT_CONTINUABLE');
+  }
 }

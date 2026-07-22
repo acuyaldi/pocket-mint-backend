@@ -37,8 +37,133 @@ model User {
   savingGoals                   SavingGoal[]
   budgets                       Budget[]
   merchantMappings              MerchantMapping[]
+  assistantConversations        AssistantConversation[]
 
   @@map("users")
+}
+
+enum AssistantConversationStatus {
+  ACTIVE
+  ARCHIVED
+  EXPIRED
+}
+
+enum AssistantTurnStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+  REJECTED
+  CLARIFICATION_REQUIRED
+}
+
+enum AssistantMessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum AssistantMessageSource {
+  USER_PROVIDED
+  CANONICAL_FALLBACK
+  SAFE_REQUEST_SUMMARY
+  DETERMINISTIC_RENDERER
+  SAFE_ERROR
+}
+
+enum AssistantToolExecutionStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+  TIMED_OUT
+  DENIED
+}
+
+model AssistantConversation {
+  id             String                      @id @default(cuid())
+  userId         String                      @map("user_id")
+  status         AssistantConversationStatus @default(ACTIVE)
+  locale         String                      @default("id-ID")
+  createdAt      DateTime                    @default(now()) @map("created_at")
+  updatedAt      DateTime                    @updatedAt @map("updated_at")
+  lastActivityAt DateTime                    @default(now()) @map("last_activity_at")
+  archivedAt     DateTime?                   @map("archived_at")
+
+  user           User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  turns          AssistantTurn[]
+  messages       AssistantMessage[]
+  toolExecutions AssistantToolExecution[]
+
+  @@index([userId, lastActivityAt, id])
+  @@index([userId, status, lastActivityAt])
+  @@map("assistant_conversations")
+}
+
+model AssistantTurn {
+  id             String              @id @default(cuid())
+  conversationId String              @map("conversation_id")
+  correlationId  String              @unique @map("correlation_id")
+  status         AssistantTurnStatus @default(PENDING)
+  intent         String
+  locale         String
+  safeErrorCode  String?             @map("safe_error_code")
+  startedAt      DateTime            @default(now()) @map("started_at")
+  finishedAt     DateTime?           @map("finished_at")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  conversation   AssistantConversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  messages       AssistantMessage[]
+  toolExecutions AssistantToolExecution[]
+
+  @@index([conversationId, createdAt, id])
+  @@index([status, startedAt])
+  @@map("assistant_turns")
+}
+
+model AssistantMessage {
+  id             String                 @id @default(cuid())
+  conversationId String                 @map("conversation_id")
+  turnId         String                 @map("turn_id")
+  role           AssistantMessageRole
+  source         AssistantMessageSource
+  content        String
+  createdAt      DateTime               @default(now()) @map("created_at")
+
+  conversation AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  turn         AssistantTurn         @relation(fields: [turnId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt, id])
+  @@index([turnId])
+  @@map("assistant_messages")
+}
+
+model AssistantToolExecution {
+  id             String                       @id @default(cuid())
+  conversationId String                       @map("conversation_id")
+  turnId         String                       @map("turn_id")
+  toolId         String                       @map("tool_id")
+  capability     String
+  riskLevel      String                       @map("risk_level")
+  policyDecision String                       @map("policy_decision")
+  status         AssistantToolExecutionStatus @default(PENDING)
+  correlationId  String                       @map("correlation_id")
+  startedAt      DateTime                     @default(now()) @map("started_at")
+  completedAt    DateTime?                    @map("completed_at")
+  durationMs     Int?                         @map("duration_ms")
+  safeErrorCode  String?                      @map("safe_error_code")
+  redactedInput  Json?                        @map("redacted_input")
+  outputSummary  Json?                        @map("output_summary")
+  idempotencyKey String?                      @map("idempotency_key")
+
+  conversation AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  turn         AssistantTurn         @relation(fields: [turnId], references: [id], onDelete: Cascade)
+
+  @@index([turnId, startedAt])
+  @@index([conversationId, startedAt])
+  @@index([correlationId])
+  @@map("assistant_tool_executions")
 }
 
 // ─────────────────────────────────────────────

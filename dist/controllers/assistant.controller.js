@@ -1,106 +1,82 @@
 "use strict";
-// ============================================================
-// Assistant controller
-// ------------------------------------------------------------
-// Thin HTTP mapping over Assistant Core. Accepts a canonical
-// request (not a provider-specific payload), resolves through
-// the deterministic pipeline, and returns the canonical
-// response envelope. Uses existing auth, error handling, and
-// response utilities unchanged.
-// ============================================================
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.assistantExecute = assistantExecute;
+exports.archiveAssistantConversation = exports.getAssistantConversation = exports.listAssistantConversations = exports.assistantExecute = void 0;
+exports.createAssistantControllers = createAssistantControllers;
 const authContext_1 = require("../http/authContext");
-const response_1 = require("../utils/response");
 const forwardError_1 = require("../http/forwardError");
-const intent_1 = require("../assistant/intent");
-const executor_1 = require("../assistant/executor");
-const renderer_1 = require("../assistant/renderer");
+const response_1 = require("../utils/response");
 const bootstrap_1 = require("../assistant/bootstrap");
-/** Structural guard for the request body. */
-function isCanonicalRequest(body) {
+function canonicalRequest(body) {
     if (typeof body !== 'object' || body === null)
         return false;
-    const b = body;
-    return typeof b.intent === 'string';
+    const value = body;
+    return typeof value.intent === 'string' &&
+        (value.message === undefined || typeof value.message === 'string') &&
+        (value.conversationId === undefined || typeof value.conversationId === 'string') &&
+        (value.locale === undefined || typeof value.locale === 'string');
 }
-/**
- * POST /v1/assistant/execute
- *
- * Authenticated. Accepts a provider-neutral canonical request.
- * Never accepts a caller-supplied user ID — identity comes from
- * the verified JWT via `req.auth`.
- */
-async function assistantExecute(req, res, next) {
-    try {
-        // Auth
-        const userId = (0, authContext_1.getAuthenticatedUserId)(req);
-        if (!userId) {
-            (0, response_1.sendError)(res, 'Unauthorized', 401);
-            return;
-        }
-        // Validate request body
-        if (!isCanonicalRequest(req.body)) {
-            (0, response_1.sendError)(res, 'Request body must include a string "intent" field', 400, 'BAD_REQUEST');
-            return;
-        }
-        const correlationId = req.correlationId;
-        // Helper: send an operational Assistant error with the correlation ID
-        // visible in the body (the header was already set by correlationMiddleware).
-        function sendAssistantError(message, statusCode, code) {
-            res.status(statusCode).json({
-                success: false,
-                error: { code, statusCode, message, correlationId },
-            });
-        }
-        // Resolve intent (allow-listed)
-        let resolved;
+const intQuery = (value) => {
+    const text = Array.isArray(value) ? value[0] : value;
+    if (typeof text !== 'string' || !/^\d+$/.test(text))
+        return undefined;
+    return Number(text);
+};
+const routeId = (value) => Array.isArray(value) ? value[0] : value;
+function createAssistantControllers(application, conversations) {
+    async function execute(req, res, next) {
         try {
-            resolved = (0, intent_1.resolveIntent)(req.body);
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId)
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            if (!canonicalRequest(req.body))
+                return (0, response_1.sendError)(res, 'Request body must include a string "intent" field and valid optional fields', 400, 'BAD_REQUEST');
+            const result = await application.execute(userId, req.correlationId, req.body);
+            if (result.response.status === 'success')
+                return (0, response_1.sendSuccess)(res, result.response, 'Assistant executed successfully');
+            res.status(result.httpStatus).json({ success: false, error: { ...result.response, statusCode: result.httpStatus } });
         }
-        catch (err) {
-            if ((0, forwardError_1.isOperationalError)(err)) {
-                sendAssistantError(err.message, err.statusCode, err.code);
-            }
-            else {
-                next(err);
-            }
-            return;
+        catch (error) {
+            (0, forwardError_1.forwardError)(error, res, next);
         }
-        // Build trusted execution context
-        const ctx = {
-            userId,
-            correlationId,
-            conversationId: req.body.conversationId,
-            timestamp: new Date(),
-        };
-        // Execute
-        let result;
+    }
+    async function list(req, res, next) {
         try {
-            result = await (0, executor_1.executeTool)(resolved.toolId, resolved.arguments, ctx, bootstrap_1.toolRegistry, bootstrap_1.handlerRegistry);
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId)
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            (0, response_1.sendSuccess)(res, await conversations.listOwnedConversations(userId, intQuery(req.query.page), intQuery(req.query.limit)));
         }
-        catch (err) {
-            if ((0, forwardError_1.isOperationalError)(err)) {
-                sendAssistantError(err.message, err.statusCode, err.code);
-            }
-            else {
-                next(err);
-            }
-            return;
+        catch (error) {
+            (0, forwardError_1.forwardError)(error, res, next);
         }
-        // Render
-        const renderedText = (0, renderer_1.renderMonthlySpendingSummary)(result.output);
-        // Build canonical response
-        const response = {
-            status: 'success',
-            renderedText,
-            data: result.output,
-            correlationId,
-        };
-        (0, response_1.sendSuccess)(res, response, 'Assistant executed successfully');
     }
-    catch (err) {
-        (0, forwardError_1.forwardError)(err, res, next);
+    async function get(req, res, next) {
+        try {
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId)
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            (0, response_1.sendSuccess)(res, await conversations.getOwnedConversation(userId, routeId(req.params.conversationId), intQuery(req.query.page), intQuery(req.query.limit)));
+        }
+        catch (error) {
+            (0, forwardError_1.forwardError)(error, res, next);
+        }
     }
+    async function archive(req, res, next) {
+        try {
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId)
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            (0, response_1.sendSuccess)(res, await conversations.archiveOwnedConversation(userId, routeId(req.params.conversationId)), 'Conversation archived');
+        }
+        catch (error) {
+            (0, forwardError_1.forwardError)(error, res, next);
+        }
+    }
+    return { execute, list, get, archive };
 }
+const controllers = createAssistantControllers(bootstrap_1.assistantApplicationService, bootstrap_1.assistantConversationService);
+exports.assistantExecute = controllers.execute;
+exports.listAssistantConversations = controllers.list;
+exports.getAssistantConversation = controllers.get;
+exports.archiveAssistantConversation = controllers.archive;
 //# sourceMappingURL=assistant.controller.js.map

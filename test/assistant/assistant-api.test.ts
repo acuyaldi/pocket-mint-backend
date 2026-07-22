@@ -9,6 +9,7 @@ import request from 'supertest';
 const h = vi.hoisted(() => ({
   getSummary: vi.fn(),
   getCategoryBreakdown: vi.fn(),
+  execute: vi.fn(),
 }));
 
 vi.mock('../../src/services/transaction-query.service', () => ({
@@ -24,7 +25,7 @@ vi.mock('../../src/services/analytics-categories.service', () => ({
   },
 }));
 
-import { assistantExecute } from '../../src/controllers/assistant.controller';
+import { createAssistantControllers } from '../../src/controllers/assistant.controller';
 import { errorHandler } from '../../src/middlewares/error.middleware';
 import { correlationMiddleware } from '../../src/http/correlation';
 import { Prisma } from '../../src/generated/prisma/client';
@@ -42,13 +43,19 @@ function buildApp(injectUser = true): express.Express {
       next();
     });
   }
-  app.post('/v1/assistant/execute', assistantExecute);
+  const conversations = {} as any;
+  app.post('/v1/assistant/execute', createAssistantControllers({ execute: h.execute } as any, conversations).execute);
   app.use(errorHandler);
   return app;
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
+  h.execute.mockImplementation(async (_userId: string, correlationId: string, body: any) => {
+    if (body.intent !== 'analytics.monthly-spending-summary') return { httpStatus: 400, response: { status: 'rejected', code: 'ASSISTANT_UNSUPPORTED_INTENT', message: 'Unsupported intent', correlationId, conversationId: 'c1', turnId: 't1' } };
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(body.arguments?.month ?? '')) return { httpStatus: 400, response: { status: 'rejected', code: 'ASSISTANT_INVALID_INPUT', message: 'Invalid input', correlationId, conversationId: 'c1', turnId: 't1' } };
+    return { httpStatus: 200, response: { status: 'success', renderedText: 'Ringkasan', data: { month: body.arguments.month }, correlationId, conversationId: 'c1', turnId: 't1' } };
+  });
 });
 
 // ---- Auth tests ------------------------------------------------------------
@@ -177,9 +184,7 @@ describe('POST /v1/assistant/execute — input validation', () => {
     // Should succeed (extra fields ignored) but handler receives trusted userId
     expect(res.status).toBe(200);
     // Verify the handler was called with the trusted userId, not the spoofed one
-    expect(h.getSummary).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: USER }),
-    );
+    expect(h.execute).toHaveBeenCalledWith(USER, expect.any(String), expect.objectContaining({ arguments: expect.objectContaining({ userId: 'hacker' }) }));
   });
 });
 
@@ -262,7 +267,7 @@ describe('POST /v1/assistant/execute — success', () => {
 
 describe('POST /v1/assistant/execute — error responses', () => {
   it('service failures return 500 with safe error envelope', async () => {
-    h.getSummary.mockRejectedValue(new Error('Database connection failed'));
+    h.execute.mockRejectedValue(new Error('Database connection failed'));
 
     const app = buildApp();
     const res = await request(app)
