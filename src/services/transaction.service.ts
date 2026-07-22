@@ -33,6 +33,7 @@ import {
   type DeleteTransactionInput,
   type DeleteTransactionResult,
   type TransactionPrismaClient,
+  type CreateTransactionOptions,
   type TransactionWithRelations,
 } from './transaction.types';
 
@@ -59,13 +60,16 @@ export function createTransactionService(db: TransactionPrismaClient) {
    * resolve wallet → validate type/amount/transfer → parse date → verify wallet,
    * destination, and category ownership → (installment branch or) atomic write.
    */
-  async function createTransaction(input: CreateTransactionInput): Promise<TransactionWithRelations> {
+  async function createTransaction(input: CreateTransactionInput, options: CreateTransactionOptions = {}): Promise<TransactionWithRelations> {
+    const client = options.transaction ?? db;
+    const inTransaction = <T>(work: (tx: typeof client) => Promise<T>): Promise<T> =>
+      options.transaction ? work(client) : db.$transaction((tx) => work(tx));
     const { userId, type, toWalletId, categoryId } = input;
 
     // Resolve walletId: explicit, else the user's first wallet (unchanged default).
     let walletId = input.walletId;
     if (!walletId) {
-      const defaultWallet = await db.wallet.findFirst({ where: { userId } });
+      const defaultWallet = await client.wallet.findFirst({ where: { userId } });
       if (!defaultWallet) {
         throw new TransactionError('No wallet found for this user. Create a wallet first.', 400, 'BAD_REQUEST');
       }
@@ -96,7 +100,7 @@ export function createTransactionService(db: TransactionPrismaClient) {
 
     const numAmount = Number(amount);
 
-    const wallet = await db.wallet.findFirst({ where: { id: resolvedWalletId, userId } });
+    const wallet = await client.wallet.findFirst({ where: { id: resolvedWalletId, userId } });
     if (!wallet) {
       throw new TransactionError('Wallet tidak ditemukan', 404, 'NOT_FOUND');
     }
@@ -112,7 +116,7 @@ export function createTransactionService(db: TransactionPrismaClient) {
     }
 
     if (type === 'TRANSFER' && toWalletId) {
-      const toWallet = await db.wallet.findFirst({ where: { id: toWalletId, userId }, select: { id: true } });
+      const toWallet = await client.wallet.findFirst({ where: { id: toWalletId, userId }, select: { id: true } });
       if (!toWallet) {
         throw new TransactionError('Wallet tujuan tidak ditemukan', 404, 'NOT_FOUND');
       }
@@ -125,7 +129,7 @@ export function createTransactionService(db: TransactionPrismaClient) {
       throw new TransactionError('categoryId wajib diisi untuk pemasukan dan pengeluaran', 400, 'BAD_REQUEST');
     }
     if (categoryId) {
-      const category = await db.category.findFirst({ where: { id: categoryId, userId } });
+      const category = await client.category.findFirst({ where: { id: categoryId, userId } });
       if (!category) {
         throw new TransactionError('Kategori tidak ditemukan', 404, 'NOT_FOUND');
       }
@@ -207,7 +211,7 @@ export function createTransactionService(db: TransactionPrismaClient) {
           throw new TransactionError('Limit kredit tidak mencukupi', 400, 'INSUFFICIENT_CREDIT');
         }
 
-        return await db.$transaction(async (tx) => {
+        return await inTransaction(async (tx) => {
           const installment = await tx.installment.create({
             data: {
               userId,
@@ -253,7 +257,7 @@ export function createTransactionService(db: TransactionPrismaClient) {
       const amountDecimal = new Prisma.Decimal(numAmount);
       const destWalletId = type === 'TRANSFER' ? toWalletId! : null;
 
-      return await db.$transaction(async (tx) => {
+      return await inTransaction(async (tx) => {
         const created = await tx.transaction.create({
           data: {
             userId,
@@ -502,3 +506,4 @@ export function createTransactionService(db: TransactionPrismaClient) {
 
 /** Production instance bound to the shared Prisma singleton. */
 export const transactionService = createTransactionService(prisma);
+export type TransactionService = ReturnType<typeof createTransactionService>;

@@ -16,6 +16,7 @@ const errors_1 = require("./errors");
 /** Supported intents (allow-listed — not an open registry). */
 const SUPPORTED_INTENTS = new Set([
     'analytics.monthly-spending-summary',
+    'transaction.create',
 ]);
 /**
  * Resolve a canonical request to a known intent.

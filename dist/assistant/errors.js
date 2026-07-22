@@ -61,6 +61,18 @@ class AssistantError extends Error {
     static conversationNotContinuable() {
         return new AssistantError('Conversation cannot be continued', 409, 'ASSISTANT_CONVERSATION_NOT_CONTINUABLE');
     }
+    static invalidIdempotencyKey() {
+        return new AssistantError('Idempotency-Key must use 1-128 safe characters', 400, 'ASSISTANT_INVALID_IDEMPOTENCY_KEY');
+    }
+    static draftNotFound() {
+        return new AssistantError('Financial draft not found', 404, 'ASSISTANT_DRAFT_NOT_FOUND');
+    }
+    static draftConflict(status) {
+        return new AssistantError(`Financial draft cannot perform this operation from ${status}`, 409, 'ASSISTANT_DRAFT_CONFLICT');
+    }
+    static idempotencyConflict() {
+        return new AssistantError('Idempotency key is already bound to another operation', 409, 'ASSISTANT_IDEMPOTENCY_CONFLICT');
+    }
 }
 exports.AssistantError = AssistantError;
 //# sourceMappingURL=errors.js.map

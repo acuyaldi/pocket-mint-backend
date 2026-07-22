@@ -38,6 +38,8 @@ model User {
   budgets                       Budget[]
   merchantMappings              MerchantMapping[]
   assistantConversations        AssistantConversation[]
+  assistantFinancialDrafts      AssistantFinancialDraft[]
+  assistantIdempotencyRecords   AssistantIdempotencyRecord[]
 
   @@map("users")
 }
@@ -80,6 +82,14 @@ enum AssistantToolExecutionStatus {
   DENIED
 }
 
+enum AssistantFinancialDraftStatus {
+  PENDING_CONFIRMATION
+  COMMITTED
+  CANCELLED
+  EXPIRED
+  FAILED
+}
+
 model AssistantConversation {
   id             String                      @id @default(cuid())
   userId         String                      @map("user_id")
@@ -94,6 +104,7 @@ model AssistantConversation {
   turns          AssistantTurn[]
   messages       AssistantMessage[]
   toolExecutions AssistantToolExecution[]
+  financialDrafts AssistantFinancialDraft[]
 
   @@index([userId, lastActivityAt, id])
   @@index([userId, status, lastActivityAt])
@@ -116,6 +127,7 @@ model AssistantTurn {
   conversation   AssistantConversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   messages       AssistantMessage[]
   toolExecutions AssistantToolExecution[]
+  financialDrafts AssistantFinancialDraft[]
 
   @@index([conversationId, createdAt, id])
   @@index([status, startedAt])
@@ -139,6 +151,58 @@ model AssistantMessage {
   @@map("assistant_messages")
 }
 
+model AssistantFinancialDraft {
+  id                     String                        @id @default(cuid())
+  userId                 String                        @map("user_id")
+  conversationId         String                        @map("conversation_id")
+  originatingTurnId      String                        @map("originating_turn_id")
+  originatingExecutionId String                        @unique @map("originating_execution_id")
+  status                 AssistantFinancialDraftStatus @default(PENDING_CONFIRMATION)
+  operation              String
+  transactionType        TransactionType               @map("transaction_type")
+  amount                 Decimal                       @db.Decimal(15, 2)
+  walletId               String                        @map("wallet_id")
+  categoryId             String                        @map("category_id")
+  transactionDate        DateTime                      @map("transaction_date")
+  description            String?
+  expiresAt              DateTime                      @map("expires_at")
+  committedAt            DateTime?                     @map("committed_at")
+  cancelledAt            DateTime?                     @map("cancelled_at")
+  failedAt               DateTime?                     @map("failed_at")
+  transactionId          String?                       @unique @map("transaction_id")
+  createdAt              DateTime                      @default(now()) @map("created_at")
+  updatedAt              DateTime                      @updatedAt @map("updated_at")
+
+  user                 User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation         AssistantConversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  originatingTurn      AssistantTurn           @relation(fields: [originatingTurnId], references: [id], onDelete: Cascade)
+  originatingExecution AssistantToolExecution  @relation(fields: [originatingExecutionId], references: [id], onDelete: Cascade)
+  transaction          Transaction?            @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  idempotencyRecords   AssistantIdempotencyRecord[]
+
+  @@index([userId, status, expiresAt])
+  @@index([conversationId, createdAt])
+  @@map("assistant_financial_drafts")
+}
+
+model AssistantIdempotencyRecord {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  draftId       String   @map("draft_id")
+  operation     String
+  key           String
+  transactionId String?  @map("transaction_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user        User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  draft       AssistantFinancialDraft  @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  transaction Transaction?             @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, key])
+  @@index([draftId])
+  @@map("assistant_idempotency_records")
+}
+
 model AssistantToolExecution {
   id             String                       @id @default(cuid())
   conversationId String                       @map("conversation_id")
@@ -159,6 +223,7 @@ model AssistantToolExecution {
 
   conversation AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   turn         AssistantTurn         @relation(fields: [turnId], references: [id], onDelete: Cascade)
+  financialDraft AssistantFinancialDraft?
 
   @@index([turnId, startedAt])
   @@index([conversationId, startedAt])
@@ -300,6 +365,8 @@ model Transaction {
   category      Category?               @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   installment   Installment?            @relation(fields: [installmentId], references: [id], onDelete: SetNull)
   reminderEvent RecurringReminderEvent?
+  assistantFinancialDraft AssistantFinancialDraft?
+  assistantIdempotencyRecords AssistantIdempotencyRecord[]
 
   @@index([userId, date])
   @@index([userId, type])

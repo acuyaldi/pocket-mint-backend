@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { archiveAssistantConversation, assistantExecute, getAssistantConversation, listAssistantConversations } from '../controllers/assistant.controller';
+import { archiveAssistantConversation, assistantExecute, cancelAssistantFinancialDraft, confirmAssistantFinancialDraft, getAssistantConversation, listAssistantConversations } from '../controllers/assistant.controller';
 import { requireUser } from '../middleware/apiKeyAuth';
 import { mutationLimiter } from '../middleware/rateLimit';
 
@@ -11,5 +11,7 @@ assistantRouter.post('/execute', requireUser, mutationLimiter, assistantExecute)
 assistantRouter.get('/conversations', requireUser, listAssistantConversations);
 assistantRouter.get('/conversations/:conversationId', requireUser, getAssistantConversation);
 assistantRouter.post('/conversations/:conversationId/archive', requireUser, mutationLimiter, archiveAssistantConversation);
+assistantRouter.post('/drafts/:draftId/confirm', requireUser, mutationLimiter, confirmAssistantFinancialDraft);
+assistantRouter.post('/drafts/:draftId/cancel', requireUser, mutationLimiter, cancelAssistantFinancialDraft);
 
 export { assistantRouter };
