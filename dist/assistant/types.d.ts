@@ -69,6 +69,8 @@ export type PolicyResult = {
 };
 /** Provider-neutral canonical request entering Assistant Core. */
 export interface AssistantCanonicalRequest {
+    /** Optional user-visible content. Whitespace-only content is treated as absent. */
+    readonly message?: string;
     /** Stable intent identifier (e.g. "analytics.monthly-spending-summary"). */
     readonly intent: string;
     /** Tool arguments validated by the registered contract. */
@@ -85,12 +87,16 @@ export interface AssistantSuccessResponse {
     /** Safe structured data the client may render independently. */
     readonly data: unknown;
     readonly correlationId: string;
+    readonly conversationId: string;
+    readonly turnId: string;
 }
 /** The intent was understood but requires clarification before execution. */
 export interface AssistantClarificationResponse {
     readonly status: 'clarification_required';
     readonly message: string;
     readonly correlationId: string;
+    readonly conversationId: string;
+    readonly turnId: string;
 }
 /** The request was rejected by policy or validation. */
 export interface AssistantRejectedResponse {
@@ -98,6 +104,8 @@ export interface AssistantRejectedResponse {
     readonly code: string;
     readonly message: string;
     readonly correlationId: string;
+    readonly conversationId: string;
+    readonly turnId: string;
 }
 /** An unexpected failure occurred during processing. */
 export interface AssistantErrorResponse {
@@ -105,6 +113,8 @@ export interface AssistantErrorResponse {
     readonly code: string;
     readonly message: string;
     readonly correlationId: string;
+    readonly conversationId: string;
+    readonly turnId: string;
 }
 export type AssistantCanonicalResponse = AssistantSuccessResponse | AssistantClarificationResponse | AssistantRejectedResponse | AssistantErrorResponse;
 /** Structured outcome from a single tool execution. */

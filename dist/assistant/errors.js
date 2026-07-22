@@ -52,6 +52,15 @@ class AssistantError extends Error {
     static unsupportedIntent(intent) {
         return new AssistantError(`Unsupported intent: "${intent}"`, 400, 'ASSISTANT_UNSUPPORTED_INTENT');
     }
+    static invalidRequest(detail) {
+        return new AssistantError(`Invalid Assistant request: ${detail}`, 400, 'ASSISTANT_INVALID_REQUEST');
+    }
+    static conversationNotFound() {
+        return new AssistantError('Conversation not found', 404, 'ASSISTANT_CONVERSATION_NOT_FOUND');
+    }
+    static conversationNotContinuable() {
+        return new AssistantError('Conversation cannot be continued', 409, 'ASSISTANT_CONVERSATION_NOT_CONTINUABLE');
+    }
 }
 exports.AssistantError = AssistantError;
 //# sourceMappingURL=errors.js.map

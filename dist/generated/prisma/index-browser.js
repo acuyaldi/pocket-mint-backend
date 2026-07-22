@@ -129,6 +129,60 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.AssistantConversationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  status: 'status',
+  locale: 'locale',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  lastActivityAt: 'lastActivityAt',
+  archivedAt: 'archivedAt'
+};
+
+exports.Prisma.AssistantTurnScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  correlationId: 'correlationId',
+  status: 'status',
+  intent: 'intent',
+  locale: 'locale',
+  safeErrorCode: 'safeErrorCode',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AssistantMessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  turnId: 'turnId',
+  role: 'role',
+  source: 'source',
+  content: 'content',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AssistantToolExecutionScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  turnId: 'turnId',
+  toolId: 'toolId',
+  capability: 'capability',
+  riskLevel: 'riskLevel',
+  policyDecision: 'policyDecision',
+  status: 'status',
+  correlationId: 'correlationId',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  durationMs: 'durationMs',
+  safeErrorCode: 'safeErrorCode',
+  redactedInput: 'redactedInput',
+  outputSummary: 'outputSummary',
+  idempotencyKey: 'idempotencyKey'
+};
+
 exports.Prisma.WalletScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -273,6 +327,11 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -282,6 +341,50 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+exports.AssistantConversationStatus = exports.$Enums.AssistantConversationStatus = {
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED',
+  EXPIRED: 'EXPIRED'
+};
+
+exports.AssistantTurnStatus = exports.$Enums.AssistantTurnStatus = {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  REJECTED: 'REJECTED',
+  CLARIFICATION_REQUIRED: 'CLARIFICATION_REQUIRED'
+};
+
+exports.AssistantMessageRole = exports.$Enums.AssistantMessageRole = {
+  USER: 'USER',
+  ASSISTANT: 'ASSISTANT',
+  SYSTEM: 'SYSTEM'
+};
+
+exports.AssistantMessageSource = exports.$Enums.AssistantMessageSource = {
+  USER_PROVIDED: 'USER_PROVIDED',
+  CANONICAL_FALLBACK: 'CANONICAL_FALLBACK',
+  SAFE_REQUEST_SUMMARY: 'SAFE_REQUEST_SUMMARY',
+  DETERMINISTIC_RENDERER: 'DETERMINISTIC_RENDERER',
+  SAFE_ERROR: 'SAFE_ERROR'
+};
+
+exports.AssistantToolExecutionStatus = exports.$Enums.AssistantToolExecutionStatus = {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  TIMED_OUT: 'TIMED_OUT',
+  DENIED: 'DENIED'
+};
+
 exports.WalletType = exports.$Enums.WalletType = {
   CASH: 'CASH',
   BANK: 'BANK',
@@ -338,6 +441,10 @@ exports.SavingGoalStatus = exports.$Enums.SavingGoalStatus = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  AssistantConversation: 'AssistantConversation',
+  AssistantTurn: 'AssistantTurn',
+  AssistantMessage: 'AssistantMessage',
+  AssistantToolExecution: 'AssistantToolExecution',
   Wallet: 'Wallet',
   Category: 'Category',
   MerchantMapping: 'MerchantMapping',

@@ -13,5 +13,8 @@ export declare class AssistantError extends Error {
     static invalidTimeout(toolId: string, timeoutMs: number): AssistantError;
     static policyMismatch(toolId: string, detail: string): AssistantError;
     static unsupportedIntent(intent: string): AssistantError;
+    static invalidRequest(detail: string): AssistantError;
+    static conversationNotFound(): AssistantError;
+    static conversationNotContinuable(): AssistantError;
 }
 //# sourceMappingURL=errors.d.ts.map

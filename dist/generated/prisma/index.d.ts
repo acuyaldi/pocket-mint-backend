@@ -15,52 +15,72 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
 
 /**
  * Model User
- * 
+ *
  */
 export type User = $Result.DefaultSelection<Prisma.$UserPayload>
 /**
+ * Model AssistantConversation
+ *
+ */
+export type AssistantConversation = $Result.DefaultSelection<Prisma.$AssistantConversationPayload>
+/**
+ * Model AssistantTurn
+ *
+ */
+export type AssistantTurn = $Result.DefaultSelection<Prisma.$AssistantTurnPayload>
+/**
+ * Model AssistantMessage
+ *
+ */
+export type AssistantMessage = $Result.DefaultSelection<Prisma.$AssistantMessagePayload>
+/**
+ * Model AssistantToolExecution
+ *
+ */
+export type AssistantToolExecution = $Result.DefaultSelection<Prisma.$AssistantToolExecutionPayload>
+/**
  * Model Wallet
- * 
+ *
  */
 export type Wallet = $Result.DefaultSelection<Prisma.$WalletPayload>
 /**
  * Model Category
- * 
+ *
  */
 export type Category = $Result.DefaultSelection<Prisma.$CategoryPayload>
 /**
  * Model MerchantMapping
- * 
+ *
  */
 export type MerchantMapping = $Result.DefaultSelection<Prisma.$MerchantMappingPayload>
 /**
  * Model Transaction
- * 
+ *
  */
 export type Transaction = $Result.DefaultSelection<Prisma.$TransactionPayload>
 /**
  * Model Installment
- * 
+ *
  */
 export type Installment = $Result.DefaultSelection<Prisma.$InstallmentPayload>
 /**
  * Model RecurringTransactionTemplate
- * 
+ *
  */
 export type RecurringTransactionTemplate = $Result.DefaultSelection<Prisma.$RecurringTransactionTemplatePayload>
 /**
  * Model RecurringReminderEvent
- * 
+ *
  */
 export type RecurringReminderEvent = $Result.DefaultSelection<Prisma.$RecurringReminderEventPayload>
 /**
  * Model SavingGoal
- * 
+ *
  */
 export type SavingGoal = $Result.DefaultSelection<Prisma.$SavingGoalPayload>
 /**
  * Model Budget
- * 
+ *
  */
 export type Budget = $Result.DefaultSelection<Prisma.$BudgetPayload>
 
@@ -68,7 +88,60 @@ export type Budget = $Result.DefaultSelection<Prisma.$BudgetPayload>
  * Enums
  */
 export namespace $Enums {
-  export const WalletType: {
+  export const AssistantConversationStatus: {
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED',
+  EXPIRED: 'EXPIRED'
+};
+
+export type AssistantConversationStatus = (typeof AssistantConversationStatus)[keyof typeof AssistantConversationStatus]
+
+
+export const AssistantTurnStatus: {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  REJECTED: 'REJECTED',
+  CLARIFICATION_REQUIRED: 'CLARIFICATION_REQUIRED'
+};
+
+export type AssistantTurnStatus = (typeof AssistantTurnStatus)[keyof typeof AssistantTurnStatus]
+
+
+export const AssistantMessageRole: {
+  USER: 'USER',
+  ASSISTANT: 'ASSISTANT',
+  SYSTEM: 'SYSTEM'
+};
+
+export type AssistantMessageRole = (typeof AssistantMessageRole)[keyof typeof AssistantMessageRole]
+
+
+export const AssistantMessageSource: {
+  USER_PROVIDED: 'USER_PROVIDED',
+  CANONICAL_FALLBACK: 'CANONICAL_FALLBACK',
+  SAFE_REQUEST_SUMMARY: 'SAFE_REQUEST_SUMMARY',
+  DETERMINISTIC_RENDERER: 'DETERMINISTIC_RENDERER',
+  SAFE_ERROR: 'SAFE_ERROR'
+};
+
+export type AssistantMessageSource = (typeof AssistantMessageSource)[keyof typeof AssistantMessageSource]
+
+
+export const AssistantToolExecutionStatus: {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  TIMED_OUT: 'TIMED_OUT',
+  DENIED: 'DENIED'
+};
+
+export type AssistantToolExecutionStatus = (typeof AssistantToolExecutionStatus)[keyof typeof AssistantToolExecutionStatus]
+
+
+export const WalletType: {
   CASH: 'CASH',
   BANK: 'BANK',
   E_WALLET: 'E_WALLET',
@@ -149,6 +222,26 @@ export const SavingGoalStatus: {
 export type SavingGoalStatus = (typeof SavingGoalStatus)[keyof typeof SavingGoalStatus]
 
 }
+
+export type AssistantConversationStatus = $Enums.AssistantConversationStatus
+
+export const AssistantConversationStatus: typeof $Enums.AssistantConversationStatus
+
+export type AssistantTurnStatus = $Enums.AssistantTurnStatus
+
+export const AssistantTurnStatus: typeof $Enums.AssistantTurnStatus
+
+export type AssistantMessageRole = $Enums.AssistantMessageRole
+
+export const AssistantMessageRole: typeof $Enums.AssistantMessageRole
+
+export type AssistantMessageSource = $Enums.AssistantMessageSource
+
+export const AssistantMessageSource: typeof $Enums.AssistantMessageSource
+
+export type AssistantToolExecutionStatus = $Enums.AssistantToolExecutionStatus
+
+export const AssistantToolExecutionStatus: typeof $Enums.AssistantToolExecutionStatus
 
 export type WalletType = $Enums.WalletType
 
@@ -296,7 +389,7 @@ export class PrismaClient<
    *   prisma.user.create({ data: { name: 'Alice' } }),
    * ])
    * ```
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/orm/prisma-client/queries/transactions).
    */
   $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
@@ -316,6 +409,46 @@ export class PrismaClient<
     * ```
     */
   get user(): Prisma.UserDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.assistantConversation`: Exposes CRUD operations for the **AssistantConversation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AssistantConversations
+    * const assistantConversations = await prisma.assistantConversation.findMany()
+    * ```
+    */
+  get assistantConversation(): Prisma.AssistantConversationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.assistantTurn`: Exposes CRUD operations for the **AssistantTurn** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AssistantTurns
+    * const assistantTurns = await prisma.assistantTurn.findMany()
+    * ```
+    */
+  get assistantTurn(): Prisma.AssistantTurnDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.assistantMessage`: Exposes CRUD operations for the **AssistantMessage** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AssistantMessages
+    * const assistantMessages = await prisma.assistantMessage.findMany()
+    * ```
+    */
+  get assistantMessage(): Prisma.AssistantMessageDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.assistantToolExecution`: Exposes CRUD operations for the **AssistantToolExecution** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AssistantToolExecutions
+    * const assistantToolExecutions = await prisma.assistantToolExecution.findMany()
+    * ```
+    */
+  get assistantToolExecution(): Prisma.AssistantToolExecutionDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.wallet`: Exposes CRUD operations for the **Wallet** model.
@@ -841,6 +974,10 @@ export namespace Prisma {
 
   export const ModelName: {
     User: 'User',
+    AssistantConversation: 'AssistantConversation',
+    AssistantTurn: 'AssistantTurn',
+    AssistantMessage: 'AssistantMessage',
+    AssistantToolExecution: 'AssistantToolExecution',
     Wallet: 'Wallet',
     Category: 'Category',
     MerchantMapping: 'MerchantMapping',
@@ -865,7 +1002,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "wallet" | "category" | "merchantMapping" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent" | "savingGoal" | "budget"
+      modelProps: "user" | "assistantConversation" | "assistantTurn" | "assistantMessage" | "assistantToolExecution" | "wallet" | "category" | "merchantMapping" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent" | "savingGoal" | "budget"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -940,6 +1077,302 @@ export namespace Prisma {
           count: {
             args: Prisma.UserCountArgs<ExtArgs>
             result: $Utils.Optional<UserCountAggregateOutputType> | number
+          }
+        }
+      }
+      AssistantConversation: {
+        payload: Prisma.$AssistantConversationPayload<ExtArgs>
+        fields: Prisma.AssistantConversationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AssistantConversationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantConversationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AssistantConversationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantConversationPayload>
+          }
+          findFirst: {
+            args: Prisma.AssistantConversationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantConversationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AssistantConversationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantConversationPayload>
+          }
+          findMany: {
+            args: Prisma.AssistantConversationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantConversationPayload>[]
+          }
+          create: {
+            args: Prisma.AssistantConversationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantConversationPayload>
+          }
+          createMany: {
+            args: Prisma.AssistantConversationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AssistantConversationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantConversationPayload>[]
+          }
+          delete: {
+            args: Prisma.AssistantConversationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantConversationPayload>
+          }
+          update: {
+            args: Prisma.AssistantConversationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantConversationPayload>
+          }
+          deleteMany: {
+            args: Prisma.AssistantConversationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AssistantConversationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AssistantConversationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantConversationPayload>[]
+          }
+          upsert: {
+            args: Prisma.AssistantConversationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantConversationPayload>
+          }
+          aggregate: {
+            args: Prisma.AssistantConversationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAssistantConversation>
+          }
+          groupBy: {
+            args: Prisma.AssistantConversationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AssistantConversationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AssistantConversationCountArgs<ExtArgs>
+            result: $Utils.Optional<AssistantConversationCountAggregateOutputType> | number
+          }
+        }
+      }
+      AssistantTurn: {
+        payload: Prisma.$AssistantTurnPayload<ExtArgs>
+        fields: Prisma.AssistantTurnFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AssistantTurnFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantTurnPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AssistantTurnFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantTurnPayload>
+          }
+          findFirst: {
+            args: Prisma.AssistantTurnFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantTurnPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AssistantTurnFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantTurnPayload>
+          }
+          findMany: {
+            args: Prisma.AssistantTurnFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantTurnPayload>[]
+          }
+          create: {
+            args: Prisma.AssistantTurnCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantTurnPayload>
+          }
+          createMany: {
+            args: Prisma.AssistantTurnCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AssistantTurnCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantTurnPayload>[]
+          }
+          delete: {
+            args: Prisma.AssistantTurnDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantTurnPayload>
+          }
+          update: {
+            args: Prisma.AssistantTurnUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantTurnPayload>
+          }
+          deleteMany: {
+            args: Prisma.AssistantTurnDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AssistantTurnUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AssistantTurnUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantTurnPayload>[]
+          }
+          upsert: {
+            args: Prisma.AssistantTurnUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantTurnPayload>
+          }
+          aggregate: {
+            args: Prisma.AssistantTurnAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAssistantTurn>
+          }
+          groupBy: {
+            args: Prisma.AssistantTurnGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AssistantTurnGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AssistantTurnCountArgs<ExtArgs>
+            result: $Utils.Optional<AssistantTurnCountAggregateOutputType> | number
+          }
+        }
+      }
+      AssistantMessage: {
+        payload: Prisma.$AssistantMessagePayload<ExtArgs>
+        fields: Prisma.AssistantMessageFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AssistantMessageFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantMessagePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AssistantMessageFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantMessagePayload>
+          }
+          findFirst: {
+            args: Prisma.AssistantMessageFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantMessagePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AssistantMessageFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantMessagePayload>
+          }
+          findMany: {
+            args: Prisma.AssistantMessageFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantMessagePayload>[]
+          }
+          create: {
+            args: Prisma.AssistantMessageCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantMessagePayload>
+          }
+          createMany: {
+            args: Prisma.AssistantMessageCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AssistantMessageCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantMessagePayload>[]
+          }
+          delete: {
+            args: Prisma.AssistantMessageDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantMessagePayload>
+          }
+          update: {
+            args: Prisma.AssistantMessageUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantMessagePayload>
+          }
+          deleteMany: {
+            args: Prisma.AssistantMessageDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AssistantMessageUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AssistantMessageUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantMessagePayload>[]
+          }
+          upsert: {
+            args: Prisma.AssistantMessageUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantMessagePayload>
+          }
+          aggregate: {
+            args: Prisma.AssistantMessageAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAssistantMessage>
+          }
+          groupBy: {
+            args: Prisma.AssistantMessageGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AssistantMessageGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AssistantMessageCountArgs<ExtArgs>
+            result: $Utils.Optional<AssistantMessageCountAggregateOutputType> | number
+          }
+        }
+      }
+      AssistantToolExecution: {
+        payload: Prisma.$AssistantToolExecutionPayload<ExtArgs>
+        fields: Prisma.AssistantToolExecutionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AssistantToolExecutionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantToolExecutionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AssistantToolExecutionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantToolExecutionPayload>
+          }
+          findFirst: {
+            args: Prisma.AssistantToolExecutionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantToolExecutionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AssistantToolExecutionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantToolExecutionPayload>
+          }
+          findMany: {
+            args: Prisma.AssistantToolExecutionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantToolExecutionPayload>[]
+          }
+          create: {
+            args: Prisma.AssistantToolExecutionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantToolExecutionPayload>
+          }
+          createMany: {
+            args: Prisma.AssistantToolExecutionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AssistantToolExecutionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantToolExecutionPayload>[]
+          }
+          delete: {
+            args: Prisma.AssistantToolExecutionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantToolExecutionPayload>
+          }
+          update: {
+            args: Prisma.AssistantToolExecutionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantToolExecutionPayload>
+          }
+          deleteMany: {
+            args: Prisma.AssistantToolExecutionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AssistantToolExecutionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AssistantToolExecutionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantToolExecutionPayload>[]
+          }
+          upsert: {
+            args: Prisma.AssistantToolExecutionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantToolExecutionPayload>
+          }
+          aggregate: {
+            args: Prisma.AssistantToolExecutionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAssistantToolExecution>
+          }
+          groupBy: {
+            args: Prisma.AssistantToolExecutionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AssistantToolExecutionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AssistantToolExecutionCountArgs<ExtArgs>
+            result: $Utils.Optional<AssistantToolExecutionCountAggregateOutputType> | number
           }
         }
       }
@@ -1646,7 +2079,7 @@ export namespace Prisma {
      * ```
      * // Shorthand for `emit: 'stdout'`
      * log: ['query', 'info', 'warn', 'error']
-     * 
+     *
      * // Emit as events only
      * log: [
      *   { emit: 'event', level: 'query' },
@@ -1654,14 +2087,14 @@ export namespace Prisma {
      *   { emit: 'event', level: 'warn' }
      *   { emit: 'event', level: 'error' }
      * ]
-     * 
+     *
      * / Emit as events and log to stdout
      * og: [
      *  { emit: 'stdout', level: 'query' },
      *  { emit: 'stdout', level: 'info' },
      *  { emit: 'stdout', level: 'warn' }
      *  { emit: 'stdout', level: 'error' }
-     * 
+     *
      * ```
      * Read more in our [docs](https://pris.ly/d/logging).
      */
@@ -1686,7 +2119,7 @@ export namespace Prisma {
     accelerateUrl?: string
     /**
      * Global configuration for omitting model fields by default.
-     * 
+     *
      * @example
      * ```
      * const prisma = new PrismaClient({
@@ -1702,7 +2135,7 @@ export namespace Prisma {
     /**
      * SQL commenter plugins that add metadata to SQL queries as comments.
      * Comments follow the sqlcommenter format: https://google.github.io/sqlcommenter/
-     * 
+     *
      * @example
      * ```
      * const prisma = new PrismaClient({
@@ -1718,6 +2151,10 @@ export namespace Prisma {
   }
   export type GlobalOmitConfig = {
     user?: UserOmit
+    assistantConversation?: AssistantConversationOmit
+    assistantTurn?: AssistantTurnOmit
+    assistantMessage?: AssistantMessageOmit
+    assistantToolExecution?: AssistantToolExecutionOmit
     wallet?: WalletOmit
     category?: CategoryOmit
     merchantMapping?: MerchantMappingOmit
@@ -1815,6 +2252,7 @@ export namespace Prisma {
     savingGoals: number
     budgets: number
     merchantMappings: number
+    assistantConversations: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1826,6 +2264,7 @@ export namespace Prisma {
     savingGoals?: boolean | UserCountOutputTypeCountSavingGoalsArgs
     budgets?: boolean | UserCountOutputTypeCountBudgetsArgs
     merchantMappings?: boolean | UserCountOutputTypeCountMerchantMappingsArgs
+    assistantConversations?: boolean | UserCountOutputTypeCountAssistantConversationsArgs
   }
 
   // Custom InputTypes
@@ -1893,6 +2332,102 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountMerchantMappingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MerchantMappingWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountAssistantConversationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantConversationWhereInput
+  }
+
+
+  /**
+   * Count Type AssistantConversationCountOutputType
+   */
+
+  export type AssistantConversationCountOutputType = {
+    turns: number
+    messages: number
+    toolExecutions: number
+  }
+
+  export type AssistantConversationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    turns?: boolean | AssistantConversationCountOutputTypeCountTurnsArgs
+    messages?: boolean | AssistantConversationCountOutputTypeCountMessagesArgs
+    toolExecutions?: boolean | AssistantConversationCountOutputTypeCountToolExecutionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * AssistantConversationCountOutputType without action
+   */
+  export type AssistantConversationCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantConversationCountOutputType
+     */
+    select?: AssistantConversationCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * AssistantConversationCountOutputType without action
+   */
+  export type AssistantConversationCountOutputTypeCountTurnsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantTurnWhereInput
+  }
+
+  /**
+   * AssistantConversationCountOutputType without action
+   */
+  export type AssistantConversationCountOutputTypeCountMessagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantMessageWhereInput
+  }
+
+  /**
+   * AssistantConversationCountOutputType without action
+   */
+  export type AssistantConversationCountOutputTypeCountToolExecutionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantToolExecutionWhereInput
+  }
+
+
+  /**
+   * Count Type AssistantTurnCountOutputType
+   */
+
+  export type AssistantTurnCountOutputType = {
+    messages: number
+    toolExecutions: number
+  }
+
+  export type AssistantTurnCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    messages?: boolean | AssistantTurnCountOutputTypeCountMessagesArgs
+    toolExecutions?: boolean | AssistantTurnCountOutputTypeCountToolExecutionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * AssistantTurnCountOutputType without action
+   */
+  export type AssistantTurnCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurnCountOutputType
+     */
+    select?: AssistantTurnCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * AssistantTurnCountOutputType without action
+   */
+  export type AssistantTurnCountOutputTypeCountMessagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantMessageWhereInput
+  }
+
+  /**
+   * AssistantTurnCountOutputType without action
+   */
+  export type AssistantTurnCountOutputTypeCountToolExecutionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantToolExecutionWhereInput
   }
 
 
@@ -2161,43 +2696,43 @@ export namespace Prisma {
     where?: UserWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Users to fetch.
      */
     orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the start position
      */
     cursor?: UserWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Users from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Users.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Count returned Users
     **/
     _count?: true | UserCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the minimum value
     **/
     _min?: UserMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the maximum value
     **/
     _max?: UserMaxAggregateInputType
@@ -2267,6 +2802,7 @@ export namespace Prisma {
     savingGoals?: boolean | User$savingGoalsArgs<ExtArgs>
     budgets?: boolean | User$budgetsArgs<ExtArgs>
     merchantMappings?: boolean | User$merchantMappingsArgs<ExtArgs>
+    assistantConversations?: boolean | User$assistantConversationsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2307,6 +2843,7 @@ export namespace Prisma {
     savingGoals?: boolean | User$savingGoalsArgs<ExtArgs>
     budgets?: boolean | User$budgetsArgs<ExtArgs>
     merchantMappings?: boolean | User$merchantMappingsArgs<ExtArgs>
+    assistantConversations?: boolean | User$assistantConversationsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2323,6 +2860,7 @@ export namespace Prisma {
       savingGoals: Prisma.$SavingGoalPayload<ExtArgs>[]
       budgets: Prisma.$BudgetPayload<ExtArgs>[]
       merchantMappings: Prisma.$MerchantMappingPayload<ExtArgs>[]
+      assistantConversations: Prisma.$AssistantConversationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2410,13 +2948,13 @@ export namespace Prisma {
      * @example
      * // Get all Users
      * const users = await prisma.user.findMany()
-     * 
+     *
      * // Get first 10 Users
      * const users = await prisma.user.findMany({ take: 10 })
-     * 
+     *
      * // Only select the `id`
      * const userWithIdOnly = await prisma.user.findMany({ select: { id: true } })
-     * 
+     *
      */
     findMany<T extends UserFindManyArgs>(args?: SelectSubset<T, UserFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -2430,7 +2968,7 @@ export namespace Prisma {
      *     // ... data to create a User
      *   }
      * })
-     * 
+     *
      */
     create<T extends UserCreateArgs>(args: SelectSubset<T, UserCreateArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -2444,7 +2982,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *     
+     *
      */
     createMany<T extends UserCreateManyArgs>(args?: SelectSubset<T, UserCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -2458,7 +2996,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Create many Users and only return the `id`
      * const userWithIdOnly = await prisma.user.createManyAndReturn({
      *   select: { id: true },
@@ -2468,7 +3006,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     createManyAndReturn<T extends UserCreateManyAndReturnArgs>(args?: SelectSubset<T, UserCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -2482,7 +3020,7 @@ export namespace Prisma {
      *     // ... filter to delete one User
      *   }
      * })
-     * 
+     *
      */
     delete<T extends UserDeleteArgs>(args: SelectSubset<T, UserDeleteArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -2499,7 +3037,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     update<T extends UserUpdateArgs>(args: SelectSubset<T, UserUpdateArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -2513,7 +3051,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     * 
+     *
      */
     deleteMany<T extends UserDeleteManyArgs>(args?: SelectSubset<T, UserDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -2532,7 +3070,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     updateMany<T extends UserUpdateManyArgs>(args: SelectSubset<T, UserUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -2549,7 +3087,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Update zero or more Users and only return the `id`
      * const userWithIdOnly = await prisma.user.updateManyAndReturn({
      *   select: { id: true },
@@ -2562,7 +3100,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     updateManyAndReturn<T extends UserUpdateManyAndReturnArgs>(args: SelectSubset<T, UserUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -2651,7 +3189,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     * 
+     *
     **/
     groupBy<
       T extends UserGroupByArgs,
@@ -2733,6 +3271,7 @@ export namespace Prisma {
     savingGoals<T extends User$savingGoalsArgs<ExtArgs> = {}>(args?: Subset<T, User$savingGoalsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     budgets<T extends User$budgetsArgs<ExtArgs> = {}>(args?: Subset<T, User$budgetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     merchantMappings<T extends User$merchantMappingsArgs<ExtArgs> = {}>(args?: Subset<T, User$merchantMappingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    assistantConversations<T extends User$assistantConversationsArgs<ExtArgs> = {}>(args?: Subset<T, User$assistantConversationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2769,7 +3308,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
   }
-    
+
 
   // Custom InputTypes
   /**
@@ -2838,31 +3377,31 @@ export namespace Prisma {
     where?: UserWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Users to fetch.
      */
     orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for Users.
      */
     cursor?: UserWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Users from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Users.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Users.
      */
     distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
@@ -2890,31 +3429,31 @@ export namespace Prisma {
     where?: UserWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Users to fetch.
      */
     orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for Users.
      */
     cursor?: UserWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Users from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Users.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Users.
      */
     distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
@@ -2942,31 +3481,31 @@ export namespace Prisma {
     where?: UserWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Users to fetch.
      */
     orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for listing Users.
      */
     cursor?: UserWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Users from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Users.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Users.
      */
     distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
@@ -3353,6 +3892,30 @@ export namespace Prisma {
   }
 
   /**
+   * User.assistantConversations
+   */
+  export type User$assistantConversationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantConversation
+     */
+    select?: AssistantConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantConversation
+     */
+    omit?: AssistantConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantConversationInclude<ExtArgs> | null
+    where?: AssistantConversationWhereInput
+    orderBy?: AssistantConversationOrderByWithRelationInput | AssistantConversationOrderByWithRelationInput[]
+    cursor?: AssistantConversationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AssistantConversationScalarFieldEnum | AssistantConversationScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3368,6 +3931,4730 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AssistantConversation
+   */
+
+  export type AggregateAssistantConversation = {
+    _count: AssistantConversationCountAggregateOutputType | null
+    _min: AssistantConversationMinAggregateOutputType | null
+    _max: AssistantConversationMaxAggregateOutputType | null
+  }
+
+  export type AssistantConversationMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    status: $Enums.AssistantConversationStatus | null
+    locale: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    lastActivityAt: Date | null
+    archivedAt: Date | null
+  }
+
+  export type AssistantConversationMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    status: $Enums.AssistantConversationStatus | null
+    locale: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    lastActivityAt: Date | null
+    archivedAt: Date | null
+  }
+
+  export type AssistantConversationCountAggregateOutputType = {
+    id: number
+    userId: number
+    status: number
+    locale: number
+    createdAt: number
+    updatedAt: number
+    lastActivityAt: number
+    archivedAt: number
+    _all: number
+  }
+
+
+  export type AssistantConversationMinAggregateInputType = {
+    id?: true
+    userId?: true
+    status?: true
+    locale?: true
+    createdAt?: true
+    updatedAt?: true
+    lastActivityAt?: true
+    archivedAt?: true
+  }
+
+  export type AssistantConversationMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    status?: true
+    locale?: true
+    createdAt?: true
+    updatedAt?: true
+    lastActivityAt?: true
+    archivedAt?: true
+  }
+
+  export type AssistantConversationCountAggregateInputType = {
+    id?: true
+    userId?: true
+    status?: true
+    locale?: true
+    createdAt?: true
+    updatedAt?: true
+    lastActivityAt?: true
+    archivedAt?: true
+    _all?: true
+  }
+
+  export type AssistantConversationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssistantConversation to aggregate.
+     */
+    where?: AssistantConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantConversations to fetch.
+     */
+    orderBy?: AssistantConversationOrderByWithRelationInput | AssistantConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: AssistantConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantConversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantConversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned AssistantConversations
+    **/
+    _count?: true | AssistantConversationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+    **/
+    _min?: AssistantConversationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+    **/
+    _max?: AssistantConversationMaxAggregateInputType
+  }
+
+  export type GetAssistantConversationAggregateType<T extends AssistantConversationAggregateArgs> = {
+        [P in keyof T & keyof AggregateAssistantConversation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAssistantConversation[P]>
+      : GetScalarType<T[P], AggregateAssistantConversation[P]>
+  }
+
+
+
+
+  export type AssistantConversationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantConversationWhereInput
+    orderBy?: AssistantConversationOrderByWithAggregationInput | AssistantConversationOrderByWithAggregationInput[]
+    by: AssistantConversationScalarFieldEnum[] | AssistantConversationScalarFieldEnum
+    having?: AssistantConversationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AssistantConversationCountAggregateInputType | true
+    _min?: AssistantConversationMinAggregateInputType
+    _max?: AssistantConversationMaxAggregateInputType
+  }
+
+  export type AssistantConversationGroupByOutputType = {
+    id: string
+    userId: string
+    status: $Enums.AssistantConversationStatus
+    locale: string
+    createdAt: Date
+    updatedAt: Date
+    lastActivityAt: Date
+    archivedAt: Date | null
+    _count: AssistantConversationCountAggregateOutputType | null
+    _min: AssistantConversationMinAggregateOutputType | null
+    _max: AssistantConversationMaxAggregateOutputType | null
+  }
+
+  type GetAssistantConversationGroupByPayload<T extends AssistantConversationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AssistantConversationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AssistantConversationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AssistantConversationGroupByOutputType[P]>
+            : GetScalarType<T[P], AssistantConversationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AssistantConversationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    status?: boolean
+    locale?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    lastActivityAt?: boolean
+    archivedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    turns?: boolean | AssistantConversation$turnsArgs<ExtArgs>
+    messages?: boolean | AssistantConversation$messagesArgs<ExtArgs>
+    toolExecutions?: boolean | AssistantConversation$toolExecutionsArgs<ExtArgs>
+    _count?: boolean | AssistantConversationCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantConversation"]>
+
+  export type AssistantConversationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    status?: boolean
+    locale?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    lastActivityAt?: boolean
+    archivedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantConversation"]>
+
+  export type AssistantConversationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    status?: boolean
+    locale?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    lastActivityAt?: boolean
+    archivedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantConversation"]>
+
+  export type AssistantConversationSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    status?: boolean
+    locale?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    lastActivityAt?: boolean
+    archivedAt?: boolean
+  }
+
+  export type AssistantConversationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "status" | "locale" | "createdAt" | "updatedAt" | "lastActivityAt" | "archivedAt", ExtArgs["result"]["assistantConversation"]>
+  export type AssistantConversationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    turns?: boolean | AssistantConversation$turnsArgs<ExtArgs>
+    messages?: boolean | AssistantConversation$messagesArgs<ExtArgs>
+    toolExecutions?: boolean | AssistantConversation$toolExecutionsArgs<ExtArgs>
+    _count?: boolean | AssistantConversationCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type AssistantConversationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type AssistantConversationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $AssistantConversationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AssistantConversation"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      turns: Prisma.$AssistantTurnPayload<ExtArgs>[]
+      messages: Prisma.$AssistantMessagePayload<ExtArgs>[]
+      toolExecutions: Prisma.$AssistantToolExecutionPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      status: $Enums.AssistantConversationStatus
+      locale: string
+      createdAt: Date
+      updatedAt: Date
+      lastActivityAt: Date
+      archivedAt: Date | null
+    }, ExtArgs["result"]["assistantConversation"]>
+    composites: {}
+  }
+
+  type AssistantConversationGetPayload<S extends boolean | null | undefined | AssistantConversationDefaultArgs> = $Result.GetResult<Prisma.$AssistantConversationPayload, S>
+
+  type AssistantConversationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AssistantConversationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AssistantConversationCountAggregateInputType | true
+    }
+
+  export interface AssistantConversationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AssistantConversation'], meta: { name: 'AssistantConversation' } }
+    /**
+     * Find zero or one AssistantConversation that matches the filter.
+     * @param {AssistantConversationFindUniqueArgs} args - Arguments to find a AssistantConversation
+     * @example
+     * // Get one AssistantConversation
+     * const assistantConversation = await prisma.assistantConversation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AssistantConversationFindUniqueArgs>(args: SelectSubset<T, AssistantConversationFindUniqueArgs<ExtArgs>>): Prisma__AssistantConversationClient<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AssistantConversation that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AssistantConversationFindUniqueOrThrowArgs} args - Arguments to find a AssistantConversation
+     * @example
+     * // Get one AssistantConversation
+     * const assistantConversation = await prisma.assistantConversation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AssistantConversationFindUniqueOrThrowArgs>(args: SelectSubset<T, AssistantConversationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AssistantConversationClient<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AssistantConversation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantConversationFindFirstArgs} args - Arguments to find a AssistantConversation
+     * @example
+     * // Get one AssistantConversation
+     * const assistantConversation = await prisma.assistantConversation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AssistantConversationFindFirstArgs>(args?: SelectSubset<T, AssistantConversationFindFirstArgs<ExtArgs>>): Prisma__AssistantConversationClient<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AssistantConversation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantConversationFindFirstOrThrowArgs} args - Arguments to find a AssistantConversation
+     * @example
+     * // Get one AssistantConversation
+     * const assistantConversation = await prisma.assistantConversation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AssistantConversationFindFirstOrThrowArgs>(args?: SelectSubset<T, AssistantConversationFindFirstOrThrowArgs<ExtArgs>>): Prisma__AssistantConversationClient<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AssistantConversations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantConversationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AssistantConversations
+     * const assistantConversations = await prisma.assistantConversation.findMany()
+     *
+     * // Get first 10 AssistantConversations
+     * const assistantConversations = await prisma.assistantConversation.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const assistantConversationWithIdOnly = await prisma.assistantConversation.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends AssistantConversationFindManyArgs>(args?: SelectSubset<T, AssistantConversationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AssistantConversation.
+     * @param {AssistantConversationCreateArgs} args - Arguments to create a AssistantConversation.
+     * @example
+     * // Create one AssistantConversation
+     * const AssistantConversation = await prisma.assistantConversation.create({
+     *   data: {
+     *     // ... data to create a AssistantConversation
+     *   }
+     * })
+     *
+     */
+    create<T extends AssistantConversationCreateArgs>(args: SelectSubset<T, AssistantConversationCreateArgs<ExtArgs>>): Prisma__AssistantConversationClient<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AssistantConversations.
+     * @param {AssistantConversationCreateManyArgs} args - Arguments to create many AssistantConversations.
+     * @example
+     * // Create many AssistantConversations
+     * const assistantConversation = await prisma.assistantConversation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends AssistantConversationCreateManyArgs>(args?: SelectSubset<T, AssistantConversationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AssistantConversations and returns the data saved in the database.
+     * @param {AssistantConversationCreateManyAndReturnArgs} args - Arguments to create many AssistantConversations.
+     * @example
+     * // Create many AssistantConversations
+     * const assistantConversation = await prisma.assistantConversation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many AssistantConversations and only return the `id`
+     * const assistantConversationWithIdOnly = await prisma.assistantConversation.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends AssistantConversationCreateManyAndReturnArgs>(args?: SelectSubset<T, AssistantConversationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AssistantConversation.
+     * @param {AssistantConversationDeleteArgs} args - Arguments to delete one AssistantConversation.
+     * @example
+     * // Delete one AssistantConversation
+     * const AssistantConversation = await prisma.assistantConversation.delete({
+     *   where: {
+     *     // ... filter to delete one AssistantConversation
+     *   }
+     * })
+     *
+     */
+    delete<T extends AssistantConversationDeleteArgs>(args: SelectSubset<T, AssistantConversationDeleteArgs<ExtArgs>>): Prisma__AssistantConversationClient<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AssistantConversation.
+     * @param {AssistantConversationUpdateArgs} args - Arguments to update one AssistantConversation.
+     * @example
+     * // Update one AssistantConversation
+     * const assistantConversation = await prisma.assistantConversation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends AssistantConversationUpdateArgs>(args: SelectSubset<T, AssistantConversationUpdateArgs<ExtArgs>>): Prisma__AssistantConversationClient<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AssistantConversations.
+     * @param {AssistantConversationDeleteManyArgs} args - Arguments to filter AssistantConversations to delete.
+     * @example
+     * // Delete a few AssistantConversations
+     * const { count } = await prisma.assistantConversation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends AssistantConversationDeleteManyArgs>(args?: SelectSubset<T, AssistantConversationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssistantConversations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantConversationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AssistantConversations
+     * const assistantConversation = await prisma.assistantConversation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends AssistantConversationUpdateManyArgs>(args: SelectSubset<T, AssistantConversationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssistantConversations and returns the data updated in the database.
+     * @param {AssistantConversationUpdateManyAndReturnArgs} args - Arguments to update many AssistantConversations.
+     * @example
+     * // Update many AssistantConversations
+     * const assistantConversation = await prisma.assistantConversation.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more AssistantConversations and only return the `id`
+     * const assistantConversationWithIdOnly = await prisma.assistantConversation.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends AssistantConversationUpdateManyAndReturnArgs>(args: SelectSubset<T, AssistantConversationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AssistantConversation.
+     * @param {AssistantConversationUpsertArgs} args - Arguments to update or create a AssistantConversation.
+     * @example
+     * // Update or create a AssistantConversation
+     * const assistantConversation = await prisma.assistantConversation.upsert({
+     *   create: {
+     *     // ... data to create a AssistantConversation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AssistantConversation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AssistantConversationUpsertArgs>(args: SelectSubset<T, AssistantConversationUpsertArgs<ExtArgs>>): Prisma__AssistantConversationClient<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AssistantConversations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantConversationCountArgs} args - Arguments to filter AssistantConversations to count.
+     * @example
+     * // Count the number of AssistantConversations
+     * const count = await prisma.assistantConversation.count({
+     *   where: {
+     *     // ... the filter for the AssistantConversations we want to count
+     *   }
+     * })
+    **/
+    count<T extends AssistantConversationCountArgs>(
+      args?: Subset<T, AssistantConversationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AssistantConversationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AssistantConversation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantConversationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AssistantConversationAggregateArgs>(args: Subset<T, AssistantConversationAggregateArgs>): Prisma.PrismaPromise<GetAssistantConversationAggregateType<T>>
+
+    /**
+     * Group by AssistantConversation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantConversationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+    **/
+    groupBy<
+      T extends AssistantConversationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AssistantConversationGroupByArgs['orderBy'] }
+        : { orderBy?: AssistantConversationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AssistantConversationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAssistantConversationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AssistantConversation model
+   */
+  readonly fields: AssistantConversationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AssistantConversation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AssistantConversationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    turns<T extends AssistantConversation$turnsArgs<ExtArgs> = {}>(args?: Subset<T, AssistantConversation$turnsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    messages<T extends AssistantConversation$messagesArgs<ExtArgs> = {}>(args?: Subset<T, AssistantConversation$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    toolExecutions<T extends AssistantConversation$toolExecutionsArgs<ExtArgs> = {}>(args?: Subset<T, AssistantConversation$toolExecutionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AssistantConversation model
+   */
+  interface AssistantConversationFieldRefs {
+    readonly id: FieldRef<"AssistantConversation", 'String'>
+    readonly userId: FieldRef<"AssistantConversation", 'String'>
+    readonly status: FieldRef<"AssistantConversation", 'AssistantConversationStatus'>
+    readonly locale: FieldRef<"AssistantConversation", 'String'>
+    readonly createdAt: FieldRef<"AssistantConversation", 'DateTime'>
+    readonly updatedAt: FieldRef<"AssistantConversation", 'DateTime'>
+    readonly lastActivityAt: FieldRef<"AssistantConversation", 'DateTime'>
+    readonly archivedAt: FieldRef<"AssistantConversation", 'DateTime'>
+  }
+
+
+  // Custom InputTypes
+  /**
+   * AssistantConversation findUnique
+   */
+  export type AssistantConversationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantConversation
+     */
+    select?: AssistantConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantConversation
+     */
+    omit?: AssistantConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantConversation to fetch.
+     */
+    where: AssistantConversationWhereUniqueInput
+  }
+
+  /**
+   * AssistantConversation findUniqueOrThrow
+   */
+  export type AssistantConversationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantConversation
+     */
+    select?: AssistantConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantConversation
+     */
+    omit?: AssistantConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantConversation to fetch.
+     */
+    where: AssistantConversationWhereUniqueInput
+  }
+
+  /**
+   * AssistantConversation findFirst
+   */
+  export type AssistantConversationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantConversation
+     */
+    select?: AssistantConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantConversation
+     */
+    omit?: AssistantConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantConversation to fetch.
+     */
+    where?: AssistantConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantConversations to fetch.
+     */
+    orderBy?: AssistantConversationOrderByWithRelationInput | AssistantConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for AssistantConversations.
+     */
+    cursor?: AssistantConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantConversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantConversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantConversations.
+     */
+    distinct?: AssistantConversationScalarFieldEnum | AssistantConversationScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantConversation findFirstOrThrow
+   */
+  export type AssistantConversationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantConversation
+     */
+    select?: AssistantConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantConversation
+     */
+    omit?: AssistantConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantConversation to fetch.
+     */
+    where?: AssistantConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantConversations to fetch.
+     */
+    orderBy?: AssistantConversationOrderByWithRelationInput | AssistantConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for AssistantConversations.
+     */
+    cursor?: AssistantConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantConversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantConversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantConversations.
+     */
+    distinct?: AssistantConversationScalarFieldEnum | AssistantConversationScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantConversation findMany
+   */
+  export type AssistantConversationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantConversation
+     */
+    select?: AssistantConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantConversation
+     */
+    omit?: AssistantConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantConversationInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantConversations to fetch.
+     */
+    where?: AssistantConversationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantConversations to fetch.
+     */
+    orderBy?: AssistantConversationOrderByWithRelationInput | AssistantConversationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing AssistantConversations.
+     */
+    cursor?: AssistantConversationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantConversations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantConversations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantConversations.
+     */
+    distinct?: AssistantConversationScalarFieldEnum | AssistantConversationScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantConversation create
+   */
+  export type AssistantConversationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantConversation
+     */
+    select?: AssistantConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantConversation
+     */
+    omit?: AssistantConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantConversationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AssistantConversation.
+     */
+    data: XOR<AssistantConversationCreateInput, AssistantConversationUncheckedCreateInput>
+  }
+
+  /**
+   * AssistantConversation createMany
+   */
+  export type AssistantConversationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AssistantConversations.
+     */
+    data: AssistantConversationCreateManyInput | AssistantConversationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AssistantConversation createManyAndReturn
+   */
+  export type AssistantConversationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantConversation
+     */
+    select?: AssistantConversationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantConversation
+     */
+    omit?: AssistantConversationOmit<ExtArgs> | null
+    /**
+     * The data used to create many AssistantConversations.
+     */
+    data: AssistantConversationCreateManyInput | AssistantConversationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantConversationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AssistantConversation update
+   */
+  export type AssistantConversationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantConversation
+     */
+    select?: AssistantConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantConversation
+     */
+    omit?: AssistantConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantConversationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AssistantConversation.
+     */
+    data: XOR<AssistantConversationUpdateInput, AssistantConversationUncheckedUpdateInput>
+    /**
+     * Choose, which AssistantConversation to update.
+     */
+    where: AssistantConversationWhereUniqueInput
+  }
+
+  /**
+   * AssistantConversation updateMany
+   */
+  export type AssistantConversationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AssistantConversations.
+     */
+    data: XOR<AssistantConversationUpdateManyMutationInput, AssistantConversationUncheckedUpdateManyInput>
+    /**
+     * Filter which AssistantConversations to update
+     */
+    where?: AssistantConversationWhereInput
+    /**
+     * Limit how many AssistantConversations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssistantConversation updateManyAndReturn
+   */
+  export type AssistantConversationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantConversation
+     */
+    select?: AssistantConversationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantConversation
+     */
+    omit?: AssistantConversationOmit<ExtArgs> | null
+    /**
+     * The data used to update AssistantConversations.
+     */
+    data: XOR<AssistantConversationUpdateManyMutationInput, AssistantConversationUncheckedUpdateManyInput>
+    /**
+     * Filter which AssistantConversations to update
+     */
+    where?: AssistantConversationWhereInput
+    /**
+     * Limit how many AssistantConversations to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantConversationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AssistantConversation upsert
+   */
+  export type AssistantConversationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantConversation
+     */
+    select?: AssistantConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantConversation
+     */
+    omit?: AssistantConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantConversationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AssistantConversation to update in case it exists.
+     */
+    where: AssistantConversationWhereUniqueInput
+    /**
+     * In case the AssistantConversation found by the `where` argument doesn't exist, create a new AssistantConversation with this data.
+     */
+    create: XOR<AssistantConversationCreateInput, AssistantConversationUncheckedCreateInput>
+    /**
+     * In case the AssistantConversation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AssistantConversationUpdateInput, AssistantConversationUncheckedUpdateInput>
+  }
+
+  /**
+   * AssistantConversation delete
+   */
+  export type AssistantConversationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantConversation
+     */
+    select?: AssistantConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantConversation
+     */
+    omit?: AssistantConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantConversationInclude<ExtArgs> | null
+    /**
+     * Filter which AssistantConversation to delete.
+     */
+    where: AssistantConversationWhereUniqueInput
+  }
+
+  /**
+   * AssistantConversation deleteMany
+   */
+  export type AssistantConversationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssistantConversations to delete
+     */
+    where?: AssistantConversationWhereInput
+    /**
+     * Limit how many AssistantConversations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssistantConversation.turns
+   */
+  export type AssistantConversation$turnsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnInclude<ExtArgs> | null
+    where?: AssistantTurnWhereInput
+    orderBy?: AssistantTurnOrderByWithRelationInput | AssistantTurnOrderByWithRelationInput[]
+    cursor?: AssistantTurnWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AssistantTurnScalarFieldEnum | AssistantTurnScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantConversation.messages
+   */
+  export type AssistantConversation$messagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantMessage
+     */
+    select?: AssistantMessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantMessage
+     */
+    omit?: AssistantMessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantMessageInclude<ExtArgs> | null
+    where?: AssistantMessageWhereInput
+    orderBy?: AssistantMessageOrderByWithRelationInput | AssistantMessageOrderByWithRelationInput[]
+    cursor?: AssistantMessageWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AssistantMessageScalarFieldEnum | AssistantMessageScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantConversation.toolExecutions
+   */
+  export type AssistantConversation$toolExecutionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantToolExecution
+     */
+    select?: AssistantToolExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantToolExecution
+     */
+    omit?: AssistantToolExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantToolExecutionInclude<ExtArgs> | null
+    where?: AssistantToolExecutionWhereInput
+    orderBy?: AssistantToolExecutionOrderByWithRelationInput | AssistantToolExecutionOrderByWithRelationInput[]
+    cursor?: AssistantToolExecutionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AssistantToolExecutionScalarFieldEnum | AssistantToolExecutionScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantConversation without action
+   */
+  export type AssistantConversationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantConversation
+     */
+    select?: AssistantConversationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantConversation
+     */
+    omit?: AssistantConversationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantConversationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AssistantTurn
+   */
+
+  export type AggregateAssistantTurn = {
+    _count: AssistantTurnCountAggregateOutputType | null
+    _min: AssistantTurnMinAggregateOutputType | null
+    _max: AssistantTurnMaxAggregateOutputType | null
+  }
+
+  export type AssistantTurnMinAggregateOutputType = {
+    id: string | null
+    conversationId: string | null
+    correlationId: string | null
+    status: $Enums.AssistantTurnStatus | null
+    intent: string | null
+    locale: string | null
+    safeErrorCode: string | null
+    startedAt: Date | null
+    finishedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AssistantTurnMaxAggregateOutputType = {
+    id: string | null
+    conversationId: string | null
+    correlationId: string | null
+    status: $Enums.AssistantTurnStatus | null
+    intent: string | null
+    locale: string | null
+    safeErrorCode: string | null
+    startedAt: Date | null
+    finishedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AssistantTurnCountAggregateOutputType = {
+    id: number
+    conversationId: number
+    correlationId: number
+    status: number
+    intent: number
+    locale: number
+    safeErrorCode: number
+    startedAt: number
+    finishedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type AssistantTurnMinAggregateInputType = {
+    id?: true
+    conversationId?: true
+    correlationId?: true
+    status?: true
+    intent?: true
+    locale?: true
+    safeErrorCode?: true
+    startedAt?: true
+    finishedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AssistantTurnMaxAggregateInputType = {
+    id?: true
+    conversationId?: true
+    correlationId?: true
+    status?: true
+    intent?: true
+    locale?: true
+    safeErrorCode?: true
+    startedAt?: true
+    finishedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AssistantTurnCountAggregateInputType = {
+    id?: true
+    conversationId?: true
+    correlationId?: true
+    status?: true
+    intent?: true
+    locale?: true
+    safeErrorCode?: true
+    startedAt?: true
+    finishedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type AssistantTurnAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssistantTurn to aggregate.
+     */
+    where?: AssistantTurnWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantTurns to fetch.
+     */
+    orderBy?: AssistantTurnOrderByWithRelationInput | AssistantTurnOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: AssistantTurnWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantTurns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantTurns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned AssistantTurns
+    **/
+    _count?: true | AssistantTurnCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+    **/
+    _min?: AssistantTurnMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+    **/
+    _max?: AssistantTurnMaxAggregateInputType
+  }
+
+  export type GetAssistantTurnAggregateType<T extends AssistantTurnAggregateArgs> = {
+        [P in keyof T & keyof AggregateAssistantTurn]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAssistantTurn[P]>
+      : GetScalarType<T[P], AggregateAssistantTurn[P]>
+  }
+
+
+
+
+  export type AssistantTurnGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantTurnWhereInput
+    orderBy?: AssistantTurnOrderByWithAggregationInput | AssistantTurnOrderByWithAggregationInput[]
+    by: AssistantTurnScalarFieldEnum[] | AssistantTurnScalarFieldEnum
+    having?: AssistantTurnScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AssistantTurnCountAggregateInputType | true
+    _min?: AssistantTurnMinAggregateInputType
+    _max?: AssistantTurnMaxAggregateInputType
+  }
+
+  export type AssistantTurnGroupByOutputType = {
+    id: string
+    conversationId: string
+    correlationId: string
+    status: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode: string | null
+    startedAt: Date
+    finishedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: AssistantTurnCountAggregateOutputType | null
+    _min: AssistantTurnMinAggregateOutputType | null
+    _max: AssistantTurnMaxAggregateOutputType | null
+  }
+
+  type GetAssistantTurnGroupByPayload<T extends AssistantTurnGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AssistantTurnGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AssistantTurnGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AssistantTurnGroupByOutputType[P]>
+            : GetScalarType<T[P], AssistantTurnGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AssistantTurnSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    correlationId?: boolean
+    status?: boolean
+    intent?: boolean
+    locale?: boolean
+    safeErrorCode?: boolean
+    startedAt?: boolean
+    finishedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    messages?: boolean | AssistantTurn$messagesArgs<ExtArgs>
+    toolExecutions?: boolean | AssistantTurn$toolExecutionsArgs<ExtArgs>
+    _count?: boolean | AssistantTurnCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantTurn"]>
+
+  export type AssistantTurnSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    correlationId?: boolean
+    status?: boolean
+    intent?: boolean
+    locale?: boolean
+    safeErrorCode?: boolean
+    startedAt?: boolean
+    finishedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantTurn"]>
+
+  export type AssistantTurnSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    correlationId?: boolean
+    status?: boolean
+    intent?: boolean
+    locale?: boolean
+    safeErrorCode?: boolean
+    startedAt?: boolean
+    finishedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantTurn"]>
+
+  export type AssistantTurnSelectScalar = {
+    id?: boolean
+    conversationId?: boolean
+    correlationId?: boolean
+    status?: boolean
+    intent?: boolean
+    locale?: boolean
+    safeErrorCode?: boolean
+    startedAt?: boolean
+    finishedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type AssistantTurnOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "conversationId" | "correlationId" | "status" | "intent" | "locale" | "safeErrorCode" | "startedAt" | "finishedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["assistantTurn"]>
+  export type AssistantTurnInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    messages?: boolean | AssistantTurn$messagesArgs<ExtArgs>
+    toolExecutions?: boolean | AssistantTurn$toolExecutionsArgs<ExtArgs>
+    _count?: boolean | AssistantTurnCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type AssistantTurnIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+  }
+  export type AssistantTurnIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+  }
+
+  export type $AssistantTurnPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AssistantTurn"
+    objects: {
+      conversation: Prisma.$AssistantConversationPayload<ExtArgs>
+      messages: Prisma.$AssistantMessagePayload<ExtArgs>[]
+      toolExecutions: Prisma.$AssistantToolExecutionPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      conversationId: string
+      correlationId: string
+      status: $Enums.AssistantTurnStatus
+      intent: string
+      locale: string
+      safeErrorCode: string | null
+      startedAt: Date
+      finishedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["assistantTurn"]>
+    composites: {}
+  }
+
+  type AssistantTurnGetPayload<S extends boolean | null | undefined | AssistantTurnDefaultArgs> = $Result.GetResult<Prisma.$AssistantTurnPayload, S>
+
+  type AssistantTurnCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AssistantTurnFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AssistantTurnCountAggregateInputType | true
+    }
+
+  export interface AssistantTurnDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AssistantTurn'], meta: { name: 'AssistantTurn' } }
+    /**
+     * Find zero or one AssistantTurn that matches the filter.
+     * @param {AssistantTurnFindUniqueArgs} args - Arguments to find a AssistantTurn
+     * @example
+     * // Get one AssistantTurn
+     * const assistantTurn = await prisma.assistantTurn.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AssistantTurnFindUniqueArgs>(args: SelectSubset<T, AssistantTurnFindUniqueArgs<ExtArgs>>): Prisma__AssistantTurnClient<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AssistantTurn that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AssistantTurnFindUniqueOrThrowArgs} args - Arguments to find a AssistantTurn
+     * @example
+     * // Get one AssistantTurn
+     * const assistantTurn = await prisma.assistantTurn.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AssistantTurnFindUniqueOrThrowArgs>(args: SelectSubset<T, AssistantTurnFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AssistantTurnClient<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AssistantTurn that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantTurnFindFirstArgs} args - Arguments to find a AssistantTurn
+     * @example
+     * // Get one AssistantTurn
+     * const assistantTurn = await prisma.assistantTurn.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AssistantTurnFindFirstArgs>(args?: SelectSubset<T, AssistantTurnFindFirstArgs<ExtArgs>>): Prisma__AssistantTurnClient<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AssistantTurn that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantTurnFindFirstOrThrowArgs} args - Arguments to find a AssistantTurn
+     * @example
+     * // Get one AssistantTurn
+     * const assistantTurn = await prisma.assistantTurn.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AssistantTurnFindFirstOrThrowArgs>(args?: SelectSubset<T, AssistantTurnFindFirstOrThrowArgs<ExtArgs>>): Prisma__AssistantTurnClient<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AssistantTurns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantTurnFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AssistantTurns
+     * const assistantTurns = await prisma.assistantTurn.findMany()
+     *
+     * // Get first 10 AssistantTurns
+     * const assistantTurns = await prisma.assistantTurn.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const assistantTurnWithIdOnly = await prisma.assistantTurn.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends AssistantTurnFindManyArgs>(args?: SelectSubset<T, AssistantTurnFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AssistantTurn.
+     * @param {AssistantTurnCreateArgs} args - Arguments to create a AssistantTurn.
+     * @example
+     * // Create one AssistantTurn
+     * const AssistantTurn = await prisma.assistantTurn.create({
+     *   data: {
+     *     // ... data to create a AssistantTurn
+     *   }
+     * })
+     *
+     */
+    create<T extends AssistantTurnCreateArgs>(args: SelectSubset<T, AssistantTurnCreateArgs<ExtArgs>>): Prisma__AssistantTurnClient<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AssistantTurns.
+     * @param {AssistantTurnCreateManyArgs} args - Arguments to create many AssistantTurns.
+     * @example
+     * // Create many AssistantTurns
+     * const assistantTurn = await prisma.assistantTurn.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends AssistantTurnCreateManyArgs>(args?: SelectSubset<T, AssistantTurnCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AssistantTurns and returns the data saved in the database.
+     * @param {AssistantTurnCreateManyAndReturnArgs} args - Arguments to create many AssistantTurns.
+     * @example
+     * // Create many AssistantTurns
+     * const assistantTurn = await prisma.assistantTurn.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many AssistantTurns and only return the `id`
+     * const assistantTurnWithIdOnly = await prisma.assistantTurn.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends AssistantTurnCreateManyAndReturnArgs>(args?: SelectSubset<T, AssistantTurnCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AssistantTurn.
+     * @param {AssistantTurnDeleteArgs} args - Arguments to delete one AssistantTurn.
+     * @example
+     * // Delete one AssistantTurn
+     * const AssistantTurn = await prisma.assistantTurn.delete({
+     *   where: {
+     *     // ... filter to delete one AssistantTurn
+     *   }
+     * })
+     *
+     */
+    delete<T extends AssistantTurnDeleteArgs>(args: SelectSubset<T, AssistantTurnDeleteArgs<ExtArgs>>): Prisma__AssistantTurnClient<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AssistantTurn.
+     * @param {AssistantTurnUpdateArgs} args - Arguments to update one AssistantTurn.
+     * @example
+     * // Update one AssistantTurn
+     * const assistantTurn = await prisma.assistantTurn.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends AssistantTurnUpdateArgs>(args: SelectSubset<T, AssistantTurnUpdateArgs<ExtArgs>>): Prisma__AssistantTurnClient<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AssistantTurns.
+     * @param {AssistantTurnDeleteManyArgs} args - Arguments to filter AssistantTurns to delete.
+     * @example
+     * // Delete a few AssistantTurns
+     * const { count } = await prisma.assistantTurn.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends AssistantTurnDeleteManyArgs>(args?: SelectSubset<T, AssistantTurnDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssistantTurns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantTurnUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AssistantTurns
+     * const assistantTurn = await prisma.assistantTurn.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends AssistantTurnUpdateManyArgs>(args: SelectSubset<T, AssistantTurnUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssistantTurns and returns the data updated in the database.
+     * @param {AssistantTurnUpdateManyAndReturnArgs} args - Arguments to update many AssistantTurns.
+     * @example
+     * // Update many AssistantTurns
+     * const assistantTurn = await prisma.assistantTurn.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more AssistantTurns and only return the `id`
+     * const assistantTurnWithIdOnly = await prisma.assistantTurn.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends AssistantTurnUpdateManyAndReturnArgs>(args: SelectSubset<T, AssistantTurnUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AssistantTurn.
+     * @param {AssistantTurnUpsertArgs} args - Arguments to update or create a AssistantTurn.
+     * @example
+     * // Update or create a AssistantTurn
+     * const assistantTurn = await prisma.assistantTurn.upsert({
+     *   create: {
+     *     // ... data to create a AssistantTurn
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AssistantTurn we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AssistantTurnUpsertArgs>(args: SelectSubset<T, AssistantTurnUpsertArgs<ExtArgs>>): Prisma__AssistantTurnClient<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AssistantTurns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantTurnCountArgs} args - Arguments to filter AssistantTurns to count.
+     * @example
+     * // Count the number of AssistantTurns
+     * const count = await prisma.assistantTurn.count({
+     *   where: {
+     *     // ... the filter for the AssistantTurns we want to count
+     *   }
+     * })
+    **/
+    count<T extends AssistantTurnCountArgs>(
+      args?: Subset<T, AssistantTurnCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AssistantTurnCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AssistantTurn.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantTurnAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AssistantTurnAggregateArgs>(args: Subset<T, AssistantTurnAggregateArgs>): Prisma.PrismaPromise<GetAssistantTurnAggregateType<T>>
+
+    /**
+     * Group by AssistantTurn.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantTurnGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+    **/
+    groupBy<
+      T extends AssistantTurnGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AssistantTurnGroupByArgs['orderBy'] }
+        : { orderBy?: AssistantTurnGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AssistantTurnGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAssistantTurnGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AssistantTurn model
+   */
+  readonly fields: AssistantTurnFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AssistantTurn.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AssistantTurnClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    conversation<T extends AssistantConversationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AssistantConversationDefaultArgs<ExtArgs>>): Prisma__AssistantConversationClient<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    messages<T extends AssistantTurn$messagesArgs<ExtArgs> = {}>(args?: Subset<T, AssistantTurn$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    toolExecutions<T extends AssistantTurn$toolExecutionsArgs<ExtArgs> = {}>(args?: Subset<T, AssistantTurn$toolExecutionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AssistantTurn model
+   */
+  interface AssistantTurnFieldRefs {
+    readonly id: FieldRef<"AssistantTurn", 'String'>
+    readonly conversationId: FieldRef<"AssistantTurn", 'String'>
+    readonly correlationId: FieldRef<"AssistantTurn", 'String'>
+    readonly status: FieldRef<"AssistantTurn", 'AssistantTurnStatus'>
+    readonly intent: FieldRef<"AssistantTurn", 'String'>
+    readonly locale: FieldRef<"AssistantTurn", 'String'>
+    readonly safeErrorCode: FieldRef<"AssistantTurn", 'String'>
+    readonly startedAt: FieldRef<"AssistantTurn", 'DateTime'>
+    readonly finishedAt: FieldRef<"AssistantTurn", 'DateTime'>
+    readonly createdAt: FieldRef<"AssistantTurn", 'DateTime'>
+    readonly updatedAt: FieldRef<"AssistantTurn", 'DateTime'>
+  }
+
+
+  // Custom InputTypes
+  /**
+   * AssistantTurn findUnique
+   */
+  export type AssistantTurnFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantTurn to fetch.
+     */
+    where: AssistantTurnWhereUniqueInput
+  }
+
+  /**
+   * AssistantTurn findUniqueOrThrow
+   */
+  export type AssistantTurnFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantTurn to fetch.
+     */
+    where: AssistantTurnWhereUniqueInput
+  }
+
+  /**
+   * AssistantTurn findFirst
+   */
+  export type AssistantTurnFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantTurn to fetch.
+     */
+    where?: AssistantTurnWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantTurns to fetch.
+     */
+    orderBy?: AssistantTurnOrderByWithRelationInput | AssistantTurnOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for AssistantTurns.
+     */
+    cursor?: AssistantTurnWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantTurns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantTurns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantTurns.
+     */
+    distinct?: AssistantTurnScalarFieldEnum | AssistantTurnScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantTurn findFirstOrThrow
+   */
+  export type AssistantTurnFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantTurn to fetch.
+     */
+    where?: AssistantTurnWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantTurns to fetch.
+     */
+    orderBy?: AssistantTurnOrderByWithRelationInput | AssistantTurnOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for AssistantTurns.
+     */
+    cursor?: AssistantTurnWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantTurns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantTurns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantTurns.
+     */
+    distinct?: AssistantTurnScalarFieldEnum | AssistantTurnScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantTurn findMany
+   */
+  export type AssistantTurnFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantTurns to fetch.
+     */
+    where?: AssistantTurnWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantTurns to fetch.
+     */
+    orderBy?: AssistantTurnOrderByWithRelationInput | AssistantTurnOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing AssistantTurns.
+     */
+    cursor?: AssistantTurnWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantTurns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantTurns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantTurns.
+     */
+    distinct?: AssistantTurnScalarFieldEnum | AssistantTurnScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantTurn create
+   */
+  export type AssistantTurnCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AssistantTurn.
+     */
+    data: XOR<AssistantTurnCreateInput, AssistantTurnUncheckedCreateInput>
+  }
+
+  /**
+   * AssistantTurn createMany
+   */
+  export type AssistantTurnCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AssistantTurns.
+     */
+    data: AssistantTurnCreateManyInput | AssistantTurnCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AssistantTurn createManyAndReturn
+   */
+  export type AssistantTurnCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * The data used to create many AssistantTurns.
+     */
+    data: AssistantTurnCreateManyInput | AssistantTurnCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AssistantTurn update
+   */
+  export type AssistantTurnUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AssistantTurn.
+     */
+    data: XOR<AssistantTurnUpdateInput, AssistantTurnUncheckedUpdateInput>
+    /**
+     * Choose, which AssistantTurn to update.
+     */
+    where: AssistantTurnWhereUniqueInput
+  }
+
+  /**
+   * AssistantTurn updateMany
+   */
+  export type AssistantTurnUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AssistantTurns.
+     */
+    data: XOR<AssistantTurnUpdateManyMutationInput, AssistantTurnUncheckedUpdateManyInput>
+    /**
+     * Filter which AssistantTurns to update
+     */
+    where?: AssistantTurnWhereInput
+    /**
+     * Limit how many AssistantTurns to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssistantTurn updateManyAndReturn
+   */
+  export type AssistantTurnUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * The data used to update AssistantTurns.
+     */
+    data: XOR<AssistantTurnUpdateManyMutationInput, AssistantTurnUncheckedUpdateManyInput>
+    /**
+     * Filter which AssistantTurns to update
+     */
+    where?: AssistantTurnWhereInput
+    /**
+     * Limit how many AssistantTurns to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AssistantTurn upsert
+   */
+  export type AssistantTurnUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AssistantTurn to update in case it exists.
+     */
+    where: AssistantTurnWhereUniqueInput
+    /**
+     * In case the AssistantTurn found by the `where` argument doesn't exist, create a new AssistantTurn with this data.
+     */
+    create: XOR<AssistantTurnCreateInput, AssistantTurnUncheckedCreateInput>
+    /**
+     * In case the AssistantTurn was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AssistantTurnUpdateInput, AssistantTurnUncheckedUpdateInput>
+  }
+
+  /**
+   * AssistantTurn delete
+   */
+  export type AssistantTurnDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnInclude<ExtArgs> | null
+    /**
+     * Filter which AssistantTurn to delete.
+     */
+    where: AssistantTurnWhereUniqueInput
+  }
+
+  /**
+   * AssistantTurn deleteMany
+   */
+  export type AssistantTurnDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssistantTurns to delete
+     */
+    where?: AssistantTurnWhereInput
+    /**
+     * Limit how many AssistantTurns to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssistantTurn.messages
+   */
+  export type AssistantTurn$messagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantMessage
+     */
+    select?: AssistantMessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantMessage
+     */
+    omit?: AssistantMessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantMessageInclude<ExtArgs> | null
+    where?: AssistantMessageWhereInput
+    orderBy?: AssistantMessageOrderByWithRelationInput | AssistantMessageOrderByWithRelationInput[]
+    cursor?: AssistantMessageWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AssistantMessageScalarFieldEnum | AssistantMessageScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantTurn.toolExecutions
+   */
+  export type AssistantTurn$toolExecutionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantToolExecution
+     */
+    select?: AssistantToolExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantToolExecution
+     */
+    omit?: AssistantToolExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantToolExecutionInclude<ExtArgs> | null
+    where?: AssistantToolExecutionWhereInput
+    orderBy?: AssistantToolExecutionOrderByWithRelationInput | AssistantToolExecutionOrderByWithRelationInput[]
+    cursor?: AssistantToolExecutionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AssistantToolExecutionScalarFieldEnum | AssistantToolExecutionScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantTurn without action
+   */
+  export type AssistantTurnDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AssistantMessage
+   */
+
+  export type AggregateAssistantMessage = {
+    _count: AssistantMessageCountAggregateOutputType | null
+    _min: AssistantMessageMinAggregateOutputType | null
+    _max: AssistantMessageMaxAggregateOutputType | null
+  }
+
+  export type AssistantMessageMinAggregateOutputType = {
+    id: string | null
+    conversationId: string | null
+    turnId: string | null
+    role: $Enums.AssistantMessageRole | null
+    source: $Enums.AssistantMessageSource | null
+    content: string | null
+    createdAt: Date | null
+  }
+
+  export type AssistantMessageMaxAggregateOutputType = {
+    id: string | null
+    conversationId: string | null
+    turnId: string | null
+    role: $Enums.AssistantMessageRole | null
+    source: $Enums.AssistantMessageSource | null
+    content: string | null
+    createdAt: Date | null
+  }
+
+  export type AssistantMessageCountAggregateOutputType = {
+    id: number
+    conversationId: number
+    turnId: number
+    role: number
+    source: number
+    content: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type AssistantMessageMinAggregateInputType = {
+    id?: true
+    conversationId?: true
+    turnId?: true
+    role?: true
+    source?: true
+    content?: true
+    createdAt?: true
+  }
+
+  export type AssistantMessageMaxAggregateInputType = {
+    id?: true
+    conversationId?: true
+    turnId?: true
+    role?: true
+    source?: true
+    content?: true
+    createdAt?: true
+  }
+
+  export type AssistantMessageCountAggregateInputType = {
+    id?: true
+    conversationId?: true
+    turnId?: true
+    role?: true
+    source?: true
+    content?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type AssistantMessageAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssistantMessage to aggregate.
+     */
+    where?: AssistantMessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantMessages to fetch.
+     */
+    orderBy?: AssistantMessageOrderByWithRelationInput | AssistantMessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: AssistantMessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantMessages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantMessages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned AssistantMessages
+    **/
+    _count?: true | AssistantMessageCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+    **/
+    _min?: AssistantMessageMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+    **/
+    _max?: AssistantMessageMaxAggregateInputType
+  }
+
+  export type GetAssistantMessageAggregateType<T extends AssistantMessageAggregateArgs> = {
+        [P in keyof T & keyof AggregateAssistantMessage]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAssistantMessage[P]>
+      : GetScalarType<T[P], AggregateAssistantMessage[P]>
+  }
+
+
+
+
+  export type AssistantMessageGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantMessageWhereInput
+    orderBy?: AssistantMessageOrderByWithAggregationInput | AssistantMessageOrderByWithAggregationInput[]
+    by: AssistantMessageScalarFieldEnum[] | AssistantMessageScalarFieldEnum
+    having?: AssistantMessageScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AssistantMessageCountAggregateInputType | true
+    _min?: AssistantMessageMinAggregateInputType
+    _max?: AssistantMessageMaxAggregateInputType
+  }
+
+  export type AssistantMessageGroupByOutputType = {
+    id: string
+    conversationId: string
+    turnId: string
+    role: $Enums.AssistantMessageRole
+    source: $Enums.AssistantMessageSource
+    content: string
+    createdAt: Date
+    _count: AssistantMessageCountAggregateOutputType | null
+    _min: AssistantMessageMinAggregateOutputType | null
+    _max: AssistantMessageMaxAggregateOutputType | null
+  }
+
+  type GetAssistantMessageGroupByPayload<T extends AssistantMessageGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AssistantMessageGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AssistantMessageGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AssistantMessageGroupByOutputType[P]>
+            : GetScalarType<T[P], AssistantMessageGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AssistantMessageSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    turnId?: boolean
+    role?: boolean
+    source?: boolean
+    content?: boolean
+    createdAt?: boolean
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantTurnDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantMessage"]>
+
+  export type AssistantMessageSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    turnId?: boolean
+    role?: boolean
+    source?: boolean
+    content?: boolean
+    createdAt?: boolean
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantTurnDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantMessage"]>
+
+  export type AssistantMessageSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    turnId?: boolean
+    role?: boolean
+    source?: boolean
+    content?: boolean
+    createdAt?: boolean
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantTurnDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantMessage"]>
+
+  export type AssistantMessageSelectScalar = {
+    id?: boolean
+    conversationId?: boolean
+    turnId?: boolean
+    role?: boolean
+    source?: boolean
+    content?: boolean
+    createdAt?: boolean
+  }
+
+  export type AssistantMessageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "conversationId" | "turnId" | "role" | "source" | "content" | "createdAt", ExtArgs["result"]["assistantMessage"]>
+  export type AssistantMessageInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantTurnDefaultArgs<ExtArgs>
+  }
+  export type AssistantMessageIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantTurnDefaultArgs<ExtArgs>
+  }
+  export type AssistantMessageIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantTurnDefaultArgs<ExtArgs>
+  }
+
+  export type $AssistantMessagePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AssistantMessage"
+    objects: {
+      conversation: Prisma.$AssistantConversationPayload<ExtArgs>
+      turn: Prisma.$AssistantTurnPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      conversationId: string
+      turnId: string
+      role: $Enums.AssistantMessageRole
+      source: $Enums.AssistantMessageSource
+      content: string
+      createdAt: Date
+    }, ExtArgs["result"]["assistantMessage"]>
+    composites: {}
+  }
+
+  type AssistantMessageGetPayload<S extends boolean | null | undefined | AssistantMessageDefaultArgs> = $Result.GetResult<Prisma.$AssistantMessagePayload, S>
+
+  type AssistantMessageCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AssistantMessageFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AssistantMessageCountAggregateInputType | true
+    }
+
+  export interface AssistantMessageDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AssistantMessage'], meta: { name: 'AssistantMessage' } }
+    /**
+     * Find zero or one AssistantMessage that matches the filter.
+     * @param {AssistantMessageFindUniqueArgs} args - Arguments to find a AssistantMessage
+     * @example
+     * // Get one AssistantMessage
+     * const assistantMessage = await prisma.assistantMessage.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AssistantMessageFindUniqueArgs>(args: SelectSubset<T, AssistantMessageFindUniqueArgs<ExtArgs>>): Prisma__AssistantMessageClient<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AssistantMessage that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AssistantMessageFindUniqueOrThrowArgs} args - Arguments to find a AssistantMessage
+     * @example
+     * // Get one AssistantMessage
+     * const assistantMessage = await prisma.assistantMessage.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AssistantMessageFindUniqueOrThrowArgs>(args: SelectSubset<T, AssistantMessageFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AssistantMessageClient<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AssistantMessage that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantMessageFindFirstArgs} args - Arguments to find a AssistantMessage
+     * @example
+     * // Get one AssistantMessage
+     * const assistantMessage = await prisma.assistantMessage.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AssistantMessageFindFirstArgs>(args?: SelectSubset<T, AssistantMessageFindFirstArgs<ExtArgs>>): Prisma__AssistantMessageClient<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AssistantMessage that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantMessageFindFirstOrThrowArgs} args - Arguments to find a AssistantMessage
+     * @example
+     * // Get one AssistantMessage
+     * const assistantMessage = await prisma.assistantMessage.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AssistantMessageFindFirstOrThrowArgs>(args?: SelectSubset<T, AssistantMessageFindFirstOrThrowArgs<ExtArgs>>): Prisma__AssistantMessageClient<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AssistantMessages that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantMessageFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AssistantMessages
+     * const assistantMessages = await prisma.assistantMessage.findMany()
+     *
+     * // Get first 10 AssistantMessages
+     * const assistantMessages = await prisma.assistantMessage.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const assistantMessageWithIdOnly = await prisma.assistantMessage.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends AssistantMessageFindManyArgs>(args?: SelectSubset<T, AssistantMessageFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AssistantMessage.
+     * @param {AssistantMessageCreateArgs} args - Arguments to create a AssistantMessage.
+     * @example
+     * // Create one AssistantMessage
+     * const AssistantMessage = await prisma.assistantMessage.create({
+     *   data: {
+     *     // ... data to create a AssistantMessage
+     *   }
+     * })
+     *
+     */
+    create<T extends AssistantMessageCreateArgs>(args: SelectSubset<T, AssistantMessageCreateArgs<ExtArgs>>): Prisma__AssistantMessageClient<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AssistantMessages.
+     * @param {AssistantMessageCreateManyArgs} args - Arguments to create many AssistantMessages.
+     * @example
+     * // Create many AssistantMessages
+     * const assistantMessage = await prisma.assistantMessage.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends AssistantMessageCreateManyArgs>(args?: SelectSubset<T, AssistantMessageCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AssistantMessages and returns the data saved in the database.
+     * @param {AssistantMessageCreateManyAndReturnArgs} args - Arguments to create many AssistantMessages.
+     * @example
+     * // Create many AssistantMessages
+     * const assistantMessage = await prisma.assistantMessage.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many AssistantMessages and only return the `id`
+     * const assistantMessageWithIdOnly = await prisma.assistantMessage.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends AssistantMessageCreateManyAndReturnArgs>(args?: SelectSubset<T, AssistantMessageCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AssistantMessage.
+     * @param {AssistantMessageDeleteArgs} args - Arguments to delete one AssistantMessage.
+     * @example
+     * // Delete one AssistantMessage
+     * const AssistantMessage = await prisma.assistantMessage.delete({
+     *   where: {
+     *     // ... filter to delete one AssistantMessage
+     *   }
+     * })
+     *
+     */
+    delete<T extends AssistantMessageDeleteArgs>(args: SelectSubset<T, AssistantMessageDeleteArgs<ExtArgs>>): Prisma__AssistantMessageClient<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AssistantMessage.
+     * @param {AssistantMessageUpdateArgs} args - Arguments to update one AssistantMessage.
+     * @example
+     * // Update one AssistantMessage
+     * const assistantMessage = await prisma.assistantMessage.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends AssistantMessageUpdateArgs>(args: SelectSubset<T, AssistantMessageUpdateArgs<ExtArgs>>): Prisma__AssistantMessageClient<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AssistantMessages.
+     * @param {AssistantMessageDeleteManyArgs} args - Arguments to filter AssistantMessages to delete.
+     * @example
+     * // Delete a few AssistantMessages
+     * const { count } = await prisma.assistantMessage.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends AssistantMessageDeleteManyArgs>(args?: SelectSubset<T, AssistantMessageDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssistantMessages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantMessageUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AssistantMessages
+     * const assistantMessage = await prisma.assistantMessage.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends AssistantMessageUpdateManyArgs>(args: SelectSubset<T, AssistantMessageUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssistantMessages and returns the data updated in the database.
+     * @param {AssistantMessageUpdateManyAndReturnArgs} args - Arguments to update many AssistantMessages.
+     * @example
+     * // Update many AssistantMessages
+     * const assistantMessage = await prisma.assistantMessage.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more AssistantMessages and only return the `id`
+     * const assistantMessageWithIdOnly = await prisma.assistantMessage.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends AssistantMessageUpdateManyAndReturnArgs>(args: SelectSubset<T, AssistantMessageUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AssistantMessage.
+     * @param {AssistantMessageUpsertArgs} args - Arguments to update or create a AssistantMessage.
+     * @example
+     * // Update or create a AssistantMessage
+     * const assistantMessage = await prisma.assistantMessage.upsert({
+     *   create: {
+     *     // ... data to create a AssistantMessage
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AssistantMessage we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AssistantMessageUpsertArgs>(args: SelectSubset<T, AssistantMessageUpsertArgs<ExtArgs>>): Prisma__AssistantMessageClient<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AssistantMessages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantMessageCountArgs} args - Arguments to filter AssistantMessages to count.
+     * @example
+     * // Count the number of AssistantMessages
+     * const count = await prisma.assistantMessage.count({
+     *   where: {
+     *     // ... the filter for the AssistantMessages we want to count
+     *   }
+     * })
+    **/
+    count<T extends AssistantMessageCountArgs>(
+      args?: Subset<T, AssistantMessageCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AssistantMessageCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AssistantMessage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantMessageAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AssistantMessageAggregateArgs>(args: Subset<T, AssistantMessageAggregateArgs>): Prisma.PrismaPromise<GetAssistantMessageAggregateType<T>>
+
+    /**
+     * Group by AssistantMessage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantMessageGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+    **/
+    groupBy<
+      T extends AssistantMessageGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AssistantMessageGroupByArgs['orderBy'] }
+        : { orderBy?: AssistantMessageGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AssistantMessageGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAssistantMessageGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AssistantMessage model
+   */
+  readonly fields: AssistantMessageFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AssistantMessage.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AssistantMessageClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    conversation<T extends AssistantConversationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AssistantConversationDefaultArgs<ExtArgs>>): Prisma__AssistantConversationClient<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    turn<T extends AssistantTurnDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AssistantTurnDefaultArgs<ExtArgs>>): Prisma__AssistantTurnClient<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AssistantMessage model
+   */
+  interface AssistantMessageFieldRefs {
+    readonly id: FieldRef<"AssistantMessage", 'String'>
+    readonly conversationId: FieldRef<"AssistantMessage", 'String'>
+    readonly turnId: FieldRef<"AssistantMessage", 'String'>
+    readonly role: FieldRef<"AssistantMessage", 'AssistantMessageRole'>
+    readonly source: FieldRef<"AssistantMessage", 'AssistantMessageSource'>
+    readonly content: FieldRef<"AssistantMessage", 'String'>
+    readonly createdAt: FieldRef<"AssistantMessage", 'DateTime'>
+  }
+
+
+  // Custom InputTypes
+  /**
+   * AssistantMessage findUnique
+   */
+  export type AssistantMessageFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantMessage
+     */
+    select?: AssistantMessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantMessage
+     */
+    omit?: AssistantMessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantMessageInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantMessage to fetch.
+     */
+    where: AssistantMessageWhereUniqueInput
+  }
+
+  /**
+   * AssistantMessage findUniqueOrThrow
+   */
+  export type AssistantMessageFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantMessage
+     */
+    select?: AssistantMessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantMessage
+     */
+    omit?: AssistantMessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantMessageInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantMessage to fetch.
+     */
+    where: AssistantMessageWhereUniqueInput
+  }
+
+  /**
+   * AssistantMessage findFirst
+   */
+  export type AssistantMessageFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantMessage
+     */
+    select?: AssistantMessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantMessage
+     */
+    omit?: AssistantMessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantMessageInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantMessage to fetch.
+     */
+    where?: AssistantMessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantMessages to fetch.
+     */
+    orderBy?: AssistantMessageOrderByWithRelationInput | AssistantMessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for AssistantMessages.
+     */
+    cursor?: AssistantMessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantMessages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantMessages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantMessages.
+     */
+    distinct?: AssistantMessageScalarFieldEnum | AssistantMessageScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantMessage findFirstOrThrow
+   */
+  export type AssistantMessageFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantMessage
+     */
+    select?: AssistantMessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantMessage
+     */
+    omit?: AssistantMessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantMessageInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantMessage to fetch.
+     */
+    where?: AssistantMessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantMessages to fetch.
+     */
+    orderBy?: AssistantMessageOrderByWithRelationInput | AssistantMessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for AssistantMessages.
+     */
+    cursor?: AssistantMessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantMessages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantMessages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantMessages.
+     */
+    distinct?: AssistantMessageScalarFieldEnum | AssistantMessageScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantMessage findMany
+   */
+  export type AssistantMessageFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantMessage
+     */
+    select?: AssistantMessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantMessage
+     */
+    omit?: AssistantMessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantMessageInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantMessages to fetch.
+     */
+    where?: AssistantMessageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantMessages to fetch.
+     */
+    orderBy?: AssistantMessageOrderByWithRelationInput | AssistantMessageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing AssistantMessages.
+     */
+    cursor?: AssistantMessageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantMessages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantMessages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantMessages.
+     */
+    distinct?: AssistantMessageScalarFieldEnum | AssistantMessageScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantMessage create
+   */
+  export type AssistantMessageCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantMessage
+     */
+    select?: AssistantMessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantMessage
+     */
+    omit?: AssistantMessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantMessageInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AssistantMessage.
+     */
+    data: XOR<AssistantMessageCreateInput, AssistantMessageUncheckedCreateInput>
+  }
+
+  /**
+   * AssistantMessage createMany
+   */
+  export type AssistantMessageCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AssistantMessages.
+     */
+    data: AssistantMessageCreateManyInput | AssistantMessageCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AssistantMessage createManyAndReturn
+   */
+  export type AssistantMessageCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantMessage
+     */
+    select?: AssistantMessageSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantMessage
+     */
+    omit?: AssistantMessageOmit<ExtArgs> | null
+    /**
+     * The data used to create many AssistantMessages.
+     */
+    data: AssistantMessageCreateManyInput | AssistantMessageCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantMessageIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AssistantMessage update
+   */
+  export type AssistantMessageUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantMessage
+     */
+    select?: AssistantMessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantMessage
+     */
+    omit?: AssistantMessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantMessageInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AssistantMessage.
+     */
+    data: XOR<AssistantMessageUpdateInput, AssistantMessageUncheckedUpdateInput>
+    /**
+     * Choose, which AssistantMessage to update.
+     */
+    where: AssistantMessageWhereUniqueInput
+  }
+
+  /**
+   * AssistantMessage updateMany
+   */
+  export type AssistantMessageUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AssistantMessages.
+     */
+    data: XOR<AssistantMessageUpdateManyMutationInput, AssistantMessageUncheckedUpdateManyInput>
+    /**
+     * Filter which AssistantMessages to update
+     */
+    where?: AssistantMessageWhereInput
+    /**
+     * Limit how many AssistantMessages to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssistantMessage updateManyAndReturn
+   */
+  export type AssistantMessageUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantMessage
+     */
+    select?: AssistantMessageSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantMessage
+     */
+    omit?: AssistantMessageOmit<ExtArgs> | null
+    /**
+     * The data used to update AssistantMessages.
+     */
+    data: XOR<AssistantMessageUpdateManyMutationInput, AssistantMessageUncheckedUpdateManyInput>
+    /**
+     * Filter which AssistantMessages to update
+     */
+    where?: AssistantMessageWhereInput
+    /**
+     * Limit how many AssistantMessages to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantMessageIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AssistantMessage upsert
+   */
+  export type AssistantMessageUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantMessage
+     */
+    select?: AssistantMessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantMessage
+     */
+    omit?: AssistantMessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantMessageInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AssistantMessage to update in case it exists.
+     */
+    where: AssistantMessageWhereUniqueInput
+    /**
+     * In case the AssistantMessage found by the `where` argument doesn't exist, create a new AssistantMessage with this data.
+     */
+    create: XOR<AssistantMessageCreateInput, AssistantMessageUncheckedCreateInput>
+    /**
+     * In case the AssistantMessage was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AssistantMessageUpdateInput, AssistantMessageUncheckedUpdateInput>
+  }
+
+  /**
+   * AssistantMessage delete
+   */
+  export type AssistantMessageDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantMessage
+     */
+    select?: AssistantMessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantMessage
+     */
+    omit?: AssistantMessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantMessageInclude<ExtArgs> | null
+    /**
+     * Filter which AssistantMessage to delete.
+     */
+    where: AssistantMessageWhereUniqueInput
+  }
+
+  /**
+   * AssistantMessage deleteMany
+   */
+  export type AssistantMessageDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssistantMessages to delete
+     */
+    where?: AssistantMessageWhereInput
+    /**
+     * Limit how many AssistantMessages to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssistantMessage without action
+   */
+  export type AssistantMessageDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantMessage
+     */
+    select?: AssistantMessageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantMessage
+     */
+    omit?: AssistantMessageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantMessageInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AssistantToolExecution
+   */
+
+  export type AggregateAssistantToolExecution = {
+    _count: AssistantToolExecutionCountAggregateOutputType | null
+    _avg: AssistantToolExecutionAvgAggregateOutputType | null
+    _sum: AssistantToolExecutionSumAggregateOutputType | null
+    _min: AssistantToolExecutionMinAggregateOutputType | null
+    _max: AssistantToolExecutionMaxAggregateOutputType | null
+  }
+
+  export type AssistantToolExecutionAvgAggregateOutputType = {
+    durationMs: number | null
+  }
+
+  export type AssistantToolExecutionSumAggregateOutputType = {
+    durationMs: number | null
+  }
+
+  export type AssistantToolExecutionMinAggregateOutputType = {
+    id: string | null
+    conversationId: string | null
+    turnId: string | null
+    toolId: string | null
+    capability: string | null
+    riskLevel: string | null
+    policyDecision: string | null
+    status: $Enums.AssistantToolExecutionStatus | null
+    correlationId: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+    durationMs: number | null
+    safeErrorCode: string | null
+    idempotencyKey: string | null
+  }
+
+  export type AssistantToolExecutionMaxAggregateOutputType = {
+    id: string | null
+    conversationId: string | null
+    turnId: string | null
+    toolId: string | null
+    capability: string | null
+    riskLevel: string | null
+    policyDecision: string | null
+    status: $Enums.AssistantToolExecutionStatus | null
+    correlationId: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+    durationMs: number | null
+    safeErrorCode: string | null
+    idempotencyKey: string | null
+  }
+
+  export type AssistantToolExecutionCountAggregateOutputType = {
+    id: number
+    conversationId: number
+    turnId: number
+    toolId: number
+    capability: number
+    riskLevel: number
+    policyDecision: number
+    status: number
+    correlationId: number
+    startedAt: number
+    completedAt: number
+    durationMs: number
+    safeErrorCode: number
+    redactedInput: number
+    outputSummary: number
+    idempotencyKey: number
+    _all: number
+  }
+
+
+  export type AssistantToolExecutionAvgAggregateInputType = {
+    durationMs?: true
+  }
+
+  export type AssistantToolExecutionSumAggregateInputType = {
+    durationMs?: true
+  }
+
+  export type AssistantToolExecutionMinAggregateInputType = {
+    id?: true
+    conversationId?: true
+    turnId?: true
+    toolId?: true
+    capability?: true
+    riskLevel?: true
+    policyDecision?: true
+    status?: true
+    correlationId?: true
+    startedAt?: true
+    completedAt?: true
+    durationMs?: true
+    safeErrorCode?: true
+    idempotencyKey?: true
+  }
+
+  export type AssistantToolExecutionMaxAggregateInputType = {
+    id?: true
+    conversationId?: true
+    turnId?: true
+    toolId?: true
+    capability?: true
+    riskLevel?: true
+    policyDecision?: true
+    status?: true
+    correlationId?: true
+    startedAt?: true
+    completedAt?: true
+    durationMs?: true
+    safeErrorCode?: true
+    idempotencyKey?: true
+  }
+
+  export type AssistantToolExecutionCountAggregateInputType = {
+    id?: true
+    conversationId?: true
+    turnId?: true
+    toolId?: true
+    capability?: true
+    riskLevel?: true
+    policyDecision?: true
+    status?: true
+    correlationId?: true
+    startedAt?: true
+    completedAt?: true
+    durationMs?: true
+    safeErrorCode?: true
+    redactedInput?: true
+    outputSummary?: true
+    idempotencyKey?: true
+    _all?: true
+  }
+
+  export type AssistantToolExecutionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssistantToolExecution to aggregate.
+     */
+    where?: AssistantToolExecutionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantToolExecutions to fetch.
+     */
+    orderBy?: AssistantToolExecutionOrderByWithRelationInput | AssistantToolExecutionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: AssistantToolExecutionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantToolExecutions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantToolExecutions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned AssistantToolExecutions
+    **/
+    _count?: true | AssistantToolExecutionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to average
+    **/
+    _avg?: AssistantToolExecutionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to sum
+    **/
+    _sum?: AssistantToolExecutionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+    **/
+    _min?: AssistantToolExecutionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+    **/
+    _max?: AssistantToolExecutionMaxAggregateInputType
+  }
+
+  export type GetAssistantToolExecutionAggregateType<T extends AssistantToolExecutionAggregateArgs> = {
+        [P in keyof T & keyof AggregateAssistantToolExecution]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAssistantToolExecution[P]>
+      : GetScalarType<T[P], AggregateAssistantToolExecution[P]>
+  }
+
+
+
+
+  export type AssistantToolExecutionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantToolExecutionWhereInput
+    orderBy?: AssistantToolExecutionOrderByWithAggregationInput | AssistantToolExecutionOrderByWithAggregationInput[]
+    by: AssistantToolExecutionScalarFieldEnum[] | AssistantToolExecutionScalarFieldEnum
+    having?: AssistantToolExecutionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AssistantToolExecutionCountAggregateInputType | true
+    _avg?: AssistantToolExecutionAvgAggregateInputType
+    _sum?: AssistantToolExecutionSumAggregateInputType
+    _min?: AssistantToolExecutionMinAggregateInputType
+    _max?: AssistantToolExecutionMaxAggregateInputType
+  }
+
+  export type AssistantToolExecutionGroupByOutputType = {
+    id: string
+    conversationId: string
+    turnId: string
+    toolId: string
+    capability: string
+    riskLevel: string
+    policyDecision: string
+    status: $Enums.AssistantToolExecutionStatus
+    correlationId: string
+    startedAt: Date
+    completedAt: Date | null
+    durationMs: number | null
+    safeErrorCode: string | null
+    redactedInput: JsonValue | null
+    outputSummary: JsonValue | null
+    idempotencyKey: string | null
+    _count: AssistantToolExecutionCountAggregateOutputType | null
+    _avg: AssistantToolExecutionAvgAggregateOutputType | null
+    _sum: AssistantToolExecutionSumAggregateOutputType | null
+    _min: AssistantToolExecutionMinAggregateOutputType | null
+    _max: AssistantToolExecutionMaxAggregateOutputType | null
+  }
+
+  type GetAssistantToolExecutionGroupByPayload<T extends AssistantToolExecutionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AssistantToolExecutionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AssistantToolExecutionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AssistantToolExecutionGroupByOutputType[P]>
+            : GetScalarType<T[P], AssistantToolExecutionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AssistantToolExecutionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    turnId?: boolean
+    toolId?: boolean
+    capability?: boolean
+    riskLevel?: boolean
+    policyDecision?: boolean
+    status?: boolean
+    correlationId?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    durationMs?: boolean
+    safeErrorCode?: boolean
+    redactedInput?: boolean
+    outputSummary?: boolean
+    idempotencyKey?: boolean
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantTurnDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantToolExecution"]>
+
+  export type AssistantToolExecutionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    turnId?: boolean
+    toolId?: boolean
+    capability?: boolean
+    riskLevel?: boolean
+    policyDecision?: boolean
+    status?: boolean
+    correlationId?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    durationMs?: boolean
+    safeErrorCode?: boolean
+    redactedInput?: boolean
+    outputSummary?: boolean
+    idempotencyKey?: boolean
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantTurnDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantToolExecution"]>
+
+  export type AssistantToolExecutionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    conversationId?: boolean
+    turnId?: boolean
+    toolId?: boolean
+    capability?: boolean
+    riskLevel?: boolean
+    policyDecision?: boolean
+    status?: boolean
+    correlationId?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    durationMs?: boolean
+    safeErrorCode?: boolean
+    redactedInput?: boolean
+    outputSummary?: boolean
+    idempotencyKey?: boolean
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantTurnDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantToolExecution"]>
+
+  export type AssistantToolExecutionSelectScalar = {
+    id?: boolean
+    conversationId?: boolean
+    turnId?: boolean
+    toolId?: boolean
+    capability?: boolean
+    riskLevel?: boolean
+    policyDecision?: boolean
+    status?: boolean
+    correlationId?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    durationMs?: boolean
+    safeErrorCode?: boolean
+    redactedInput?: boolean
+    outputSummary?: boolean
+    idempotencyKey?: boolean
+  }
+
+  export type AssistantToolExecutionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "conversationId" | "turnId" | "toolId" | "capability" | "riskLevel" | "policyDecision" | "status" | "correlationId" | "startedAt" | "completedAt" | "durationMs" | "safeErrorCode" | "redactedInput" | "outputSummary" | "idempotencyKey", ExtArgs["result"]["assistantToolExecution"]>
+  export type AssistantToolExecutionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantTurnDefaultArgs<ExtArgs>
+  }
+  export type AssistantToolExecutionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantTurnDefaultArgs<ExtArgs>
+  }
+  export type AssistantToolExecutionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantTurnDefaultArgs<ExtArgs>
+  }
+
+  export type $AssistantToolExecutionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AssistantToolExecution"
+    objects: {
+      conversation: Prisma.$AssistantConversationPayload<ExtArgs>
+      turn: Prisma.$AssistantTurnPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      conversationId: string
+      turnId: string
+      toolId: string
+      capability: string
+      riskLevel: string
+      policyDecision: string
+      status: $Enums.AssistantToolExecutionStatus
+      correlationId: string
+      startedAt: Date
+      completedAt: Date | null
+      durationMs: number | null
+      safeErrorCode: string | null
+      redactedInput: Prisma.JsonValue | null
+      outputSummary: Prisma.JsonValue | null
+      idempotencyKey: string | null
+    }, ExtArgs["result"]["assistantToolExecution"]>
+    composites: {}
+  }
+
+  type AssistantToolExecutionGetPayload<S extends boolean | null | undefined | AssistantToolExecutionDefaultArgs> = $Result.GetResult<Prisma.$AssistantToolExecutionPayload, S>
+
+  type AssistantToolExecutionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AssistantToolExecutionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AssistantToolExecutionCountAggregateInputType | true
+    }
+
+  export interface AssistantToolExecutionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AssistantToolExecution'], meta: { name: 'AssistantToolExecution' } }
+    /**
+     * Find zero or one AssistantToolExecution that matches the filter.
+     * @param {AssistantToolExecutionFindUniqueArgs} args - Arguments to find a AssistantToolExecution
+     * @example
+     * // Get one AssistantToolExecution
+     * const assistantToolExecution = await prisma.assistantToolExecution.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AssistantToolExecutionFindUniqueArgs>(args: SelectSubset<T, AssistantToolExecutionFindUniqueArgs<ExtArgs>>): Prisma__AssistantToolExecutionClient<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AssistantToolExecution that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AssistantToolExecutionFindUniqueOrThrowArgs} args - Arguments to find a AssistantToolExecution
+     * @example
+     * // Get one AssistantToolExecution
+     * const assistantToolExecution = await prisma.assistantToolExecution.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AssistantToolExecutionFindUniqueOrThrowArgs>(args: SelectSubset<T, AssistantToolExecutionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AssistantToolExecutionClient<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AssistantToolExecution that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantToolExecutionFindFirstArgs} args - Arguments to find a AssistantToolExecution
+     * @example
+     * // Get one AssistantToolExecution
+     * const assistantToolExecution = await prisma.assistantToolExecution.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AssistantToolExecutionFindFirstArgs>(args?: SelectSubset<T, AssistantToolExecutionFindFirstArgs<ExtArgs>>): Prisma__AssistantToolExecutionClient<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AssistantToolExecution that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantToolExecutionFindFirstOrThrowArgs} args - Arguments to find a AssistantToolExecution
+     * @example
+     * // Get one AssistantToolExecution
+     * const assistantToolExecution = await prisma.assistantToolExecution.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AssistantToolExecutionFindFirstOrThrowArgs>(args?: SelectSubset<T, AssistantToolExecutionFindFirstOrThrowArgs<ExtArgs>>): Prisma__AssistantToolExecutionClient<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AssistantToolExecutions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantToolExecutionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AssistantToolExecutions
+     * const assistantToolExecutions = await prisma.assistantToolExecution.findMany()
+     *
+     * // Get first 10 AssistantToolExecutions
+     * const assistantToolExecutions = await prisma.assistantToolExecution.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const assistantToolExecutionWithIdOnly = await prisma.assistantToolExecution.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends AssistantToolExecutionFindManyArgs>(args?: SelectSubset<T, AssistantToolExecutionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AssistantToolExecution.
+     * @param {AssistantToolExecutionCreateArgs} args - Arguments to create a AssistantToolExecution.
+     * @example
+     * // Create one AssistantToolExecution
+     * const AssistantToolExecution = await prisma.assistantToolExecution.create({
+     *   data: {
+     *     // ... data to create a AssistantToolExecution
+     *   }
+     * })
+     *
+     */
+    create<T extends AssistantToolExecutionCreateArgs>(args: SelectSubset<T, AssistantToolExecutionCreateArgs<ExtArgs>>): Prisma__AssistantToolExecutionClient<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AssistantToolExecutions.
+     * @param {AssistantToolExecutionCreateManyArgs} args - Arguments to create many AssistantToolExecutions.
+     * @example
+     * // Create many AssistantToolExecutions
+     * const assistantToolExecution = await prisma.assistantToolExecution.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends AssistantToolExecutionCreateManyArgs>(args?: SelectSubset<T, AssistantToolExecutionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AssistantToolExecutions and returns the data saved in the database.
+     * @param {AssistantToolExecutionCreateManyAndReturnArgs} args - Arguments to create many AssistantToolExecutions.
+     * @example
+     * // Create many AssistantToolExecutions
+     * const assistantToolExecution = await prisma.assistantToolExecution.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many AssistantToolExecutions and only return the `id`
+     * const assistantToolExecutionWithIdOnly = await prisma.assistantToolExecution.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends AssistantToolExecutionCreateManyAndReturnArgs>(args?: SelectSubset<T, AssistantToolExecutionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AssistantToolExecution.
+     * @param {AssistantToolExecutionDeleteArgs} args - Arguments to delete one AssistantToolExecution.
+     * @example
+     * // Delete one AssistantToolExecution
+     * const AssistantToolExecution = await prisma.assistantToolExecution.delete({
+     *   where: {
+     *     // ... filter to delete one AssistantToolExecution
+     *   }
+     * })
+     *
+     */
+    delete<T extends AssistantToolExecutionDeleteArgs>(args: SelectSubset<T, AssistantToolExecutionDeleteArgs<ExtArgs>>): Prisma__AssistantToolExecutionClient<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AssistantToolExecution.
+     * @param {AssistantToolExecutionUpdateArgs} args - Arguments to update one AssistantToolExecution.
+     * @example
+     * // Update one AssistantToolExecution
+     * const assistantToolExecution = await prisma.assistantToolExecution.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends AssistantToolExecutionUpdateArgs>(args: SelectSubset<T, AssistantToolExecutionUpdateArgs<ExtArgs>>): Prisma__AssistantToolExecutionClient<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AssistantToolExecutions.
+     * @param {AssistantToolExecutionDeleteManyArgs} args - Arguments to filter AssistantToolExecutions to delete.
+     * @example
+     * // Delete a few AssistantToolExecutions
+     * const { count } = await prisma.assistantToolExecution.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends AssistantToolExecutionDeleteManyArgs>(args?: SelectSubset<T, AssistantToolExecutionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssistantToolExecutions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantToolExecutionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AssistantToolExecutions
+     * const assistantToolExecution = await prisma.assistantToolExecution.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends AssistantToolExecutionUpdateManyArgs>(args: SelectSubset<T, AssistantToolExecutionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssistantToolExecutions and returns the data updated in the database.
+     * @param {AssistantToolExecutionUpdateManyAndReturnArgs} args - Arguments to update many AssistantToolExecutions.
+     * @example
+     * // Update many AssistantToolExecutions
+     * const assistantToolExecution = await prisma.assistantToolExecution.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more AssistantToolExecutions and only return the `id`
+     * const assistantToolExecutionWithIdOnly = await prisma.assistantToolExecution.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends AssistantToolExecutionUpdateManyAndReturnArgs>(args: SelectSubset<T, AssistantToolExecutionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AssistantToolExecution.
+     * @param {AssistantToolExecutionUpsertArgs} args - Arguments to update or create a AssistantToolExecution.
+     * @example
+     * // Update or create a AssistantToolExecution
+     * const assistantToolExecution = await prisma.assistantToolExecution.upsert({
+     *   create: {
+     *     // ... data to create a AssistantToolExecution
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AssistantToolExecution we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AssistantToolExecutionUpsertArgs>(args: SelectSubset<T, AssistantToolExecutionUpsertArgs<ExtArgs>>): Prisma__AssistantToolExecutionClient<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AssistantToolExecutions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantToolExecutionCountArgs} args - Arguments to filter AssistantToolExecutions to count.
+     * @example
+     * // Count the number of AssistantToolExecutions
+     * const count = await prisma.assistantToolExecution.count({
+     *   where: {
+     *     // ... the filter for the AssistantToolExecutions we want to count
+     *   }
+     * })
+    **/
+    count<T extends AssistantToolExecutionCountArgs>(
+      args?: Subset<T, AssistantToolExecutionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AssistantToolExecutionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AssistantToolExecution.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantToolExecutionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AssistantToolExecutionAggregateArgs>(args: Subset<T, AssistantToolExecutionAggregateArgs>): Prisma.PrismaPromise<GetAssistantToolExecutionAggregateType<T>>
+
+    /**
+     * Group by AssistantToolExecution.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantToolExecutionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+    **/
+    groupBy<
+      T extends AssistantToolExecutionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AssistantToolExecutionGroupByArgs['orderBy'] }
+        : { orderBy?: AssistantToolExecutionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AssistantToolExecutionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAssistantToolExecutionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AssistantToolExecution model
+   */
+  readonly fields: AssistantToolExecutionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AssistantToolExecution.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AssistantToolExecutionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    conversation<T extends AssistantConversationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AssistantConversationDefaultArgs<ExtArgs>>): Prisma__AssistantConversationClient<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    turn<T extends AssistantTurnDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AssistantTurnDefaultArgs<ExtArgs>>): Prisma__AssistantTurnClient<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AssistantToolExecution model
+   */
+  interface AssistantToolExecutionFieldRefs {
+    readonly id: FieldRef<"AssistantToolExecution", 'String'>
+    readonly conversationId: FieldRef<"AssistantToolExecution", 'String'>
+    readonly turnId: FieldRef<"AssistantToolExecution", 'String'>
+    readonly toolId: FieldRef<"AssistantToolExecution", 'String'>
+    readonly capability: FieldRef<"AssistantToolExecution", 'String'>
+    readonly riskLevel: FieldRef<"AssistantToolExecution", 'String'>
+    readonly policyDecision: FieldRef<"AssistantToolExecution", 'String'>
+    readonly status: FieldRef<"AssistantToolExecution", 'AssistantToolExecutionStatus'>
+    readonly correlationId: FieldRef<"AssistantToolExecution", 'String'>
+    readonly startedAt: FieldRef<"AssistantToolExecution", 'DateTime'>
+    readonly completedAt: FieldRef<"AssistantToolExecution", 'DateTime'>
+    readonly durationMs: FieldRef<"AssistantToolExecution", 'Int'>
+    readonly safeErrorCode: FieldRef<"AssistantToolExecution", 'String'>
+    readonly redactedInput: FieldRef<"AssistantToolExecution", 'Json'>
+    readonly outputSummary: FieldRef<"AssistantToolExecution", 'Json'>
+    readonly idempotencyKey: FieldRef<"AssistantToolExecution", 'String'>
+  }
+
+
+  // Custom InputTypes
+  /**
+   * AssistantToolExecution findUnique
+   */
+  export type AssistantToolExecutionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantToolExecution
+     */
+    select?: AssistantToolExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantToolExecution
+     */
+    omit?: AssistantToolExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantToolExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantToolExecution to fetch.
+     */
+    where: AssistantToolExecutionWhereUniqueInput
+  }
+
+  /**
+   * AssistantToolExecution findUniqueOrThrow
+   */
+  export type AssistantToolExecutionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantToolExecution
+     */
+    select?: AssistantToolExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantToolExecution
+     */
+    omit?: AssistantToolExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantToolExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantToolExecution to fetch.
+     */
+    where: AssistantToolExecutionWhereUniqueInput
+  }
+
+  /**
+   * AssistantToolExecution findFirst
+   */
+  export type AssistantToolExecutionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantToolExecution
+     */
+    select?: AssistantToolExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantToolExecution
+     */
+    omit?: AssistantToolExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantToolExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantToolExecution to fetch.
+     */
+    where?: AssistantToolExecutionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantToolExecutions to fetch.
+     */
+    orderBy?: AssistantToolExecutionOrderByWithRelationInput | AssistantToolExecutionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for AssistantToolExecutions.
+     */
+    cursor?: AssistantToolExecutionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantToolExecutions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantToolExecutions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantToolExecutions.
+     */
+    distinct?: AssistantToolExecutionScalarFieldEnum | AssistantToolExecutionScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantToolExecution findFirstOrThrow
+   */
+  export type AssistantToolExecutionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantToolExecution
+     */
+    select?: AssistantToolExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantToolExecution
+     */
+    omit?: AssistantToolExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantToolExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantToolExecution to fetch.
+     */
+    where?: AssistantToolExecutionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantToolExecutions to fetch.
+     */
+    orderBy?: AssistantToolExecutionOrderByWithRelationInput | AssistantToolExecutionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for AssistantToolExecutions.
+     */
+    cursor?: AssistantToolExecutionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantToolExecutions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantToolExecutions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantToolExecutions.
+     */
+    distinct?: AssistantToolExecutionScalarFieldEnum | AssistantToolExecutionScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantToolExecution findMany
+   */
+  export type AssistantToolExecutionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantToolExecution
+     */
+    select?: AssistantToolExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantToolExecution
+     */
+    omit?: AssistantToolExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantToolExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantToolExecutions to fetch.
+     */
+    where?: AssistantToolExecutionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantToolExecutions to fetch.
+     */
+    orderBy?: AssistantToolExecutionOrderByWithRelationInput | AssistantToolExecutionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing AssistantToolExecutions.
+     */
+    cursor?: AssistantToolExecutionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantToolExecutions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantToolExecutions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantToolExecutions.
+     */
+    distinct?: AssistantToolExecutionScalarFieldEnum | AssistantToolExecutionScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantToolExecution create
+   */
+  export type AssistantToolExecutionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantToolExecution
+     */
+    select?: AssistantToolExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantToolExecution
+     */
+    omit?: AssistantToolExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantToolExecutionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AssistantToolExecution.
+     */
+    data: XOR<AssistantToolExecutionCreateInput, AssistantToolExecutionUncheckedCreateInput>
+  }
+
+  /**
+   * AssistantToolExecution createMany
+   */
+  export type AssistantToolExecutionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AssistantToolExecutions.
+     */
+    data: AssistantToolExecutionCreateManyInput | AssistantToolExecutionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AssistantToolExecution createManyAndReturn
+   */
+  export type AssistantToolExecutionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantToolExecution
+     */
+    select?: AssistantToolExecutionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantToolExecution
+     */
+    omit?: AssistantToolExecutionOmit<ExtArgs> | null
+    /**
+     * The data used to create many AssistantToolExecutions.
+     */
+    data: AssistantToolExecutionCreateManyInput | AssistantToolExecutionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantToolExecutionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AssistantToolExecution update
+   */
+  export type AssistantToolExecutionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantToolExecution
+     */
+    select?: AssistantToolExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantToolExecution
+     */
+    omit?: AssistantToolExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantToolExecutionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AssistantToolExecution.
+     */
+    data: XOR<AssistantToolExecutionUpdateInput, AssistantToolExecutionUncheckedUpdateInput>
+    /**
+     * Choose, which AssistantToolExecution to update.
+     */
+    where: AssistantToolExecutionWhereUniqueInput
+  }
+
+  /**
+   * AssistantToolExecution updateMany
+   */
+  export type AssistantToolExecutionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AssistantToolExecutions.
+     */
+    data: XOR<AssistantToolExecutionUpdateManyMutationInput, AssistantToolExecutionUncheckedUpdateManyInput>
+    /**
+     * Filter which AssistantToolExecutions to update
+     */
+    where?: AssistantToolExecutionWhereInput
+    /**
+     * Limit how many AssistantToolExecutions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssistantToolExecution updateManyAndReturn
+   */
+  export type AssistantToolExecutionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantToolExecution
+     */
+    select?: AssistantToolExecutionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantToolExecution
+     */
+    omit?: AssistantToolExecutionOmit<ExtArgs> | null
+    /**
+     * The data used to update AssistantToolExecutions.
+     */
+    data: XOR<AssistantToolExecutionUpdateManyMutationInput, AssistantToolExecutionUncheckedUpdateManyInput>
+    /**
+     * Filter which AssistantToolExecutions to update
+     */
+    where?: AssistantToolExecutionWhereInput
+    /**
+     * Limit how many AssistantToolExecutions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantToolExecutionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AssistantToolExecution upsert
+   */
+  export type AssistantToolExecutionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantToolExecution
+     */
+    select?: AssistantToolExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantToolExecution
+     */
+    omit?: AssistantToolExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantToolExecutionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AssistantToolExecution to update in case it exists.
+     */
+    where: AssistantToolExecutionWhereUniqueInput
+    /**
+     * In case the AssistantToolExecution found by the `where` argument doesn't exist, create a new AssistantToolExecution with this data.
+     */
+    create: XOR<AssistantToolExecutionCreateInput, AssistantToolExecutionUncheckedCreateInput>
+    /**
+     * In case the AssistantToolExecution was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AssistantToolExecutionUpdateInput, AssistantToolExecutionUncheckedUpdateInput>
+  }
+
+  /**
+   * AssistantToolExecution delete
+   */
+  export type AssistantToolExecutionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantToolExecution
+     */
+    select?: AssistantToolExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantToolExecution
+     */
+    omit?: AssistantToolExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantToolExecutionInclude<ExtArgs> | null
+    /**
+     * Filter which AssistantToolExecution to delete.
+     */
+    where: AssistantToolExecutionWhereUniqueInput
+  }
+
+  /**
+   * AssistantToolExecution deleteMany
+   */
+  export type AssistantToolExecutionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssistantToolExecutions to delete
+     */
+    where?: AssistantToolExecutionWhereInput
+    /**
+     * Limit how many AssistantToolExecutions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssistantToolExecution without action
+   */
+  export type AssistantToolExecutionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantToolExecution
+     */
+    select?: AssistantToolExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantToolExecution
+     */
+    omit?: AssistantToolExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantToolExecutionInclude<ExtArgs> | null
   }
 
 
@@ -3553,55 +8840,55 @@ export namespace Prisma {
     where?: WalletWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Wallets to fetch.
      */
     orderBy?: WalletOrderByWithRelationInput | WalletOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the start position
      */
     cursor?: WalletWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Wallets from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Wallets.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Count returned Wallets
     **/
     _count?: true | WalletCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to average
     **/
     _avg?: WalletAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to sum
     **/
     _sum?: WalletSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the minimum value
     **/
     _min?: WalletMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the maximum value
     **/
     _max?: WalletMaxAggregateInputType
@@ -3881,13 +9168,13 @@ export namespace Prisma {
      * @example
      * // Get all Wallets
      * const wallets = await prisma.wallet.findMany()
-     * 
+     *
      * // Get first 10 Wallets
      * const wallets = await prisma.wallet.findMany({ take: 10 })
-     * 
+     *
      * // Only select the `id`
      * const walletWithIdOnly = await prisma.wallet.findMany({ select: { id: true } })
-     * 
+     *
      */
     findMany<T extends WalletFindManyArgs>(args?: SelectSubset<T, WalletFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -3901,7 +9188,7 @@ export namespace Prisma {
      *     // ... data to create a Wallet
      *   }
      * })
-     * 
+     *
      */
     create<T extends WalletCreateArgs>(args: SelectSubset<T, WalletCreateArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -3915,7 +9202,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *     
+     *
      */
     createMany<T extends WalletCreateManyArgs>(args?: SelectSubset<T, WalletCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -3929,7 +9216,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Create many Wallets and only return the `id`
      * const walletWithIdOnly = await prisma.wallet.createManyAndReturn({
      *   select: { id: true },
@@ -3939,7 +9226,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     createManyAndReturn<T extends WalletCreateManyAndReturnArgs>(args?: SelectSubset<T, WalletCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -3953,7 +9240,7 @@ export namespace Prisma {
      *     // ... filter to delete one Wallet
      *   }
      * })
-     * 
+     *
      */
     delete<T extends WalletDeleteArgs>(args: SelectSubset<T, WalletDeleteArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -3970,7 +9257,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     update<T extends WalletUpdateArgs>(args: SelectSubset<T, WalletUpdateArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -3984,7 +9271,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     * 
+     *
      */
     deleteMany<T extends WalletDeleteManyArgs>(args?: SelectSubset<T, WalletDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -4003,7 +9290,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     updateMany<T extends WalletUpdateManyArgs>(args: SelectSubset<T, WalletUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -4020,7 +9307,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Update zero or more Wallets and only return the `id`
      * const walletWithIdOnly = await prisma.wallet.updateManyAndReturn({
      *   select: { id: true },
@@ -4033,7 +9320,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     updateManyAndReturn<T extends WalletUpdateManyAndReturnArgs>(args: SelectSubset<T, WalletUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -4122,7 +9409,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     * 
+     *
     **/
     groupBy<
       T extends WalletGroupByArgs,
@@ -4248,7 +9535,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"Wallet", 'DateTime'>
     readonly updatedAt: FieldRef<"Wallet", 'DateTime'>
   }
-    
+
 
   // Custom InputTypes
   /**
@@ -4317,31 +9604,31 @@ export namespace Prisma {
     where?: WalletWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Wallets to fetch.
      */
     orderBy?: WalletOrderByWithRelationInput | WalletOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for Wallets.
      */
     cursor?: WalletWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Wallets from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Wallets.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Wallets.
      */
     distinct?: WalletScalarFieldEnum | WalletScalarFieldEnum[]
@@ -4369,31 +9656,31 @@ export namespace Prisma {
     where?: WalletWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Wallets to fetch.
      */
     orderBy?: WalletOrderByWithRelationInput | WalletOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for Wallets.
      */
     cursor?: WalletWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Wallets from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Wallets.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Wallets.
      */
     distinct?: WalletScalarFieldEnum | WalletScalarFieldEnum[]
@@ -4421,31 +9708,31 @@ export namespace Prisma {
     where?: WalletWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Wallets to fetch.
      */
     orderBy?: WalletOrderByWithRelationInput | WalletOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for listing Wallets.
      */
     cursor?: WalletWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Wallets from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Wallets.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Wallets.
      */
     distinct?: WalletScalarFieldEnum | WalletScalarFieldEnum[]
@@ -4848,43 +10135,43 @@ export namespace Prisma {
     where?: CategoryWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Categories to fetch.
      */
     orderBy?: CategoryOrderByWithRelationInput | CategoryOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the start position
      */
     cursor?: CategoryWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Categories from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Categories.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Count returned Categories
     **/
     _count?: true | CategoryCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the minimum value
     **/
     _min?: CategoryMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the maximum value
     **/
     _max?: CategoryMaxAggregateInputType
@@ -5106,13 +10393,13 @@ export namespace Prisma {
      * @example
      * // Get all Categories
      * const categories = await prisma.category.findMany()
-     * 
+     *
      * // Get first 10 Categories
      * const categories = await prisma.category.findMany({ take: 10 })
-     * 
+     *
      * // Only select the `id`
      * const categoryWithIdOnly = await prisma.category.findMany({ select: { id: true } })
-     * 
+     *
      */
     findMany<T extends CategoryFindManyArgs>(args?: SelectSubset<T, CategoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -5126,7 +10413,7 @@ export namespace Prisma {
      *     // ... data to create a Category
      *   }
      * })
-     * 
+     *
      */
     create<T extends CategoryCreateArgs>(args: SelectSubset<T, CategoryCreateArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -5140,7 +10427,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *     
+     *
      */
     createMany<T extends CategoryCreateManyArgs>(args?: SelectSubset<T, CategoryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -5154,7 +10441,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Create many Categories and only return the `id`
      * const categoryWithIdOnly = await prisma.category.createManyAndReturn({
      *   select: { id: true },
@@ -5164,7 +10451,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     createManyAndReturn<T extends CategoryCreateManyAndReturnArgs>(args?: SelectSubset<T, CategoryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -5178,7 +10465,7 @@ export namespace Prisma {
      *     // ... filter to delete one Category
      *   }
      * })
-     * 
+     *
      */
     delete<T extends CategoryDeleteArgs>(args: SelectSubset<T, CategoryDeleteArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -5195,7 +10482,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     update<T extends CategoryUpdateArgs>(args: SelectSubset<T, CategoryUpdateArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -5209,7 +10496,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     * 
+     *
      */
     deleteMany<T extends CategoryDeleteManyArgs>(args?: SelectSubset<T, CategoryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -5228,7 +10515,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     updateMany<T extends CategoryUpdateManyArgs>(args: SelectSubset<T, CategoryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -5245,7 +10532,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Update zero or more Categories and only return the `id`
      * const categoryWithIdOnly = await prisma.category.updateManyAndReturn({
      *   select: { id: true },
@@ -5258,7 +10545,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     updateManyAndReturn<T extends CategoryUpdateManyAndReturnArgs>(args: SelectSubset<T, CategoryUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -5347,7 +10634,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     * 
+     *
     **/
     groupBy<
       T extends CategoryGroupByArgs,
@@ -5464,7 +10751,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"Category", 'DateTime'>
     readonly updatedAt: FieldRef<"Category", 'DateTime'>
   }
-    
+
 
   // Custom InputTypes
   /**
@@ -5533,31 +10820,31 @@ export namespace Prisma {
     where?: CategoryWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Categories to fetch.
      */
     orderBy?: CategoryOrderByWithRelationInput | CategoryOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for Categories.
      */
     cursor?: CategoryWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Categories from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Categories.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Categories.
      */
     distinct?: CategoryScalarFieldEnum | CategoryScalarFieldEnum[]
@@ -5585,31 +10872,31 @@ export namespace Prisma {
     where?: CategoryWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Categories to fetch.
      */
     orderBy?: CategoryOrderByWithRelationInput | CategoryOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for Categories.
      */
     cursor?: CategoryWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Categories from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Categories.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Categories.
      */
     distinct?: CategoryScalarFieldEnum | CategoryScalarFieldEnum[]
@@ -5637,31 +10924,31 @@ export namespace Prisma {
     where?: CategoryWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Categories to fetch.
      */
     orderBy?: CategoryOrderByWithRelationInput | CategoryOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for listing Categories.
      */
     cursor?: CategoryWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Categories from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Categories.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Categories.
      */
     distinct?: CategoryScalarFieldEnum | CategoryScalarFieldEnum[]
@@ -6058,43 +11345,43 @@ export namespace Prisma {
     where?: MerchantMappingWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of MerchantMappings to fetch.
      */
     orderBy?: MerchantMappingOrderByWithRelationInput | MerchantMappingOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the start position
      */
     cursor?: MerchantMappingWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` MerchantMappings from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` MerchantMappings.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Count returned MerchantMappings
     **/
     _count?: true | MerchantMappingCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the minimum value
     **/
     _min?: MerchantMappingMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the maximum value
     **/
     _max?: MerchantMappingMaxAggregateInputType
@@ -6303,13 +11590,13 @@ export namespace Prisma {
      * @example
      * // Get all MerchantMappings
      * const merchantMappings = await prisma.merchantMapping.findMany()
-     * 
+     *
      * // Get first 10 MerchantMappings
      * const merchantMappings = await prisma.merchantMapping.findMany({ take: 10 })
-     * 
+     *
      * // Only select the `id`
      * const merchantMappingWithIdOnly = await prisma.merchantMapping.findMany({ select: { id: true } })
-     * 
+     *
      */
     findMany<T extends MerchantMappingFindManyArgs>(args?: SelectSubset<T, MerchantMappingFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -6323,7 +11610,7 @@ export namespace Prisma {
      *     // ... data to create a MerchantMapping
      *   }
      * })
-     * 
+     *
      */
     create<T extends MerchantMappingCreateArgs>(args: SelectSubset<T, MerchantMappingCreateArgs<ExtArgs>>): Prisma__MerchantMappingClient<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -6337,7 +11624,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *     
+     *
      */
     createMany<T extends MerchantMappingCreateManyArgs>(args?: SelectSubset<T, MerchantMappingCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -6351,7 +11638,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Create many MerchantMappings and only return the `id`
      * const merchantMappingWithIdOnly = await prisma.merchantMapping.createManyAndReturn({
      *   select: { id: true },
@@ -6361,7 +11648,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     createManyAndReturn<T extends MerchantMappingCreateManyAndReturnArgs>(args?: SelectSubset<T, MerchantMappingCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -6375,7 +11662,7 @@ export namespace Prisma {
      *     // ... filter to delete one MerchantMapping
      *   }
      * })
-     * 
+     *
      */
     delete<T extends MerchantMappingDeleteArgs>(args: SelectSubset<T, MerchantMappingDeleteArgs<ExtArgs>>): Prisma__MerchantMappingClient<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -6392,7 +11679,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     update<T extends MerchantMappingUpdateArgs>(args: SelectSubset<T, MerchantMappingUpdateArgs<ExtArgs>>): Prisma__MerchantMappingClient<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -6406,7 +11693,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     * 
+     *
      */
     deleteMany<T extends MerchantMappingDeleteManyArgs>(args?: SelectSubset<T, MerchantMappingDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -6425,7 +11712,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     updateMany<T extends MerchantMappingUpdateManyArgs>(args: SelectSubset<T, MerchantMappingUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -6442,7 +11729,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Update zero or more MerchantMappings and only return the `id`
      * const merchantMappingWithIdOnly = await prisma.merchantMapping.updateManyAndReturn({
      *   select: { id: true },
@@ -6455,7 +11742,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     updateManyAndReturn<T extends MerchantMappingUpdateManyAndReturnArgs>(args: SelectSubset<T, MerchantMappingUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MerchantMappingPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -6544,7 +11831,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     * 
+     *
     **/
     groupBy<
       T extends MerchantMappingGroupByArgs,
@@ -6657,7 +11944,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"MerchantMapping", 'DateTime'>
     readonly updatedAt: FieldRef<"MerchantMapping", 'DateTime'>
   }
-    
+
 
   // Custom InputTypes
   /**
@@ -6726,31 +12013,31 @@ export namespace Prisma {
     where?: MerchantMappingWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of MerchantMappings to fetch.
      */
     orderBy?: MerchantMappingOrderByWithRelationInput | MerchantMappingOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for MerchantMappings.
      */
     cursor?: MerchantMappingWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` MerchantMappings from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` MerchantMappings.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of MerchantMappings.
      */
     distinct?: MerchantMappingScalarFieldEnum | MerchantMappingScalarFieldEnum[]
@@ -6778,31 +12065,31 @@ export namespace Prisma {
     where?: MerchantMappingWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of MerchantMappings to fetch.
      */
     orderBy?: MerchantMappingOrderByWithRelationInput | MerchantMappingOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for MerchantMappings.
      */
     cursor?: MerchantMappingWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` MerchantMappings from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` MerchantMappings.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of MerchantMappings.
      */
     distinct?: MerchantMappingScalarFieldEnum | MerchantMappingScalarFieldEnum[]
@@ -6830,31 +12117,31 @@ export namespace Prisma {
     where?: MerchantMappingWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of MerchantMappings to fetch.
      */
     orderBy?: MerchantMappingOrderByWithRelationInput | MerchantMappingOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for listing MerchantMappings.
      */
     cursor?: MerchantMappingWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` MerchantMappings from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` MerchantMappings.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of MerchantMappings.
      */
     distinct?: MerchantMappingScalarFieldEnum | MerchantMappingScalarFieldEnum[]
@@ -7209,55 +12496,55 @@ export namespace Prisma {
     where?: TransactionWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Transactions to fetch.
      */
     orderBy?: TransactionOrderByWithRelationInput | TransactionOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the start position
      */
     cursor?: TransactionWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Transactions from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Transactions.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Count returned Transactions
     **/
     _count?: true | TransactionCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to average
     **/
     _avg?: TransactionAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to sum
     **/
     _sum?: TransactionSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the minimum value
     **/
     _min?: TransactionMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the maximum value
     **/
     _max?: TransactionMaxAggregateInputType
@@ -7530,13 +12817,13 @@ export namespace Prisma {
      * @example
      * // Get all Transactions
      * const transactions = await prisma.transaction.findMany()
-     * 
+     *
      * // Get first 10 Transactions
      * const transactions = await prisma.transaction.findMany({ take: 10 })
-     * 
+     *
      * // Only select the `id`
      * const transactionWithIdOnly = await prisma.transaction.findMany({ select: { id: true } })
-     * 
+     *
      */
     findMany<T extends TransactionFindManyArgs>(args?: SelectSubset<T, TransactionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -7550,7 +12837,7 @@ export namespace Prisma {
      *     // ... data to create a Transaction
      *   }
      * })
-     * 
+     *
      */
     create<T extends TransactionCreateArgs>(args: SelectSubset<T, TransactionCreateArgs<ExtArgs>>): Prisma__TransactionClient<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -7564,7 +12851,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *     
+     *
      */
     createMany<T extends TransactionCreateManyArgs>(args?: SelectSubset<T, TransactionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -7578,7 +12865,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Create many Transactions and only return the `id`
      * const transactionWithIdOnly = await prisma.transaction.createManyAndReturn({
      *   select: { id: true },
@@ -7588,7 +12875,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     createManyAndReturn<T extends TransactionCreateManyAndReturnArgs>(args?: SelectSubset<T, TransactionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -7602,7 +12889,7 @@ export namespace Prisma {
      *     // ... filter to delete one Transaction
      *   }
      * })
-     * 
+     *
      */
     delete<T extends TransactionDeleteArgs>(args: SelectSubset<T, TransactionDeleteArgs<ExtArgs>>): Prisma__TransactionClient<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -7619,7 +12906,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     update<T extends TransactionUpdateArgs>(args: SelectSubset<T, TransactionUpdateArgs<ExtArgs>>): Prisma__TransactionClient<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -7633,7 +12920,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     * 
+     *
      */
     deleteMany<T extends TransactionDeleteManyArgs>(args?: SelectSubset<T, TransactionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -7652,7 +12939,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     updateMany<T extends TransactionUpdateManyArgs>(args: SelectSubset<T, TransactionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -7669,7 +12956,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Update zero or more Transactions and only return the `id`
      * const transactionWithIdOnly = await prisma.transaction.updateManyAndReturn({
      *   select: { id: true },
@@ -7682,7 +12969,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     updateManyAndReturn<T extends TransactionUpdateManyAndReturnArgs>(args: SelectSubset<T, TransactionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -7771,7 +13058,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     * 
+     *
     **/
     groupBy<
       T extends TransactionGroupByArgs,
@@ -7894,7 +13181,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"Transaction", 'DateTime'>
     readonly updatedAt: FieldRef<"Transaction", 'DateTime'>
   }
-    
+
 
   // Custom InputTypes
   /**
@@ -7963,31 +13250,31 @@ export namespace Prisma {
     where?: TransactionWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Transactions to fetch.
      */
     orderBy?: TransactionOrderByWithRelationInput | TransactionOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for Transactions.
      */
     cursor?: TransactionWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Transactions from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Transactions.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Transactions.
      */
     distinct?: TransactionScalarFieldEnum | TransactionScalarFieldEnum[]
@@ -8015,31 +13302,31 @@ export namespace Prisma {
     where?: TransactionWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Transactions to fetch.
      */
     orderBy?: TransactionOrderByWithRelationInput | TransactionOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for Transactions.
      */
     cursor?: TransactionWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Transactions from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Transactions.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Transactions.
      */
     distinct?: TransactionScalarFieldEnum | TransactionScalarFieldEnum[]
@@ -8067,31 +13354,31 @@ export namespace Prisma {
     where?: TransactionWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Transactions to fetch.
      */
     orderBy?: TransactionOrderByWithRelationInput | TransactionOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for listing Transactions.
      */
     cursor?: TransactionWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Transactions from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Transactions.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Transactions.
      */
     distinct?: TransactionScalarFieldEnum | TransactionScalarFieldEnum[]
@@ -8612,55 +13899,55 @@ export namespace Prisma {
     where?: InstallmentWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Installments to fetch.
      */
     orderBy?: InstallmentOrderByWithRelationInput | InstallmentOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the start position
      */
     cursor?: InstallmentWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Installments from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Installments.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Count returned Installments
     **/
     _count?: true | InstallmentCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to average
     **/
     _avg?: InstallmentAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to sum
     **/
     _sum?: InstallmentSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the minimum value
     **/
     _min?: InstallmentMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the maximum value
     **/
     _max?: InstallmentMaxAggregateInputType
@@ -8971,13 +14258,13 @@ export namespace Prisma {
      * @example
      * // Get all Installments
      * const installments = await prisma.installment.findMany()
-     * 
+     *
      * // Get first 10 Installments
      * const installments = await prisma.installment.findMany({ take: 10 })
-     * 
+     *
      * // Only select the `id`
      * const installmentWithIdOnly = await prisma.installment.findMany({ select: { id: true } })
-     * 
+     *
      */
     findMany<T extends InstallmentFindManyArgs>(args?: SelectSubset<T, InstallmentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -8991,7 +14278,7 @@ export namespace Prisma {
      *     // ... data to create a Installment
      *   }
      * })
-     * 
+     *
      */
     create<T extends InstallmentCreateArgs>(args: SelectSubset<T, InstallmentCreateArgs<ExtArgs>>): Prisma__InstallmentClient<$Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -9005,7 +14292,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *     
+     *
      */
     createMany<T extends InstallmentCreateManyArgs>(args?: SelectSubset<T, InstallmentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -9019,7 +14306,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Create many Installments and only return the `id`
      * const installmentWithIdOnly = await prisma.installment.createManyAndReturn({
      *   select: { id: true },
@@ -9029,7 +14316,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     createManyAndReturn<T extends InstallmentCreateManyAndReturnArgs>(args?: SelectSubset<T, InstallmentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -9043,7 +14330,7 @@ export namespace Prisma {
      *     // ... filter to delete one Installment
      *   }
      * })
-     * 
+     *
      */
     delete<T extends InstallmentDeleteArgs>(args: SelectSubset<T, InstallmentDeleteArgs<ExtArgs>>): Prisma__InstallmentClient<$Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -9060,7 +14347,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     update<T extends InstallmentUpdateArgs>(args: SelectSubset<T, InstallmentUpdateArgs<ExtArgs>>): Prisma__InstallmentClient<$Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -9074,7 +14361,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     * 
+     *
      */
     deleteMany<T extends InstallmentDeleteManyArgs>(args?: SelectSubset<T, InstallmentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -9093,7 +14380,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     updateMany<T extends InstallmentUpdateManyArgs>(args: SelectSubset<T, InstallmentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -9110,7 +14397,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Update zero or more Installments and only return the `id`
      * const installmentWithIdOnly = await prisma.installment.updateManyAndReturn({
      *   select: { id: true },
@@ -9123,7 +14410,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     updateManyAndReturn<T extends InstallmentUpdateManyAndReturnArgs>(args: SelectSubset<T, InstallmentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -9212,7 +14499,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     * 
+     *
     **/
     groupBy<
       T extends InstallmentGroupByArgs,
@@ -9342,7 +14629,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"Installment", 'DateTime'>
     readonly updatedAt: FieldRef<"Installment", 'DateTime'>
   }
-    
+
 
   // Custom InputTypes
   /**
@@ -9411,31 +14698,31 @@ export namespace Prisma {
     where?: InstallmentWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Installments to fetch.
      */
     orderBy?: InstallmentOrderByWithRelationInput | InstallmentOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for Installments.
      */
     cursor?: InstallmentWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Installments from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Installments.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Installments.
      */
     distinct?: InstallmentScalarFieldEnum | InstallmentScalarFieldEnum[]
@@ -9463,31 +14750,31 @@ export namespace Prisma {
     where?: InstallmentWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Installments to fetch.
      */
     orderBy?: InstallmentOrderByWithRelationInput | InstallmentOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for Installments.
      */
     cursor?: InstallmentWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Installments from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Installments.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Installments.
      */
     distinct?: InstallmentScalarFieldEnum | InstallmentScalarFieldEnum[]
@@ -9515,31 +14802,31 @@ export namespace Prisma {
     where?: InstallmentWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Installments to fetch.
      */
     orderBy?: InstallmentOrderByWithRelationInput | InstallmentOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for listing Installments.
      */
     cursor?: InstallmentWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Installments from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Installments.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Installments.
      */
     distinct?: InstallmentScalarFieldEnum | InstallmentScalarFieldEnum[]
@@ -9970,55 +15257,55 @@ export namespace Prisma {
     where?: RecurringTransactionTemplateWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of RecurringTransactionTemplates to fetch.
      */
     orderBy?: RecurringTransactionTemplateOrderByWithRelationInput | RecurringTransactionTemplateOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the start position
      */
     cursor?: RecurringTransactionTemplateWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` RecurringTransactionTemplates from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` RecurringTransactionTemplates.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Count returned RecurringTransactionTemplates
     **/
     _count?: true | RecurringTransactionTemplateCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to average
     **/
     _avg?: RecurringTransactionTemplateAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to sum
     **/
     _sum?: RecurringTransactionTemplateSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the minimum value
     **/
     _min?: RecurringTransactionTemplateMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the maximum value
     **/
     _max?: RecurringTransactionTemplateMaxAggregateInputType
@@ -10303,13 +15590,13 @@ export namespace Prisma {
      * @example
      * // Get all RecurringTransactionTemplates
      * const recurringTransactionTemplates = await prisma.recurringTransactionTemplate.findMany()
-     * 
+     *
      * // Get first 10 RecurringTransactionTemplates
      * const recurringTransactionTemplates = await prisma.recurringTransactionTemplate.findMany({ take: 10 })
-     * 
+     *
      * // Only select the `id`
      * const recurringTransactionTemplateWithIdOnly = await prisma.recurringTransactionTemplate.findMany({ select: { id: true } })
-     * 
+     *
      */
     findMany<T extends RecurringTransactionTemplateFindManyArgs>(args?: SelectSubset<T, RecurringTransactionTemplateFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringTransactionTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -10323,7 +15610,7 @@ export namespace Prisma {
      *     // ... data to create a RecurringTransactionTemplate
      *   }
      * })
-     * 
+     *
      */
     create<T extends RecurringTransactionTemplateCreateArgs>(args: SelectSubset<T, RecurringTransactionTemplateCreateArgs<ExtArgs>>): Prisma__RecurringTransactionTemplateClient<$Result.GetResult<Prisma.$RecurringTransactionTemplatePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -10337,7 +15624,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *     
+     *
      */
     createMany<T extends RecurringTransactionTemplateCreateManyArgs>(args?: SelectSubset<T, RecurringTransactionTemplateCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -10351,7 +15638,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Create many RecurringTransactionTemplates and only return the `id`
      * const recurringTransactionTemplateWithIdOnly = await prisma.recurringTransactionTemplate.createManyAndReturn({
      *   select: { id: true },
@@ -10361,7 +15648,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     createManyAndReturn<T extends RecurringTransactionTemplateCreateManyAndReturnArgs>(args?: SelectSubset<T, RecurringTransactionTemplateCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringTransactionTemplatePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -10375,7 +15662,7 @@ export namespace Prisma {
      *     // ... filter to delete one RecurringTransactionTemplate
      *   }
      * })
-     * 
+     *
      */
     delete<T extends RecurringTransactionTemplateDeleteArgs>(args: SelectSubset<T, RecurringTransactionTemplateDeleteArgs<ExtArgs>>): Prisma__RecurringTransactionTemplateClient<$Result.GetResult<Prisma.$RecurringTransactionTemplatePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -10392,7 +15679,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     update<T extends RecurringTransactionTemplateUpdateArgs>(args: SelectSubset<T, RecurringTransactionTemplateUpdateArgs<ExtArgs>>): Prisma__RecurringTransactionTemplateClient<$Result.GetResult<Prisma.$RecurringTransactionTemplatePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -10406,7 +15693,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     * 
+     *
      */
     deleteMany<T extends RecurringTransactionTemplateDeleteManyArgs>(args?: SelectSubset<T, RecurringTransactionTemplateDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -10425,7 +15712,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     updateMany<T extends RecurringTransactionTemplateUpdateManyArgs>(args: SelectSubset<T, RecurringTransactionTemplateUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -10442,7 +15729,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Update zero or more RecurringTransactionTemplates and only return the `id`
      * const recurringTransactionTemplateWithIdOnly = await prisma.recurringTransactionTemplate.updateManyAndReturn({
      *   select: { id: true },
@@ -10455,7 +15742,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     updateManyAndReturn<T extends RecurringTransactionTemplateUpdateManyAndReturnArgs>(args: SelectSubset<T, RecurringTransactionTemplateUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringTransactionTemplatePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -10544,7 +15831,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     * 
+     *
     **/
     groupBy<
       T extends RecurringTransactionTemplateGroupByArgs,
@@ -10669,7 +15956,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"RecurringTransactionTemplate", 'DateTime'>
     readonly updatedAt: FieldRef<"RecurringTransactionTemplate", 'DateTime'>
   }
-    
+
 
   // Custom InputTypes
   /**
@@ -10738,31 +16025,31 @@ export namespace Prisma {
     where?: RecurringTransactionTemplateWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of RecurringTransactionTemplates to fetch.
      */
     orderBy?: RecurringTransactionTemplateOrderByWithRelationInput | RecurringTransactionTemplateOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for RecurringTransactionTemplates.
      */
     cursor?: RecurringTransactionTemplateWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` RecurringTransactionTemplates from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` RecurringTransactionTemplates.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of RecurringTransactionTemplates.
      */
     distinct?: RecurringTransactionTemplateScalarFieldEnum | RecurringTransactionTemplateScalarFieldEnum[]
@@ -10790,31 +16077,31 @@ export namespace Prisma {
     where?: RecurringTransactionTemplateWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of RecurringTransactionTemplates to fetch.
      */
     orderBy?: RecurringTransactionTemplateOrderByWithRelationInput | RecurringTransactionTemplateOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for RecurringTransactionTemplates.
      */
     cursor?: RecurringTransactionTemplateWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` RecurringTransactionTemplates from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` RecurringTransactionTemplates.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of RecurringTransactionTemplates.
      */
     distinct?: RecurringTransactionTemplateScalarFieldEnum | RecurringTransactionTemplateScalarFieldEnum[]
@@ -10842,31 +16129,31 @@ export namespace Prisma {
     where?: RecurringTransactionTemplateWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of RecurringTransactionTemplates to fetch.
      */
     orderBy?: RecurringTransactionTemplateOrderByWithRelationInput | RecurringTransactionTemplateOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for listing RecurringTransactionTemplates.
      */
     cursor?: RecurringTransactionTemplateWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` RecurringTransactionTemplates from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` RecurringTransactionTemplates.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of RecurringTransactionTemplates.
      */
     distinct?: RecurringTransactionTemplateScalarFieldEnum | RecurringTransactionTemplateScalarFieldEnum[]
@@ -11252,55 +16539,55 @@ export namespace Prisma {
     where?: RecurringReminderEventWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of RecurringReminderEvents to fetch.
      */
     orderBy?: RecurringReminderEventOrderByWithRelationInput | RecurringReminderEventOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the start position
      */
     cursor?: RecurringReminderEventWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` RecurringReminderEvents from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` RecurringReminderEvents.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Count returned RecurringReminderEvents
     **/
     _count?: true | RecurringReminderEventCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to average
     **/
     _avg?: RecurringReminderEventAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to sum
     **/
     _sum?: RecurringReminderEventSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the minimum value
     **/
     _min?: RecurringReminderEventMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the maximum value
     **/
     _max?: RecurringReminderEventMaxAggregateInputType
@@ -11544,13 +16831,13 @@ export namespace Prisma {
      * @example
      * // Get all RecurringReminderEvents
      * const recurringReminderEvents = await prisma.recurringReminderEvent.findMany()
-     * 
+     *
      * // Get first 10 RecurringReminderEvents
      * const recurringReminderEvents = await prisma.recurringReminderEvent.findMany({ take: 10 })
-     * 
+     *
      * // Only select the `id`
      * const recurringReminderEventWithIdOnly = await prisma.recurringReminderEvent.findMany({ select: { id: true } })
-     * 
+     *
      */
     findMany<T extends RecurringReminderEventFindManyArgs>(args?: SelectSubset<T, RecurringReminderEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -11564,7 +16851,7 @@ export namespace Prisma {
      *     // ... data to create a RecurringReminderEvent
      *   }
      * })
-     * 
+     *
      */
     create<T extends RecurringReminderEventCreateArgs>(args: SelectSubset<T, RecurringReminderEventCreateArgs<ExtArgs>>): Prisma__RecurringReminderEventClient<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -11578,7 +16865,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *     
+     *
      */
     createMany<T extends RecurringReminderEventCreateManyArgs>(args?: SelectSubset<T, RecurringReminderEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -11592,7 +16879,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Create many RecurringReminderEvents and only return the `id`
      * const recurringReminderEventWithIdOnly = await prisma.recurringReminderEvent.createManyAndReturn({
      *   select: { id: true },
@@ -11602,7 +16889,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     createManyAndReturn<T extends RecurringReminderEventCreateManyAndReturnArgs>(args?: SelectSubset<T, RecurringReminderEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -11616,7 +16903,7 @@ export namespace Prisma {
      *     // ... filter to delete one RecurringReminderEvent
      *   }
      * })
-     * 
+     *
      */
     delete<T extends RecurringReminderEventDeleteArgs>(args: SelectSubset<T, RecurringReminderEventDeleteArgs<ExtArgs>>): Prisma__RecurringReminderEventClient<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -11633,7 +16920,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     update<T extends RecurringReminderEventUpdateArgs>(args: SelectSubset<T, RecurringReminderEventUpdateArgs<ExtArgs>>): Prisma__RecurringReminderEventClient<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -11647,7 +16934,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     * 
+     *
      */
     deleteMany<T extends RecurringReminderEventDeleteManyArgs>(args?: SelectSubset<T, RecurringReminderEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -11666,7 +16953,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     updateMany<T extends RecurringReminderEventUpdateManyArgs>(args: SelectSubset<T, RecurringReminderEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -11683,7 +16970,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Update zero or more RecurringReminderEvents and only return the `id`
      * const recurringReminderEventWithIdOnly = await prisma.recurringReminderEvent.updateManyAndReturn({
      *   select: { id: true },
@@ -11696,7 +16983,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     updateManyAndReturn<T extends RecurringReminderEventUpdateManyAndReturnArgs>(args: SelectSubset<T, RecurringReminderEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringReminderEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -11785,7 +17072,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     * 
+     *
     **/
     groupBy<
       T extends RecurringReminderEventGroupByArgs,
@@ -11903,7 +17190,7 @@ export namespace Prisma {
     readonly generatedTransactionId: FieldRef<"RecurringReminderEvent", 'String'>
     readonly createdAt: FieldRef<"RecurringReminderEvent", 'DateTime'>
   }
-    
+
 
   // Custom InputTypes
   /**
@@ -11972,31 +17259,31 @@ export namespace Prisma {
     where?: RecurringReminderEventWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of RecurringReminderEvents to fetch.
      */
     orderBy?: RecurringReminderEventOrderByWithRelationInput | RecurringReminderEventOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for RecurringReminderEvents.
      */
     cursor?: RecurringReminderEventWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` RecurringReminderEvents from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` RecurringReminderEvents.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of RecurringReminderEvents.
      */
     distinct?: RecurringReminderEventScalarFieldEnum | RecurringReminderEventScalarFieldEnum[]
@@ -12024,31 +17311,31 @@ export namespace Prisma {
     where?: RecurringReminderEventWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of RecurringReminderEvents to fetch.
      */
     orderBy?: RecurringReminderEventOrderByWithRelationInput | RecurringReminderEventOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for RecurringReminderEvents.
      */
     cursor?: RecurringReminderEventWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` RecurringReminderEvents from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` RecurringReminderEvents.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of RecurringReminderEvents.
      */
     distinct?: RecurringReminderEventScalarFieldEnum | RecurringReminderEventScalarFieldEnum[]
@@ -12076,31 +17363,31 @@ export namespace Prisma {
     where?: RecurringReminderEventWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of RecurringReminderEvents to fetch.
      */
     orderBy?: RecurringReminderEventOrderByWithRelationInput | RecurringReminderEventOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for listing RecurringReminderEvents.
      */
     cursor?: RecurringReminderEventWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` RecurringReminderEvents from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` RecurringReminderEvents.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of RecurringReminderEvents.
      */
     distinct?: RecurringReminderEventScalarFieldEnum | RecurringReminderEventScalarFieldEnum[]
@@ -12498,55 +17785,55 @@ export namespace Prisma {
     where?: SavingGoalWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of SavingGoals to fetch.
      */
     orderBy?: SavingGoalOrderByWithRelationInput | SavingGoalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the start position
      */
     cursor?: SavingGoalWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` SavingGoals from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` SavingGoals.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Count returned SavingGoals
     **/
     _count?: true | SavingGoalCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to average
     **/
     _avg?: SavingGoalAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to sum
     **/
     _sum?: SavingGoalSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the minimum value
     **/
     _min?: SavingGoalMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the maximum value
     **/
     _max?: SavingGoalMaxAggregateInputType
@@ -12770,13 +18057,13 @@ export namespace Prisma {
      * @example
      * // Get all SavingGoals
      * const savingGoals = await prisma.savingGoal.findMany()
-     * 
+     *
      * // Get first 10 SavingGoals
      * const savingGoals = await prisma.savingGoal.findMany({ take: 10 })
-     * 
+     *
      * // Only select the `id`
      * const savingGoalWithIdOnly = await prisma.savingGoal.findMany({ select: { id: true } })
-     * 
+     *
      */
     findMany<T extends SavingGoalFindManyArgs>(args?: SelectSubset<T, SavingGoalFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -12790,7 +18077,7 @@ export namespace Prisma {
      *     // ... data to create a SavingGoal
      *   }
      * })
-     * 
+     *
      */
     create<T extends SavingGoalCreateArgs>(args: SelectSubset<T, SavingGoalCreateArgs<ExtArgs>>): Prisma__SavingGoalClient<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -12804,7 +18091,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *     
+     *
      */
     createMany<T extends SavingGoalCreateManyArgs>(args?: SelectSubset<T, SavingGoalCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -12818,7 +18105,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Create many SavingGoals and only return the `id`
      * const savingGoalWithIdOnly = await prisma.savingGoal.createManyAndReturn({
      *   select: { id: true },
@@ -12828,7 +18115,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     createManyAndReturn<T extends SavingGoalCreateManyAndReturnArgs>(args?: SelectSubset<T, SavingGoalCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -12842,7 +18129,7 @@ export namespace Prisma {
      *     // ... filter to delete one SavingGoal
      *   }
      * })
-     * 
+     *
      */
     delete<T extends SavingGoalDeleteArgs>(args: SelectSubset<T, SavingGoalDeleteArgs<ExtArgs>>): Prisma__SavingGoalClient<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -12859,7 +18146,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     update<T extends SavingGoalUpdateArgs>(args: SelectSubset<T, SavingGoalUpdateArgs<ExtArgs>>): Prisma__SavingGoalClient<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -12873,7 +18160,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     * 
+     *
      */
     deleteMany<T extends SavingGoalDeleteManyArgs>(args?: SelectSubset<T, SavingGoalDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -12892,7 +18179,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     updateMany<T extends SavingGoalUpdateManyArgs>(args: SelectSubset<T, SavingGoalUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -12909,7 +18196,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Update zero or more SavingGoals and only return the `id`
      * const savingGoalWithIdOnly = await prisma.savingGoal.updateManyAndReturn({
      *   select: { id: true },
@@ -12922,7 +18209,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     updateManyAndReturn<T extends SavingGoalUpdateManyAndReturnArgs>(args: SelectSubset<T, SavingGoalUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingGoalPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -13011,7 +18298,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     * 
+     *
     **/
     groupBy<
       T extends SavingGoalGroupByArgs,
@@ -13126,7 +18413,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"SavingGoal", 'DateTime'>
     readonly updatedAt: FieldRef<"SavingGoal", 'DateTime'>
   }
-    
+
 
   // Custom InputTypes
   /**
@@ -13195,31 +18482,31 @@ export namespace Prisma {
     where?: SavingGoalWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of SavingGoals to fetch.
      */
     orderBy?: SavingGoalOrderByWithRelationInput | SavingGoalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for SavingGoals.
      */
     cursor?: SavingGoalWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` SavingGoals from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` SavingGoals.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of SavingGoals.
      */
     distinct?: SavingGoalScalarFieldEnum | SavingGoalScalarFieldEnum[]
@@ -13247,31 +18534,31 @@ export namespace Prisma {
     where?: SavingGoalWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of SavingGoals to fetch.
      */
     orderBy?: SavingGoalOrderByWithRelationInput | SavingGoalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for SavingGoals.
      */
     cursor?: SavingGoalWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` SavingGoals from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` SavingGoals.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of SavingGoals.
      */
     distinct?: SavingGoalScalarFieldEnum | SavingGoalScalarFieldEnum[]
@@ -13299,31 +18586,31 @@ export namespace Prisma {
     where?: SavingGoalWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of SavingGoals to fetch.
      */
     orderBy?: SavingGoalOrderByWithRelationInput | SavingGoalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for listing SavingGoals.
      */
     cursor?: SavingGoalWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` SavingGoals from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` SavingGoals.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of SavingGoals.
      */
     distinct?: SavingGoalScalarFieldEnum | SavingGoalScalarFieldEnum[]
@@ -13642,55 +18929,55 @@ export namespace Prisma {
     where?: BudgetWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Budgets to fetch.
      */
     orderBy?: BudgetOrderByWithRelationInput | BudgetOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the start position
      */
     cursor?: BudgetWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Budgets from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Budgets.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Count returned Budgets
     **/
     _count?: true | BudgetCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to average
     **/
     _avg?: BudgetAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to sum
     **/
     _sum?: BudgetSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the minimum value
     **/
     _min?: BudgetMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
+     *
      * Select which fields to find the maximum value
     **/
     _max?: BudgetMaxAggregateInputType
@@ -13903,13 +19190,13 @@ export namespace Prisma {
      * @example
      * // Get all Budgets
      * const budgets = await prisma.budget.findMany()
-     * 
+     *
      * // Get first 10 Budgets
      * const budgets = await prisma.budget.findMany({ take: 10 })
-     * 
+     *
      * // Only select the `id`
      * const budgetWithIdOnly = await prisma.budget.findMany({ select: { id: true } })
-     * 
+     *
      */
     findMany<T extends BudgetFindManyArgs>(args?: SelectSubset<T, BudgetFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
@@ -13923,7 +19210,7 @@ export namespace Prisma {
      *     // ... data to create a Budget
      *   }
      * })
-     * 
+     *
      */
     create<T extends BudgetCreateArgs>(args: SelectSubset<T, BudgetCreateArgs<ExtArgs>>): Prisma__BudgetClient<$Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -13937,7 +19224,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     *     
+     *
      */
     createMany<T extends BudgetCreateManyArgs>(args?: SelectSubset<T, BudgetCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -13951,7 +19238,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Create many Budgets and only return the `id`
      * const budgetWithIdOnly = await prisma.budget.createManyAndReturn({
      *   select: { id: true },
@@ -13961,7 +19248,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     createManyAndReturn<T extends BudgetCreateManyAndReturnArgs>(args?: SelectSubset<T, BudgetCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
@@ -13975,7 +19262,7 @@ export namespace Prisma {
      *     // ... filter to delete one Budget
      *   }
      * })
-     * 
+     *
      */
     delete<T extends BudgetDeleteArgs>(args: SelectSubset<T, BudgetDeleteArgs<ExtArgs>>): Prisma__BudgetClient<$Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -13992,7 +19279,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     update<T extends BudgetUpdateArgs>(args: SelectSubset<T, BudgetUpdateArgs<ExtArgs>>): Prisma__BudgetClient<$Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
@@ -14006,7 +19293,7 @@ export namespace Prisma {
      *     // ... provide filter here
      *   }
      * })
-     * 
+     *
      */
     deleteMany<T extends BudgetDeleteManyArgs>(args?: SelectSubset<T, BudgetDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -14025,7 +19312,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   }
      * })
-     * 
+     *
      */
     updateMany<T extends BudgetUpdateManyArgs>(args: SelectSubset<T, BudgetUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
@@ -14042,7 +19329,7 @@ export namespace Prisma {
      *     // ... provide data here
      *   ]
      * })
-     * 
+     *
      * // Update zero or more Budgets and only return the `id`
      * const budgetWithIdOnly = await prisma.budget.updateManyAndReturn({
      *   select: { id: true },
@@ -14055,7 +19342,7 @@ export namespace Prisma {
      * })
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * 
+     *
      */
     updateManyAndReturn<T extends BudgetUpdateManyAndReturnArgs>(args: SelectSubset<T, BudgetUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
@@ -14144,7 +19431,7 @@ export namespace Prisma {
      *     _all: true
      *   },
      * })
-     * 
+     *
     **/
     groupBy<
       T extends BudgetGroupByArgs,
@@ -14257,7 +19544,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"Budget", 'DateTime'>
     readonly updatedAt: FieldRef<"Budget", 'DateTime'>
   }
-    
+
 
   // Custom InputTypes
   /**
@@ -14326,31 +19613,31 @@ export namespace Prisma {
     where?: BudgetWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Budgets to fetch.
      */
     orderBy?: BudgetOrderByWithRelationInput | BudgetOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for Budgets.
      */
     cursor?: BudgetWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Budgets from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Budgets.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Budgets.
      */
     distinct?: BudgetScalarFieldEnum | BudgetScalarFieldEnum[]
@@ -14378,31 +19665,31 @@ export namespace Prisma {
     where?: BudgetWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Budgets to fetch.
      */
     orderBy?: BudgetOrderByWithRelationInput | BudgetOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for searching for Budgets.
      */
     cursor?: BudgetWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Budgets from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Budgets.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Budgets.
      */
     distinct?: BudgetScalarFieldEnum | BudgetScalarFieldEnum[]
@@ -14430,31 +19717,31 @@ export namespace Prisma {
     where?: BudgetWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
+     *
      * Determine the order of Budgets to fetch.
      */
     orderBy?: BudgetOrderByWithRelationInput | BudgetOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
+     *
      * Sets the position for listing Budgets.
      */
     cursor?: BudgetWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Take `±n` Budgets from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
+     *
      * Skip the first `n` Budgets.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
+     *
      * Filter by unique combinations of Budgets.
      */
     distinct?: BudgetScalarFieldEnum | BudgetScalarFieldEnum[]
@@ -14701,6 +19988,72 @@ export namespace Prisma {
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+  export const AssistantConversationScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    status: 'status',
+    locale: 'locale',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    lastActivityAt: 'lastActivityAt',
+    archivedAt: 'archivedAt'
+  };
+
+  export type AssistantConversationScalarFieldEnum = (typeof AssistantConversationScalarFieldEnum)[keyof typeof AssistantConversationScalarFieldEnum]
+
+
+  export const AssistantTurnScalarFieldEnum: {
+    id: 'id',
+    conversationId: 'conversationId',
+    correlationId: 'correlationId',
+    status: 'status',
+    intent: 'intent',
+    locale: 'locale',
+    safeErrorCode: 'safeErrorCode',
+    startedAt: 'startedAt',
+    finishedAt: 'finishedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type AssistantTurnScalarFieldEnum = (typeof AssistantTurnScalarFieldEnum)[keyof typeof AssistantTurnScalarFieldEnum]
+
+
+  export const AssistantMessageScalarFieldEnum: {
+    id: 'id',
+    conversationId: 'conversationId',
+    turnId: 'turnId',
+    role: 'role',
+    source: 'source',
+    content: 'content',
+    createdAt: 'createdAt'
+  };
+
+  export type AssistantMessageScalarFieldEnum = (typeof AssistantMessageScalarFieldEnum)[keyof typeof AssistantMessageScalarFieldEnum]
+
+
+  export const AssistantToolExecutionScalarFieldEnum: {
+    id: 'id',
+    conversationId: 'conversationId',
+    turnId: 'turnId',
+    toolId: 'toolId',
+    capability: 'capability',
+    riskLevel: 'riskLevel',
+    policyDecision: 'policyDecision',
+    status: 'status',
+    correlationId: 'correlationId',
+    startedAt: 'startedAt',
+    completedAt: 'completedAt',
+    durationMs: 'durationMs',
+    safeErrorCode: 'safeErrorCode',
+    redactedInput: 'redactedInput',
+    outputSummary: 'outputSummary',
+    idempotencyKey: 'idempotencyKey'
+  };
+
+  export type AssistantToolExecutionScalarFieldEnum = (typeof AssistantToolExecutionScalarFieldEnum)[keyof typeof AssistantToolExecutionScalarFieldEnum]
+
+
   export const WalletScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
@@ -14875,6 +20228,14 @@ export namespace Prisma {
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+  export const NullableJsonNullValueInput: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
   export const QueryMode: {
     default: 'default',
     insensitive: 'insensitive'
@@ -14891,6 +20252,15 @@ export namespace Prisma {
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
   /**
    * Field references
    */
@@ -14900,203 +20270,287 @@ export namespace Prisma {
    * Reference to a field of type 'String'
    */
   export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String'>
-    
+
 
 
   /**
    * Reference to a field of type 'String[]'
    */
   export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String[]'>
-    
+
 
 
   /**
    * Reference to a field of type 'DateTime'
    */
   export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
-    
+
 
 
   /**
    * Reference to a field of type 'DateTime[]'
    */
   export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
-    
 
-
-  /**
-   * Reference to a field of type 'WalletType'
-   */
-  export type EnumWalletTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WalletType'>
-    
 
 
   /**
-   * Reference to a field of type 'WalletType[]'
+   * Reference to a field of type 'AssistantConversationStatus'
    */
-  export type ListEnumWalletTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WalletType[]'>
-    
+  export type EnumAssistantConversationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantConversationStatus'>
+
 
 
   /**
-   * Reference to a field of type 'Decimal'
+   * Reference to a field of type 'AssistantConversationStatus[]'
    */
-  export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
-    
+  export type ListEnumAssistantConversationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantConversationStatus[]'>
+
 
 
   /**
-   * Reference to a field of type 'Decimal[]'
+   * Reference to a field of type 'AssistantTurnStatus'
    */
-  export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
-    
+  export type EnumAssistantTurnStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantTurnStatus'>
+
 
 
   /**
-   * Reference to a field of type 'Boolean'
+   * Reference to a field of type 'AssistantTurnStatus[]'
    */
-  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
-    
+  export type ListEnumAssistantTurnStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantTurnStatus[]'>
+
 
 
   /**
-   * Reference to a field of type 'AdminFeeType'
+   * Reference to a field of type 'AssistantMessageRole'
    */
-  export type EnumAdminFeeTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdminFeeType'>
-    
+  export type EnumAssistantMessageRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantMessageRole'>
+
 
 
   /**
-   * Reference to a field of type 'AdminFeeType[]'
+   * Reference to a field of type 'AssistantMessageRole[]'
    */
-  export type ListEnumAdminFeeTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdminFeeType[]'>
-    
+  export type ListEnumAssistantMessageRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantMessageRole[]'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantMessageSource'
+   */
+  export type EnumAssistantMessageSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantMessageSource'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantMessageSource[]'
+   */
+  export type ListEnumAssistantMessageSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantMessageSource[]'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantToolExecutionStatus'
+   */
+  export type EnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantToolExecutionStatus'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantToolExecutionStatus[]'
+   */
+  export type ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantToolExecutionStatus[]'>
+
 
 
   /**
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
+
 
 
   /**
    * Reference to a field of type 'Int[]'
    */
   export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
+
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+
+
+
+  /**
+   * Reference to a field of type 'WalletType'
+   */
+  export type EnumWalletTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WalletType'>
+
+
+
+  /**
+   * Reference to a field of type 'WalletType[]'
+   */
+  export type ListEnumWalletTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WalletType[]'>
+
+
+
+  /**
+   * Reference to a field of type 'Decimal'
+   */
+  export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+
+
+
+  /**
+   * Reference to a field of type 'Decimal[]'
+   */
+  export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+
+
+
+  /**
+   * Reference to a field of type 'Boolean'
+   */
+  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+
+
+
+  /**
+   * Reference to a field of type 'AdminFeeType'
+   */
+  export type EnumAdminFeeTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdminFeeType'>
+
+
+
+  /**
+   * Reference to a field of type 'AdminFeeType[]'
+   */
+  export type ListEnumAdminFeeTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdminFeeType[]'>
+
 
 
   /**
    * Reference to a field of type 'CategoryType'
    */
   export type EnumCategoryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CategoryType'>
-    
+
 
 
   /**
    * Reference to a field of type 'CategoryType[]'
    */
   export type ListEnumCategoryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CategoryType[]'>
-    
+
 
 
   /**
    * Reference to a field of type 'TransactionType'
    */
   export type EnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType'>
-    
+
 
 
   /**
    * Reference to a field of type 'TransactionType[]'
    */
   export type ListEnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionType[]'>
-    
+
 
 
   /**
    * Reference to a field of type 'BillKind'
    */
   export type EnumBillKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BillKind'>
-    
+
 
 
   /**
    * Reference to a field of type 'BillKind[]'
    */
   export type ListEnumBillKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BillKind[]'>
-    
+
 
 
   /**
    * Reference to a field of type 'InstallmentStatus'
    */
   export type EnumInstallmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InstallmentStatus'>
-    
+
 
 
   /**
    * Reference to a field of type 'InstallmentStatus[]'
    */
   export type ListEnumInstallmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InstallmentStatus[]'>
-    
+
 
 
   /**
    * Reference to a field of type 'RecurringAmountMode'
    */
   export type EnumRecurringAmountModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurringAmountMode'>
-    
+
 
 
   /**
    * Reference to a field of type 'RecurringAmountMode[]'
    */
   export type ListEnumRecurringAmountModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurringAmountMode[]'>
-    
+
 
 
   /**
    * Reference to a field of type 'RecurrenceFrequency'
    */
   export type EnumRecurrenceFrequencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurrenceFrequency'>
-    
+
 
 
   /**
    * Reference to a field of type 'RecurrenceFrequency[]'
    */
   export type ListEnumRecurrenceFrequencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurrenceFrequency[]'>
-    
+
 
 
   /**
    * Reference to a field of type 'SavingGoalStatus'
    */
   export type EnumSavingGoalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SavingGoalStatus'>
-    
+
 
 
   /**
    * Reference to a field of type 'SavingGoalStatus[]'
    */
   export type ListEnumSavingGoalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SavingGoalStatus[]'>
-    
+
 
 
   /**
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
-    
+
 
 
   /**
    * Reference to a field of type 'Float[]'
    */
   export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
-    
+
   /**
    * Deep Input Types
    */
@@ -15120,6 +20574,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalListRelationFilter
     budgets?: BudgetListRelationFilter
     merchantMappings?: MerchantMappingListRelationFilter
+    assistantConversations?: AssistantConversationListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -15137,6 +20592,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalOrderByRelationAggregateInput
     budgets?: BudgetOrderByRelationAggregateInput
     merchantMappings?: MerchantMappingOrderByRelationAggregateInput
+    assistantConversations?: AssistantConversationOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -15157,6 +20613,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalListRelationFilter
     budgets?: BudgetListRelationFilter
     merchantMappings?: MerchantMappingListRelationFilter
+    assistantConversations?: AssistantConversationListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -15181,6 +20638,359 @@ export namespace Prisma {
     avatarUrl?: StringNullableWithAggregatesFilter<"User"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+  }
+
+  export type AssistantConversationWhereInput = {
+    AND?: AssistantConversationWhereInput | AssistantConversationWhereInput[]
+    OR?: AssistantConversationWhereInput[]
+    NOT?: AssistantConversationWhereInput | AssistantConversationWhereInput[]
+    id?: StringFilter<"AssistantConversation"> | string
+    userId?: StringFilter<"AssistantConversation"> | string
+    status?: EnumAssistantConversationStatusFilter<"AssistantConversation"> | $Enums.AssistantConversationStatus
+    locale?: StringFilter<"AssistantConversation"> | string
+    createdAt?: DateTimeFilter<"AssistantConversation"> | Date | string
+    updatedAt?: DateTimeFilter<"AssistantConversation"> | Date | string
+    lastActivityAt?: DateTimeFilter<"AssistantConversation"> | Date | string
+    archivedAt?: DateTimeNullableFilter<"AssistantConversation"> | Date | string | null
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    turns?: AssistantTurnListRelationFilter
+    messages?: AssistantMessageListRelationFilter
+    toolExecutions?: AssistantToolExecutionListRelationFilter
+  }
+
+  export type AssistantConversationOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    status?: SortOrder
+    locale?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    lastActivityAt?: SortOrder
+    archivedAt?: SortOrderInput | SortOrder
+    user?: UserOrderByWithRelationInput
+    turns?: AssistantTurnOrderByRelationAggregateInput
+    messages?: AssistantMessageOrderByRelationAggregateInput
+    toolExecutions?: AssistantToolExecutionOrderByRelationAggregateInput
+  }
+
+  export type AssistantConversationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AssistantConversationWhereInput | AssistantConversationWhereInput[]
+    OR?: AssistantConversationWhereInput[]
+    NOT?: AssistantConversationWhereInput | AssistantConversationWhereInput[]
+    userId?: StringFilter<"AssistantConversation"> | string
+    status?: EnumAssistantConversationStatusFilter<"AssistantConversation"> | $Enums.AssistantConversationStatus
+    locale?: StringFilter<"AssistantConversation"> | string
+    createdAt?: DateTimeFilter<"AssistantConversation"> | Date | string
+    updatedAt?: DateTimeFilter<"AssistantConversation"> | Date | string
+    lastActivityAt?: DateTimeFilter<"AssistantConversation"> | Date | string
+    archivedAt?: DateTimeNullableFilter<"AssistantConversation"> | Date | string | null
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    turns?: AssistantTurnListRelationFilter
+    messages?: AssistantMessageListRelationFilter
+    toolExecutions?: AssistantToolExecutionListRelationFilter
+  }, "id">
+
+  export type AssistantConversationOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    status?: SortOrder
+    locale?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    lastActivityAt?: SortOrder
+    archivedAt?: SortOrderInput | SortOrder
+    _count?: AssistantConversationCountOrderByAggregateInput
+    _max?: AssistantConversationMaxOrderByAggregateInput
+    _min?: AssistantConversationMinOrderByAggregateInput
+  }
+
+  export type AssistantConversationScalarWhereWithAggregatesInput = {
+    AND?: AssistantConversationScalarWhereWithAggregatesInput | AssistantConversationScalarWhereWithAggregatesInput[]
+    OR?: AssistantConversationScalarWhereWithAggregatesInput[]
+    NOT?: AssistantConversationScalarWhereWithAggregatesInput | AssistantConversationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AssistantConversation"> | string
+    userId?: StringWithAggregatesFilter<"AssistantConversation"> | string
+    status?: EnumAssistantConversationStatusWithAggregatesFilter<"AssistantConversation"> | $Enums.AssistantConversationStatus
+    locale?: StringWithAggregatesFilter<"AssistantConversation"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"AssistantConversation"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"AssistantConversation"> | Date | string
+    lastActivityAt?: DateTimeWithAggregatesFilter<"AssistantConversation"> | Date | string
+    archivedAt?: DateTimeNullableWithAggregatesFilter<"AssistantConversation"> | Date | string | null
+  }
+
+  export type AssistantTurnWhereInput = {
+    AND?: AssistantTurnWhereInput | AssistantTurnWhereInput[]
+    OR?: AssistantTurnWhereInput[]
+    NOT?: AssistantTurnWhereInput | AssistantTurnWhereInput[]
+    id?: StringFilter<"AssistantTurn"> | string
+    conversationId?: StringFilter<"AssistantTurn"> | string
+    correlationId?: StringFilter<"AssistantTurn"> | string
+    status?: EnumAssistantTurnStatusFilter<"AssistantTurn"> | $Enums.AssistantTurnStatus
+    intent?: StringFilter<"AssistantTurn"> | string
+    locale?: StringFilter<"AssistantTurn"> | string
+    safeErrorCode?: StringNullableFilter<"AssistantTurn"> | string | null
+    startedAt?: DateTimeFilter<"AssistantTurn"> | Date | string
+    finishedAt?: DateTimeNullableFilter<"AssistantTurn"> | Date | string | null
+    createdAt?: DateTimeFilter<"AssistantTurn"> | Date | string
+    updatedAt?: DateTimeFilter<"AssistantTurn"> | Date | string
+    conversation?: XOR<AssistantConversationScalarRelationFilter, AssistantConversationWhereInput>
+    messages?: AssistantMessageListRelationFilter
+    toolExecutions?: AssistantToolExecutionListRelationFilter
+  }
+
+  export type AssistantTurnOrderByWithRelationInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    correlationId?: SortOrder
+    status?: SortOrder
+    intent?: SortOrder
+    locale?: SortOrder
+    safeErrorCode?: SortOrderInput | SortOrder
+    startedAt?: SortOrder
+    finishedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    conversation?: AssistantConversationOrderByWithRelationInput
+    messages?: AssistantMessageOrderByRelationAggregateInput
+    toolExecutions?: AssistantToolExecutionOrderByRelationAggregateInput
+  }
+
+  export type AssistantTurnWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    correlationId?: string
+    AND?: AssistantTurnWhereInput | AssistantTurnWhereInput[]
+    OR?: AssistantTurnWhereInput[]
+    NOT?: AssistantTurnWhereInput | AssistantTurnWhereInput[]
+    conversationId?: StringFilter<"AssistantTurn"> | string
+    status?: EnumAssistantTurnStatusFilter<"AssistantTurn"> | $Enums.AssistantTurnStatus
+    intent?: StringFilter<"AssistantTurn"> | string
+    locale?: StringFilter<"AssistantTurn"> | string
+    safeErrorCode?: StringNullableFilter<"AssistantTurn"> | string | null
+    startedAt?: DateTimeFilter<"AssistantTurn"> | Date | string
+    finishedAt?: DateTimeNullableFilter<"AssistantTurn"> | Date | string | null
+    createdAt?: DateTimeFilter<"AssistantTurn"> | Date | string
+    updatedAt?: DateTimeFilter<"AssistantTurn"> | Date | string
+    conversation?: XOR<AssistantConversationScalarRelationFilter, AssistantConversationWhereInput>
+    messages?: AssistantMessageListRelationFilter
+    toolExecutions?: AssistantToolExecutionListRelationFilter
+  }, "id" | "correlationId">
+
+  export type AssistantTurnOrderByWithAggregationInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    correlationId?: SortOrder
+    status?: SortOrder
+    intent?: SortOrder
+    locale?: SortOrder
+    safeErrorCode?: SortOrderInput | SortOrder
+    startedAt?: SortOrder
+    finishedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: AssistantTurnCountOrderByAggregateInput
+    _max?: AssistantTurnMaxOrderByAggregateInput
+    _min?: AssistantTurnMinOrderByAggregateInput
+  }
+
+  export type AssistantTurnScalarWhereWithAggregatesInput = {
+    AND?: AssistantTurnScalarWhereWithAggregatesInput | AssistantTurnScalarWhereWithAggregatesInput[]
+    OR?: AssistantTurnScalarWhereWithAggregatesInput[]
+    NOT?: AssistantTurnScalarWhereWithAggregatesInput | AssistantTurnScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AssistantTurn"> | string
+    conversationId?: StringWithAggregatesFilter<"AssistantTurn"> | string
+    correlationId?: StringWithAggregatesFilter<"AssistantTurn"> | string
+    status?: EnumAssistantTurnStatusWithAggregatesFilter<"AssistantTurn"> | $Enums.AssistantTurnStatus
+    intent?: StringWithAggregatesFilter<"AssistantTurn"> | string
+    locale?: StringWithAggregatesFilter<"AssistantTurn"> | string
+    safeErrorCode?: StringNullableWithAggregatesFilter<"AssistantTurn"> | string | null
+    startedAt?: DateTimeWithAggregatesFilter<"AssistantTurn"> | Date | string
+    finishedAt?: DateTimeNullableWithAggregatesFilter<"AssistantTurn"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"AssistantTurn"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"AssistantTurn"> | Date | string
+  }
+
+  export type AssistantMessageWhereInput = {
+    AND?: AssistantMessageWhereInput | AssistantMessageWhereInput[]
+    OR?: AssistantMessageWhereInput[]
+    NOT?: AssistantMessageWhereInput | AssistantMessageWhereInput[]
+    id?: StringFilter<"AssistantMessage"> | string
+    conversationId?: StringFilter<"AssistantMessage"> | string
+    turnId?: StringFilter<"AssistantMessage"> | string
+    role?: EnumAssistantMessageRoleFilter<"AssistantMessage"> | $Enums.AssistantMessageRole
+    source?: EnumAssistantMessageSourceFilter<"AssistantMessage"> | $Enums.AssistantMessageSource
+    content?: StringFilter<"AssistantMessage"> | string
+    createdAt?: DateTimeFilter<"AssistantMessage"> | Date | string
+    conversation?: XOR<AssistantConversationScalarRelationFilter, AssistantConversationWhereInput>
+    turn?: XOR<AssistantTurnScalarRelationFilter, AssistantTurnWhereInput>
+  }
+
+  export type AssistantMessageOrderByWithRelationInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrder
+    role?: SortOrder
+    source?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+    conversation?: AssistantConversationOrderByWithRelationInput
+    turn?: AssistantTurnOrderByWithRelationInput
+  }
+
+  export type AssistantMessageWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AssistantMessageWhereInput | AssistantMessageWhereInput[]
+    OR?: AssistantMessageWhereInput[]
+    NOT?: AssistantMessageWhereInput | AssistantMessageWhereInput[]
+    conversationId?: StringFilter<"AssistantMessage"> | string
+    turnId?: StringFilter<"AssistantMessage"> | string
+    role?: EnumAssistantMessageRoleFilter<"AssistantMessage"> | $Enums.AssistantMessageRole
+    source?: EnumAssistantMessageSourceFilter<"AssistantMessage"> | $Enums.AssistantMessageSource
+    content?: StringFilter<"AssistantMessage"> | string
+    createdAt?: DateTimeFilter<"AssistantMessage"> | Date | string
+    conversation?: XOR<AssistantConversationScalarRelationFilter, AssistantConversationWhereInput>
+    turn?: XOR<AssistantTurnScalarRelationFilter, AssistantTurnWhereInput>
+  }, "id">
+
+  export type AssistantMessageOrderByWithAggregationInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrder
+    role?: SortOrder
+    source?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+    _count?: AssistantMessageCountOrderByAggregateInput
+    _max?: AssistantMessageMaxOrderByAggregateInput
+    _min?: AssistantMessageMinOrderByAggregateInput
+  }
+
+  export type AssistantMessageScalarWhereWithAggregatesInput = {
+    AND?: AssistantMessageScalarWhereWithAggregatesInput | AssistantMessageScalarWhereWithAggregatesInput[]
+    OR?: AssistantMessageScalarWhereWithAggregatesInput[]
+    NOT?: AssistantMessageScalarWhereWithAggregatesInput | AssistantMessageScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AssistantMessage"> | string
+    conversationId?: StringWithAggregatesFilter<"AssistantMessage"> | string
+    turnId?: StringWithAggregatesFilter<"AssistantMessage"> | string
+    role?: EnumAssistantMessageRoleWithAggregatesFilter<"AssistantMessage"> | $Enums.AssistantMessageRole
+    source?: EnumAssistantMessageSourceWithAggregatesFilter<"AssistantMessage"> | $Enums.AssistantMessageSource
+    content?: StringWithAggregatesFilter<"AssistantMessage"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"AssistantMessage"> | Date | string
+  }
+
+  export type AssistantToolExecutionWhereInput = {
+    AND?: AssistantToolExecutionWhereInput | AssistantToolExecutionWhereInput[]
+    OR?: AssistantToolExecutionWhereInput[]
+    NOT?: AssistantToolExecutionWhereInput | AssistantToolExecutionWhereInput[]
+    id?: StringFilter<"AssistantToolExecution"> | string
+    conversationId?: StringFilter<"AssistantToolExecution"> | string
+    turnId?: StringFilter<"AssistantToolExecution"> | string
+    toolId?: StringFilter<"AssistantToolExecution"> | string
+    capability?: StringFilter<"AssistantToolExecution"> | string
+    riskLevel?: StringFilter<"AssistantToolExecution"> | string
+    policyDecision?: StringFilter<"AssistantToolExecution"> | string
+    status?: EnumAssistantToolExecutionStatusFilter<"AssistantToolExecution"> | $Enums.AssistantToolExecutionStatus
+    correlationId?: StringFilter<"AssistantToolExecution"> | string
+    startedAt?: DateTimeFilter<"AssistantToolExecution"> | Date | string
+    completedAt?: DateTimeNullableFilter<"AssistantToolExecution"> | Date | string | null
+    durationMs?: IntNullableFilter<"AssistantToolExecution"> | number | null
+    safeErrorCode?: StringNullableFilter<"AssistantToolExecution"> | string | null
+    redactedInput?: JsonNullableFilter<"AssistantToolExecution">
+    outputSummary?: JsonNullableFilter<"AssistantToolExecution">
+    idempotencyKey?: StringNullableFilter<"AssistantToolExecution"> | string | null
+    conversation?: XOR<AssistantConversationScalarRelationFilter, AssistantConversationWhereInput>
+    turn?: XOR<AssistantTurnScalarRelationFilter, AssistantTurnWhereInput>
+  }
+
+  export type AssistantToolExecutionOrderByWithRelationInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrder
+    toolId?: SortOrder
+    capability?: SortOrder
+    riskLevel?: SortOrder
+    policyDecision?: SortOrder
+    status?: SortOrder
+    correlationId?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    durationMs?: SortOrderInput | SortOrder
+    safeErrorCode?: SortOrderInput | SortOrder
+    redactedInput?: SortOrderInput | SortOrder
+    outputSummary?: SortOrderInput | SortOrder
+    idempotencyKey?: SortOrderInput | SortOrder
+    conversation?: AssistantConversationOrderByWithRelationInput
+    turn?: AssistantTurnOrderByWithRelationInput
+  }
+
+  export type AssistantToolExecutionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AssistantToolExecutionWhereInput | AssistantToolExecutionWhereInput[]
+    OR?: AssistantToolExecutionWhereInput[]
+    NOT?: AssistantToolExecutionWhereInput | AssistantToolExecutionWhereInput[]
+    conversationId?: StringFilter<"AssistantToolExecution"> | string
+    turnId?: StringFilter<"AssistantToolExecution"> | string
+    toolId?: StringFilter<"AssistantToolExecution"> | string
+    capability?: StringFilter<"AssistantToolExecution"> | string
+    riskLevel?: StringFilter<"AssistantToolExecution"> | string
+    policyDecision?: StringFilter<"AssistantToolExecution"> | string
+    status?: EnumAssistantToolExecutionStatusFilter<"AssistantToolExecution"> | $Enums.AssistantToolExecutionStatus
+    correlationId?: StringFilter<"AssistantToolExecution"> | string
+    startedAt?: DateTimeFilter<"AssistantToolExecution"> | Date | string
+    completedAt?: DateTimeNullableFilter<"AssistantToolExecution"> | Date | string | null
+    durationMs?: IntNullableFilter<"AssistantToolExecution"> | number | null
+    safeErrorCode?: StringNullableFilter<"AssistantToolExecution"> | string | null
+    redactedInput?: JsonNullableFilter<"AssistantToolExecution">
+    outputSummary?: JsonNullableFilter<"AssistantToolExecution">
+    idempotencyKey?: StringNullableFilter<"AssistantToolExecution"> | string | null
+    conversation?: XOR<AssistantConversationScalarRelationFilter, AssistantConversationWhereInput>
+    turn?: XOR<AssistantTurnScalarRelationFilter, AssistantTurnWhereInput>
+  }, "id">
+
+  export type AssistantToolExecutionOrderByWithAggregationInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrder
+    toolId?: SortOrder
+    capability?: SortOrder
+    riskLevel?: SortOrder
+    policyDecision?: SortOrder
+    status?: SortOrder
+    correlationId?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    durationMs?: SortOrderInput | SortOrder
+    safeErrorCode?: SortOrderInput | SortOrder
+    redactedInput?: SortOrderInput | SortOrder
+    outputSummary?: SortOrderInput | SortOrder
+    idempotencyKey?: SortOrderInput | SortOrder
+    _count?: AssistantToolExecutionCountOrderByAggregateInput
+    _avg?: AssistantToolExecutionAvgOrderByAggregateInput
+    _max?: AssistantToolExecutionMaxOrderByAggregateInput
+    _min?: AssistantToolExecutionMinOrderByAggregateInput
+    _sum?: AssistantToolExecutionSumOrderByAggregateInput
+  }
+
+  export type AssistantToolExecutionScalarWhereWithAggregatesInput = {
+    AND?: AssistantToolExecutionScalarWhereWithAggregatesInput | AssistantToolExecutionScalarWhereWithAggregatesInput[]
+    OR?: AssistantToolExecutionScalarWhereWithAggregatesInput[]
+    NOT?: AssistantToolExecutionScalarWhereWithAggregatesInput | AssistantToolExecutionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AssistantToolExecution"> | string
+    conversationId?: StringWithAggregatesFilter<"AssistantToolExecution"> | string
+    turnId?: StringWithAggregatesFilter<"AssistantToolExecution"> | string
+    toolId?: StringWithAggregatesFilter<"AssistantToolExecution"> | string
+    capability?: StringWithAggregatesFilter<"AssistantToolExecution"> | string
+    riskLevel?: StringWithAggregatesFilter<"AssistantToolExecution"> | string
+    policyDecision?: StringWithAggregatesFilter<"AssistantToolExecution"> | string
+    status?: EnumAssistantToolExecutionStatusWithAggregatesFilter<"AssistantToolExecution"> | $Enums.AssistantToolExecutionStatus
+    correlationId?: StringWithAggregatesFilter<"AssistantToolExecution"> | string
+    startedAt?: DateTimeWithAggregatesFilter<"AssistantToolExecution"> | Date | string
+    completedAt?: DateTimeNullableWithAggregatesFilter<"AssistantToolExecution"> | Date | string | null
+    durationMs?: IntNullableWithAggregatesFilter<"AssistantToolExecution"> | number | null
+    safeErrorCode?: StringNullableWithAggregatesFilter<"AssistantToolExecution"> | string | null
+    redactedInput?: JsonNullableWithAggregatesFilter<"AssistantToolExecution">
+    outputSummary?: JsonNullableWithAggregatesFilter<"AssistantToolExecution">
+    idempotencyKey?: StringNullableWithAggregatesFilter<"AssistantToolExecution"> | string | null
   }
 
   export type WalletWhereInput = {
@@ -16116,6 +21926,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -16133,6 +21944,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -16150,6 +21962,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -16167,6 +21980,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -16194,6 +22008,398 @@ export namespace Prisma {
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantConversationCreateInput = {
+    id?: string
+    status?: $Enums.AssistantConversationStatus
+    locale?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastActivityAt?: Date | string
+    archivedAt?: Date | string | null
+    user: UserCreateNestedOneWithoutAssistantConversationsInput
+    turns?: AssistantTurnCreateNestedManyWithoutConversationInput
+    messages?: AssistantMessageCreateNestedManyWithoutConversationInput
+    toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutConversationInput
+  }
+
+  export type AssistantConversationUncheckedCreateInput = {
+    id?: string
+    userId: string
+    status?: $Enums.AssistantConversationStatus
+    locale?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastActivityAt?: Date | string
+    archivedAt?: Date | string | null
+    turns?: AssistantTurnUncheckedCreateNestedManyWithoutConversationInput
+    messages?: AssistantMessageUncheckedCreateNestedManyWithoutConversationInput
+    toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type AssistantConversationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    user?: UserUpdateOneRequiredWithoutAssistantConversationsNestedInput
+    turns?: AssistantTurnUpdateManyWithoutConversationNestedInput
+    messages?: AssistantMessageUpdateManyWithoutConversationNestedInput
+    toolExecutions?: AssistantToolExecutionUpdateManyWithoutConversationNestedInput
+  }
+
+  export type AssistantConversationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    turns?: AssistantTurnUncheckedUpdateManyWithoutConversationNestedInput
+    messages?: AssistantMessageUncheckedUpdateManyWithoutConversationNestedInput
+    toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type AssistantConversationCreateManyInput = {
+    id?: string
+    userId: string
+    status?: $Enums.AssistantConversationStatus
+    locale?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastActivityAt?: Date | string
+    archivedAt?: Date | string | null
+  }
+
+  export type AssistantConversationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AssistantConversationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AssistantTurnCreateInput = {
+    id?: string
+    correlationId: string
+    status?: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
+    messages?: AssistantMessageCreateNestedManyWithoutTurnInput
+    toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutTurnInput
+  }
+
+  export type AssistantTurnUncheckedCreateInput = {
+    id?: string
+    conversationId: string
+    correlationId: string
+    status?: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
+    toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutTurnInput
+  }
+
+  export type AssistantTurnUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
+    messages?: AssistantMessageUpdateManyWithoutTurnNestedInput
+    toolExecutions?: AssistantToolExecutionUpdateManyWithoutTurnNestedInput
+  }
+
+  export type AssistantTurnUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
+    toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutTurnNestedInput
+  }
+
+  export type AssistantTurnCreateManyInput = {
+    id?: string
+    conversationId: string
+    correlationId: string
+    status?: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AssistantTurnUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantTurnUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantMessageCreateInput = {
+    id?: string
+    role: $Enums.AssistantMessageRole
+    source: $Enums.AssistantMessageSource
+    content: string
+    createdAt?: Date | string
+    conversation: AssistantConversationCreateNestedOneWithoutMessagesInput
+    turn: AssistantTurnCreateNestedOneWithoutMessagesInput
+  }
+
+  export type AssistantMessageUncheckedCreateInput = {
+    id?: string
+    conversationId: string
+    turnId: string
+    role: $Enums.AssistantMessageRole
+    source: $Enums.AssistantMessageSource
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type AssistantMessageUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    role?: EnumAssistantMessageRoleFieldUpdateOperationsInput | $Enums.AssistantMessageRole
+    source?: EnumAssistantMessageSourceFieldUpdateOperationsInput | $Enums.AssistantMessageSource
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    conversation?: AssistantConversationUpdateOneRequiredWithoutMessagesNestedInput
+    turn?: AssistantTurnUpdateOneRequiredWithoutMessagesNestedInput
+  }
+
+  export type AssistantMessageUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    turnId?: StringFieldUpdateOperationsInput | string
+    role?: EnumAssistantMessageRoleFieldUpdateOperationsInput | $Enums.AssistantMessageRole
+    source?: EnumAssistantMessageSourceFieldUpdateOperationsInput | $Enums.AssistantMessageSource
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantMessageCreateManyInput = {
+    id?: string
+    conversationId: string
+    turnId: string
+    role: $Enums.AssistantMessageRole
+    source: $Enums.AssistantMessageSource
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type AssistantMessageUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    role?: EnumAssistantMessageRoleFieldUpdateOperationsInput | $Enums.AssistantMessageRole
+    source?: EnumAssistantMessageSourceFieldUpdateOperationsInput | $Enums.AssistantMessageSource
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantMessageUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    turnId?: StringFieldUpdateOperationsInput | string
+    role?: EnumAssistantMessageRoleFieldUpdateOperationsInput | $Enums.AssistantMessageRole
+    source?: EnumAssistantMessageSourceFieldUpdateOperationsInput | $Enums.AssistantMessageSource
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantToolExecutionCreateInput = {
+    id?: string
+    toolId: string
+    capability: string
+    riskLevel: string
+    policyDecision: string
+    status?: $Enums.AssistantToolExecutionStatus
+    correlationId: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    safeErrorCode?: string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: string | null
+    conversation: AssistantConversationCreateNestedOneWithoutToolExecutionsInput
+    turn: AssistantTurnCreateNestedOneWithoutToolExecutionsInput
+  }
+
+  export type AssistantToolExecutionUncheckedCreateInput = {
+    id?: string
+    conversationId: string
+    turnId: string
+    toolId: string
+    capability: string
+    riskLevel: string
+    policyDecision: string
+    status?: $Enums.AssistantToolExecutionStatus
+    correlationId: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    safeErrorCode?: string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: string | null
+  }
+
+  export type AssistantToolExecutionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    toolId?: StringFieldUpdateOperationsInput | string
+    capability?: StringFieldUpdateOperationsInput | string
+    riskLevel?: StringFieldUpdateOperationsInput | string
+    policyDecision?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantToolExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantToolExecutionStatus
+    correlationId?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    conversation?: AssistantConversationUpdateOneRequiredWithoutToolExecutionsNestedInput
+    turn?: AssistantTurnUpdateOneRequiredWithoutToolExecutionsNestedInput
+  }
+
+  export type AssistantToolExecutionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    turnId?: StringFieldUpdateOperationsInput | string
+    toolId?: StringFieldUpdateOperationsInput | string
+    capability?: StringFieldUpdateOperationsInput | string
+    riskLevel?: StringFieldUpdateOperationsInput | string
+    policyDecision?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantToolExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantToolExecutionStatus
+    correlationId?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AssistantToolExecutionCreateManyInput = {
+    id?: string
+    conversationId: string
+    turnId: string
+    toolId: string
+    capability: string
+    riskLevel: string
+    policyDecision: string
+    status?: $Enums.AssistantToolExecutionStatus
+    correlationId: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    safeErrorCode?: string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: string | null
+  }
+
+  export type AssistantToolExecutionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    toolId?: StringFieldUpdateOperationsInput | string
+    capability?: StringFieldUpdateOperationsInput | string
+    riskLevel?: StringFieldUpdateOperationsInput | string
+    policyDecision?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantToolExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantToolExecutionStatus
+    correlationId?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AssistantToolExecutionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    turnId?: StringFieldUpdateOperationsInput | string
+    toolId?: StringFieldUpdateOperationsInput | string
+    capability?: StringFieldUpdateOperationsInput | string
+    riskLevel?: StringFieldUpdateOperationsInput | string
+    policyDecision?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantToolExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantToolExecutionStatus
+    correlationId?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type WalletCreateInput = {
@@ -17286,6 +23492,12 @@ export namespace Prisma {
     none?: MerchantMappingWhereInput
   }
 
+  export type AssistantConversationListRelationFilter = {
+    every?: AssistantConversationWhereInput
+    some?: AssistantConversationWhereInput
+    none?: AssistantConversationWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -17320,6 +23532,10 @@ export namespace Prisma {
   }
 
   export type MerchantMappingOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AssistantConversationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -17400,6 +23616,403 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type EnumAssistantConversationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantConversationStatus | EnumAssistantConversationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantConversationStatus[] | ListEnumAssistantConversationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantConversationStatus[] | ListEnumAssistantConversationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantConversationStatusFilter<$PrismaModel> | $Enums.AssistantConversationStatus
+  }
+
+  export type DateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type UserScalarRelationFilter = {
+    is?: UserWhereInput
+    isNot?: UserWhereInput
+  }
+
+  export type AssistantTurnListRelationFilter = {
+    every?: AssistantTurnWhereInput
+    some?: AssistantTurnWhereInput
+    none?: AssistantTurnWhereInput
+  }
+
+  export type AssistantMessageListRelationFilter = {
+    every?: AssistantMessageWhereInput
+    some?: AssistantMessageWhereInput
+    none?: AssistantMessageWhereInput
+  }
+
+  export type AssistantToolExecutionListRelationFilter = {
+    every?: AssistantToolExecutionWhereInput
+    some?: AssistantToolExecutionWhereInput
+    none?: AssistantToolExecutionWhereInput
+  }
+
+  export type AssistantTurnOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AssistantMessageOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AssistantToolExecutionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AssistantConversationCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    status?: SortOrder
+    locale?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    lastActivityAt?: SortOrder
+    archivedAt?: SortOrder
+  }
+
+  export type AssistantConversationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    status?: SortOrder
+    locale?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    lastActivityAt?: SortOrder
+    archivedAt?: SortOrder
+  }
+
+  export type AssistantConversationMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    status?: SortOrder
+    locale?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    lastActivityAt?: SortOrder
+    archivedAt?: SortOrder
+  }
+
+  export type EnumAssistantConversationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantConversationStatus | EnumAssistantConversationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantConversationStatus[] | ListEnumAssistantConversationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantConversationStatus[] | ListEnumAssistantConversationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantConversationStatusWithAggregatesFilter<$PrismaModel> | $Enums.AssistantConversationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantConversationStatusFilter<$PrismaModel>
+    _max?: NestedEnumAssistantConversationStatusFilter<$PrismaModel>
+  }
+
+  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type EnumAssistantTurnStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantTurnStatus | EnumAssistantTurnStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantTurnStatus[] | ListEnumAssistantTurnStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantTurnStatus[] | ListEnumAssistantTurnStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantTurnStatusFilter<$PrismaModel> | $Enums.AssistantTurnStatus
+  }
+
+  export type AssistantConversationScalarRelationFilter = {
+    is?: AssistantConversationWhereInput
+    isNot?: AssistantConversationWhereInput
+  }
+
+  export type AssistantTurnCountOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    correlationId?: SortOrder
+    status?: SortOrder
+    intent?: SortOrder
+    locale?: SortOrder
+    safeErrorCode?: SortOrder
+    startedAt?: SortOrder
+    finishedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AssistantTurnMaxOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    correlationId?: SortOrder
+    status?: SortOrder
+    intent?: SortOrder
+    locale?: SortOrder
+    safeErrorCode?: SortOrder
+    startedAt?: SortOrder
+    finishedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AssistantTurnMinOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    correlationId?: SortOrder
+    status?: SortOrder
+    intent?: SortOrder
+    locale?: SortOrder
+    safeErrorCode?: SortOrder
+    startedAt?: SortOrder
+    finishedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumAssistantTurnStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantTurnStatus | EnumAssistantTurnStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantTurnStatus[] | ListEnumAssistantTurnStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantTurnStatus[] | ListEnumAssistantTurnStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantTurnStatusWithAggregatesFilter<$PrismaModel> | $Enums.AssistantTurnStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantTurnStatusFilter<$PrismaModel>
+    _max?: NestedEnumAssistantTurnStatusFilter<$PrismaModel>
+  }
+
+  export type EnumAssistantMessageRoleFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantMessageRole | EnumAssistantMessageRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantMessageRole[] | ListEnumAssistantMessageRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantMessageRole[] | ListEnumAssistantMessageRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantMessageRoleFilter<$PrismaModel> | $Enums.AssistantMessageRole
+  }
+
+  export type EnumAssistantMessageSourceFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantMessageSource | EnumAssistantMessageSourceFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantMessageSource[] | ListEnumAssistantMessageSourceFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantMessageSource[] | ListEnumAssistantMessageSourceFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantMessageSourceFilter<$PrismaModel> | $Enums.AssistantMessageSource
+  }
+
+  export type AssistantTurnScalarRelationFilter = {
+    is?: AssistantTurnWhereInput
+    isNot?: AssistantTurnWhereInput
+  }
+
+  export type AssistantMessageCountOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrder
+    role?: SortOrder
+    source?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AssistantMessageMaxOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrder
+    role?: SortOrder
+    source?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AssistantMessageMinOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrder
+    role?: SortOrder
+    source?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EnumAssistantMessageRoleWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantMessageRole | EnumAssistantMessageRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantMessageRole[] | ListEnumAssistantMessageRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantMessageRole[] | ListEnumAssistantMessageRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantMessageRoleWithAggregatesFilter<$PrismaModel> | $Enums.AssistantMessageRole
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantMessageRoleFilter<$PrismaModel>
+    _max?: NestedEnumAssistantMessageRoleFilter<$PrismaModel>
+  }
+
+  export type EnumAssistantMessageSourceWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantMessageSource | EnumAssistantMessageSourceFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantMessageSource[] | ListEnumAssistantMessageSourceFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantMessageSource[] | ListEnumAssistantMessageSourceFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantMessageSourceWithAggregatesFilter<$PrismaModel> | $Enums.AssistantMessageSource
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantMessageSourceFilter<$PrismaModel>
+    _max?: NestedEnumAssistantMessageSourceFilter<$PrismaModel>
+  }
+
+  export type EnumAssistantToolExecutionStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantToolExecutionStatus | EnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel> | $Enums.AssistantToolExecutionStatus
+  }
+
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type AssistantToolExecutionCountOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrder
+    toolId?: SortOrder
+    capability?: SortOrder
+    riskLevel?: SortOrder
+    policyDecision?: SortOrder
+    status?: SortOrder
+    correlationId?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    durationMs?: SortOrder
+    safeErrorCode?: SortOrder
+    redactedInput?: SortOrder
+    outputSummary?: SortOrder
+    idempotencyKey?: SortOrder
+  }
+
+  export type AssistantToolExecutionAvgOrderByAggregateInput = {
+    durationMs?: SortOrder
+  }
+
+  export type AssistantToolExecutionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrder
+    toolId?: SortOrder
+    capability?: SortOrder
+    riskLevel?: SortOrder
+    policyDecision?: SortOrder
+    status?: SortOrder
+    correlationId?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    durationMs?: SortOrder
+    safeErrorCode?: SortOrder
+    idempotencyKey?: SortOrder
+  }
+
+  export type AssistantToolExecutionMinOrderByAggregateInput = {
+    id?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrder
+    toolId?: SortOrder
+    capability?: SortOrder
+    riskLevel?: SortOrder
+    policyDecision?: SortOrder
+    status?: SortOrder
+    correlationId?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    durationMs?: SortOrder
+    safeErrorCode?: SortOrder
+    idempotencyKey?: SortOrder
+  }
+
+  export type AssistantToolExecutionSumOrderByAggregateInput = {
+    durationMs?: SortOrder
+  }
+
+  export type EnumAssistantToolExecutionStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantToolExecutionStatus | EnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantToolExecutionStatusWithAggregatesFilter<$PrismaModel> | $Enums.AssistantToolExecutionStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel>
+    _max?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel>
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
+  }
+
   export type EnumWalletTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.WalletType | EnumWalletTypeFieldRefInput<$PrismaModel>
     in?: $Enums.WalletType[] | ListEnumWalletTypeFieldRefInput<$PrismaModel>
@@ -17428,22 +24041,6 @@ export namespace Prisma {
     in?: $Enums.AdminFeeType[] | ListEnumAdminFeeTypeFieldRefInput<$PrismaModel>
     notIn?: $Enums.AdminFeeType[] | ListEnumAdminFeeTypeFieldRefInput<$PrismaModel>
     not?: NestedEnumAdminFeeTypeFilter<$PrismaModel> | $Enums.AdminFeeType
-  }
-
-  export type IntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
-  }
-
-  export type UserScalarRelationFilter = {
-    is?: UserWhereInput
-    isNot?: UserWhereInput
   }
 
   export type WalletCountOrderByAggregateInput = {
@@ -17568,22 +24165,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumAdminFeeTypeFilter<$PrismaModel>
     _max?: NestedEnumAdminFeeTypeFilter<$PrismaModel>
-  }
-
-  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type EnumCategoryTypeFilter<$PrismaModel = never> = {
@@ -17977,17 +24558,6 @@ export namespace Prisma {
     not?: NestedEnumRecurrenceFrequencyFilter<$PrismaModel> | $Enums.RecurrenceFrequency
   }
 
-  export type DateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
-
   export type RecurringTransactionTemplateCountOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
@@ -18092,20 +24662,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumRecurrenceFrequencyFilter<$PrismaModel>
     _max?: NestedEnumRecurrenceFrequencyFilter<$PrismaModel>
-  }
-
-  export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type RecurringTransactionTemplateNullableScalarRelationFilter = {
@@ -18345,6 +24901,13 @@ export namespace Prisma {
     connect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
   }
 
+  export type AssistantConversationCreateNestedManyWithoutUserInput = {
+    create?: XOR<AssistantConversationCreateWithoutUserInput, AssistantConversationUncheckedCreateWithoutUserInput> | AssistantConversationCreateWithoutUserInput[] | AssistantConversationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AssistantConversationCreateOrConnectWithoutUserInput | AssistantConversationCreateOrConnectWithoutUserInput[]
+    createMany?: AssistantConversationCreateManyUserInputEnvelope
+    connect?: AssistantConversationWhereUniqueInput | AssistantConversationWhereUniqueInput[]
+  }
+
   export type WalletUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<WalletCreateWithoutUserInput, WalletUncheckedCreateWithoutUserInput> | WalletCreateWithoutUserInput[] | WalletUncheckedCreateWithoutUserInput[]
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
@@ -18399,6 +24962,13 @@ export namespace Prisma {
     connectOrCreate?: MerchantMappingCreateOrConnectWithoutUserInput | MerchantMappingCreateOrConnectWithoutUserInput[]
     createMany?: MerchantMappingCreateManyUserInputEnvelope
     connect?: MerchantMappingWhereUniqueInput | MerchantMappingWhereUniqueInput[]
+  }
+
+  export type AssistantConversationUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<AssistantConversationCreateWithoutUserInput, AssistantConversationUncheckedCreateWithoutUserInput> | AssistantConversationCreateWithoutUserInput[] | AssistantConversationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AssistantConversationCreateOrConnectWithoutUserInput | AssistantConversationCreateOrConnectWithoutUserInput[]
+    createMany?: AssistantConversationCreateManyUserInputEnvelope
+    connect?: AssistantConversationWhereUniqueInput | AssistantConversationWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -18525,6 +25095,20 @@ export namespace Prisma {
     deleteMany?: MerchantMappingScalarWhereInput | MerchantMappingScalarWhereInput[]
   }
 
+  export type AssistantConversationUpdateManyWithoutUserNestedInput = {
+    create?: XOR<AssistantConversationCreateWithoutUserInput, AssistantConversationUncheckedCreateWithoutUserInput> | AssistantConversationCreateWithoutUserInput[] | AssistantConversationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AssistantConversationCreateOrConnectWithoutUserInput | AssistantConversationCreateOrConnectWithoutUserInput[]
+    upsert?: AssistantConversationUpsertWithWhereUniqueWithoutUserInput | AssistantConversationUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: AssistantConversationCreateManyUserInputEnvelope
+    set?: AssistantConversationWhereUniqueInput | AssistantConversationWhereUniqueInput[]
+    disconnect?: AssistantConversationWhereUniqueInput | AssistantConversationWhereUniqueInput[]
+    delete?: AssistantConversationWhereUniqueInput | AssistantConversationWhereUniqueInput[]
+    connect?: AssistantConversationWhereUniqueInput | AssistantConversationWhereUniqueInput[]
+    update?: AssistantConversationUpdateWithWhereUniqueWithoutUserInput | AssistantConversationUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: AssistantConversationUpdateManyWithWhereWithoutUserInput | AssistantConversationUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: AssistantConversationScalarWhereInput | AssistantConversationScalarWhereInput[]
+  }
+
   export type WalletUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<WalletCreateWithoutUserInput, WalletUncheckedCreateWithoutUserInput> | WalletCreateWithoutUserInput[] | WalletUncheckedCreateWithoutUserInput[]
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
@@ -18637,6 +25221,346 @@ export namespace Prisma {
     deleteMany?: MerchantMappingScalarWhereInput | MerchantMappingScalarWhereInput[]
   }
 
+  export type AssistantConversationUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<AssistantConversationCreateWithoutUserInput, AssistantConversationUncheckedCreateWithoutUserInput> | AssistantConversationCreateWithoutUserInput[] | AssistantConversationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AssistantConversationCreateOrConnectWithoutUserInput | AssistantConversationCreateOrConnectWithoutUserInput[]
+    upsert?: AssistantConversationUpsertWithWhereUniqueWithoutUserInput | AssistantConversationUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: AssistantConversationCreateManyUserInputEnvelope
+    set?: AssistantConversationWhereUniqueInput | AssistantConversationWhereUniqueInput[]
+    disconnect?: AssistantConversationWhereUniqueInput | AssistantConversationWhereUniqueInput[]
+    delete?: AssistantConversationWhereUniqueInput | AssistantConversationWhereUniqueInput[]
+    connect?: AssistantConversationWhereUniqueInput | AssistantConversationWhereUniqueInput[]
+    update?: AssistantConversationUpdateWithWhereUniqueWithoutUserInput | AssistantConversationUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: AssistantConversationUpdateManyWithWhereWithoutUserInput | AssistantConversationUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: AssistantConversationScalarWhereInput | AssistantConversationScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutAssistantConversationsInput = {
+    create?: XOR<UserCreateWithoutAssistantConversationsInput, UserUncheckedCreateWithoutAssistantConversationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAssistantConversationsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type AssistantTurnCreateNestedManyWithoutConversationInput = {
+    create?: XOR<AssistantTurnCreateWithoutConversationInput, AssistantTurnUncheckedCreateWithoutConversationInput> | AssistantTurnCreateWithoutConversationInput[] | AssistantTurnUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantTurnCreateOrConnectWithoutConversationInput | AssistantTurnCreateOrConnectWithoutConversationInput[]
+    createMany?: AssistantTurnCreateManyConversationInputEnvelope
+    connect?: AssistantTurnWhereUniqueInput | AssistantTurnWhereUniqueInput[]
+  }
+
+  export type AssistantMessageCreateNestedManyWithoutConversationInput = {
+    create?: XOR<AssistantMessageCreateWithoutConversationInput, AssistantMessageUncheckedCreateWithoutConversationInput> | AssistantMessageCreateWithoutConversationInput[] | AssistantMessageUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantMessageCreateOrConnectWithoutConversationInput | AssistantMessageCreateOrConnectWithoutConversationInput[]
+    createMany?: AssistantMessageCreateManyConversationInputEnvelope
+    connect?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+  }
+
+  export type AssistantToolExecutionCreateNestedManyWithoutConversationInput = {
+    create?: XOR<AssistantToolExecutionCreateWithoutConversationInput, AssistantToolExecutionUncheckedCreateWithoutConversationInput> | AssistantToolExecutionCreateWithoutConversationInput[] | AssistantToolExecutionUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantToolExecutionCreateOrConnectWithoutConversationInput | AssistantToolExecutionCreateOrConnectWithoutConversationInput[]
+    createMany?: AssistantToolExecutionCreateManyConversationInputEnvelope
+    connect?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+  }
+
+  export type AssistantTurnUncheckedCreateNestedManyWithoutConversationInput = {
+    create?: XOR<AssistantTurnCreateWithoutConversationInput, AssistantTurnUncheckedCreateWithoutConversationInput> | AssistantTurnCreateWithoutConversationInput[] | AssistantTurnUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantTurnCreateOrConnectWithoutConversationInput | AssistantTurnCreateOrConnectWithoutConversationInput[]
+    createMany?: AssistantTurnCreateManyConversationInputEnvelope
+    connect?: AssistantTurnWhereUniqueInput | AssistantTurnWhereUniqueInput[]
+  }
+
+  export type AssistantMessageUncheckedCreateNestedManyWithoutConversationInput = {
+    create?: XOR<AssistantMessageCreateWithoutConversationInput, AssistantMessageUncheckedCreateWithoutConversationInput> | AssistantMessageCreateWithoutConversationInput[] | AssistantMessageUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantMessageCreateOrConnectWithoutConversationInput | AssistantMessageCreateOrConnectWithoutConversationInput[]
+    createMany?: AssistantMessageCreateManyConversationInputEnvelope
+    connect?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+  }
+
+  export type AssistantToolExecutionUncheckedCreateNestedManyWithoutConversationInput = {
+    create?: XOR<AssistantToolExecutionCreateWithoutConversationInput, AssistantToolExecutionUncheckedCreateWithoutConversationInput> | AssistantToolExecutionCreateWithoutConversationInput[] | AssistantToolExecutionUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantToolExecutionCreateOrConnectWithoutConversationInput | AssistantToolExecutionCreateOrConnectWithoutConversationInput[]
+    createMany?: AssistantToolExecutionCreateManyConversationInputEnvelope
+    connect?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+  }
+
+  export type EnumAssistantConversationStatusFieldUpdateOperationsInput = {
+    set?: $Enums.AssistantConversationStatus
+  }
+
+  export type NullableDateTimeFieldUpdateOperationsInput = {
+    set?: Date | string | null
+  }
+
+  export type UserUpdateOneRequiredWithoutAssistantConversationsNestedInput = {
+    create?: XOR<UserCreateWithoutAssistantConversationsInput, UserUncheckedCreateWithoutAssistantConversationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAssistantConversationsInput
+    upsert?: UserUpsertWithoutAssistantConversationsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAssistantConversationsInput, UserUpdateWithoutAssistantConversationsInput>, UserUncheckedUpdateWithoutAssistantConversationsInput>
+  }
+
+  export type AssistantTurnUpdateManyWithoutConversationNestedInput = {
+    create?: XOR<AssistantTurnCreateWithoutConversationInput, AssistantTurnUncheckedCreateWithoutConversationInput> | AssistantTurnCreateWithoutConversationInput[] | AssistantTurnUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantTurnCreateOrConnectWithoutConversationInput | AssistantTurnCreateOrConnectWithoutConversationInput[]
+    upsert?: AssistantTurnUpsertWithWhereUniqueWithoutConversationInput | AssistantTurnUpsertWithWhereUniqueWithoutConversationInput[]
+    createMany?: AssistantTurnCreateManyConversationInputEnvelope
+    set?: AssistantTurnWhereUniqueInput | AssistantTurnWhereUniqueInput[]
+    disconnect?: AssistantTurnWhereUniqueInput | AssistantTurnWhereUniqueInput[]
+    delete?: AssistantTurnWhereUniqueInput | AssistantTurnWhereUniqueInput[]
+    connect?: AssistantTurnWhereUniqueInput | AssistantTurnWhereUniqueInput[]
+    update?: AssistantTurnUpdateWithWhereUniqueWithoutConversationInput | AssistantTurnUpdateWithWhereUniqueWithoutConversationInput[]
+    updateMany?: AssistantTurnUpdateManyWithWhereWithoutConversationInput | AssistantTurnUpdateManyWithWhereWithoutConversationInput[]
+    deleteMany?: AssistantTurnScalarWhereInput | AssistantTurnScalarWhereInput[]
+  }
+
+  export type AssistantMessageUpdateManyWithoutConversationNestedInput = {
+    create?: XOR<AssistantMessageCreateWithoutConversationInput, AssistantMessageUncheckedCreateWithoutConversationInput> | AssistantMessageCreateWithoutConversationInput[] | AssistantMessageUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantMessageCreateOrConnectWithoutConversationInput | AssistantMessageCreateOrConnectWithoutConversationInput[]
+    upsert?: AssistantMessageUpsertWithWhereUniqueWithoutConversationInput | AssistantMessageUpsertWithWhereUniqueWithoutConversationInput[]
+    createMany?: AssistantMessageCreateManyConversationInputEnvelope
+    set?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    disconnect?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    delete?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    connect?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    update?: AssistantMessageUpdateWithWhereUniqueWithoutConversationInput | AssistantMessageUpdateWithWhereUniqueWithoutConversationInput[]
+    updateMany?: AssistantMessageUpdateManyWithWhereWithoutConversationInput | AssistantMessageUpdateManyWithWhereWithoutConversationInput[]
+    deleteMany?: AssistantMessageScalarWhereInput | AssistantMessageScalarWhereInput[]
+  }
+
+  export type AssistantToolExecutionUpdateManyWithoutConversationNestedInput = {
+    create?: XOR<AssistantToolExecutionCreateWithoutConversationInput, AssistantToolExecutionUncheckedCreateWithoutConversationInput> | AssistantToolExecutionCreateWithoutConversationInput[] | AssistantToolExecutionUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantToolExecutionCreateOrConnectWithoutConversationInput | AssistantToolExecutionCreateOrConnectWithoutConversationInput[]
+    upsert?: AssistantToolExecutionUpsertWithWhereUniqueWithoutConversationInput | AssistantToolExecutionUpsertWithWhereUniqueWithoutConversationInput[]
+    createMany?: AssistantToolExecutionCreateManyConversationInputEnvelope
+    set?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    disconnect?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    delete?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    connect?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    update?: AssistantToolExecutionUpdateWithWhereUniqueWithoutConversationInput | AssistantToolExecutionUpdateWithWhereUniqueWithoutConversationInput[]
+    updateMany?: AssistantToolExecutionUpdateManyWithWhereWithoutConversationInput | AssistantToolExecutionUpdateManyWithWhereWithoutConversationInput[]
+    deleteMany?: AssistantToolExecutionScalarWhereInput | AssistantToolExecutionScalarWhereInput[]
+  }
+
+  export type AssistantTurnUncheckedUpdateManyWithoutConversationNestedInput = {
+    create?: XOR<AssistantTurnCreateWithoutConversationInput, AssistantTurnUncheckedCreateWithoutConversationInput> | AssistantTurnCreateWithoutConversationInput[] | AssistantTurnUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantTurnCreateOrConnectWithoutConversationInput | AssistantTurnCreateOrConnectWithoutConversationInput[]
+    upsert?: AssistantTurnUpsertWithWhereUniqueWithoutConversationInput | AssistantTurnUpsertWithWhereUniqueWithoutConversationInput[]
+    createMany?: AssistantTurnCreateManyConversationInputEnvelope
+    set?: AssistantTurnWhereUniqueInput | AssistantTurnWhereUniqueInput[]
+    disconnect?: AssistantTurnWhereUniqueInput | AssistantTurnWhereUniqueInput[]
+    delete?: AssistantTurnWhereUniqueInput | AssistantTurnWhereUniqueInput[]
+    connect?: AssistantTurnWhereUniqueInput | AssistantTurnWhereUniqueInput[]
+    update?: AssistantTurnUpdateWithWhereUniqueWithoutConversationInput | AssistantTurnUpdateWithWhereUniqueWithoutConversationInput[]
+    updateMany?: AssistantTurnUpdateManyWithWhereWithoutConversationInput | AssistantTurnUpdateManyWithWhereWithoutConversationInput[]
+    deleteMany?: AssistantTurnScalarWhereInput | AssistantTurnScalarWhereInput[]
+  }
+
+  export type AssistantMessageUncheckedUpdateManyWithoutConversationNestedInput = {
+    create?: XOR<AssistantMessageCreateWithoutConversationInput, AssistantMessageUncheckedCreateWithoutConversationInput> | AssistantMessageCreateWithoutConversationInput[] | AssistantMessageUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantMessageCreateOrConnectWithoutConversationInput | AssistantMessageCreateOrConnectWithoutConversationInput[]
+    upsert?: AssistantMessageUpsertWithWhereUniqueWithoutConversationInput | AssistantMessageUpsertWithWhereUniqueWithoutConversationInput[]
+    createMany?: AssistantMessageCreateManyConversationInputEnvelope
+    set?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    disconnect?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    delete?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    connect?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    update?: AssistantMessageUpdateWithWhereUniqueWithoutConversationInput | AssistantMessageUpdateWithWhereUniqueWithoutConversationInput[]
+    updateMany?: AssistantMessageUpdateManyWithWhereWithoutConversationInput | AssistantMessageUpdateManyWithWhereWithoutConversationInput[]
+    deleteMany?: AssistantMessageScalarWhereInput | AssistantMessageScalarWhereInput[]
+  }
+
+  export type AssistantToolExecutionUncheckedUpdateManyWithoutConversationNestedInput = {
+    create?: XOR<AssistantToolExecutionCreateWithoutConversationInput, AssistantToolExecutionUncheckedCreateWithoutConversationInput> | AssistantToolExecutionCreateWithoutConversationInput[] | AssistantToolExecutionUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantToolExecutionCreateOrConnectWithoutConversationInput | AssistantToolExecutionCreateOrConnectWithoutConversationInput[]
+    upsert?: AssistantToolExecutionUpsertWithWhereUniqueWithoutConversationInput | AssistantToolExecutionUpsertWithWhereUniqueWithoutConversationInput[]
+    createMany?: AssistantToolExecutionCreateManyConversationInputEnvelope
+    set?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    disconnect?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    delete?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    connect?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    update?: AssistantToolExecutionUpdateWithWhereUniqueWithoutConversationInput | AssistantToolExecutionUpdateWithWhereUniqueWithoutConversationInput[]
+    updateMany?: AssistantToolExecutionUpdateManyWithWhereWithoutConversationInput | AssistantToolExecutionUpdateManyWithWhereWithoutConversationInput[]
+    deleteMany?: AssistantToolExecutionScalarWhereInput | AssistantToolExecutionScalarWhereInput[]
+  }
+
+  export type AssistantConversationCreateNestedOneWithoutTurnsInput = {
+    create?: XOR<AssistantConversationCreateWithoutTurnsInput, AssistantConversationUncheckedCreateWithoutTurnsInput>
+    connectOrCreate?: AssistantConversationCreateOrConnectWithoutTurnsInput
+    connect?: AssistantConversationWhereUniqueInput
+  }
+
+  export type AssistantMessageCreateNestedManyWithoutTurnInput = {
+    create?: XOR<AssistantMessageCreateWithoutTurnInput, AssistantMessageUncheckedCreateWithoutTurnInput> | AssistantMessageCreateWithoutTurnInput[] | AssistantMessageUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantMessageCreateOrConnectWithoutTurnInput | AssistantMessageCreateOrConnectWithoutTurnInput[]
+    createMany?: AssistantMessageCreateManyTurnInputEnvelope
+    connect?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+  }
+
+  export type AssistantToolExecutionCreateNestedManyWithoutTurnInput = {
+    create?: XOR<AssistantToolExecutionCreateWithoutTurnInput, AssistantToolExecutionUncheckedCreateWithoutTurnInput> | AssistantToolExecutionCreateWithoutTurnInput[] | AssistantToolExecutionUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantToolExecutionCreateOrConnectWithoutTurnInput | AssistantToolExecutionCreateOrConnectWithoutTurnInput[]
+    createMany?: AssistantToolExecutionCreateManyTurnInputEnvelope
+    connect?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+  }
+
+  export type AssistantMessageUncheckedCreateNestedManyWithoutTurnInput = {
+    create?: XOR<AssistantMessageCreateWithoutTurnInput, AssistantMessageUncheckedCreateWithoutTurnInput> | AssistantMessageCreateWithoutTurnInput[] | AssistantMessageUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantMessageCreateOrConnectWithoutTurnInput | AssistantMessageCreateOrConnectWithoutTurnInput[]
+    createMany?: AssistantMessageCreateManyTurnInputEnvelope
+    connect?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+  }
+
+  export type AssistantToolExecutionUncheckedCreateNestedManyWithoutTurnInput = {
+    create?: XOR<AssistantToolExecutionCreateWithoutTurnInput, AssistantToolExecutionUncheckedCreateWithoutTurnInput> | AssistantToolExecutionCreateWithoutTurnInput[] | AssistantToolExecutionUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantToolExecutionCreateOrConnectWithoutTurnInput | AssistantToolExecutionCreateOrConnectWithoutTurnInput[]
+    createMany?: AssistantToolExecutionCreateManyTurnInputEnvelope
+    connect?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+  }
+
+  export type EnumAssistantTurnStatusFieldUpdateOperationsInput = {
+    set?: $Enums.AssistantTurnStatus
+  }
+
+  export type AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput = {
+    create?: XOR<AssistantConversationCreateWithoutTurnsInput, AssistantConversationUncheckedCreateWithoutTurnsInput>
+    connectOrCreate?: AssistantConversationCreateOrConnectWithoutTurnsInput
+    upsert?: AssistantConversationUpsertWithoutTurnsInput
+    connect?: AssistantConversationWhereUniqueInput
+    update?: XOR<XOR<AssistantConversationUpdateToOneWithWhereWithoutTurnsInput, AssistantConversationUpdateWithoutTurnsInput>, AssistantConversationUncheckedUpdateWithoutTurnsInput>
+  }
+
+  export type AssistantMessageUpdateManyWithoutTurnNestedInput = {
+    create?: XOR<AssistantMessageCreateWithoutTurnInput, AssistantMessageUncheckedCreateWithoutTurnInput> | AssistantMessageCreateWithoutTurnInput[] | AssistantMessageUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantMessageCreateOrConnectWithoutTurnInput | AssistantMessageCreateOrConnectWithoutTurnInput[]
+    upsert?: AssistantMessageUpsertWithWhereUniqueWithoutTurnInput | AssistantMessageUpsertWithWhereUniqueWithoutTurnInput[]
+    createMany?: AssistantMessageCreateManyTurnInputEnvelope
+    set?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    disconnect?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    delete?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    connect?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    update?: AssistantMessageUpdateWithWhereUniqueWithoutTurnInput | AssistantMessageUpdateWithWhereUniqueWithoutTurnInput[]
+    updateMany?: AssistantMessageUpdateManyWithWhereWithoutTurnInput | AssistantMessageUpdateManyWithWhereWithoutTurnInput[]
+    deleteMany?: AssistantMessageScalarWhereInput | AssistantMessageScalarWhereInput[]
+  }
+
+  export type AssistantToolExecutionUpdateManyWithoutTurnNestedInput = {
+    create?: XOR<AssistantToolExecutionCreateWithoutTurnInput, AssistantToolExecutionUncheckedCreateWithoutTurnInput> | AssistantToolExecutionCreateWithoutTurnInput[] | AssistantToolExecutionUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantToolExecutionCreateOrConnectWithoutTurnInput | AssistantToolExecutionCreateOrConnectWithoutTurnInput[]
+    upsert?: AssistantToolExecutionUpsertWithWhereUniqueWithoutTurnInput | AssistantToolExecutionUpsertWithWhereUniqueWithoutTurnInput[]
+    createMany?: AssistantToolExecutionCreateManyTurnInputEnvelope
+    set?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    disconnect?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    delete?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    connect?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    update?: AssistantToolExecutionUpdateWithWhereUniqueWithoutTurnInput | AssistantToolExecutionUpdateWithWhereUniqueWithoutTurnInput[]
+    updateMany?: AssistantToolExecutionUpdateManyWithWhereWithoutTurnInput | AssistantToolExecutionUpdateManyWithWhereWithoutTurnInput[]
+    deleteMany?: AssistantToolExecutionScalarWhereInput | AssistantToolExecutionScalarWhereInput[]
+  }
+
+  export type AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput = {
+    create?: XOR<AssistantMessageCreateWithoutTurnInput, AssistantMessageUncheckedCreateWithoutTurnInput> | AssistantMessageCreateWithoutTurnInput[] | AssistantMessageUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantMessageCreateOrConnectWithoutTurnInput | AssistantMessageCreateOrConnectWithoutTurnInput[]
+    upsert?: AssistantMessageUpsertWithWhereUniqueWithoutTurnInput | AssistantMessageUpsertWithWhereUniqueWithoutTurnInput[]
+    createMany?: AssistantMessageCreateManyTurnInputEnvelope
+    set?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    disconnect?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    delete?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    connect?: AssistantMessageWhereUniqueInput | AssistantMessageWhereUniqueInput[]
+    update?: AssistantMessageUpdateWithWhereUniqueWithoutTurnInput | AssistantMessageUpdateWithWhereUniqueWithoutTurnInput[]
+    updateMany?: AssistantMessageUpdateManyWithWhereWithoutTurnInput | AssistantMessageUpdateManyWithWhereWithoutTurnInput[]
+    deleteMany?: AssistantMessageScalarWhereInput | AssistantMessageScalarWhereInput[]
+  }
+
+  export type AssistantToolExecutionUncheckedUpdateManyWithoutTurnNestedInput = {
+    create?: XOR<AssistantToolExecutionCreateWithoutTurnInput, AssistantToolExecutionUncheckedCreateWithoutTurnInput> | AssistantToolExecutionCreateWithoutTurnInput[] | AssistantToolExecutionUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantToolExecutionCreateOrConnectWithoutTurnInput | AssistantToolExecutionCreateOrConnectWithoutTurnInput[]
+    upsert?: AssistantToolExecutionUpsertWithWhereUniqueWithoutTurnInput | AssistantToolExecutionUpsertWithWhereUniqueWithoutTurnInput[]
+    createMany?: AssistantToolExecutionCreateManyTurnInputEnvelope
+    set?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    disconnect?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    delete?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    connect?: AssistantToolExecutionWhereUniqueInput | AssistantToolExecutionWhereUniqueInput[]
+    update?: AssistantToolExecutionUpdateWithWhereUniqueWithoutTurnInput | AssistantToolExecutionUpdateWithWhereUniqueWithoutTurnInput[]
+    updateMany?: AssistantToolExecutionUpdateManyWithWhereWithoutTurnInput | AssistantToolExecutionUpdateManyWithWhereWithoutTurnInput[]
+    deleteMany?: AssistantToolExecutionScalarWhereInput | AssistantToolExecutionScalarWhereInput[]
+  }
+
+  export type AssistantConversationCreateNestedOneWithoutMessagesInput = {
+    create?: XOR<AssistantConversationCreateWithoutMessagesInput, AssistantConversationUncheckedCreateWithoutMessagesInput>
+    connectOrCreate?: AssistantConversationCreateOrConnectWithoutMessagesInput
+    connect?: AssistantConversationWhereUniqueInput
+  }
+
+  export type AssistantTurnCreateNestedOneWithoutMessagesInput = {
+    create?: XOR<AssistantTurnCreateWithoutMessagesInput, AssistantTurnUncheckedCreateWithoutMessagesInput>
+    connectOrCreate?: AssistantTurnCreateOrConnectWithoutMessagesInput
+    connect?: AssistantTurnWhereUniqueInput
+  }
+
+  export type EnumAssistantMessageRoleFieldUpdateOperationsInput = {
+    set?: $Enums.AssistantMessageRole
+  }
+
+  export type EnumAssistantMessageSourceFieldUpdateOperationsInput = {
+    set?: $Enums.AssistantMessageSource
+  }
+
+  export type AssistantConversationUpdateOneRequiredWithoutMessagesNestedInput = {
+    create?: XOR<AssistantConversationCreateWithoutMessagesInput, AssistantConversationUncheckedCreateWithoutMessagesInput>
+    connectOrCreate?: AssistantConversationCreateOrConnectWithoutMessagesInput
+    upsert?: AssistantConversationUpsertWithoutMessagesInput
+    connect?: AssistantConversationWhereUniqueInput
+    update?: XOR<XOR<AssistantConversationUpdateToOneWithWhereWithoutMessagesInput, AssistantConversationUpdateWithoutMessagesInput>, AssistantConversationUncheckedUpdateWithoutMessagesInput>
+  }
+
+  export type AssistantTurnUpdateOneRequiredWithoutMessagesNestedInput = {
+    create?: XOR<AssistantTurnCreateWithoutMessagesInput, AssistantTurnUncheckedCreateWithoutMessagesInput>
+    connectOrCreate?: AssistantTurnCreateOrConnectWithoutMessagesInput
+    upsert?: AssistantTurnUpsertWithoutMessagesInput
+    connect?: AssistantTurnWhereUniqueInput
+    update?: XOR<XOR<AssistantTurnUpdateToOneWithWhereWithoutMessagesInput, AssistantTurnUpdateWithoutMessagesInput>, AssistantTurnUncheckedUpdateWithoutMessagesInput>
+  }
+
+  export type AssistantConversationCreateNestedOneWithoutToolExecutionsInput = {
+    create?: XOR<AssistantConversationCreateWithoutToolExecutionsInput, AssistantConversationUncheckedCreateWithoutToolExecutionsInput>
+    connectOrCreate?: AssistantConversationCreateOrConnectWithoutToolExecutionsInput
+    connect?: AssistantConversationWhereUniqueInput
+  }
+
+  export type AssistantTurnCreateNestedOneWithoutToolExecutionsInput = {
+    create?: XOR<AssistantTurnCreateWithoutToolExecutionsInput, AssistantTurnUncheckedCreateWithoutToolExecutionsInput>
+    connectOrCreate?: AssistantTurnCreateOrConnectWithoutToolExecutionsInput
+    connect?: AssistantTurnWhereUniqueInput
+  }
+
+  export type EnumAssistantToolExecutionStatusFieldUpdateOperationsInput = {
+    set?: $Enums.AssistantToolExecutionStatus
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type AssistantConversationUpdateOneRequiredWithoutToolExecutionsNestedInput = {
+    create?: XOR<AssistantConversationCreateWithoutToolExecutionsInput, AssistantConversationUncheckedCreateWithoutToolExecutionsInput>
+    connectOrCreate?: AssistantConversationCreateOrConnectWithoutToolExecutionsInput
+    upsert?: AssistantConversationUpsertWithoutToolExecutionsInput
+    connect?: AssistantConversationWhereUniqueInput
+    update?: XOR<XOR<AssistantConversationUpdateToOneWithWhereWithoutToolExecutionsInput, AssistantConversationUpdateWithoutToolExecutionsInput>, AssistantConversationUncheckedUpdateWithoutToolExecutionsInput>
+  }
+
+  export type AssistantTurnUpdateOneRequiredWithoutToolExecutionsNestedInput = {
+    create?: XOR<AssistantTurnCreateWithoutToolExecutionsInput, AssistantTurnUncheckedCreateWithoutToolExecutionsInput>
+    connectOrCreate?: AssistantTurnCreateOrConnectWithoutToolExecutionsInput
+    upsert?: AssistantTurnUpsertWithoutToolExecutionsInput
+    connect?: AssistantTurnWhereUniqueInput
+    update?: XOR<XOR<AssistantTurnUpdateToOneWithWhereWithoutToolExecutionsInput, AssistantTurnUpdateWithoutToolExecutionsInput>, AssistantTurnUncheckedUpdateWithoutToolExecutionsInput>
+  }
+
   export type UserCreateNestedOneWithoutWalletsInput = {
     create?: XOR<UserCreateWithoutWalletsInput, UserUncheckedCreateWithoutWalletsInput>
     connectOrCreate?: UserCreateOrConnectWithoutWalletsInput
@@ -18717,14 +25641,6 @@ export namespace Prisma {
 
   export type EnumAdminFeeTypeFieldUpdateOperationsInput = {
     set?: $Enums.AdminFeeType
-  }
-
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type UserUpdateOneRequiredWithoutWalletsNestedInput = {
@@ -19349,10 +26265,6 @@ export namespace Prisma {
     set?: $Enums.RecurrenceFrequency
   }
 
-  export type NullableDateTimeFieldUpdateOperationsInput = {
-    set?: Date | string | null
-  }
-
   export type UserUpdateOneRequiredWithoutRecurringTransactionTemplatesNestedInput = {
     create?: XOR<UserCreateWithoutRecurringTransactionTemplatesInput, UserUncheckedCreateWithoutRecurringTransactionTemplatesInput>
     connectOrCreate?: UserCreateOrConnectWithoutRecurringTransactionTemplatesInput
@@ -19610,6 +26522,166 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type NestedEnumAssistantConversationStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantConversationStatus | EnumAssistantConversationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantConversationStatus[] | ListEnumAssistantConversationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantConversationStatus[] | ListEnumAssistantConversationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantConversationStatusFilter<$PrismaModel> | $Enums.AssistantConversationStatus
+  }
+
+  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type NestedEnumAssistantConversationStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantConversationStatus | EnumAssistantConversationStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantConversationStatus[] | ListEnumAssistantConversationStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantConversationStatus[] | ListEnumAssistantConversationStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantConversationStatusWithAggregatesFilter<$PrismaModel> | $Enums.AssistantConversationStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantConversationStatusFilter<$PrismaModel>
+    _max?: NestedEnumAssistantConversationStatusFilter<$PrismaModel>
+  }
+
+  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedDateTimeNullableFilter<$PrismaModel>
+    _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type NestedEnumAssistantTurnStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantTurnStatus | EnumAssistantTurnStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantTurnStatus[] | ListEnumAssistantTurnStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantTurnStatus[] | ListEnumAssistantTurnStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantTurnStatusFilter<$PrismaModel> | $Enums.AssistantTurnStatus
+  }
+
+  export type NestedEnumAssistantTurnStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantTurnStatus | EnumAssistantTurnStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantTurnStatus[] | ListEnumAssistantTurnStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantTurnStatus[] | ListEnumAssistantTurnStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantTurnStatusWithAggregatesFilter<$PrismaModel> | $Enums.AssistantTurnStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantTurnStatusFilter<$PrismaModel>
+    _max?: NestedEnumAssistantTurnStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumAssistantMessageRoleFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantMessageRole | EnumAssistantMessageRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantMessageRole[] | ListEnumAssistantMessageRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantMessageRole[] | ListEnumAssistantMessageRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantMessageRoleFilter<$PrismaModel> | $Enums.AssistantMessageRole
+  }
+
+  export type NestedEnumAssistantMessageSourceFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantMessageSource | EnumAssistantMessageSourceFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantMessageSource[] | ListEnumAssistantMessageSourceFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantMessageSource[] | ListEnumAssistantMessageSourceFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantMessageSourceFilter<$PrismaModel> | $Enums.AssistantMessageSource
+  }
+
+  export type NestedEnumAssistantMessageRoleWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantMessageRole | EnumAssistantMessageRoleFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantMessageRole[] | ListEnumAssistantMessageRoleFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantMessageRole[] | ListEnumAssistantMessageRoleFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantMessageRoleWithAggregatesFilter<$PrismaModel> | $Enums.AssistantMessageRole
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantMessageRoleFilter<$PrismaModel>
+    _max?: NestedEnumAssistantMessageRoleFilter<$PrismaModel>
+  }
+
+  export type NestedEnumAssistantMessageSourceWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantMessageSource | EnumAssistantMessageSourceFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantMessageSource[] | ListEnumAssistantMessageSourceFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantMessageSource[] | ListEnumAssistantMessageSourceFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantMessageSourceWithAggregatesFilter<$PrismaModel> | $Enums.AssistantMessageSource
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantMessageSourceFilter<$PrismaModel>
+    _max?: NestedEnumAssistantMessageSourceFilter<$PrismaModel>
+  }
+
+  export type NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantToolExecutionStatus | EnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel> | $Enums.AssistantToolExecutionStatus
+  }
+
+  export type NestedEnumAssistantToolExecutionStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantToolExecutionStatus | EnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantToolExecutionStatusWithAggregatesFilter<$PrismaModel> | $Enums.AssistantToolExecutionStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel>
+    _max?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel>
+  }
+
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
   export type NestedEnumWalletTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.WalletType | EnumWalletTypeFieldRefInput<$PrismaModel>
     in?: $Enums.WalletType[] | ListEnumWalletTypeFieldRefInput<$PrismaModel>
@@ -19682,33 +26754,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumAdminFeeTypeFilter<$PrismaModel>
     _max?: NestedEnumAdminFeeTypeFilter<$PrismaModel>
-  }
-
-  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
-  }
-
-  export type NestedFloatNullableFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedEnumCategoryTypeFilter<$PrismaModel = never> = {
@@ -19831,17 +26876,6 @@ export namespace Prisma {
     not?: NestedEnumRecurrenceFrequencyFilter<$PrismaModel> | $Enums.RecurrenceFrequency
   }
 
-  export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
-  }
-
   export type NestedEnumRecurringAmountModeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.RecurringAmountMode | EnumRecurringAmountModeFieldRefInput<$PrismaModel>
     in?: $Enums.RecurringAmountMode[] | ListEnumRecurringAmountModeFieldRefInput<$PrismaModel>
@@ -19876,20 +26910,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumRecurrenceFrequencyFilter<$PrismaModel>
     _max?: NestedEnumRecurrenceFrequencyFilter<$PrismaModel>
-  }
-
-  export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeNullableWithAggregatesFilter<$PrismaModel> | Date | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedDateTimeNullableFilter<$PrismaModel>
-    _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumSavingGoalStatusFilter<$PrismaModel = never> = {
@@ -20247,6 +27267,42 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type AssistantConversationCreateWithoutUserInput = {
+    id?: string
+    status?: $Enums.AssistantConversationStatus
+    locale?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastActivityAt?: Date | string
+    archivedAt?: Date | string | null
+    turns?: AssistantTurnCreateNestedManyWithoutConversationInput
+    messages?: AssistantMessageCreateNestedManyWithoutConversationInput
+    toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutConversationInput
+  }
+
+  export type AssistantConversationUncheckedCreateWithoutUserInput = {
+    id?: string
+    status?: $Enums.AssistantConversationStatus
+    locale?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastActivityAt?: Date | string
+    archivedAt?: Date | string | null
+    turns?: AssistantTurnUncheckedCreateNestedManyWithoutConversationInput
+    messages?: AssistantMessageUncheckedCreateNestedManyWithoutConversationInput
+    toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type AssistantConversationCreateOrConnectWithoutUserInput = {
+    where: AssistantConversationWhereUniqueInput
+    create: XOR<AssistantConversationCreateWithoutUserInput, AssistantConversationUncheckedCreateWithoutUserInput>
+  }
+
+  export type AssistantConversationCreateManyUserInputEnvelope = {
+    data: AssistantConversationCreateManyUserInput | AssistantConversationCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type WalletUpsertWithWhereUniqueWithoutUserInput = {
     where: WalletWhereUniqueInput
     update: XOR<WalletUpdateWithoutUserInput, WalletUncheckedUpdateWithoutUserInput>
@@ -20524,6 +27580,796 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"MerchantMapping"> | Date | string
   }
 
+  export type AssistantConversationUpsertWithWhereUniqueWithoutUserInput = {
+    where: AssistantConversationWhereUniqueInput
+    update: XOR<AssistantConversationUpdateWithoutUserInput, AssistantConversationUncheckedUpdateWithoutUserInput>
+    create: XOR<AssistantConversationCreateWithoutUserInput, AssistantConversationUncheckedCreateWithoutUserInput>
+  }
+
+  export type AssistantConversationUpdateWithWhereUniqueWithoutUserInput = {
+    where: AssistantConversationWhereUniqueInput
+    data: XOR<AssistantConversationUpdateWithoutUserInput, AssistantConversationUncheckedUpdateWithoutUserInput>
+  }
+
+  export type AssistantConversationUpdateManyWithWhereWithoutUserInput = {
+    where: AssistantConversationScalarWhereInput
+    data: XOR<AssistantConversationUpdateManyMutationInput, AssistantConversationUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type AssistantConversationScalarWhereInput = {
+    AND?: AssistantConversationScalarWhereInput | AssistantConversationScalarWhereInput[]
+    OR?: AssistantConversationScalarWhereInput[]
+    NOT?: AssistantConversationScalarWhereInput | AssistantConversationScalarWhereInput[]
+    id?: StringFilter<"AssistantConversation"> | string
+    userId?: StringFilter<"AssistantConversation"> | string
+    status?: EnumAssistantConversationStatusFilter<"AssistantConversation"> | $Enums.AssistantConversationStatus
+    locale?: StringFilter<"AssistantConversation"> | string
+    createdAt?: DateTimeFilter<"AssistantConversation"> | Date | string
+    updatedAt?: DateTimeFilter<"AssistantConversation"> | Date | string
+    lastActivityAt?: DateTimeFilter<"AssistantConversation"> | Date | string
+    archivedAt?: DateTimeNullableFilter<"AssistantConversation"> | Date | string | null
+  }
+
+  export type UserCreateWithoutAssistantConversationsInput = {
+    id?: string
+    email: string
+    name: string
+    avatarUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    wallets?: WalletCreateNestedManyWithoutUserInput
+    categories?: CategoryCreateNestedManyWithoutUserInput
+    transactions?: TransactionCreateNestedManyWithoutUserInput
+    installments?: InstallmentCreateNestedManyWithoutUserInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
+    budgets?: BudgetCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutAssistantConversationsInput = {
+    id?: string
+    email: string
+    name: string
+    avatarUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
+    transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
+    budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutAssistantConversationsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutAssistantConversationsInput, UserUncheckedCreateWithoutAssistantConversationsInput>
+  }
+
+  export type AssistantTurnCreateWithoutConversationInput = {
+    id?: string
+    correlationId: string
+    status?: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    messages?: AssistantMessageCreateNestedManyWithoutTurnInput
+    toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutTurnInput
+  }
+
+  export type AssistantTurnUncheckedCreateWithoutConversationInput = {
+    id?: string
+    correlationId: string
+    status?: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
+    toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutTurnInput
+  }
+
+  export type AssistantTurnCreateOrConnectWithoutConversationInput = {
+    where: AssistantTurnWhereUniqueInput
+    create: XOR<AssistantTurnCreateWithoutConversationInput, AssistantTurnUncheckedCreateWithoutConversationInput>
+  }
+
+  export type AssistantTurnCreateManyConversationInputEnvelope = {
+    data: AssistantTurnCreateManyConversationInput | AssistantTurnCreateManyConversationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AssistantMessageCreateWithoutConversationInput = {
+    id?: string
+    role: $Enums.AssistantMessageRole
+    source: $Enums.AssistantMessageSource
+    content: string
+    createdAt?: Date | string
+    turn: AssistantTurnCreateNestedOneWithoutMessagesInput
+  }
+
+  export type AssistantMessageUncheckedCreateWithoutConversationInput = {
+    id?: string
+    turnId: string
+    role: $Enums.AssistantMessageRole
+    source: $Enums.AssistantMessageSource
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type AssistantMessageCreateOrConnectWithoutConversationInput = {
+    where: AssistantMessageWhereUniqueInput
+    create: XOR<AssistantMessageCreateWithoutConversationInput, AssistantMessageUncheckedCreateWithoutConversationInput>
+  }
+
+  export type AssistantMessageCreateManyConversationInputEnvelope = {
+    data: AssistantMessageCreateManyConversationInput | AssistantMessageCreateManyConversationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AssistantToolExecutionCreateWithoutConversationInput = {
+    id?: string
+    toolId: string
+    capability: string
+    riskLevel: string
+    policyDecision: string
+    status?: $Enums.AssistantToolExecutionStatus
+    correlationId: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    safeErrorCode?: string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: string | null
+    turn: AssistantTurnCreateNestedOneWithoutToolExecutionsInput
+  }
+
+  export type AssistantToolExecutionUncheckedCreateWithoutConversationInput = {
+    id?: string
+    turnId: string
+    toolId: string
+    capability: string
+    riskLevel: string
+    policyDecision: string
+    status?: $Enums.AssistantToolExecutionStatus
+    correlationId: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    safeErrorCode?: string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: string | null
+  }
+
+  export type AssistantToolExecutionCreateOrConnectWithoutConversationInput = {
+    where: AssistantToolExecutionWhereUniqueInput
+    create: XOR<AssistantToolExecutionCreateWithoutConversationInput, AssistantToolExecutionUncheckedCreateWithoutConversationInput>
+  }
+
+  export type AssistantToolExecutionCreateManyConversationInputEnvelope = {
+    data: AssistantToolExecutionCreateManyConversationInput | AssistantToolExecutionCreateManyConversationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserUpsertWithoutAssistantConversationsInput = {
+    update: XOR<UserUpdateWithoutAssistantConversationsInput, UserUncheckedUpdateWithoutAssistantConversationsInput>
+    create: XOR<UserCreateWithoutAssistantConversationsInput, UserUncheckedCreateWithoutAssistantConversationsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutAssistantConversationsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutAssistantConversationsInput, UserUncheckedUpdateWithoutAssistantConversationsInput>
+  }
+
+  export type UserUpdateWithoutAssistantConversationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallets?: WalletUpdateManyWithoutUserNestedInput
+    categories?: CategoryUpdateManyWithoutUserNestedInput
+    transactions?: TransactionUpdateManyWithoutUserNestedInput
+    installments?: InstallmentUpdateManyWithoutUserNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
+    budgets?: BudgetUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutAssistantConversationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
+    transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
+    budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type AssistantTurnUpsertWithWhereUniqueWithoutConversationInput = {
+    where: AssistantTurnWhereUniqueInput
+    update: XOR<AssistantTurnUpdateWithoutConversationInput, AssistantTurnUncheckedUpdateWithoutConversationInput>
+    create: XOR<AssistantTurnCreateWithoutConversationInput, AssistantTurnUncheckedCreateWithoutConversationInput>
+  }
+
+  export type AssistantTurnUpdateWithWhereUniqueWithoutConversationInput = {
+    where: AssistantTurnWhereUniqueInput
+    data: XOR<AssistantTurnUpdateWithoutConversationInput, AssistantTurnUncheckedUpdateWithoutConversationInput>
+  }
+
+  export type AssistantTurnUpdateManyWithWhereWithoutConversationInput = {
+    where: AssistantTurnScalarWhereInput
+    data: XOR<AssistantTurnUpdateManyMutationInput, AssistantTurnUncheckedUpdateManyWithoutConversationInput>
+  }
+
+  export type AssistantTurnScalarWhereInput = {
+    AND?: AssistantTurnScalarWhereInput | AssistantTurnScalarWhereInput[]
+    OR?: AssistantTurnScalarWhereInput[]
+    NOT?: AssistantTurnScalarWhereInput | AssistantTurnScalarWhereInput[]
+    id?: StringFilter<"AssistantTurn"> | string
+    conversationId?: StringFilter<"AssistantTurn"> | string
+    correlationId?: StringFilter<"AssistantTurn"> | string
+    status?: EnumAssistantTurnStatusFilter<"AssistantTurn"> | $Enums.AssistantTurnStatus
+    intent?: StringFilter<"AssistantTurn"> | string
+    locale?: StringFilter<"AssistantTurn"> | string
+    safeErrorCode?: StringNullableFilter<"AssistantTurn"> | string | null
+    startedAt?: DateTimeFilter<"AssistantTurn"> | Date | string
+    finishedAt?: DateTimeNullableFilter<"AssistantTurn"> | Date | string | null
+    createdAt?: DateTimeFilter<"AssistantTurn"> | Date | string
+    updatedAt?: DateTimeFilter<"AssistantTurn"> | Date | string
+  }
+
+  export type AssistantMessageUpsertWithWhereUniqueWithoutConversationInput = {
+    where: AssistantMessageWhereUniqueInput
+    update: XOR<AssistantMessageUpdateWithoutConversationInput, AssistantMessageUncheckedUpdateWithoutConversationInput>
+    create: XOR<AssistantMessageCreateWithoutConversationInput, AssistantMessageUncheckedCreateWithoutConversationInput>
+  }
+
+  export type AssistantMessageUpdateWithWhereUniqueWithoutConversationInput = {
+    where: AssistantMessageWhereUniqueInput
+    data: XOR<AssistantMessageUpdateWithoutConversationInput, AssistantMessageUncheckedUpdateWithoutConversationInput>
+  }
+
+  export type AssistantMessageUpdateManyWithWhereWithoutConversationInput = {
+    where: AssistantMessageScalarWhereInput
+    data: XOR<AssistantMessageUpdateManyMutationInput, AssistantMessageUncheckedUpdateManyWithoutConversationInput>
+  }
+
+  export type AssistantMessageScalarWhereInput = {
+    AND?: AssistantMessageScalarWhereInput | AssistantMessageScalarWhereInput[]
+    OR?: AssistantMessageScalarWhereInput[]
+    NOT?: AssistantMessageScalarWhereInput | AssistantMessageScalarWhereInput[]
+    id?: StringFilter<"AssistantMessage"> | string
+    conversationId?: StringFilter<"AssistantMessage"> | string
+    turnId?: StringFilter<"AssistantMessage"> | string
+    role?: EnumAssistantMessageRoleFilter<"AssistantMessage"> | $Enums.AssistantMessageRole
+    source?: EnumAssistantMessageSourceFilter<"AssistantMessage"> | $Enums.AssistantMessageSource
+    content?: StringFilter<"AssistantMessage"> | string
+    createdAt?: DateTimeFilter<"AssistantMessage"> | Date | string
+  }
+
+  export type AssistantToolExecutionUpsertWithWhereUniqueWithoutConversationInput = {
+    where: AssistantToolExecutionWhereUniqueInput
+    update: XOR<AssistantToolExecutionUpdateWithoutConversationInput, AssistantToolExecutionUncheckedUpdateWithoutConversationInput>
+    create: XOR<AssistantToolExecutionCreateWithoutConversationInput, AssistantToolExecutionUncheckedCreateWithoutConversationInput>
+  }
+
+  export type AssistantToolExecutionUpdateWithWhereUniqueWithoutConversationInput = {
+    where: AssistantToolExecutionWhereUniqueInput
+    data: XOR<AssistantToolExecutionUpdateWithoutConversationInput, AssistantToolExecutionUncheckedUpdateWithoutConversationInput>
+  }
+
+  export type AssistantToolExecutionUpdateManyWithWhereWithoutConversationInput = {
+    where: AssistantToolExecutionScalarWhereInput
+    data: XOR<AssistantToolExecutionUpdateManyMutationInput, AssistantToolExecutionUncheckedUpdateManyWithoutConversationInput>
+  }
+
+  export type AssistantToolExecutionScalarWhereInput = {
+    AND?: AssistantToolExecutionScalarWhereInput | AssistantToolExecutionScalarWhereInput[]
+    OR?: AssistantToolExecutionScalarWhereInput[]
+    NOT?: AssistantToolExecutionScalarWhereInput | AssistantToolExecutionScalarWhereInput[]
+    id?: StringFilter<"AssistantToolExecution"> | string
+    conversationId?: StringFilter<"AssistantToolExecution"> | string
+    turnId?: StringFilter<"AssistantToolExecution"> | string
+    toolId?: StringFilter<"AssistantToolExecution"> | string
+    capability?: StringFilter<"AssistantToolExecution"> | string
+    riskLevel?: StringFilter<"AssistantToolExecution"> | string
+    policyDecision?: StringFilter<"AssistantToolExecution"> | string
+    status?: EnumAssistantToolExecutionStatusFilter<"AssistantToolExecution"> | $Enums.AssistantToolExecutionStatus
+    correlationId?: StringFilter<"AssistantToolExecution"> | string
+    startedAt?: DateTimeFilter<"AssistantToolExecution"> | Date | string
+    completedAt?: DateTimeNullableFilter<"AssistantToolExecution"> | Date | string | null
+    durationMs?: IntNullableFilter<"AssistantToolExecution"> | number | null
+    safeErrorCode?: StringNullableFilter<"AssistantToolExecution"> | string | null
+    redactedInput?: JsonNullableFilter<"AssistantToolExecution">
+    outputSummary?: JsonNullableFilter<"AssistantToolExecution">
+    idempotencyKey?: StringNullableFilter<"AssistantToolExecution"> | string | null
+  }
+
+  export type AssistantConversationCreateWithoutTurnsInput = {
+    id?: string
+    status?: $Enums.AssistantConversationStatus
+    locale?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastActivityAt?: Date | string
+    archivedAt?: Date | string | null
+    user: UserCreateNestedOneWithoutAssistantConversationsInput
+    messages?: AssistantMessageCreateNestedManyWithoutConversationInput
+    toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutConversationInput
+  }
+
+  export type AssistantConversationUncheckedCreateWithoutTurnsInput = {
+    id?: string
+    userId: string
+    status?: $Enums.AssistantConversationStatus
+    locale?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastActivityAt?: Date | string
+    archivedAt?: Date | string | null
+    messages?: AssistantMessageUncheckedCreateNestedManyWithoutConversationInput
+    toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type AssistantConversationCreateOrConnectWithoutTurnsInput = {
+    where: AssistantConversationWhereUniqueInput
+    create: XOR<AssistantConversationCreateWithoutTurnsInput, AssistantConversationUncheckedCreateWithoutTurnsInput>
+  }
+
+  export type AssistantMessageCreateWithoutTurnInput = {
+    id?: string
+    role: $Enums.AssistantMessageRole
+    source: $Enums.AssistantMessageSource
+    content: string
+    createdAt?: Date | string
+    conversation: AssistantConversationCreateNestedOneWithoutMessagesInput
+  }
+
+  export type AssistantMessageUncheckedCreateWithoutTurnInput = {
+    id?: string
+    conversationId: string
+    role: $Enums.AssistantMessageRole
+    source: $Enums.AssistantMessageSource
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type AssistantMessageCreateOrConnectWithoutTurnInput = {
+    where: AssistantMessageWhereUniqueInput
+    create: XOR<AssistantMessageCreateWithoutTurnInput, AssistantMessageUncheckedCreateWithoutTurnInput>
+  }
+
+  export type AssistantMessageCreateManyTurnInputEnvelope = {
+    data: AssistantMessageCreateManyTurnInput | AssistantMessageCreateManyTurnInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AssistantToolExecutionCreateWithoutTurnInput = {
+    id?: string
+    toolId: string
+    capability: string
+    riskLevel: string
+    policyDecision: string
+    status?: $Enums.AssistantToolExecutionStatus
+    correlationId: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    safeErrorCode?: string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: string | null
+    conversation: AssistantConversationCreateNestedOneWithoutToolExecutionsInput
+  }
+
+  export type AssistantToolExecutionUncheckedCreateWithoutTurnInput = {
+    id?: string
+    conversationId: string
+    toolId: string
+    capability: string
+    riskLevel: string
+    policyDecision: string
+    status?: $Enums.AssistantToolExecutionStatus
+    correlationId: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    safeErrorCode?: string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: string | null
+  }
+
+  export type AssistantToolExecutionCreateOrConnectWithoutTurnInput = {
+    where: AssistantToolExecutionWhereUniqueInput
+    create: XOR<AssistantToolExecutionCreateWithoutTurnInput, AssistantToolExecutionUncheckedCreateWithoutTurnInput>
+  }
+
+  export type AssistantToolExecutionCreateManyTurnInputEnvelope = {
+    data: AssistantToolExecutionCreateManyTurnInput | AssistantToolExecutionCreateManyTurnInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AssistantConversationUpsertWithoutTurnsInput = {
+    update: XOR<AssistantConversationUpdateWithoutTurnsInput, AssistantConversationUncheckedUpdateWithoutTurnsInput>
+    create: XOR<AssistantConversationCreateWithoutTurnsInput, AssistantConversationUncheckedCreateWithoutTurnsInput>
+    where?: AssistantConversationWhereInput
+  }
+
+  export type AssistantConversationUpdateToOneWithWhereWithoutTurnsInput = {
+    where?: AssistantConversationWhereInput
+    data: XOR<AssistantConversationUpdateWithoutTurnsInput, AssistantConversationUncheckedUpdateWithoutTurnsInput>
+  }
+
+  export type AssistantConversationUpdateWithoutTurnsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    user?: UserUpdateOneRequiredWithoutAssistantConversationsNestedInput
+    messages?: AssistantMessageUpdateManyWithoutConversationNestedInput
+    toolExecutions?: AssistantToolExecutionUpdateManyWithoutConversationNestedInput
+  }
+
+  export type AssistantConversationUncheckedUpdateWithoutTurnsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    messages?: AssistantMessageUncheckedUpdateManyWithoutConversationNestedInput
+    toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type AssistantMessageUpsertWithWhereUniqueWithoutTurnInput = {
+    where: AssistantMessageWhereUniqueInput
+    update: XOR<AssistantMessageUpdateWithoutTurnInput, AssistantMessageUncheckedUpdateWithoutTurnInput>
+    create: XOR<AssistantMessageCreateWithoutTurnInput, AssistantMessageUncheckedCreateWithoutTurnInput>
+  }
+
+  export type AssistantMessageUpdateWithWhereUniqueWithoutTurnInput = {
+    where: AssistantMessageWhereUniqueInput
+    data: XOR<AssistantMessageUpdateWithoutTurnInput, AssistantMessageUncheckedUpdateWithoutTurnInput>
+  }
+
+  export type AssistantMessageUpdateManyWithWhereWithoutTurnInput = {
+    where: AssistantMessageScalarWhereInput
+    data: XOR<AssistantMessageUpdateManyMutationInput, AssistantMessageUncheckedUpdateManyWithoutTurnInput>
+  }
+
+  export type AssistantToolExecutionUpsertWithWhereUniqueWithoutTurnInput = {
+    where: AssistantToolExecutionWhereUniqueInput
+    update: XOR<AssistantToolExecutionUpdateWithoutTurnInput, AssistantToolExecutionUncheckedUpdateWithoutTurnInput>
+    create: XOR<AssistantToolExecutionCreateWithoutTurnInput, AssistantToolExecutionUncheckedCreateWithoutTurnInput>
+  }
+
+  export type AssistantToolExecutionUpdateWithWhereUniqueWithoutTurnInput = {
+    where: AssistantToolExecutionWhereUniqueInput
+    data: XOR<AssistantToolExecutionUpdateWithoutTurnInput, AssistantToolExecutionUncheckedUpdateWithoutTurnInput>
+  }
+
+  export type AssistantToolExecutionUpdateManyWithWhereWithoutTurnInput = {
+    where: AssistantToolExecutionScalarWhereInput
+    data: XOR<AssistantToolExecutionUpdateManyMutationInput, AssistantToolExecutionUncheckedUpdateManyWithoutTurnInput>
+  }
+
+  export type AssistantConversationCreateWithoutMessagesInput = {
+    id?: string
+    status?: $Enums.AssistantConversationStatus
+    locale?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastActivityAt?: Date | string
+    archivedAt?: Date | string | null
+    user: UserCreateNestedOneWithoutAssistantConversationsInput
+    turns?: AssistantTurnCreateNestedManyWithoutConversationInput
+    toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutConversationInput
+  }
+
+  export type AssistantConversationUncheckedCreateWithoutMessagesInput = {
+    id?: string
+    userId: string
+    status?: $Enums.AssistantConversationStatus
+    locale?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastActivityAt?: Date | string
+    archivedAt?: Date | string | null
+    turns?: AssistantTurnUncheckedCreateNestedManyWithoutConversationInput
+    toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type AssistantConversationCreateOrConnectWithoutMessagesInput = {
+    where: AssistantConversationWhereUniqueInput
+    create: XOR<AssistantConversationCreateWithoutMessagesInput, AssistantConversationUncheckedCreateWithoutMessagesInput>
+  }
+
+  export type AssistantTurnCreateWithoutMessagesInput = {
+    id?: string
+    correlationId: string
+    status?: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
+    toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutTurnInput
+  }
+
+  export type AssistantTurnUncheckedCreateWithoutMessagesInput = {
+    id?: string
+    conversationId: string
+    correlationId: string
+    status?: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutTurnInput
+  }
+
+  export type AssistantTurnCreateOrConnectWithoutMessagesInput = {
+    where: AssistantTurnWhereUniqueInput
+    create: XOR<AssistantTurnCreateWithoutMessagesInput, AssistantTurnUncheckedCreateWithoutMessagesInput>
+  }
+
+  export type AssistantConversationUpsertWithoutMessagesInput = {
+    update: XOR<AssistantConversationUpdateWithoutMessagesInput, AssistantConversationUncheckedUpdateWithoutMessagesInput>
+    create: XOR<AssistantConversationCreateWithoutMessagesInput, AssistantConversationUncheckedCreateWithoutMessagesInput>
+    where?: AssistantConversationWhereInput
+  }
+
+  export type AssistantConversationUpdateToOneWithWhereWithoutMessagesInput = {
+    where?: AssistantConversationWhereInput
+    data: XOR<AssistantConversationUpdateWithoutMessagesInput, AssistantConversationUncheckedUpdateWithoutMessagesInput>
+  }
+
+  export type AssistantConversationUpdateWithoutMessagesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    user?: UserUpdateOneRequiredWithoutAssistantConversationsNestedInput
+    turns?: AssistantTurnUpdateManyWithoutConversationNestedInput
+    toolExecutions?: AssistantToolExecutionUpdateManyWithoutConversationNestedInput
+  }
+
+  export type AssistantConversationUncheckedUpdateWithoutMessagesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    turns?: AssistantTurnUncheckedUpdateManyWithoutConversationNestedInput
+    toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type AssistantTurnUpsertWithoutMessagesInput = {
+    update: XOR<AssistantTurnUpdateWithoutMessagesInput, AssistantTurnUncheckedUpdateWithoutMessagesInput>
+    create: XOR<AssistantTurnCreateWithoutMessagesInput, AssistantTurnUncheckedCreateWithoutMessagesInput>
+    where?: AssistantTurnWhereInput
+  }
+
+  export type AssistantTurnUpdateToOneWithWhereWithoutMessagesInput = {
+    where?: AssistantTurnWhereInput
+    data: XOR<AssistantTurnUpdateWithoutMessagesInput, AssistantTurnUncheckedUpdateWithoutMessagesInput>
+  }
+
+  export type AssistantTurnUpdateWithoutMessagesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
+    toolExecutions?: AssistantToolExecutionUpdateManyWithoutTurnNestedInput
+  }
+
+  export type AssistantTurnUncheckedUpdateWithoutMessagesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutTurnNestedInput
+  }
+
+  export type AssistantConversationCreateWithoutToolExecutionsInput = {
+    id?: string
+    status?: $Enums.AssistantConversationStatus
+    locale?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastActivityAt?: Date | string
+    archivedAt?: Date | string | null
+    user: UserCreateNestedOneWithoutAssistantConversationsInput
+    turns?: AssistantTurnCreateNestedManyWithoutConversationInput
+    messages?: AssistantMessageCreateNestedManyWithoutConversationInput
+  }
+
+  export type AssistantConversationUncheckedCreateWithoutToolExecutionsInput = {
+    id?: string
+    userId: string
+    status?: $Enums.AssistantConversationStatus
+    locale?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastActivityAt?: Date | string
+    archivedAt?: Date | string | null
+    turns?: AssistantTurnUncheckedCreateNestedManyWithoutConversationInput
+    messages?: AssistantMessageUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type AssistantConversationCreateOrConnectWithoutToolExecutionsInput = {
+    where: AssistantConversationWhereUniqueInput
+    create: XOR<AssistantConversationCreateWithoutToolExecutionsInput, AssistantConversationUncheckedCreateWithoutToolExecutionsInput>
+  }
+
+  export type AssistantTurnCreateWithoutToolExecutionsInput = {
+    id?: string
+    correlationId: string
+    status?: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
+    messages?: AssistantMessageCreateNestedManyWithoutTurnInput
+  }
+
+  export type AssistantTurnUncheckedCreateWithoutToolExecutionsInput = {
+    id?: string
+    conversationId: string
+    correlationId: string
+    status?: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
+  }
+
+  export type AssistantTurnCreateOrConnectWithoutToolExecutionsInput = {
+    where: AssistantTurnWhereUniqueInput
+    create: XOR<AssistantTurnCreateWithoutToolExecutionsInput, AssistantTurnUncheckedCreateWithoutToolExecutionsInput>
+  }
+
+  export type AssistantConversationUpsertWithoutToolExecutionsInput = {
+    update: XOR<AssistantConversationUpdateWithoutToolExecutionsInput, AssistantConversationUncheckedUpdateWithoutToolExecutionsInput>
+    create: XOR<AssistantConversationCreateWithoutToolExecutionsInput, AssistantConversationUncheckedCreateWithoutToolExecutionsInput>
+    where?: AssistantConversationWhereInput
+  }
+
+  export type AssistantConversationUpdateToOneWithWhereWithoutToolExecutionsInput = {
+    where?: AssistantConversationWhereInput
+    data: XOR<AssistantConversationUpdateWithoutToolExecutionsInput, AssistantConversationUncheckedUpdateWithoutToolExecutionsInput>
+  }
+
+  export type AssistantConversationUpdateWithoutToolExecutionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    user?: UserUpdateOneRequiredWithoutAssistantConversationsNestedInput
+    turns?: AssistantTurnUpdateManyWithoutConversationNestedInput
+    messages?: AssistantMessageUpdateManyWithoutConversationNestedInput
+  }
+
+  export type AssistantConversationUncheckedUpdateWithoutToolExecutionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    turns?: AssistantTurnUncheckedUpdateManyWithoutConversationNestedInput
+    messages?: AssistantMessageUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type AssistantTurnUpsertWithoutToolExecutionsInput = {
+    update: XOR<AssistantTurnUpdateWithoutToolExecutionsInput, AssistantTurnUncheckedUpdateWithoutToolExecutionsInput>
+    create: XOR<AssistantTurnCreateWithoutToolExecutionsInput, AssistantTurnUncheckedCreateWithoutToolExecutionsInput>
+    where?: AssistantTurnWhereInput
+  }
+
+  export type AssistantTurnUpdateToOneWithWhereWithoutToolExecutionsInput = {
+    where?: AssistantTurnWhereInput
+    data: XOR<AssistantTurnUpdateWithoutToolExecutionsInput, AssistantTurnUncheckedUpdateWithoutToolExecutionsInput>
+  }
+
+  export type AssistantTurnUpdateWithoutToolExecutionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
+    messages?: AssistantMessageUpdateManyWithoutTurnNestedInput
+  }
+
+  export type AssistantTurnUncheckedUpdateWithoutToolExecutionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
+  }
+
   export type UserCreateWithoutWalletsInput = {
     id?: string
     email: string
@@ -20538,6 +28384,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutWalletsInput = {
@@ -20554,6 +28401,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutWalletsInput = {
@@ -20782,6 +28630,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutWalletsInput = {
@@ -20798,6 +28647,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutWalletInput = {
@@ -20878,6 +28728,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCategoriesInput = {
@@ -20894,6 +28745,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCategoriesInput = {
@@ -21074,6 +28926,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCategoriesInput = {
@@ -21090,6 +28943,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutCategoryInput = {
@@ -21170,6 +29024,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMerchantMappingsInput = {
@@ -21186,6 +29041,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMerchantMappingsInput = {
@@ -21251,6 +29107,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMerchantMappingsInput = {
@@ -21267,6 +29124,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type CategoryUpsertWithoutMerchantMappingsInput = {
@@ -21322,6 +29180,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -21338,6 +29197,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -21593,6 +29453,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -21609,6 +29470,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutTransactionsInput = {
@@ -21878,6 +29740,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutInstallmentsInput = {
@@ -21894,6 +29757,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutInstallmentsInput = {
@@ -22055,6 +29919,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutInstallmentsInput = {
@@ -22071,6 +29936,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutInstallmentsInput = {
@@ -22193,6 +30059,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutRecurringTransactionTemplatesInput = {
@@ -22209,6 +30076,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutRecurringTransactionTemplatesInput = {
@@ -22361,6 +30229,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutRecurringTransactionTemplatesInput = {
@@ -22377,6 +30246,7 @@ export namespace Prisma {
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutRecurringTransactionTemplatesInput = {
@@ -22801,6 +30671,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
     budgets?: BudgetCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSavingGoalsInput = {
@@ -22817,6 +30688,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
     budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSavingGoalsInput = {
@@ -22849,6 +30721,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
     budgets?: BudgetUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSavingGoalsInput = {
@@ -22865,6 +30738,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
     budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutBudgetsInput = {
@@ -22881,6 +30755,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutBudgetsInput = {
@@ -22897,6 +30772,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
     savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutBudgetsInput = {
@@ -22962,6 +30838,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBudgetsInput = {
@@ -22978,6 +30855,7 @@ export namespace Prisma {
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
     savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type CategoryUpsertWithoutBudgetsInput = {
@@ -23134,6 +31012,16 @@ export namespace Prisma {
     categoryId: string
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type AssistantConversationCreateManyUserInput = {
+    id?: string
+    status?: $Enums.AssistantConversationStatus
+    locale?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastActivityAt?: Date | string
+    archivedAt?: Date | string | null
   }
 
   export type WalletUpdateWithoutUserInput = {
@@ -23509,6 +31397,314 @@ export namespace Prisma {
     categoryId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantConversationUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    turns?: AssistantTurnUpdateManyWithoutConversationNestedInput
+    messages?: AssistantMessageUpdateManyWithoutConversationNestedInput
+    toolExecutions?: AssistantToolExecutionUpdateManyWithoutConversationNestedInput
+  }
+
+  export type AssistantConversationUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    turns?: AssistantTurnUncheckedUpdateManyWithoutConversationNestedInput
+    messages?: AssistantMessageUncheckedUpdateManyWithoutConversationNestedInput
+    toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type AssistantConversationUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AssistantTurnCreateManyConversationInput = {
+    id?: string
+    correlationId: string
+    status?: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AssistantMessageCreateManyConversationInput = {
+    id?: string
+    turnId: string
+    role: $Enums.AssistantMessageRole
+    source: $Enums.AssistantMessageSource
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type AssistantToolExecutionCreateManyConversationInput = {
+    id?: string
+    turnId: string
+    toolId: string
+    capability: string
+    riskLevel: string
+    policyDecision: string
+    status?: $Enums.AssistantToolExecutionStatus
+    correlationId: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    safeErrorCode?: string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: string | null
+  }
+
+  export type AssistantTurnUpdateWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    messages?: AssistantMessageUpdateManyWithoutTurnNestedInput
+    toolExecutions?: AssistantToolExecutionUpdateManyWithoutTurnNestedInput
+  }
+
+  export type AssistantTurnUncheckedUpdateWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
+    toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutTurnNestedInput
+  }
+
+  export type AssistantTurnUncheckedUpdateManyWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantMessageUpdateWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    role?: EnumAssistantMessageRoleFieldUpdateOperationsInput | $Enums.AssistantMessageRole
+    source?: EnumAssistantMessageSourceFieldUpdateOperationsInput | $Enums.AssistantMessageSource
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    turn?: AssistantTurnUpdateOneRequiredWithoutMessagesNestedInput
+  }
+
+  export type AssistantMessageUncheckedUpdateWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    turnId?: StringFieldUpdateOperationsInput | string
+    role?: EnumAssistantMessageRoleFieldUpdateOperationsInput | $Enums.AssistantMessageRole
+    source?: EnumAssistantMessageSourceFieldUpdateOperationsInput | $Enums.AssistantMessageSource
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantMessageUncheckedUpdateManyWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    turnId?: StringFieldUpdateOperationsInput | string
+    role?: EnumAssistantMessageRoleFieldUpdateOperationsInput | $Enums.AssistantMessageRole
+    source?: EnumAssistantMessageSourceFieldUpdateOperationsInput | $Enums.AssistantMessageSource
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantToolExecutionUpdateWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    toolId?: StringFieldUpdateOperationsInput | string
+    capability?: StringFieldUpdateOperationsInput | string
+    riskLevel?: StringFieldUpdateOperationsInput | string
+    policyDecision?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantToolExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantToolExecutionStatus
+    correlationId?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    turn?: AssistantTurnUpdateOneRequiredWithoutToolExecutionsNestedInput
+  }
+
+  export type AssistantToolExecutionUncheckedUpdateWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    turnId?: StringFieldUpdateOperationsInput | string
+    toolId?: StringFieldUpdateOperationsInput | string
+    capability?: StringFieldUpdateOperationsInput | string
+    riskLevel?: StringFieldUpdateOperationsInput | string
+    policyDecision?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantToolExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantToolExecutionStatus
+    correlationId?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AssistantToolExecutionUncheckedUpdateManyWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    turnId?: StringFieldUpdateOperationsInput | string
+    toolId?: StringFieldUpdateOperationsInput | string
+    capability?: StringFieldUpdateOperationsInput | string
+    riskLevel?: StringFieldUpdateOperationsInput | string
+    policyDecision?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantToolExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantToolExecutionStatus
+    correlationId?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AssistantMessageCreateManyTurnInput = {
+    id?: string
+    conversationId: string
+    role: $Enums.AssistantMessageRole
+    source: $Enums.AssistantMessageSource
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type AssistantToolExecutionCreateManyTurnInput = {
+    id?: string
+    conversationId: string
+    toolId: string
+    capability: string
+    riskLevel: string
+    policyDecision: string
+    status?: $Enums.AssistantToolExecutionStatus
+    correlationId: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    safeErrorCode?: string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: string | null
+  }
+
+  export type AssistantMessageUpdateWithoutTurnInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    role?: EnumAssistantMessageRoleFieldUpdateOperationsInput | $Enums.AssistantMessageRole
+    source?: EnumAssistantMessageSourceFieldUpdateOperationsInput | $Enums.AssistantMessageSource
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    conversation?: AssistantConversationUpdateOneRequiredWithoutMessagesNestedInput
+  }
+
+  export type AssistantMessageUncheckedUpdateWithoutTurnInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    role?: EnumAssistantMessageRoleFieldUpdateOperationsInput | $Enums.AssistantMessageRole
+    source?: EnumAssistantMessageSourceFieldUpdateOperationsInput | $Enums.AssistantMessageSource
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantMessageUncheckedUpdateManyWithoutTurnInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    role?: EnumAssistantMessageRoleFieldUpdateOperationsInput | $Enums.AssistantMessageRole
+    source?: EnumAssistantMessageSourceFieldUpdateOperationsInput | $Enums.AssistantMessageSource
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantToolExecutionUpdateWithoutTurnInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    toolId?: StringFieldUpdateOperationsInput | string
+    capability?: StringFieldUpdateOperationsInput | string
+    riskLevel?: StringFieldUpdateOperationsInput | string
+    policyDecision?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantToolExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantToolExecutionStatus
+    correlationId?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+    conversation?: AssistantConversationUpdateOneRequiredWithoutToolExecutionsNestedInput
+  }
+
+  export type AssistantToolExecutionUncheckedUpdateWithoutTurnInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    toolId?: StringFieldUpdateOperationsInput | string
+    capability?: StringFieldUpdateOperationsInput | string
+    riskLevel?: StringFieldUpdateOperationsInput | string
+    policyDecision?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantToolExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantToolExecutionStatus
+    correlationId?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AssistantToolExecutionUncheckedUpdateManyWithoutTurnInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    toolId?: StringFieldUpdateOperationsInput | string
+    capability?: StringFieldUpdateOperationsInput | string
+    riskLevel?: StringFieldUpdateOperationsInput | string
+    policyDecision?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantToolExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantToolExecutionStatus
+    correlationId?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    redactedInput?: NullableJsonNullValueInput | InputJsonValue
+    outputSummary?: NullableJsonNullValueInput | InputJsonValue
+    idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type TransactionCreateManyWalletInput = {

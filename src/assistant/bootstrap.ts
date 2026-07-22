@@ -10,6 +10,9 @@ import { ToolRegistry } from './registry';
 import { monthlySpendingSummary } from './tools';
 import { handleMonthlySpendingSummary } from './handlers/monthly-spending-summary.handler';
 import type { HandlerRegistry } from './executor';
+import prisma from '../lib/prisma';
+import { createAssistantConversationService } from './conversation.service';
+import { createAssistantApplicationService } from './application.service';
 
 /** The application-wide tool registry. Populated at startup. */
 export const toolRegistry = new ToolRegistry();
@@ -21,3 +24,6 @@ export const handlerRegistry: HandlerRegistry = new Map();
 
 toolRegistry.register(monthlySpendingSummary);
 handlerRegistry.set(monthlySpendingSummary.id, handleMonthlySpendingSummary as never);
+
+export const assistantConversationService = createAssistantConversationService(prisma);
+export const assistantApplicationService = createAssistantApplicationService({ conversations: assistantConversationService, toolRegistry, handlerRegistry });
