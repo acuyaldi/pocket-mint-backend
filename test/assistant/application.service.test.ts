@@ -6,8 +6,8 @@ import { monthlySpendingSummary } from '../../src/assistant/tools';
 function setup() {
   const conversations = {
     assertContinuable: vi.fn(), beginTurn: vi.fn().mockResolvedValue({ conversationId: 'c1', turnId: 't1' }),
-    markTurnRunning: vi.fn(), beginToolExecution: vi.fn().mockResolvedValue('e1'), finalize: vi.fn(),
-    finalizeRejected: vi.fn(), recoverFailedFinalization: vi.fn(),
+    markTurnRunning: vi.fn().mockResolvedValue(undefined), beginToolExecution: vi.fn().mockResolvedValue('e1'), finalize: vi.fn().mockResolvedValue(undefined),
+    finalizeRejected: vi.fn().mockResolvedValue(undefined), recoverFailedFinalization: vi.fn().mockResolvedValue(undefined),
   } as any;
   const registry = new ToolRegistry(); registry.register(monthlySpendingSummary);
   const handler = vi.fn().mockResolvedValue({ month: '2026-07', totalIncome: 10, totalExpense: 4, netSavings: 6, transactionCount: 2, topCategories: [] });
@@ -37,5 +37,28 @@ describe('Assistant application lifecycle', () => {
     await expect(service.execute('u2', 'corr3', { conversationId: 'c1', intent: monthlySpendingSummary.id, arguments: { month: '2026-07' } })).rejects.toThrow('not owned');
     expect(handler).not.toHaveBeenCalled();
     expect(conversations.beginTurn).not.toHaveBeenCalled();
+  });
+
+  it('does not invoke the handler when initial persistence fails', async () => {
+    const { service, conversations, handler } = setup();
+    conversations.beginTurn.mockRejectedValue(new Error('persistence unavailable'));
+    await expect(service.execute('u1', 'corr4', { intent: monthlySpendingSummary.id, arguments: { month: '2026-07' } })).rejects.toThrow('persistence unavailable');
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('records a terminal failure and safe assistant message when the handler fails', async () => {
+    const { service, conversations, handler } = setup();
+    handler.mockRejectedValue(new Error('private database detail'));
+    const result = await service.execute('u1', 'corr5', { intent: monthlySpendingSummary.id, arguments: { month: '2026-07' } });
+    expect(result.response).toMatchObject({ status: 'error', code: 'ASSISTANT_EXECUTION_FAILED', message: 'Assistant execution failed' });
+    expect(conversations.finalize).toHaveBeenCalledWith(expect.objectContaining({ status: 'FAILED', turnStatus: 'FAILED', assistantSource: 'SAFE_ERROR' }));
+  });
+
+  it('never returns success and attempts recovery when final persistence fails', async () => {
+    const { service, conversations } = setup();
+    conversations.finalize.mockRejectedValue(new Error('final persistence unavailable'));
+    const result = await service.execute('u1', 'corr6', { intent: monthlySpendingSummary.id, arguments: { month: '2026-07' } });
+    expect(result.response.status).toBe('error');
+    expect(conversations.recoverFailedFinalization).toHaveBeenCalledWith('t1', 'e1');
   });
 });
