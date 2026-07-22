@@ -24,11 +24,11 @@ describe('resolveIntent', () => {
 
   it('rejects an unsupported intent', () => {
     expect(() =>
-      resolveIntent(makeRequest({ intent: 'transaction.create' })),
+      resolveIntent(makeRequest({ intent: 'transaction.delete' })),
     ).toThrow(AssistantError);
 
     try {
-      resolveIntent(makeRequest({ intent: 'transaction.create' }));
+        resolveIntent(makeRequest({ intent: 'transaction.delete' }));
     } catch (err) {
       expect(err).toBeInstanceOf(AssistantError);
       expect((err as AssistantError).statusCode).toBe(400);

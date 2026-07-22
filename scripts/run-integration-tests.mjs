@@ -49,6 +49,7 @@ const integrationTests = [
   'test/assistant/monthly-summary.integration.test.ts',
   'test/assistant/conversation-service.integration.test.ts',
   'test/assistant/conversation-http.integration.test.ts',
+  'test/assistant/financial-draft.integration.test.ts',
 ];
 
 async function main() {
