@@ -10,6 +10,8 @@ import prisma from '../lib/prisma';
 import type { PrismaClient } from '../generated/prisma/client';
 import { generateSuggestions, normalizeMerchant } from '../domain/categorization';
 import type { CategorySuggestion, CategoryCandidate } from '../domain/categorization';
+import { matchRules } from '../domain/rules';
+import type { RuleCandidate } from '../domain/rules';
 
 // ============================================================
 // Keyword → category mapping
@@ -108,17 +110,19 @@ function buildCandidates(
 // Service factory
 // ============================================================
 
-type CategorizationPrismaClient = Pick<PrismaClient, 'category' | 'merchantMapping'>;
+type CategorizationPrismaClient = Pick<PrismaClient, 'category' | 'merchantMapping' | 'rule'>;
 
 export function createCategorizationService(db: CategorizationPrismaClient) {
   /**
    * Get category suggestions for a transaction description.
    *
-   * Highest priority: an exact user-defined merchant mapping (Phase 19) for
-   * this normalized description — if found, it is returned immediately and
-   * keyword matching is skipped entirely. Otherwise falls back to the
-   * deterministic keyword-matching engine (Phase 18). Returns up to 5
-   * ranked suggestions ordered by confidence.
+   * Highest priority: a matching user-defined Rule (Phase 20) — if found, it
+   * short-circuits everything below it (see PD-0XX ADR for why rules run
+   * first: users configuring an explicit rule expect it to win over any
+   * inferred signal). Next: an exact user-defined merchant mapping (Phase 19)
+   * for this normalized description. Otherwise falls back to the
+   * deterministic keyword-matching engine (Phase 18). Returns up to 5 ranked
+   * suggestions ordered by confidence.
    *
    * Returns an empty array when the description is empty or no source
    * matches.
@@ -130,6 +134,34 @@ export function createCategorizationService(db: CategorizationPrismaClient) {
   ): Promise<CategorySuggestion[]> {
     const descriptionTrimmed = description?.trim() ?? '';
     if (descriptionTrimmed.length === 0) return [];
+
+    const rules = await db.rule.findMany({
+      where: { userId, enabled: true, category: { type } },
+      orderBy: { priority: 'asc' },
+      include: { category: true },
+    });
+    if (rules.length > 0) {
+      const candidates: RuleCandidate[] = rules.map((r) => ({
+        id: r.id,
+        name: r.name,
+        matchType: r.matchType,
+        operator: r.operator,
+        value: r.value,
+        categoryId: r.category.id,
+        categoryName: r.category.name,
+      }));
+      const ruleMatch = matchRules(candidates, { description: descriptionTrimmed, type });
+      if (ruleMatch) {
+        return [{
+          categoryId: ruleMatch.categoryId,
+          categoryName: ruleMatch.categoryName,
+          confidence: 'HIGH',
+          reason: ruleMatch.reason,
+          matchedKeyword: ruleMatch.ruleName,
+          normalizedMerchant: normalizeMerchant(descriptionTrimmed),
+        }];
+      }
+    }
 
     const normalizedMerchant = normalizeMerchant(descriptionTrimmed);
     if (normalizedMerchant.length > 0) {
