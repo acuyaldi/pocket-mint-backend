@@ -53,4 +53,3 @@ export function loadAssistantProviderConfig(env: Environment): AssistantProvider
     publicMetadata: { enabled: true, provider: 'gemini', model, timeoutMs: timeout },
   };
 }
-

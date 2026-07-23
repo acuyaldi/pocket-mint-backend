@@ -124,4 +124,3 @@ export const ASSISTANT_RESPONSE_JSON_SCHEMA: Readonly<Record<string, unknown>> =
     userMessage: { type: 'string', maxLength: 2000 },
   },
 });
-

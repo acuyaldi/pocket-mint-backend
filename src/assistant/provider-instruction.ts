@@ -23,4 +23,3 @@ export function buildAssistantSystemInstruction(catalog: readonly ProviderCapabi
     JSON.stringify(stableCatalog),
   ].join('\n');
 }
-

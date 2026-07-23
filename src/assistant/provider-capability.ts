@@ -17,4 +17,3 @@ export function buildProviderCapabilityCatalog(registry: ToolRegistry): Provider
     }))
     .sort((left, right) => left.intent.localeCompare(right.intent));
 }
-
