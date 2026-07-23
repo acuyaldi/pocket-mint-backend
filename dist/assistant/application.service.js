@@ -9,6 +9,11 @@ const persistence_1 = require("./persistence");
 const policy_1 = require("./policy");
 const logger_1 = require("../utils/logger");
 function createAssistantApplicationService(deps) {
+    async function prepareProviderExecution(input) {
+        if (!deps.contexts)
+            throw new Error('Assistant context service is not configured');
+        return deps.contexts.buildExecutionContext(input);
+    }
     async function execute(userId, correlationId, request) {
         const locale = request.locale?.trim() || 'id-ID';
         if (request.conversationId)
@@ -74,6 +79,6 @@ function createAssistantApplicationService(deps) {
         }
         return { httpStatus: 200, response: { status: 'success', renderedText, data: result.output, correlationId, ...turn } };
     }
-    return { execute };
+    return { execute, prepareProviderExecution };
 }
 //# sourceMappingURL=application.service.js.map

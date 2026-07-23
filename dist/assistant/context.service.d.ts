@@ -1,0 +1,12 @@
+import type { PrismaClient } from '../generated/prisma/client';
+import type { AssistantContext, AssistantContextLimits } from './context.types';
+export interface BuildAssistantExecutionContextInput {
+    userId: string;
+    conversationId: string;
+    currentRequest: string;
+}
+export declare function createAssistantContextService(db: PrismaClient, clock?: () => Date, limits?: AssistantContextLimits): {
+    buildExecutionContext: (input: BuildAssistantExecutionContextInput) => Promise<AssistantContext>;
+};
+export type AssistantContextService = ReturnType<typeof createAssistantContextService>;
+//# sourceMappingURL=context.service.d.ts.map

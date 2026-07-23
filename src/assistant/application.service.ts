@@ -10,10 +10,16 @@ import { evaluatePolicy } from './policy';
 import { logger } from '../utils/logger';
 import type { TransactionCreateInput } from './tools';
 import type { AssistantFinancialDraftService } from './financial-draft.service';
+import type { AssistantContextService, BuildAssistantExecutionContextInput } from './context.service';
 
 export interface AssistantApplicationResult { response: AssistantCanonicalResponse; httpStatus: number }
 
-export function createAssistantApplicationService(deps: { conversations: AssistantConversationService; toolRegistry: ToolRegistry; handlerRegistry: HandlerRegistry; financialDrafts?: AssistantFinancialDraftService }) {
+export function createAssistantApplicationService(deps: { conversations: AssistantConversationService; contexts?: AssistantContextService; toolRegistry: ToolRegistry; handlerRegistry: HandlerRegistry; financialDrafts?: AssistantFinancialDraftService }) {
+  async function prepareProviderExecution(input: BuildAssistantExecutionContextInput) {
+    if (!deps.contexts) throw new Error('Assistant context service is not configured');
+    return deps.contexts.buildExecutionContext(input);
+  }
+
   async function execute(userId: string, correlationId: string, request: AssistantCanonicalRequest): Promise<AssistantApplicationResult> {
     const locale = request.locale?.trim() || 'id-ID';
     if (request.conversationId) await deps.conversations.assertContinuable(userId, request.conversationId);
@@ -72,7 +78,7 @@ export function createAssistantApplicationService(deps: { conversations: Assista
     }
     return { httpStatus: 200, response: { status: 'success', renderedText, data: result.output, correlationId, ...turn } };
   }
-  return { execute };
+  return { execute, prepareProviderExecution };
 }
 
 export type AssistantApplicationService = ReturnType<typeof createAssistantApplicationService>;

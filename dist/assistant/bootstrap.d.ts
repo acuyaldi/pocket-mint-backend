@@ -69,6 +69,9 @@ export declare const assistantConversationService: {
         archivedAt: Date | null;
     }>;
 };
+export declare const assistantContextService: {
+    buildExecutionContext: (input: import("./context.service").BuildAssistantExecutionContextInput) => Promise<import("./context.types").AssistantContext>;
+};
 export declare const assistantFinancialDraftService: {
     prepare: (input: import("./tools").TransactionCreateInput & {
         userId: string;
@@ -120,5 +123,6 @@ export declare const assistantFinancialDraftService: {
 };
 export declare const assistantApplicationService: {
     execute: (userId: string, correlationId: string, request: import("./types").AssistantCanonicalRequest) => Promise<import("./application.service").AssistantApplicationResult>;
+    prepareProviderExecution: (input: import("./context.service").BuildAssistantExecutionContextInput) => Promise<import("./context.types").AssistantContext>;
 };
 //# sourceMappingURL=bootstrap.d.ts.map
