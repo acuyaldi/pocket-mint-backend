@@ -15,6 +15,7 @@ import { createAssistantConversationService } from './conversation.service';
 import { createAssistantApplicationService } from './application.service';
 import { createAssistantFinancialDraftService } from './financial-draft.service';
 import { transactionService } from '../services/transaction.service';
+import { createAssistantContextService } from './context.service';
 
 /** The application-wide tool registry. Populated at startup. */
 export const toolRegistry = new ToolRegistry();
@@ -29,5 +30,6 @@ toolRegistry.register(transactionCreate);
 handlerRegistry.set(monthlySpendingSummary.id, handleMonthlySpendingSummary as never);
 
 export const assistantConversationService = createAssistantConversationService(prisma);
+export const assistantContextService = createAssistantContextService(prisma);
 export const assistantFinancialDraftService = createAssistantFinancialDraftService(prisma, transactionService);
-export const assistantApplicationService = createAssistantApplicationService({ conversations: assistantConversationService, toolRegistry, handlerRegistry, financialDrafts: assistantFinancialDraftService });
+export const assistantApplicationService = createAssistantApplicationService({ conversations: assistantConversationService, contexts: assistantContextService, toolRegistry, handlerRegistry, financialDrafts: assistantFinancialDraftService });

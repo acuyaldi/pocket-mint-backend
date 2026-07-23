@@ -40,4 +40,13 @@ export type {
 
 export type { ToolHandler, HandlerRegistry } from './executor';
 export type { AssistantConversationService } from './conversation.service';
+export type {
+  AssistantContext,
+  AssistantContextLimits,
+  ConversationContext,
+  DraftContext,
+  MessageContext,
+  ToolExecutionContext,
+  TurnContext,
+} from './context.types';
 export type * from './conversation.types';

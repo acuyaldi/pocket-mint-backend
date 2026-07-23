@@ -16,6 +16,10 @@ export declare class AssistantError extends Error {
     static invalidRequest(detail: string): AssistantError;
     static conversationNotFound(): AssistantError;
     static conversationNotContinuable(): AssistantError;
+    static invalidContextConfiguration(): AssistantError;
+    static contextTooLarge(): AssistantError;
+    static unsupportedContextData(): AssistantError;
+    static contextPreparationFailed(): AssistantError;
     static invalidIdempotencyKey(): AssistantError;
     static draftNotFound(): AssistantError;
     static draftConflict(status: string): AssistantError;
