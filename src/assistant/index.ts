@@ -17,6 +17,14 @@ export { renderMonthlySpendingSummary } from './renderer';
 export { toolRegistry, handlerRegistry } from './bootstrap';
 export { createAssistantConversationService } from './conversation.service';
 export { createAssistantApplicationService } from './application.service';
+export { createAssistantProviderRuntime } from './provider-runtime';
+export { createAssistantProviderAuditService } from './provider-audit.service';
+export { createGeminiAssistantProvider } from './providers/gemini.provider';
+export { buildProviderCapabilityCatalog } from './provider-capability';
+export { buildAssistantSystemInstruction } from './provider-instruction';
+export { assembleAssistantModelRequest } from './provider-prompt';
+export { validateAssistantPlan } from './provider-plan';
+export { AssistantProviderError } from './provider-types';
 export * from './persistence';
 
 export type {
@@ -50,3 +58,5 @@ export type {
   TurnContext,
 } from './context.types';
 export type * from './conversation.types';
+export type * from './provider-types';
+export type { AssistantProviderRuntime, AssistantProviderMessageInput, AssistantProviderRuntimeResult } from './provider-runtime';

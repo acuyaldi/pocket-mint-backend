@@ -40,6 +40,7 @@ model User {
   assistantConversations        AssistantConversation[]
   assistantFinancialDrafts      AssistantFinancialDraft[]
   assistantIdempotencyRecords   AssistantIdempotencyRecord[]
+  assistantProviderExecutions   AssistantProviderExecution[]
 
   @@map("users")
 }
@@ -71,6 +72,7 @@ enum AssistantMessageSource {
   SAFE_REQUEST_SUMMARY
   DETERMINISTIC_RENDERER
   SAFE_ERROR
+  PROVIDER_CLARIFICATION
 }
 
 enum AssistantToolExecutionStatus {
@@ -80,6 +82,14 @@ enum AssistantToolExecutionStatus {
   FAILED
   TIMED_OUT
   DENIED
+}
+
+enum AssistantProviderExecutionStatus {
+  STARTED
+  PLAN_ACCEPTED
+  CLARIFICATION
+  UNSUPPORTED
+  FAILED
 }
 
 enum AssistantFinancialDraftStatus {
@@ -100,11 +110,12 @@ model AssistantConversation {
   lastActivityAt DateTime                    @default(now()) @map("last_activity_at")
   archivedAt     DateTime?                   @map("archived_at")
 
-  user            User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  turns           AssistantTurn[]
-  messages        AssistantMessage[]
-  toolExecutions  AssistantToolExecution[]
-  financialDrafts AssistantFinancialDraft[]
+  user               User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  turns              AssistantTurn[]
+  messages           AssistantMessage[]
+  toolExecutions     AssistantToolExecution[]
+  financialDrafts    AssistantFinancialDraft[]
+  providerExecutions AssistantProviderExecution[]
 
   @@index([userId, lastActivityAt, id])
   @@index([userId, status, lastActivityAt])
@@ -124,10 +135,11 @@ model AssistantTurn {
   createdAt      DateTime            @default(now()) @map("created_at")
   updatedAt      DateTime            @updatedAt @map("updated_at")
 
-  conversation    AssistantConversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  messages        AssistantMessage[]
-  toolExecutions  AssistantToolExecution[]
-  financialDrafts AssistantFinancialDraft[]
+  conversation       AssistantConversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  messages           AssistantMessage[]
+  toolExecutions     AssistantToolExecution[]
+  financialDrafts    AssistantFinancialDraft[]
+  providerExecutions AssistantProviderExecution[]
 
   @@index([conversationId, createdAt, id])
   @@index([status, startedAt])
@@ -229,6 +241,37 @@ model AssistantToolExecution {
   @@index([conversationId, startedAt])
   @@index([correlationId])
   @@map("assistant_tool_executions")
+}
+
+model AssistantProviderExecution {
+  id                   String                           @id @default(cuid())
+  userId               String                           @map("user_id")
+  conversationId       String                           @map("conversation_id")
+  turnId               String?                          @map("turn_id")
+  correlationId        String                           @unique @map("correlation_id")
+  provider             String
+  model                String
+  status               AssistantProviderExecutionStatus @default(STARTED)
+  startedAt            DateTime                         @default(now()) @map("started_at")
+  completedAt          DateTime?                        @map("completed_at")
+  durationMs           Int?                             @map("duration_ms")
+  inputBytes           Int                              @map("input_bytes")
+  outputBytes          Int?                             @map("output_bytes")
+  finishClassification String?                          @map("finish_classification")
+  safeErrorCode        String?                          @map("safe_error_code")
+  inputTokens          Int?                             @map("input_tokens")
+  outputTokens         Int?                             @map("output_tokens")
+  totalTokens          Int?                             @map("total_tokens")
+  cachedInputTokens    Int?                             @map("cached_input_tokens")
+
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  turn         AssistantTurn?        @relation(fields: [turnId], references: [id], onDelete: SetNull)
+
+  @@index([userId, startedAt])
+  @@index([conversationId, startedAt])
+  @@index([turnId, startedAt])
+  @@map("assistant_provider_executions")
 }
 
 // ─────────────────────────────────────────────

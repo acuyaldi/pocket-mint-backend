@@ -62,6 +62,17 @@ export interface ToolContract<TInput = unknown, TOutput = unknown> {
   readonly timeoutMs: number;
   /** Whether the tool is available. Disabled tools are excluded from discovery. */
   readonly enabled: boolean;
+  /** Provider-safe argument metadata. It contains no handlers, policy internals, or owner fields. */
+  readonly providerArguments: {
+    readonly required: readonly string[];
+    readonly optional: readonly string[];
+    readonly properties: Readonly<Record<string, {
+      readonly type: 'string';
+      readonly description: string;
+      readonly enum?: readonly string[];
+      readonly format?: string;
+    }>>;
+  };
 
   /** Validate and transform untrusted input. Throws AssistantError on failure. */
   readonly validateInput: (input: unknown) => TInput;

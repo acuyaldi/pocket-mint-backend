@@ -10,6 +10,7 @@ exports.assistantRouter = assistantRouter;
 // All Assistant endpoints require a verified user — the
 // authenticated userId is the sole identity source.
 assistantRouter.post('/execute', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, assistant_controller_1.assistantExecute);
+assistantRouter.post('/messages', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, assistant_controller_1.assistantMessages);
 assistantRouter.get('/conversations', apiKeyAuth_1.requireUser, assistant_controller_1.listAssistantConversations);
 assistantRouter.get('/conversations/:conversationId', apiKeyAuth_1.requireUser, assistant_controller_1.getAssistantConversation);
 assistantRouter.post('/conversations/:conversationId/archive', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, assistant_controller_1.archiveAssistantConversation);

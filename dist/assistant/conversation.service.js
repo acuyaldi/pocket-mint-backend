@@ -22,6 +22,14 @@ function createAssistantConversationService(db) {
         if (conversation.status !== 'ACTIVE')
             throw errors_1.AssistantError.conversationNotContinuable();
     }
+    async function establishConversation(userId, conversationId, locale) {
+        if (conversationId) {
+            await assertContinuable(userId, conversationId);
+            return conversationId;
+        }
+        const created = await db.assistantConversation.create({ data: { userId, locale } });
+        return created.id;
+    }
     async function beginTurn(input) {
         (0, persistence_1.assertAssistantMessageLength)(input.content);
         return db.$transaction(async (tx) => {
@@ -82,6 +90,25 @@ function createAssistantConversationService(db) {
             await tx.assistantConversation.update({ where: { id: input.conversationId }, data: { lastActivityAt: now } });
         });
     }
+    async function finalizeWithoutTool(input) {
+        (0, persistence_1.assertAssistantMessageLength)(input.assistantContent);
+        await db.$transaction(async (tx) => {
+            const now = new Date();
+            await tx.assistantMessage.create({ data: {
+                    conversationId: input.conversationId,
+                    turnId: input.turnId,
+                    role: 'ASSISTANT',
+                    source: input.assistantSource,
+                    content: input.assistantContent,
+                } });
+            await tx.assistantTurn.update({ where: { id: input.turnId }, data: {
+                    status: input.turnStatus,
+                    safeErrorCode: input.safeErrorCode,
+                    finishedAt: now,
+                } });
+            await tx.assistantConversation.update({ where: { id: input.conversationId }, data: { lastActivityAt: now } });
+        });
+    }
     async function listOwnedConversations(userId, page, limit) {
         const p = pageArgs(page, limit);
         const where = { userId };
@@ -122,6 +149,6 @@ function createAssistantConversationService(db) {
         const updated = await db.assistantConversation.update({ where: { id }, data: { status: 'ARCHIVED', archivedAt: new Date() } });
         return { id: updated.id, status: updated.status, archivedAt: updated.archivedAt };
     }
-    return { assertContinuable, beginTurn, markTurnRunning, beginToolExecution, finalize, finalizeRejected, listOwnedConversations, getOwnedConversation, archiveOwnedConversation };
+    return { assertContinuable, establishConversation, beginTurn, markTurnRunning, beginToolExecution, finalize, finalizeRejected, finalizeWithoutTool, listOwnedConversations, getOwnedConversation, archiveOwnedConversation };
 }
 //# sourceMappingURL=conversation.service.js.map

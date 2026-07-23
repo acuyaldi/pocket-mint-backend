@@ -16,6 +16,10 @@ import { createAssistantApplicationService } from './application.service';
 import { createAssistantFinancialDraftService } from './financial-draft.service';
 import { transactionService } from '../services/transaction.service';
 import { createAssistantContextService } from './context.service';
+import { assistantProviderConfig } from '../config';
+import { createGeminiAssistantProvider } from './providers/gemini.provider';
+import { createAssistantProviderAuditService } from './provider-audit.service';
+import { createAssistantProviderRuntime } from './provider-runtime';
 
 /** The application-wide tool registry. Populated at startup. */
 export const toolRegistry = new ToolRegistry();
@@ -33,3 +37,19 @@ export const assistantConversationService = createAssistantConversationService(p
 export const assistantContextService = createAssistantContextService(prisma);
 export const assistantFinancialDraftService = createAssistantFinancialDraftService(prisma, transactionService);
 export const assistantApplicationService = createAssistantApplicationService({ conversations: assistantConversationService, contexts: assistantContextService, toolRegistry, handlerRegistry, financialDrafts: assistantFinancialDraftService });
+export const assistantProviderAuditService = createAssistantProviderAuditService(prisma);
+export const assistantProviderRuntime = assistantProviderConfig.enabled
+  ? createAssistantProviderRuntime({
+    application: assistantApplicationService,
+    conversations: assistantConversationService,
+    provider: createGeminiAssistantProvider({
+      apiKey: assistantProviderConfig.apiKey!,
+      model: assistantProviderConfig.model!,
+      timeoutMs: assistantProviderConfig.timeoutMs,
+      maxResponseBytes: assistantProviderConfig.maxResponseBytes,
+    }),
+    audit: assistantProviderAuditService,
+    toolRegistry,
+    timeoutMs: assistantProviderConfig.timeoutMs,
+  })
+  : undefined;

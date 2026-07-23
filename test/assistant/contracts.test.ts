@@ -241,7 +241,7 @@ describe('monthlySpendingSummary contract metadata', () => {
     const allowedKeys = new Set([
       'id', 'description', 'capability', 'riskLevel',
       'confirmationPolicy', 'idempotencyPolicy', 'timeoutMs',
-      'enabled', 'validateInput', 'validateOutput',
+      'enabled', 'providerArguments', 'validateInput', 'validateOutput',
     ]);
     for (const key of Object.keys(monthlySpendingSummary)) {
       expect(allowedKeys.has(key)).toBe(true);

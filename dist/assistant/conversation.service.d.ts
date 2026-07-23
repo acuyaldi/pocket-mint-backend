@@ -1,7 +1,8 @@
 import type { PrismaClient, Prisma } from '../generated/prisma/client';
-import type { BeginTurnInput, BeginTurnResult, ConversationMessageDto, ConversationSummaryDto, FinalizeToolInput, Page } from './conversation.types';
+import type { BeginTurnInput, BeginTurnResult, ConversationMessageDto, ConversationSummaryDto, FinalizeToolInput, FinalizeWithoutToolInput, Page } from './conversation.types';
 export declare function createAssistantConversationService(db: PrismaClient): {
     assertContinuable: (userId: string, id: string) => Promise<void>;
+    establishConversation: (userId: string, conversationId: string | undefined, locale: string) => Promise<string>;
     beginTurn: (input: BeginTurnInput) => Promise<BeginTurnResult>;
     markTurnRunning: (turnId: string) => Promise<void>;
     beginToolExecution: (input: {
@@ -19,6 +20,7 @@ export declare function createAssistantConversationService(db: PrismaClient): {
         content: string;
         safeErrorCode: string;
     }) => Promise<void>;
+    finalizeWithoutTool: (input: FinalizeWithoutToolInput) => Promise<void>;
     listOwnedConversations: (userId: string, page?: number, limit?: number) => Promise<Page<ConversationSummaryDto>>;
     getOwnedConversation: (userId: string, id: string, page?: number, limit?: number) => Promise<{
         conversation: {
@@ -40,22 +42,22 @@ export declare function createAssistantConversationService(db: PrismaClient): {
             id: string;
             status: import("@/generated/prisma").$Enums.AssistantTurnStatus;
             correlationId: string;
-            intent: string;
-            safeErrorCode: string | null;
             startedAt: Date;
+            safeErrorCode: string | null;
+            intent: string;
             finishedAt: Date | null;
             toolExecutions: {
                 id: string;
                 status: import("@/generated/prisma").$Enums.AssistantToolExecutionStatus;
                 correlationId: string;
-                safeErrorCode: string | null;
                 startedAt: Date;
+                completedAt: Date | null;
+                durationMs: number | null;
+                safeErrorCode: string | null;
                 toolId: string;
                 capability: string;
                 riskLevel: string;
                 policyDecision: string;
-                completedAt: Date | null;
-                durationMs: number | null;
             }[];
         }[];
     }>;

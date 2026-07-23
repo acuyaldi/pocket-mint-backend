@@ -2,11 +2,12 @@ import type { NextFunction, Request, Response } from 'express';
 import { getAuthenticatedUserId } from '../http/authContext';
 import { forwardError } from '../http/forwardError';
 import { sendError, sendSuccess } from '../utils/response';
-import { assistantApplicationService, assistantConversationService, assistantFinancialDraftService } from '../assistant/bootstrap';
+import { assistantApplicationService, assistantConversationService, assistantFinancialDraftService, assistantProviderRuntime } from '../assistant/bootstrap';
 import type { AssistantApplicationService } from '../assistant/application.service';
 import type { AssistantConversationService } from '../assistant/conversation.service';
 import type { AssistantCanonicalRequest } from '../assistant/types';
 import type { AssistantFinancialDraftService } from '../assistant/financial-draft.service';
+import type { AssistantProviderRuntime } from '../assistant/provider-runtime';
 
 function canonicalRequest(body: unknown): body is AssistantCanonicalRequest {
   if (typeof body !== 'object' || body === null) return false;
@@ -17,6 +18,16 @@ function canonicalRequest(body: unknown): body is AssistantCanonicalRequest {
     (value.locale === undefined || typeof value.locale === 'string');
 }
 
+function providerMessageRequest(body: unknown): body is { message: string; conversationId?: string } {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return false;
+  const value = body as Record<string, unknown>;
+  const keys = Object.keys(value).sort();
+  if (keys.some((key) => key !== 'conversationId' && key !== 'message')) return false;
+  return typeof value.message === 'string' &&
+    Boolean(value.message.trim()) &&
+    (value.conversationId === undefined || typeof value.conversationId === 'string');
+}
+
 const intQuery = (value: unknown): number | undefined => {
   const text = Array.isArray(value) ? value[0] : value;
   if (typeof text !== 'string' || !/^\d+$/.test(text)) return undefined;
@@ -25,7 +36,12 @@ const intQuery = (value: unknown): number | undefined => {
 
 const routeId = (value: string | string[]): string => Array.isArray(value) ? value[0] : value;
 
-export function createAssistantControllers(application: AssistantApplicationService, conversations: AssistantConversationService, drafts?: AssistantFinancialDraftService) {
+export function createAssistantControllers(
+  application: AssistantApplicationService,
+  conversations: AssistantConversationService,
+  drafts?: AssistantFinancialDraftService,
+  providerRuntime?: AssistantProviderRuntime,
+) {
   async function execute(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = getAuthenticatedUserId(req);
@@ -35,6 +51,30 @@ export function createAssistantControllers(application: AssistantApplicationServ
       if (result.response.status === 'success') return sendSuccess(res, result.response, 'Assistant executed successfully');
       res.status(result.httpStatus).json({ success: false, error: { ...result.response, statusCode: result.httpStatus } });
     } catch (error) { forwardError(error, res, next); }
+  }
+
+  async function messages(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = getAuthenticatedUserId(req);
+      if (!userId) return sendError(res, 'Unauthorized', 401);
+      if (!providerRuntime) return sendError(res, 'Assistant provider is unavailable', 503, 'ASSISTANT_PROVIDER_UNAVAILABLE');
+      if (!providerMessageRequest(req.body)) {
+        return sendError(res, 'Request body must include a non-empty string "message" and an optional string "conversationId"', 400, 'BAD_REQUEST');
+      }
+      const result = await providerRuntime.sendMessage(userId, req.correlationId, {
+        message: req.body.message,
+        ...(req.body.conversationId === undefined ? {} : { conversationId: req.body.conversationId }),
+      });
+      if (result.response.status === 'error' || result.response.status === 'rejected') {
+        return void res.status(result.httpStatus).json({
+          success: false,
+          error: { ...result.response, statusCode: result.httpStatus },
+        });
+      }
+      sendSuccess(res, result.response, 'Assistant message processed');
+    } catch (error) {
+      forwardError(error, res, next);
+    }
   }
 
   async function list(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -77,11 +117,12 @@ export function createAssistantControllers(application: AssistantApplicationServ
       sendSuccess(res, await drafts.cancel(userId, routeId(req.params.draftId), req.correlationId), 'Financial draft cancelled');
     } catch (error) { forwardError(error, res, next); }
   }
-  return { execute, list, get, archive, confirmDraft, cancelDraft };
+  return { execute, messages, list, get, archive, confirmDraft, cancelDraft };
 }
 
-const controllers = createAssistantControllers(assistantApplicationService, assistantConversationService, assistantFinancialDraftService);
+const controllers = createAssistantControllers(assistantApplicationService, assistantConversationService, assistantFinancialDraftService, assistantProviderRuntime);
 export const assistantExecute = controllers.execute;
+export const assistantMessages = controllers.messages;
 export const listAssistantConversations = controllers.list;
 export const getAssistantConversation = controllers.get;
 export const archiveAssistantConversation = controllers.archive;
