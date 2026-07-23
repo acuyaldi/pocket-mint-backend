@@ -20,4 +20,8 @@ export {
   createEntityResolutionService,
   toPublicEntityResolutionResult,
 } from './service';
+export {
+  createWalletResolver,
+  WALLET_TRANSACTION_CREATE_CONSTRAINTS,
+} from './wallet-resolver';
 export * from './types';

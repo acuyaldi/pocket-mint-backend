@@ -17,6 +17,11 @@ import { createAssistantControllers } from '../../src/controllers/assistant.cont
 import { correlationMiddleware } from '../../src/http/correlation';
 import { errorHandler } from '../../src/middlewares/error.middleware';
 import { AssistantProviderError } from '../../src/assistant/provider-types';
+import {
+  EntityResolverRegistry,
+  createEntityResolutionService,
+  createWalletResolver,
+} from '../../src/assistant/entity-resolution';
 
 const url = process.env.TEST_DATABASE_URL;
 if (url) assertTestDatabaseUrl(url);
@@ -54,7 +59,13 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
     });
     users.push(user.id);
     const wallet = await resources!.prisma.wallet.create({
-      data: { userId: user.id, name: 'Cash', type: 'CASH', balance: 100000, initialBalance: 100000 },
+      data: {
+        userId: user.id,
+        name: `${label} Cash`,
+        type: 'CASH',
+        balance: 100000,
+        initialBalance: 100000,
+      },
     });
     const category = await resources!.prisma.category.create({
       data: { userId: user.id, name: 'Food', type: 'EXPENSE', icon: 'food', color: '#000000' },
@@ -72,12 +83,16 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
     const registry = new ToolRegistry();
     registry.register(monthlySpendingSummary);
     registry.register(transactionCreate);
+    const entityResolvers = new EntityResolverRegistry();
+    entityResolvers.register(createWalletResolver(resources!.prisma));
+    entityResolvers.finalize();
     const application = createAssistantApplicationService({
       conversations,
       contexts,
       toolRegistry: registry,
       handlerRegistry: new Map([[monthlySpendingSummary.id, handleMonthlySpendingSummary as never]]),
       financialDrafts: drafts,
+      entityResolution: createEntityResolutionService(entityResolvers),
     });
     const prepareSpy = vi.spyOn(application, 'prepareProviderExecution');
     const provider = {
@@ -282,7 +297,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
       arguments: {
         type: 'EXPENSE',
         amount: '12500.50',
-        walletId: wallet.id,
+        walletReference: wallet.name,
         categoryId: category.id,
         date: '2026-07-23',
         description: 'Lunch',
@@ -294,12 +309,14 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
     const { server } = setup(generate);
 
     const prepared = await request(server).post('/messages').set('x-test-user', user.id)
-      .send({ message: `Catat lunch dari wallet ${wallet.id} kategori ${category.id}` });
+      .send({ message: `Catat lunch dari wallet ${wallet.name} kategori ${category.id}` });
     expect(prepared.status).toBe(200);
     expect(prepared.body.data.data).toMatchObject({
       status: 'PENDING_CONFIRMATION',
       confirmationRequired: true,
+      preview: { wallet: wallet.name },
     });
+    expect(prepared.body.data.data.preview).not.toHaveProperty('walletId');
     expect(prepared.body.data.renderedText).not.toContain('Transaction created successfully');
     expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(0);
     expect((await resources!.prisma.wallet.findUniqueOrThrow({ where: { id: wallet.id } })).balance.toString()).toBe('100000');
@@ -312,21 +329,139 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
     expect((await resources!.prisma.wallet.findUniqueOrThrow({ where: { id: wallet.id } })).balance.toString()).toBe('87499.5');
   });
 
+  it('returns safe deterministic options for ambiguous wallet aliases without creating a draft', async () => {
+    const { user, category } = await fixture('ambiguous');
+    const wallets = await Promise.all([
+      resources!.prisma.wallet.create({
+        data: {
+          userId: user.id,
+          name: 'BCA Payroll',
+          type: 'BANK',
+          balance: 50000,
+          initialBalance: 50000,
+        },
+      }),
+      resources!.prisma.wallet.create({
+        data: {
+          userId: user.id,
+          name: 'BCA Debit',
+          type: 'BANK',
+          balance: 50000,
+          initialBalance: 50000,
+        },
+      }),
+    ]);
+    const generate = vi.fn().mockResolvedValue(modelResponse({
+      kind: 'intent',
+      intent: 'transaction.create',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '20000',
+        walletReference: 'BCA',
+        categoryId: category.id,
+        date: '2026-07-23',
+      },
+      clarification: null,
+      userMessage: '',
+    }));
+    const { server } = setup(generate);
+
+    const response = await request(server).post('/messages').set('x-test-user', user.id)
+      .send({ message: 'Beli bakso 20000 pakai BCA' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toMatchObject({
+      status: 'clarification_required',
+      data: { kind: 'ambiguous' },
+    });
+    expect(response.body.data.data.options).toHaveLength(2);
+    expect(response.body.data.data.options.map(
+      (option: { displayLabel: string; discriminator?: string }) => ({
+        displayLabel: option.displayLabel,
+        discriminator: option.discriminator,
+      }),
+    )).toEqual(expect.arrayContaining([
+      { displayLabel: 'BCA Debit', discriminator: 'BANK' },
+      { displayLabel: 'BCA Payroll', discriminator: 'BANK' },
+    ]));
+    expect(JSON.stringify(response.body)).not.toContain(wallets[0].id);
+    expect(JSON.stringify(response.body)).not.toContain(wallets[1].id);
+    expect(await resources!.prisma.assistantFinancialDraft.count({
+      where: { userId: user.id },
+    })).toBe(0);
+    expect(await resources!.prisma.transaction.count({ where: { userId: user.id } }))
+      .toBe(0);
+  });
+
+  it('treats an archived wallet as not_found and creates no financial state', async () => {
+    const { user, category } = await fixture('archived');
+    await resources!.prisma.wallet.create({
+      data: {
+        userId: user.id,
+        name: 'Dormant BCA',
+        type: 'BANK',
+        balance: 50000,
+        initialBalance: 50000,
+        isArchived: true,
+      },
+    });
+    const generate = vi.fn().mockResolvedValue(modelResponse({
+      kind: 'intent',
+      intent: 'transaction.create',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '20000',
+        walletReference: 'Dormant BCA',
+        categoryId: category.id,
+        date: '2026-07-23',
+      },
+      clarification: null,
+      userMessage: '',
+    }));
+    const { server } = setup(generate);
+
+    const response = await request(server).post('/messages').set('x-test-user', user.id)
+      .send({ message: 'Beli bakso 20000 pakai Dormant BCA' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toMatchObject({
+      status: 'clarification_required',
+      data: { kind: 'not_found', entityType: 'wallet' },
+    });
+    expect(await resources!.prisma.assistantFinancialDraft.count({
+      where: { userId: user.id },
+    })).toBe(0);
+    expect(await resources!.prisma.transaction.count({ where: { userId: user.id } }))
+      .toBe(0);
+  });
+
   it.each(['wallet', 'category'])('still validates %s ownership before creating a draft', async (foreignKind) => {
     const owner = await fixture(`ownership-owner-${foreignKind}`);
     const other = await fixture(`ownership-other-${foreignKind}`);
-    const walletId = foreignKind === 'wallet' ? other.wallet.id : owner.wallet.id;
+    const walletReference = foreignKind === 'wallet' ? other.wallet.name : owner.wallet.name;
     const categoryId = foreignKind === 'category' ? other.category.id : owner.category.id;
     const generate = vi.fn().mockResolvedValue(modelResponse({
       kind: 'intent',
       intent: 'transaction.create',
-      arguments: { type: 'EXPENSE', amount: '1000', walletId, categoryId, date: '2026-07-23' },
+      arguments: {
+        type: 'EXPENSE',
+        amount: '1000',
+        walletReference,
+        categoryId,
+        date: '2026-07-23',
+      },
       clarification: null,
       userMessage: '',
     }));
     const { server } = setup(generate);
     const response = await request(server).post('/messages').set('x-test-user', owner.user.id).send({ message: 'prepare' });
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(foreignKind === 'wallet' ? 200 : 404);
+    if (foreignKind === 'wallet') {
+      expect(response.body.data).toMatchObject({
+        status: 'clarification_required',
+        data: { kind: 'not_found', entityType: 'wallet' },
+      });
+    }
     expect(await resources!.prisma.assistantFinancialDraft.count({ where: { userId: owner.user.id } })).toBe(0);
     expect(await resources!.prisma.transaction.count({ where: { userId: owner.user.id } })).toBe(0);
   });

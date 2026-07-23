@@ -59,6 +59,15 @@ export function validateAssistantPlan(output: unknown, registry: ToolRegistry): 
     if (typeof output.intent !== 'string' || output.clarification !== null) invalid();
     const contract = registry.get(output.intent);
     if (!contract || !contract.enabled) invalid();
+    const providerKeys = new Set(Object.keys(contract.providerArguments.properties));
+    if (
+      Object.keys(output.arguments).some((key) => !providerKeys.has(key))
+      || contract.providerArguments.required.some(
+        (key) => !Object.prototype.hasOwnProperty.call(output.arguments, key),
+      )
+    ) {
+      invalid();
+    }
     let validatedArguments: unknown;
     try {
       validatedArguments = contract.validateInput(output.arguments);

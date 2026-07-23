@@ -12,8 +12,8 @@ function validateIdempotencyKey(value) {
     }
     return value;
 }
-function renderTransactionDraftPreview(input) {
+function renderTransactionDraftPreview(input, walletDisplayLabel = input.walletId) {
     const note = input.description === undefined ? '' : `, catatan: ${input.description}`;
-    return `Draft transaksi ${input.type} sebesar ${input.amount} pada ${input.date} (wallet ${input.walletId}, kategori ${input.categoryId}${note}). Konfirmasi eksplisit diperlukan sebelum transaksi dibuat.`;
+    return `Draft transaksi ${input.type} sebesar ${input.amount} pada ${input.date} (wallet ${walletDisplayLabel}, kategori ${input.categoryId}${note}). Konfirmasi eksplisit diperlukan sebelum transaksi dibuat.`;
 }
 //# sourceMappingURL=financial-draft.js.map

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createAssistantApplicationService } from '../../src/assistant/application.service';
 import { ToolRegistry } from '../../src/assistant/registry';
-import { monthlySpendingSummary } from '../../src/assistant/tools';
+import { monthlySpendingSummary, transactionCreate } from '../../src/assistant/tools';
 
 function setup() {
   const conversations = {
@@ -9,15 +9,51 @@ function setup() {
     markTurnRunning: vi.fn().mockResolvedValue(undefined), beginToolExecution: vi.fn().mockResolvedValue('e1'), finalize: vi.fn().mockResolvedValue(undefined),
     finalizeRejected: vi.fn().mockResolvedValue(undefined),
   } as any;
-  const registry = new ToolRegistry(); registry.register(monthlySpendingSummary);
+  const registry = new ToolRegistry();
+  registry.register(monthlySpendingSummary);
+  registry.register(transactionCreate);
   const handler = vi.fn().mockResolvedValue({ month: '2026-07', totalIncome: 10, totalExpense: 4, netSavings: 6, transactionCount: 2, topCategories: [] });
+  const financialDrafts = {
+    prepare: vi.fn().mockResolvedValue({
+      draftId: 'd1',
+      status: 'PENDING_CONFIRMATION',
+      confirmationRequired: true,
+      renderedText: 'Draft transaksi menunggu konfirmasi.',
+    }),
+  };
+  const entityResolution = {
+    resolve: vi.fn().mockResolvedValue({
+      kind: 'resolved',
+      entityType: 'wallet',
+      entity: { internalId: 'wallet-resolved' },
+      displayLabel: 'BCA Debit',
+      discriminator: 'BANK',
+      confidence: { score: 1000, band: 'exact' },
+      evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
+    }),
+  };
   const context = {
     system: { contextVersion: '1' as const, locale: 'id-ID' },
     conversation: { conversationId: 'c1', createdAt: '2026-07-23T00:00:00.000Z', updatedAt: '2026-07-23T00:00:00.000Z', archived: false },
     turns: [], toolExecutions: [], currentRequest: { role: 'USER' as const, content: 'Halo', source: 'CURRENT_REQUEST' as const },
   };
   const contexts = { buildExecutionContext: vi.fn().mockResolvedValue(context) };
-  return { conversations, contexts, context, handler, service: createAssistantApplicationService({ conversations, contexts, toolRegistry: registry, handlerRegistry: new Map([[monthlySpendingSummary.id, handler]]) }) };
+  return {
+    conversations,
+    contexts,
+    context,
+    handler,
+    financialDrafts,
+    entityResolution,
+    service: createAssistantApplicationService({
+      conversations,
+      contexts,
+      toolRegistry: registry,
+      handlerRegistry: new Map([[monthlySpendingSummary.id, handler]]),
+      financialDrafts: financialDrafts as never,
+      entityResolution: entityResolution as never,
+    }),
+  };
 }
 
 describe('Assistant application lifecycle', () => {
@@ -98,5 +134,167 @@ describe('Assistant application lifecycle', () => {
     conversations.finalize.mockRejectedValue(new Error('final persistence unavailable'));
     await expect(service.execute('u1', 'corr6', { intent: monthlySpendingSummary.id, arguments: { month: '2026-07' } })).rejects.toThrow('final persistence unavailable');
     expect(conversations.finalize).toHaveBeenCalledTimes(1);
+  });
+
+  it('resolves walletReference with backend-owned constraints before preparing a draft', async () => {
+    const { service, entityResolution, financialDrafts } = setup();
+
+    const result = await service.execute('u1', 'corr-wallet', {
+      intent: 'transaction.create',
+      message: 'Beli bakso 20000 pakai BCA',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '20000',
+        walletReference: 'bca',
+        categoryId: 'category-1',
+        date: '2026-07-23',
+      },
+    });
+
+    expect(result.response.status).toBe('success');
+    expect(entityResolution.resolve).toHaveBeenCalledWith({
+      authenticatedUserId: 'u1',
+      reference: {
+        entityType: 'wallet',
+        referenceText: 'bca',
+        source: 'provider_extracted',
+      },
+      trustedConstraints: {
+        eligibleFor: 'transaction.create',
+        activeOnly: true,
+      },
+    });
+    expect(financialDrafts.prepare).toHaveBeenCalledWith(expect.objectContaining({
+      walletId: 'wallet-resolved',
+      walletDisplayLabel: 'BCA Debit',
+    }));
+    expect(financialDrafts.prepare).not.toHaveBeenCalledWith(expect.objectContaining({
+      walletReference: expect.anything(),
+    }));
+  });
+
+  it('returns deterministic safe options for ambiguous wallets without drafting', async () => {
+    const { service, entityResolution, financialDrafts, conversations } = setup();
+    entityResolution.resolve.mockResolvedValue({
+      kind: 'ambiguous',
+      entityType: 'wallet',
+      options: [
+        {
+          displayLabel: 'BCA Debit',
+          discriminator: 'BANK',
+          confidence: { score: 950, band: 'strong' },
+          evidence: [{ kind: 'alias_exact', scoreContribution: 950 }],
+          selection: { internalId: 'secret-wallet-a' },
+        },
+        {
+          displayLabel: 'BCA Payroll',
+          discriminator: 'BANK',
+          confidence: { score: 950, band: 'strong' },
+          evidence: [{ kind: 'alias_exact', scoreContribution: 950 }],
+          selection: { internalId: 'secret-wallet-b' },
+        },
+      ],
+    });
+
+    const result = await service.execute('u1', 'corr-ambiguous', {
+      intent: 'transaction.create',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '20000',
+        walletReference: 'BCA',
+        categoryId: 'category-1',
+        date: '2026-07-23',
+      },
+    });
+
+    expect(result.response).toMatchObject({
+      status: 'clarification_required',
+      message: expect.stringContaining('BCA Debit'),
+      data: {
+        kind: 'ambiguous',
+        options: [
+          { displayLabel: 'BCA Debit', discriminator: 'BANK' },
+          { displayLabel: 'BCA Payroll', discriminator: 'BANK' },
+        ],
+      },
+    });
+    expect(JSON.stringify(result.response)).not.toContain('secret-wallet');
+    expect(financialDrafts.prepare).not.toHaveBeenCalled();
+    expect(conversations.finalize).toHaveBeenCalledWith(expect.objectContaining({
+      status: 'SUCCEEDED',
+      turnStatus: 'CLARIFICATION_REQUIRED',
+    }));
+  });
+
+  it('returns not_found without drafting or leaking cross-owner wallets', async () => {
+    const { service, entityResolution, financialDrafts } = setup();
+    entityResolution.resolve.mockResolvedValue({
+      kind: 'not_found',
+      entityType: 'wallet',
+      normalizedReference: 'private wallet',
+    });
+
+    const result = await service.execute('u1', 'corr-not-found', {
+      intent: 'transaction.create',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '20000',
+        walletReference: 'Private Wallet',
+        categoryId: 'category-1',
+        date: '2026-07-23',
+      },
+    });
+
+    expect(result.response).toMatchObject({
+      status: 'clarification_required',
+      data: { kind: 'not_found', entityType: 'wallet' },
+    });
+    expect(financialDrafts.prepare).not.toHaveBeenCalled();
+  });
+
+  it('keeps walletId compatibility without invoking textual resolution', async () => {
+    const { service, entityResolution, financialDrafts } = setup();
+
+    await service.execute('u1', 'corr-compatible', {
+      intent: 'transaction.create',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '20000',
+        walletId: 'wallet-internal',
+        categoryId: 'category-1',
+        date: '2026-07-23',
+      },
+    });
+
+    expect(entityResolution.resolve).not.toHaveBeenCalled();
+    expect(financialDrafts.prepare).toHaveBeenCalledWith(expect.objectContaining({
+      walletId: 'wallet-internal',
+    }));
+  });
+
+  it('rejects an invalid wallet reference outcome without drafting', async () => {
+    const { service, entityResolution, financialDrafts } = setup();
+    entityResolution.resolve.mockResolvedValue({
+      kind: 'invalid_reference',
+      entityType: 'wallet',
+      code: 'ENTITY_RESOLUTION_INVALID_REFERENCE',
+    });
+
+    const result = await service.execute('u1', 'corr-invalid-reference', {
+      intent: 'transaction.create',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '20000',
+        walletReference: '\u0000',
+        categoryId: 'category-1',
+        date: '2026-07-23',
+      },
+    });
+
+    expect(result.response).toMatchObject({
+      status: 'rejected',
+      code: 'ASSISTANT_INVALID_INPUT',
+    });
+    expect(financialDrafts.prepare).not.toHaveBeenCalled();
   });
 });
