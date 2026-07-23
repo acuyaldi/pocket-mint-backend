@@ -6,15 +6,17 @@ const provider_types_1 = require("./provider-types");
 const TOP_LEVEL_KEYS = ['arguments', 'clarification', 'intent', 'kind', 'userMessage'];
 const FORBIDDEN_KEYS = new Set([
     '__proto__', 'prototype', 'constructor',
-    'analysis', 'reasoning', 'chainOfThought', 'scratchpad',
-    'userId', 'ownerId', 'authorized', 'validated', 'walletOwned',
-    'transactionCreated', 'confirmationComplete',
+    'analysis', 'reasoning', 'chainofthought', 'scratchpad',
+    'userid', 'ownerid', 'authorized', 'validated', 'walletowned',
+    'transactioncreated', 'confirmationcomplete',
 ]);
 const MAX_RESPONSE_BYTES = 32 * 1024;
 const MAX_PLAN_DEPTH = 6;
 const SAFE_CLARIFICATION = 'Mohon lengkapi informasi transaksi yang masih diperlukan.';
 const SAFE_UNSUPPORTED = 'Permintaan tersebut belum didukung oleh Assistant.';
-const SECRET_REQUEST = /\b(api[- ]?key|password|passcode|secret|credential|bearer|access[- ]?token|refresh[- ]?token)\b/i;
+const SECRET_REQUEST = /\b(api[- ]?key|password|passcode|kata sandi|pin|otp|one[- ]?time password|secret|credential|bank login|bearer|access[- ]?token|refresh[- ]?token|recovery (?:code|phrase)|kode pemulihan|seed phrase|mnemonic|private key|frasa pemulihan|disable security|nonaktifkan keamanan|skip (?:security|verification)|lewati verifikasi)\b/i;
+const UNSAFE_MARKUP = /[<>]|!?\[[^\]]*\]\s*\(|(?:https?:\/\/|javascript:|data:)/i;
+const UNSAFE_CONTROL = /[\u0000-\u001f\u007f-\u009f\u2028\u2029\u202a-\u202e\u2066-\u2069]/u;
 function invalid() {
     throw provider_types_1.AssistantProviderError.invalidResponse();
 }
@@ -26,7 +28,7 @@ function inspect(value, depth = 0) {
     if (Array.isArray(value))
         invalid();
     for (const [key, child] of Object.entries(value)) {
-        if (FORBIDDEN_KEYS.has(key))
+        if (FORBIDDEN_KEYS.has(key.normalize('NFKC').toLowerCase()))
             invalid();
         inspect(child, depth + 1);
     }
@@ -84,9 +86,12 @@ function validateAssistantPlan(output, registry) {
         const question = output.clarification.question;
         if (typeof question !== 'string' || !question.trim() || question.length > 500 || /[\r\n]/.test(question))
             invalid();
+        const unsafeQuestion = SECRET_REQUEST.test(question)
+            || UNSAFE_MARKUP.test(question)
+            || UNSAFE_CONTROL.test(question);
         return {
             kind: 'clarification',
-            question: SECRET_REQUEST.test(question) ? SAFE_CLARIFICATION : question.trim(),
+            question: unsafeQuestion ? SAFE_CLARIFICATION : question.trim(),
         };
     }
     if (output.kind === 'unsupported') {

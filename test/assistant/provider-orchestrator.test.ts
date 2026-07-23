@@ -198,4 +198,63 @@ describe('Assistant provider runtime orchestration', () => {
     expect(conversations.beginTurn).not.toHaveBeenCalled();
     expect(conversations.finalizeWithoutTool).not.toHaveBeenCalled();
   });
+
+  it('returns a committed deterministic result when provider-audit finalization fails', async () => {
+    const { runtime, application, audit } = setup();
+    audit.finalize.mockRejectedValue(new Error('audit update failed'));
+
+    await expect(runtime.sendMessage('u1', 'corr-1', { message: 'request' }))
+      .resolves.toMatchObject({ httpStatus: 200, response: { status: 'success', turnId: 't1' } });
+    expect(application.execute).toHaveBeenCalledOnce();
+    expect(audit.finalize).toHaveBeenCalledOnce();
+  });
+
+  it.each(['OTHER', 'UNKNOWN'] as const)('rejects a non-terminal %s finish before execution', async (finishClassification) => {
+    const setupResult = setup();
+    setupResult.provider.generateStructuredResponse.mockResolvedValue({
+      output: {
+        kind: 'intent',
+        intent: 'analytics.monthly-spending-summary',
+        arguments: { month: '2026-07' },
+        clarification: null,
+        userMessage: '',
+      },
+      outputBytes: 100,
+      finishClassification,
+    });
+
+    const result = await setupResult.runtime.sendMessage('u1', 'corr-1', { message: 'request' });
+
+    expect(result).toMatchObject({
+      httpStatus: 502,
+      response: { code: 'ASSISTANT_PROVIDER_INVALID_RESPONSE' },
+    });
+    expect(setupResult.application.execute).not.toHaveBeenCalled();
+  });
+
+  it('ignores a provider resolution that arrives after the timeout terminal result', async () => {
+    const setupResult = setup();
+    setupResult.provider.generateStructuredResponse.mockImplementation(() => new Promise((resolve) => {
+      setTimeout(() => resolve({
+        output: {
+          kind: 'intent',
+          intent: 'analytics.monthly-spending-summary',
+          arguments: { month: '2026-07' },
+          clarification: null,
+          userMessage: '',
+        },
+        outputBytes: 100,
+        finishClassification: 'STOP',
+      }), 25);
+    }));
+    const shortRuntime = createAssistantProviderRuntime({ ...setupResult.dependencies, timeoutMs: 5 });
+
+    const result = await shortRuntime.sendMessage('u1', 'corr-1', { message: 'request' });
+    await new Promise((resolve) => setTimeout(resolve, 35));
+
+    expect(result).toMatchObject({ httpStatus: 504, response: { code: 'ASSISTANT_PROVIDER_TIMEOUT' } });
+    expect(setupResult.application.execute).not.toHaveBeenCalled();
+    expect(setupResult.conversations.finalizeWithoutTool).toHaveBeenCalledOnce();
+    expect(setupResult.audit.finalize).toHaveBeenCalledOnce();
+  });
 });

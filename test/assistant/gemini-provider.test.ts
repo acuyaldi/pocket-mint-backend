@@ -45,6 +45,7 @@ describe('Gemini Assistant provider adapter', () => {
         responseJsonSchema: ASSISTANT_RESPONSE_JSON_SCHEMA,
         temperature: 0,
         candidateCount: 1,
+        maxOutputTokens: 4096,
         abortSignal: request.signal,
         httpOptions: { timeout: 12_000, retryOptions: { attempts: 1 } },
       },
@@ -54,6 +55,7 @@ describe('Gemini Assistant provider adapter', () => {
   it.each([
     ['empty output', { text: '', candidates: [{ finishReason: 'STOP' }] }],
     ['malformed JSON', { text: '{nope', candidates: [{ finishReason: 'STOP' }] }],
+    ['duplicate JSON fields', { text: '{"kind":"unsupported","kind":"intent","intent":null,"arguments":{},"clarification":null,"userMessage":""}', candidates: [{ finishReason: 'STOP' }] }],
     ['oversized output', { text: JSON.stringify({ value: 'x'.repeat(33 * 1024) }), candidates: [{ finishReason: 'STOP' }] }],
   ])('rejects %s without returning raw provider content', async (_label, sdkResponse) => {
     const provider = createGeminiAssistantProvider({

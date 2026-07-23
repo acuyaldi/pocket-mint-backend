@@ -69,6 +69,23 @@ function normalizeProviderError(error: unknown): AssistantProviderError {
 }
 
 export function createAssistantProviderRuntime(deps: RuntimeDependencies) {
+  async function finalizeAuditSafely(
+    id: string,
+    input: Parameters<AssistantProviderAudit['finalize']>[1],
+    metadata: { correlationId: string; conversationId: string },
+  ): Promise<void> {
+    try {
+      await deps.audit.finalize(id, input);
+    } catch {
+      logger.warn('assistant_provider_audit_finalize_failed', {
+        ...metadata,
+        provider: deps.provider.kind,
+        model: deps.provider.model,
+        status: input.status,
+      });
+    }
+  }
+
   async function persistNonToolResult(
     userId: string,
     correlationId: string,
@@ -142,6 +159,7 @@ export function createAssistantProviderRuntime(deps: RuntimeDependencies) {
     try {
       const providerResponse = await invokeProvider(request, abortController);
       if (providerResponse.finishClassification === 'SAFETY') throw AssistantProviderError.refused();
+      if (providerResponse.finishClassification !== 'STOP') throw AssistantProviderError.invalidResponse();
       const plan = validateAssistantPlan(providerResponse.output, deps.toolRegistry);
       providerStageComplete = true;
       const durationMs = Date.now() - startedAt;
@@ -154,14 +172,14 @@ export function createAssistantProviderRuntime(deps: RuntimeDependencies) {
           arguments: plan.arguments,
           locale,
         });
-        await deps.audit.finalize(providerExecutionId, {
+        await finalizeAuditSafely(providerExecutionId, {
           status: 'PLAN_ACCEPTED',
           turnId: result.response.turnId,
           durationMs,
           outputBytes: providerResponse.outputBytes,
           finishClassification: providerResponse.finishClassification,
           usage: providerResponse.usage,
-        });
+        }, { correlationId, conversationId });
         return result;
       }
 
@@ -172,14 +190,14 @@ export function createAssistantProviderRuntime(deps: RuntimeDependencies) {
           assistantContent: plan.question,
           assistantSource: 'PROVIDER_CLARIFICATION',
         });
-        await deps.audit.finalize(providerExecutionId, {
+        await finalizeAuditSafely(providerExecutionId, {
           status: 'CLARIFICATION',
           turnId: turn.turnId,
           durationMs,
           outputBytes: providerResponse.outputBytes,
           finishClassification: providerResponse.finishClassification,
           usage: providerResponse.usage,
-        });
+        }, { correlationId, conversationId });
         return {
           httpStatus: 200,
           response: { status: 'clarification_required', message: plan.question, correlationId, ...turn },
@@ -192,14 +210,14 @@ export function createAssistantProviderRuntime(deps: RuntimeDependencies) {
         assistantContent: plan.message,
         assistantSource: 'DETERMINISTIC_RENDERER',
       });
-      await deps.audit.finalize(providerExecutionId, {
+      await finalizeAuditSafely(providerExecutionId, {
         status: 'UNSUPPORTED',
         turnId: turn.turnId,
         durationMs,
         outputBytes: providerResponse.outputBytes,
         finishClassification: providerResponse.finishClassification,
         usage: providerResponse.usage,
-      });
+      }, { correlationId, conversationId });
       return {
         httpStatus: 200,
         response: { status: 'unsupported', message: plan.message, correlationId, ...turn },
@@ -216,12 +234,12 @@ export function createAssistantProviderRuntime(deps: RuntimeDependencies) {
         safeErrorCode: operational.code,
       });
       const durationMs = Date.now() - startedAt;
-      await deps.audit.finalize(providerExecutionId, {
+      await finalizeAuditSafely(providerExecutionId, {
         status: 'FAILED',
         turnId: turn.turnId,
         durationMs,
         safeErrorCode: operational.code,
-      });
+      }, { correlationId, conversationId });
       logger.warn('assistant_provider_execution', {
         correlationId,
         conversationId,

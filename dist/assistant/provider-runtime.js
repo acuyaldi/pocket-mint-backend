@@ -18,6 +18,19 @@ function normalizeProviderError(error) {
     return error instanceof provider_types_1.AssistantProviderError ? error : provider_types_1.AssistantProviderError.unavailable();
 }
 function createAssistantProviderRuntime(deps) {
+    async function finalizeAuditSafely(id, input, metadata) {
+        try {
+            await deps.audit.finalize(id, input);
+        }
+        catch {
+            logger_1.logger.warn('assistant_provider_audit_finalize_failed', {
+                ...metadata,
+                provider: deps.provider.kind,
+                model: deps.provider.model,
+                status: input.status,
+            });
+        }
+    }
     async function persistNonToolResult(userId, correlationId, conversationId, locale, message, input) {
         const turn = await deps.conversations.beginTurn({
             userId,
@@ -72,6 +85,8 @@ function createAssistantProviderRuntime(deps) {
             const providerResponse = await invokeProvider(request, abortController);
             if (providerResponse.finishClassification === 'SAFETY')
                 throw provider_types_1.AssistantProviderError.refused();
+            if (providerResponse.finishClassification !== 'STOP')
+                throw provider_types_1.AssistantProviderError.invalidResponse();
             const plan = (0, provider_plan_1.validateAssistantPlan)(providerResponse.output, deps.toolRegistry);
             providerStageComplete = true;
             const durationMs = Date.now() - startedAt;
@@ -83,14 +98,14 @@ function createAssistantProviderRuntime(deps) {
                     arguments: plan.arguments,
                     locale,
                 });
-                await deps.audit.finalize(providerExecutionId, {
+                await finalizeAuditSafely(providerExecutionId, {
                     status: 'PLAN_ACCEPTED',
                     turnId: result.response.turnId,
                     durationMs,
                     outputBytes: providerResponse.outputBytes,
                     finishClassification: providerResponse.finishClassification,
                     usage: providerResponse.usage,
-                });
+                }, { correlationId, conversationId });
                 return result;
             }
             if (plan.kind === 'clarification') {
@@ -100,14 +115,14 @@ function createAssistantProviderRuntime(deps) {
                     assistantContent: plan.question,
                     assistantSource: 'PROVIDER_CLARIFICATION',
                 });
-                await deps.audit.finalize(providerExecutionId, {
+                await finalizeAuditSafely(providerExecutionId, {
                     status: 'CLARIFICATION',
                     turnId: turn.turnId,
                     durationMs,
                     outputBytes: providerResponse.outputBytes,
                     finishClassification: providerResponse.finishClassification,
                     usage: providerResponse.usage,
-                });
+                }, { correlationId, conversationId });
                 return {
                     httpStatus: 200,
                     response: { status: 'clarification_required', message: plan.question, correlationId, ...turn },
@@ -119,14 +134,14 @@ function createAssistantProviderRuntime(deps) {
                 assistantContent: plan.message,
                 assistantSource: 'DETERMINISTIC_RENDERER',
             });
-            await deps.audit.finalize(providerExecutionId, {
+            await finalizeAuditSafely(providerExecutionId, {
                 status: 'UNSUPPORTED',
                 turnId: turn.turnId,
                 durationMs,
                 outputBytes: providerResponse.outputBytes,
                 finishClassification: providerResponse.finishClassification,
                 usage: providerResponse.usage,
-            });
+            }, { correlationId, conversationId });
             return {
                 httpStatus: 200,
                 response: { status: 'unsupported', message: plan.message, correlationId, ...turn },
@@ -145,12 +160,12 @@ function createAssistantProviderRuntime(deps) {
                 safeErrorCode: operational.code,
             });
             const durationMs = Date.now() - startedAt;
-            await deps.audit.finalize(providerExecutionId, {
+            await finalizeAuditSafely(providerExecutionId, {
                 status: 'FAILED',
                 turnId: turn.turnId,
                 durationMs,
                 safeErrorCode: operational.code,
-            });
+            }, { correlationId, conversationId });
             logger_1.logger.warn('assistant_provider_execution', {
                 correlationId,
                 conversationId,

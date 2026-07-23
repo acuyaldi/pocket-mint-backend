@@ -40,9 +40,13 @@ describe('Assistant provider configuration', () => {
 
   it.each([
     [{ ASSISTANT_PROVIDER: 'gemini' }, 'ASSISTANT_MODEL'],
+    [{ ASSISTANT_PROVIDER: 'gemini', ASSISTANT_MODEL: '   ', GEMINI_API_KEY: 'key' }, 'ASSISTANT_MODEL'],
     [{ ASSISTANT_PROVIDER: 'gemini', ASSISTANT_MODEL: 'gemini-test' }, 'GEMINI_API_KEY'],
     [{ ASSISTANT_PROVIDER: 'other', ASSISTANT_MODEL: 'model', GEMINI_API_KEY: 'key' }, 'ASSISTANT_PROVIDER'],
     [{ ASSISTANT_PROVIDER: 'gemini', ASSISTANT_MODEL: 'model', GEMINI_API_KEY: 'key', ASSISTANT_PROVIDER_TIMEOUT_MS: '0' }, 'ASSISTANT_PROVIDER_TIMEOUT_MS'],
+    [{ ASSISTANT_PROVIDER: 'gemini', ASSISTANT_MODEL: 'model', GEMINI_API_KEY: 'key', ASSISTANT_PROVIDER_TIMEOUT_MS: '120001' }, 'ASSISTANT_PROVIDER_TIMEOUT_MS'],
+    [{ ASSISTANT_PROVIDER: 'gemini', ASSISTANT_MODEL: 'model', GEMINI_API_KEY: 'key', ASSISTANT_PROVIDER_TIMEOUT_MS: '1.5' }, 'ASSISTANT_PROVIDER_TIMEOUT_MS'],
+    [{ ASSISTANT_PROVIDER: 'gemini', ASSISTANT_MODEL: 'model', GEMINI_API_KEY: 'key', ASSISTANT_PROVIDER_TIMEOUT_MS: 'Infinity' }, 'ASSISTANT_PROVIDER_TIMEOUT_MS'],
   ])('rejects invalid enabled configuration without echoing secrets', (env, field) => {
     expect(() => loadAssistantProviderConfig(env)).toThrow(field);
     try {

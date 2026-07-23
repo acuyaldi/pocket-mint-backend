@@ -66,12 +66,25 @@ describe('POST /api/v1/assistant/messages', () => {
     ['missing message', {}],
     ['empty message', { message: '   ' }],
     ['wrong message type', { message: 42 }],
+    ['object message', { message: { content: 'hello' } }],
+    ['array message', { message: ['hello'] }],
     ['wrong conversation type', { message: 'hello', conversationId: 42 }],
     ['unknown fields', { message: 'hello', userId: 'victim' }],
+    ['prototype-related fields', { message: 'hello', constructor: { userId: 'victim' } }],
   ])('rejects %s', async (_label, body) => {
     const response = await request(app()).post('/v1/assistant/messages').send(body);
     expect(response.status).toBe(400);
     expect(response.body).toMatchObject({ success: false, error: { code: 'BAD_REQUEST' } });
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('rejects a malformed content type before provider execution', async () => {
+    const response = await request(app())
+      .post('/v1/assistant/messages')
+      .set('Content-Type', 'text/plain')
+      .send('{"message":"hello"}');
+
+    expect(response.status).toBe(400);
     expect(sendMessage).not.toHaveBeenCalled();
   });
 

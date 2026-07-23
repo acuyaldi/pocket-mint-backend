@@ -71,6 +71,97 @@ function mapGeminiError(error: unknown): AssistantProviderError {
   return AssistantProviderError.unavailable();
 }
 
+function assertNoDuplicateJsonKeys(text: string): void {
+  let position = 0;
+  const skipWhitespace = () => {
+    while (position < text.length && /\s/.test(text[position])) position += 1;
+  };
+  const parseString = (): string => {
+    const start = position;
+    if (text[position] !== '"') throw new Error('Expected JSON string');
+    position += 1;
+    while (position < text.length) {
+      if (text[position] === '\\') {
+        position += 2;
+        continue;
+      }
+      if (text[position] === '"') {
+        position += 1;
+        return JSON.parse(text.slice(start, position)) as string;
+      }
+      position += 1;
+    }
+    throw new Error('Unterminated JSON string');
+  };
+  const parseValue = (): void => {
+    skipWhitespace();
+    const token = text[position];
+    if (token === '{') {
+      position += 1;
+      skipWhitespace();
+      const keys = new Set<string>();
+      if (text[position] === '}') {
+        position += 1;
+        return;
+      }
+      while (position < text.length) {
+        skipWhitespace();
+        const key = parseString();
+        if (keys.has(key)) throw new Error('Duplicate JSON key');
+        keys.add(key);
+        skipWhitespace();
+        if (text[position] !== ':') throw new Error('Expected JSON colon');
+        position += 1;
+        parseValue();
+        skipWhitespace();
+        if (text[position] === '}') {
+          position += 1;
+          return;
+        }
+        if (text[position] !== ',') throw new Error('Expected JSON comma');
+        position += 1;
+      }
+      throw new Error('Unterminated JSON object');
+    }
+    if (token === '[') {
+      position += 1;
+      skipWhitespace();
+      if (text[position] === ']') {
+        position += 1;
+        return;
+      }
+      while (position < text.length) {
+        parseValue();
+        skipWhitespace();
+        if (text[position] === ']') {
+          position += 1;
+          return;
+        }
+        if (text[position] !== ',') throw new Error('Expected JSON comma');
+        position += 1;
+      }
+      throw new Error('Unterminated JSON array');
+    }
+    if (token === '"') {
+      parseString();
+      return;
+    }
+    for (const literal of ['true', 'false', 'null']) {
+      if (text.startsWith(literal, position)) {
+        position += literal.length;
+        return;
+      }
+    }
+    const number = text.slice(position).match(/^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/);
+    if (!number) throw new Error('Invalid JSON value');
+    position += number[0].length;
+  };
+
+  parseValue();
+  skipWhitespace();
+  if (position !== text.length) throw new Error('Unexpected trailing JSON content');
+}
+
 export function createGeminiAssistantProvider(
   config: GeminiAssistantProviderConfig,
   injectedClient?: GeminiClientLike,
@@ -95,6 +186,7 @@ export function createGeminiAssistantProvider(
             responseJsonSchema: request.responseSchema,
             temperature: 0,
             candidateCount: 1,
+            maxOutputTokens: 4096,
             abortSignal: request.signal,
             httpOptions: {
               timeout: config.timeoutMs,
@@ -120,6 +212,7 @@ export function createGeminiAssistantProvider(
       if (!text || outputBytes > config.maxResponseBytes) throw AssistantProviderError.invalidResponse();
       let output: unknown;
       try {
+        assertNoDuplicateJsonKeys(text);
         output = JSON.parse(text);
       } catch {
         throw AssistantProviderError.invalidResponse();
