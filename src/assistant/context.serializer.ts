@@ -7,4 +7,3 @@ export function serializeAssistantContext(context: AssistantContext): string {
 export function assistantContextByteLength(context: AssistantContext): number {
   return Buffer.byteLength(serializeAssistantContext(context), 'utf8');
 }
-

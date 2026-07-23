@@ -11,10 +11,36 @@ function setup() {
   } as any;
   const registry = new ToolRegistry(); registry.register(monthlySpendingSummary);
   const handler = vi.fn().mockResolvedValue({ month: '2026-07', totalIncome: 10, totalExpense: 4, netSavings: 6, transactionCount: 2, topCategories: [] });
-  return { conversations, handler, service: createAssistantApplicationService({ conversations, toolRegistry: registry, handlerRegistry: new Map([[monthlySpendingSummary.id, handler]]) }) };
+  const context = {
+    system: { contextVersion: '1' as const, locale: 'id-ID' },
+    conversation: { conversationId: 'c1', createdAt: '2026-07-23T00:00:00.000Z', updatedAt: '2026-07-23T00:00:00.000Z', archived: false },
+    turns: [], toolExecutions: [], currentRequest: { role: 'USER' as const, content: 'Halo', source: 'CURRENT_REQUEST' as const },
+  };
+  const contexts = { buildExecutionContext: vi.fn().mockResolvedValue(context) };
+  return { conversations, contexts, context, handler, service: createAssistantApplicationService({ conversations, contexts, toolRegistry: registry, handlerRegistry: new Map([[monthlySpendingSummary.id, handler]]) }) };
 }
 
 describe('Assistant application lifecycle', () => {
+  it('does not build provider context on the existing execute path', async () => {
+    const { service, contexts } = setup();
+
+    await service.execute('u1', 'corr-existing', { intent: monthlySpendingSummary.id, arguments: { month: '2026-07' } });
+
+    expect(contexts.buildExecutionContext).not.toHaveBeenCalled();
+  });
+
+  it('prepares provider-neutral execution context without persistence or tool execution', async () => {
+    const { service, contexts, context, conversations, handler } = setup();
+
+    const result = await service.prepareProviderExecution({ userId: 'u1', conversationId: 'c1', currentRequest: 'Halo' });
+
+    expect(result).toEqual(context);
+    expect(contexts.buildExecutionContext).toHaveBeenCalledWith({ userId: 'u1', conversationId: 'c1', currentRequest: 'Halo' });
+    expect(conversations.beginTurn).not.toHaveBeenCalled();
+    expect(conversations.beginToolExecution).not.toHaveBeenCalled();
+    expect(handler).not.toHaveBeenCalled();
+  });
+
   it('persists a validated fallback and successful terminal records', async () => {
     const { service, conversations } = setup();
     const result = await service.execute('u1', 'corr1', { intent: monthlySpendingSummary.id, arguments: { month: '2026-07' } });

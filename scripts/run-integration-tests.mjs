@@ -50,6 +50,7 @@ const integrationTests = [
   'test/assistant/conversation-service.integration.test.ts',
   'test/assistant/conversation-http.integration.test.ts',
   'test/assistant/financial-draft.integration.test.ts',
+  'test/assistant/context-service.integration.test.ts',
 ];
 
 async function main() {
