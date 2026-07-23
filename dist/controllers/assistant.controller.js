@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.archiveAssistantConversation = exports.getAssistantConversation = exports.listAssistantConversations = exports.assistantExecute = void 0;
+exports.cancelAssistantFinancialDraft = exports.confirmAssistantFinancialDraft = exports.archiveAssistantConversation = exports.getAssistantConversation = exports.listAssistantConversations = exports.assistantExecute = void 0;
 exports.createAssistantControllers = createAssistantControllers;
 const authContext_1 = require("../http/authContext");
 const forwardError_1 = require("../http/forwardError");
@@ -22,7 +22,7 @@ const intQuery = (value) => {
     return Number(text);
 };
 const routeId = (value) => Array.isArray(value) ? value[0] : value;
-function createAssistantControllers(application, conversations) {
+function createAssistantControllers(application, conversations, drafts) {
     async function execute(req, res, next) {
         try {
             const userId = (0, authContext_1.getAuthenticatedUserId)(req);
@@ -72,11 +72,40 @@ function createAssistantControllers(application, conversations) {
             (0, forwardError_1.forwardError)(error, res, next);
         }
     }
-    return { execute, list, get, archive };
+    async function confirmDraft(req, res, next) {
+        try {
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId)
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            if (!drafts)
+                return (0, response_1.sendError)(res, 'Assistant financial drafts unavailable', 503);
+            const result = await drafts.confirm(userId, routeId(req.params.draftId), req.header('Idempotency-Key'), req.correlationId);
+            (0, response_1.sendSuccess)(res, result, 'Financial draft confirmed');
+        }
+        catch (error) {
+            (0, forwardError_1.forwardError)(error, res, next);
+        }
+    }
+    async function cancelDraft(req, res, next) {
+        try {
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId)
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            if (!drafts)
+                return (0, response_1.sendError)(res, 'Assistant financial drafts unavailable', 503);
+            (0, response_1.sendSuccess)(res, await drafts.cancel(userId, routeId(req.params.draftId), req.correlationId), 'Financial draft cancelled');
+        }
+        catch (error) {
+            (0, forwardError_1.forwardError)(error, res, next);
+        }
+    }
+    return { execute, list, get, archive, confirmDraft, cancelDraft };
 }
-const controllers = createAssistantControllers(bootstrap_1.assistantApplicationService, bootstrap_1.assistantConversationService);
+const controllers = createAssistantControllers(bootstrap_1.assistantApplicationService, bootstrap_1.assistantConversationService, bootstrap_1.assistantFinancialDraftService);
 exports.assistantExecute = controllers.execute;
 exports.listAssistantConversations = controllers.list;
 exports.getAssistantConversation = controllers.get;
 exports.archiveAssistantConversation = controllers.archive;
+exports.confirmAssistantFinancialDraft = controllers.confirmDraft;
+exports.cancelAssistantFinancialDraft = controllers.cancelDraft;
 //# sourceMappingURL=assistant.controller.js.map

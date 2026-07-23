@@ -2,7 +2,7 @@
 // Tests: tool contract validation (monthly-spending-summary)
 // ============================================================
 import { describe, expect, it } from 'vitest';
-import { monthlySpendingSummary, AssistantError } from '../../src/assistant';
+import { monthlySpendingSummary, transactionCreate, AssistantError } from '../../src/assistant';
 
 // ---- Tests: input validation -----------------------------------------------
 
@@ -79,6 +79,29 @@ describe('monthlySpendingSummary input validation', () => {
     ).not.toThrow();
     // The extra userId field is silently ignored — validation only cares about
     // the month field. The execution engine never merges tool input into context.
+  });
+});
+
+describe('transaction.create input validation', () => {
+  const valid = { type: 'EXPENSE', amount: '12500.50', walletId: 'wallet-1', categoryId: 'category-1', date: '2026-07-22', description: 'Lunch' };
+
+  it('normalizes a regular transaction without using floating point arithmetic', () => {
+    expect(transactionCreate.validateInput(valid)).toEqual(valid);
+  });
+
+  it.each([
+    [{ ...valid, amount: 0 }],
+    [{ ...valid, amount: 1.25 }],
+    [{ ...valid, amount: '1.234' }],
+    [{ ...valid, date: '2026-02-30' }],
+    [{ ...valid, description: '   ' }],
+    [{ ...valid, type: 'TRANSFER' }],
+    [{ ...valid, userId: 'attacker' }],
+    [{ ...valid, balance: 999 }],
+    [{ ...valid, extra: true }],
+    [{ ...valid, categoryId: undefined }],
+  ])('rejects unsafe or invalid arguments %#', (input) => {
+    expect(() => transactionCreate.validateInput(input)).toThrow(AssistantError);
   });
 });
 

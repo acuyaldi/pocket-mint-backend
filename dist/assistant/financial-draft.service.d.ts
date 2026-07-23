@@ -1,0 +1,54 @@
+import { type PrismaClient } from '../generated/prisma/client';
+import type { TransactionService } from '../services/transaction.service';
+import type { TransactionCreateInput } from './tools';
+export declare function createAssistantFinancialDraftService(db: PrismaClient, transactions: TransactionService, clock?: () => Date): {
+    prepare: (input: TransactionCreateInput & {
+        userId: string;
+        conversationId: string;
+        turnId: string;
+        executionId: string;
+        now?: Date;
+    }) => Promise<{
+        draftId: string;
+        status: import("@/generated/prisma").$Enums.AssistantFinancialDraftStatus;
+        expiresAt: Date;
+        preview: {
+            description?: string | undefined;
+            type: "INCOME" | "EXPENSE";
+            amount: string;
+            walletId: string;
+            categoryId: string;
+            date: string;
+        };
+        confirmationRequired: boolean;
+        renderedText: string;
+    }>;
+    confirm: (userId: string, draftId: string, keyValue: unknown, correlationId: string) => Promise<{
+        draftId: string;
+        status: "COMMITTED";
+        transactionId: string;
+        conversationId: string;
+        renderedText: string;
+    } | {
+        draftId: string;
+        status: "COMMITTED";
+        transactionId: string;
+        conversationId: string;
+        turnId: string;
+        renderedText: string;
+        readonly error?: undefined;
+    }>;
+    cancel: (userId: string, draftId: string, correlationId: string) => Promise<{
+        renderedText: string;
+        turnId?: string | undefined;
+        draftId: string;
+        status: "CANCELLED";
+        conversationId: string;
+    } | {
+        draftId: string;
+        status: "EXPIRED";
+        conversationId: string;
+    }>;
+};
+export type AssistantFinancialDraftService = ReturnType<typeof createAssistantFinancialDraftService>;
+//# sourceMappingURL=financial-draft.service.d.ts.map

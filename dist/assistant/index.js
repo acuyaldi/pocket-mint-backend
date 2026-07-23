@@ -21,7 +21,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAssistantApplicationService = exports.createAssistantConversationService = exports.handlerRegistry = exports.toolRegistry = exports.renderMonthlySpendingSummary = exports.resolveIntent = exports.executeTool = exports.monthlySpendingSummary = exports.ToolRegistry = exports.evaluatePolicy = exports.AssistantError = void 0;
+exports.createAssistantApplicationService = exports.createAssistantConversationService = exports.handlerRegistry = exports.toolRegistry = exports.renderMonthlySpendingSummary = exports.resolveIntent = exports.executeTool = exports.transactionCreate = exports.monthlySpendingSummary = exports.ToolRegistry = exports.evaluatePolicy = exports.AssistantError = void 0;
 var errors_1 = require("./errors");
 Object.defineProperty(exports, "AssistantError", { enumerable: true, get: function () { return errors_1.AssistantError; } });
 var policy_1 = require("./policy");
@@ -30,6 +30,7 @@ var registry_1 = require("./registry");
 Object.defineProperty(exports, "ToolRegistry", { enumerable: true, get: function () { return registry_1.ToolRegistry; } });
 var tools_1 = require("./tools");
 Object.defineProperty(exports, "monthlySpendingSummary", { enumerable: true, get: function () { return tools_1.monthlySpendingSummary; } });
+Object.defineProperty(exports, "transactionCreate", { enumerable: true, get: function () { return tools_1.transactionCreate; } });
 var executor_1 = require("./executor");
 Object.defineProperty(exports, "executeTool", { enumerable: true, get: function () { return executor_1.executeTool; } });
 var intent_1 = require("./intent");

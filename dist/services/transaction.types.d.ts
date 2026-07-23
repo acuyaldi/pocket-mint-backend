@@ -6,6 +6,7 @@ import type { TransactionType } from '../models/transaction.model';
  * and keeps the service from constructing its own client.
  */
 export type TransactionPrismaClient = Pick<PrismaClient, 'transaction' | 'wallet' | 'installment' | 'category' | '$transaction'>;
+export type TransactionAtomicClient = Pick<Prisma.TransactionClient, 'transaction' | 'wallet' | 'installment' | 'category'>;
 /** Amount accepted from the controller; normalized to Decimal inside the service. */
 export type DecimalInput = Prisma.Decimal | number | string;
 export interface CreateTransactionInput {
@@ -24,6 +25,9 @@ export interface CreateTransactionInput {
     installmentMonths?: number;
     interestRate?: number;
     firstDueDate?: string;
+}
+export interface CreateTransactionOptions {
+    transaction?: TransactionAtomicClient;
 }
 /** Update fields; `undefined` means "omitted" (keep the persisted value). */
 export interface UpdateTransactionFields {

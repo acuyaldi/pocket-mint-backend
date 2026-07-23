@@ -164,6 +164,39 @@ exports.Prisma.AssistantMessageScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.AssistantFinancialDraftScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  conversationId: 'conversationId',
+  originatingTurnId: 'originatingTurnId',
+  originatingExecutionId: 'originatingExecutionId',
+  status: 'status',
+  operation: 'operation',
+  transactionType: 'transactionType',
+  amount: 'amount',
+  walletId: 'walletId',
+  categoryId: 'categoryId',
+  transactionDate: 'transactionDate',
+  description: 'description',
+  expiresAt: 'expiresAt',
+  committedAt: 'committedAt',
+  cancelledAt: 'cancelledAt',
+  failedAt: 'failedAt',
+  transactionId: 'transactionId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AssistantIdempotencyRecordScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  draftId: 'draftId',
+  operation: 'operation',
+  key: 'key',
+  transactionId: 'transactionId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.AssistantToolExecutionScalarFieldEnum = {
   id: 'id',
   conversationId: 'conversationId',
@@ -376,6 +409,20 @@ exports.AssistantMessageSource = exports.$Enums.AssistantMessageSource = {
   SAFE_ERROR: 'SAFE_ERROR'
 };
 
+exports.AssistantFinancialDraftStatus = exports.$Enums.AssistantFinancialDraftStatus = {
+  PENDING_CONFIRMATION: 'PENDING_CONFIRMATION',
+  COMMITTED: 'COMMITTED',
+  CANCELLED: 'CANCELLED',
+  EXPIRED: 'EXPIRED',
+  FAILED: 'FAILED'
+};
+
+exports.TransactionType = exports.$Enums.TransactionType = {
+  INCOME: 'INCOME',
+  EXPENSE: 'EXPENSE',
+  TRANSFER: 'TRANSFER'
+};
+
 exports.AssistantToolExecutionStatus = exports.$Enums.AssistantToolExecutionStatus = {
   PENDING: 'PENDING',
   RUNNING: 'RUNNING',
@@ -402,12 +449,6 @@ exports.AdminFeeType = exports.$Enums.AdminFeeType = {
 exports.CategoryType = exports.$Enums.CategoryType = {
   INCOME: 'INCOME',
   EXPENSE: 'EXPENSE'
-};
-
-exports.TransactionType = exports.$Enums.TransactionType = {
-  INCOME: 'INCOME',
-  EXPENSE: 'EXPENSE',
-  TRANSFER: 'TRANSFER'
 };
 
 exports.BillKind = exports.$Enums.BillKind = {
@@ -444,6 +485,8 @@ exports.Prisma.ModelName = {
   AssistantConversation: 'AssistantConversation',
   AssistantTurn: 'AssistantTurn',
   AssistantMessage: 'AssistantMessage',
+  AssistantFinancialDraft: 'AssistantFinancialDraft',
+  AssistantIdempotencyRecord: 'AssistantIdempotencyRecord',
   AssistantToolExecution: 'AssistantToolExecution',
   Wallet: 'Wallet',
   Category: 'Category',

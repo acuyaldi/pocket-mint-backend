@@ -16,6 +16,7 @@ import { AssistantError } from './errors';
 /** Supported intents (allow-listed — not an open registry). */
 const SUPPORTED_INTENTS = new Set([
   'analytics.monthly-spending-summary',
+  'transaction.create',
 ]);
 
 export interface ResolvedIntent {

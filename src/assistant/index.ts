@@ -9,7 +9,8 @@
 export { AssistantError } from './errors';
 export { evaluatePolicy } from './policy';
 export { ToolRegistry } from './registry';
-export { monthlySpendingSummary } from './tools';
+export { monthlySpendingSummary, transactionCreate } from './tools';
+export type { TransactionCreateInput } from './tools';
 export { executeTool } from './executor';
 export { resolveIntent } from './intent';
 export { renderMonthlySpendingSummary } from './renderer';

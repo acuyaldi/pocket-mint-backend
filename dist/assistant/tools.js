@@ -10,8 +10,53 @@
 // are wired in Phase 21.2.
 // ============================================================
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.monthlySpendingSummary = void 0;
+exports.transactionCreate = exports.monthlySpendingSummary = void 0;
 const errors_1 = require("./errors");
+const TRANSACTION_KEYS = new Set(['type', 'amount', 'walletId', 'categoryId', 'date', 'description']);
+const MONEY_RE = /^(?:0|[1-9]\d{0,12})(?:\.\d{1,2})?$/;
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+function isCalendarDay(value) {
+    if (!DAY_RE.test(value))
+        return false;
+    const [year, month, day] = value.split('-').map(Number);
+    const parsed = new Date(Date.UTC(year, month - 1, day));
+    return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day;
+}
+function validateTransactionCreateInput(input) {
+    if (typeof input !== 'object' || input === null || Array.isArray(input)) {
+        throw errors_1.AssistantError.invalidInput('transaction.create', 'Input must be a non-null object');
+    }
+    const value = input;
+    if (Object.keys(value).some((key) => !TRANSACTION_KEYS.has(key))) {
+        throw errors_1.AssistantError.invalidInput('transaction.create', 'Input contains unsupported properties');
+    }
+    if (value.type !== 'INCOME' && value.type !== 'EXPENSE') {
+        throw errors_1.AssistantError.invalidInput('transaction.create', 'type must be INCOME or EXPENSE');
+    }
+    const amount = value.amount;
+    if (typeof amount !== 'string' || !MONEY_RE.test(amount) || amount === '0' || /^0(?:\.0{1,2})?$/.test(amount)) {
+        throw errors_1.AssistantError.invalidInput('transaction.create', 'amount must be a positive decimal with at most two fraction digits');
+    }
+    for (const key of ['walletId', 'categoryId']) {
+        if (typeof value[key] !== 'string' || !value[key].trim() || value[key].length > 191) {
+            throw errors_1.AssistantError.invalidInput('transaction.create', `${key} must be a non-empty bounded string`);
+        }
+    }
+    if (typeof value.date !== 'string' || !isCalendarDay(value.date)) {
+        throw errors_1.AssistantError.invalidInput('transaction.create', 'date must be a valid YYYY-MM-DD day');
+    }
+    if (value.description !== undefined && (typeof value.description !== 'string' || !value.description.trim() || value.description.length > 500)) {
+        throw errors_1.AssistantError.invalidInput('transaction.create', 'description must be at most 500 characters');
+    }
+    return {
+        type: value.type,
+        amount,
+        walletId: value.walletId,
+        categoryId: value.categoryId,
+        date: value.date,
+        ...(value.description === undefined ? {} : { description: value.description.trim() }),
+    };
+}
 // ---- Validation helpers ----------------------------------------------------
 const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
 function validateMonthInput(input) {
@@ -77,5 +122,18 @@ exports.monthlySpendingSummary = {
     enabled: true,
     validateInput: validateMonthInput,
     validateOutput: validateMonthlySpendingOutput,
+};
+exports.transactionCreate = {
+    id: 'transaction.create',
+    description: 'Prepare a regular income or expense transaction draft. A separate explicit confirmation is required before creation.',
+    capability: 'transaction.create',
+    riskLevel: 'HIGH',
+    confirmationPolicy: 'EXPLICIT',
+    idempotencyPolicy: 'REQUIRED',
+    timeoutMs: 10000,
+    enabled: true,
+    validateInput: validateTransactionCreateInput,
+    validateOutput: validateTransactionCreateInput,
+    auditRedact: ['amount', 'description', 'walletId', 'categoryId', 'date'],
 };
 //# sourceMappingURL=tools.js.map

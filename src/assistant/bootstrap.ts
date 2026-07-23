@@ -7,12 +7,14 @@
 // ============================================================
 
 import { ToolRegistry } from './registry';
-import { monthlySpendingSummary } from './tools';
+import { monthlySpendingSummary, transactionCreate } from './tools';
 import { handleMonthlySpendingSummary } from './handlers/monthly-spending-summary.handler';
 import type { HandlerRegistry } from './executor';
 import prisma from '../lib/prisma';
 import { createAssistantConversationService } from './conversation.service';
 import { createAssistantApplicationService } from './application.service';
+import { createAssistantFinancialDraftService } from './financial-draft.service';
+import { transactionService } from '../services/transaction.service';
 
 /** The application-wide tool registry. Populated at startup. */
 export const toolRegistry = new ToolRegistry();
@@ -23,7 +25,9 @@ export const handlerRegistry: HandlerRegistry = new Map();
 // ---- Register Phase 21.2 tools ---------------------------------------------
 
 toolRegistry.register(monthlySpendingSummary);
+toolRegistry.register(transactionCreate);
 handlerRegistry.set(monthlySpendingSummary.id, handleMonthlySpendingSummary as never);
 
 export const assistantConversationService = createAssistantConversationService(prisma);
-export const assistantApplicationService = createAssistantApplicationService({ conversations: assistantConversationService, toolRegistry, handlerRegistry });
+export const assistantFinancialDraftService = createAssistantFinancialDraftService(prisma, transactionService);
+export const assistantApplicationService = createAssistantApplicationService({ conversations: assistantConversationService, toolRegistry, handlerRegistry, financialDrafts: assistantFinancialDraftService });
