@@ -1,7 +1,7 @@
 import type { PrismaClient, Prisma } from '../generated/prisma/client';
 import { AssistantError } from './errors';
 import { assertAssistantMessageLength } from './persistence';
-import type { BeginTurnInput, BeginTurnResult, ConversationMessageDto, ConversationSummaryDto, FinalizeToolInput, Page } from './conversation.types';
+import type { BeginTurnInput, BeginTurnResult, ConversationMessageDto, ConversationSummaryDto, FinalizeToolInput, FinalizeWithoutToolInput, Page } from './conversation.types';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
@@ -21,6 +21,15 @@ export function createAssistantConversationService(db: PrismaClient) {
   async function assertContinuable(userId: string, id: string): Promise<void> {
     const conversation = await owned(userId, id);
     if (conversation.status !== 'ACTIVE') throw AssistantError.conversationNotContinuable();
+  }
+
+  async function establishConversation(userId: string, conversationId: string | undefined, locale: string): Promise<string> {
+    if (conversationId) {
+      await assertContinuable(userId, conversationId);
+      return conversationId;
+    }
+    const created = await db.assistantConversation.create({ data: { userId, locale } });
+    return created.id;
   }
 
   async function beginTurn(input: BeginTurnInput): Promise<BeginTurnResult> {
@@ -88,6 +97,26 @@ export function createAssistantConversationService(db: PrismaClient) {
     });
   }
 
+  async function finalizeWithoutTool(input: FinalizeWithoutToolInput): Promise<void> {
+    assertAssistantMessageLength(input.assistantContent);
+    await db.$transaction(async (tx) => {
+      const now = new Date();
+      await tx.assistantMessage.create({ data: {
+        conversationId: input.conversationId,
+        turnId: input.turnId,
+        role: 'ASSISTANT',
+        source: input.assistantSource,
+        content: input.assistantContent,
+      } });
+      await tx.assistantTurn.update({ where: { id: input.turnId }, data: {
+        status: input.turnStatus,
+        safeErrorCode: input.safeErrorCode,
+        finishedAt: now,
+      } });
+      await tx.assistantConversation.update({ where: { id: input.conversationId }, data: { lastActivityAt: now } });
+    });
+  }
+
   async function listOwnedConversations(userId: string, page?: number, limit?: number): Promise<Page<ConversationSummaryDto>> {
     const p = pageArgs(page, limit);
     const where = { userId };
@@ -129,7 +158,7 @@ export function createAssistantConversationService(db: PrismaClient) {
     return { id: updated.id, status: updated.status, archivedAt: updated.archivedAt };
   }
 
-  return { assertContinuable, beginTurn, markTurnRunning, beginToolExecution, finalize, finalizeRejected, listOwnedConversations, getOwnedConversation, archiveOwnedConversation };
+  return { assertContinuable, establishConversation, beginTurn, markTurnRunning, beginToolExecution, finalize, finalizeRejected, finalizeWithoutTool, listOwnedConversations, getOwnedConversation, archiveOwnedConversation };
 }
 
 export type AssistantConversationService = ReturnType<typeof createAssistantConversationService>;

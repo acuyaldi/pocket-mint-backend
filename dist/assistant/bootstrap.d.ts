@@ -6,6 +6,7 @@ export declare const toolRegistry: ToolRegistry;
 export declare const handlerRegistry: HandlerRegistry;
 export declare const assistantConversationService: {
     assertContinuable: (userId: string, id: string) => Promise<void>;
+    establishConversation: (userId: string, conversationId: string | undefined, locale: string) => Promise<string>;
     beginTurn: (input: import("./conversation.types").BeginTurnInput) => Promise<import("./conversation.types").BeginTurnResult>;
     markTurnRunning: (turnId: string) => Promise<void>;
     beginToolExecution: (input: {
@@ -23,6 +24,7 @@ export declare const assistantConversationService: {
         content: string;
         safeErrorCode: string;
     }) => Promise<void>;
+    finalizeWithoutTool: (input: import("./conversation.types").FinalizeWithoutToolInput) => Promise<void>;
     listOwnedConversations: (userId: string, page?: number, limit?: number) => Promise<import("./conversation.types").Page<import("./conversation.types").ConversationSummaryDto>>;
     getOwnedConversation: (userId: string, id: string, page?: number, limit?: number) => Promise<{
         conversation: {
@@ -44,22 +46,22 @@ export declare const assistantConversationService: {
             id: string;
             status: import("@/generated/prisma").$Enums.AssistantTurnStatus;
             correlationId: string;
-            intent: string;
-            safeErrorCode: string | null;
             startedAt: Date;
+            safeErrorCode: string | null;
+            intent: string;
             finishedAt: Date | null;
             toolExecutions: {
                 id: string;
                 status: import("@/generated/prisma").$Enums.AssistantToolExecutionStatus;
                 correlationId: string;
-                safeErrorCode: string | null;
                 startedAt: Date;
+                completedAt: Date | null;
+                durationMs: number | null;
+                safeErrorCode: string | null;
                 toolId: string;
                 capability: string;
                 riskLevel: string;
                 policyDecision: string;
-                completedAt: Date | null;
-                durationMs: number | null;
             }[];
         }[];
     }>;
@@ -125,4 +127,8 @@ export declare const assistantApplicationService: {
     execute: (userId: string, correlationId: string, request: import("./types").AssistantCanonicalRequest) => Promise<import("./application.service").AssistantApplicationResult>;
     prepareProviderExecution: (input: import("./context.service").BuildAssistantExecutionContextInput) => Promise<import("./context.types").AssistantContext>;
 };
+export declare const assistantProviderAuditService: import("./provider-runtime").AssistantProviderAudit;
+export declare const assistantProviderRuntime: {
+    sendMessage: (userId: string, correlationId: string, input: import("./provider-runtime").AssistantProviderMessageInput) => Promise<import("./provider-runtime").AssistantProviderRuntimeResult>;
+} | undefined;
 //# sourceMappingURL=bootstrap.d.ts.map

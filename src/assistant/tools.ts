@@ -183,6 +183,13 @@ export const monthlySpendingSummary: ToolContract<
   idempotencyPolicy: 'NOT_REQUIRED',
   timeoutMs: 10_000,
   enabled: true,
+  providerArguments: {
+    required: ['month'],
+    optional: [],
+    properties: {
+      month: { type: 'string', format: 'YYYY-MM', description: 'Jakarta reporting month.' },
+    },
+  },
   validateInput: validateMonthInput,
   validateOutput: validateMonthlySpendingOutput,
 };
@@ -196,6 +203,18 @@ export const transactionCreate: ToolContract<TransactionCreateInput, Transaction
   idempotencyPolicy: 'REQUIRED',
   timeoutMs: 10_000,
   enabled: true,
+  providerArguments: {
+    required: ['amount', 'categoryId', 'date', 'type', 'walletId'],
+    optional: ['description'],
+    properties: {
+      amount: { type: 'string', description: 'Positive decimal amount with at most two fraction digits.' },
+      categoryId: { type: 'string', description: 'Category identifier supplied by the user; never invent one.' },
+      date: { type: 'string', format: 'YYYY-MM-DD', description: 'Transaction calendar date.' },
+      description: { type: 'string', description: 'Optional short transaction description.' },
+      type: { type: 'string', enum: ['INCOME', 'EXPENSE'], description: 'Regular transaction type.' },
+      walletId: { type: 'string', description: 'Wallet identifier supplied by the user; never invent one.' },
+    },
+  },
   validateInput: validateTransactionCreateInput,
   validateOutput: validateTransactionCreateInput,
   auditRedact: ['amount', 'description', 'walletId', 'categoryId', 'date'],

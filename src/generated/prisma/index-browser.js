@@ -216,6 +216,28 @@ exports.Prisma.AssistantToolExecutionScalarFieldEnum = {
   idempotencyKey: 'idempotencyKey'
 };
 
+exports.Prisma.AssistantProviderExecutionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  conversationId: 'conversationId',
+  turnId: 'turnId',
+  correlationId: 'correlationId',
+  provider: 'provider',
+  model: 'model',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  durationMs: 'durationMs',
+  inputBytes: 'inputBytes',
+  outputBytes: 'outputBytes',
+  finishClassification: 'finishClassification',
+  safeErrorCode: 'safeErrorCode',
+  inputTokens: 'inputTokens',
+  outputTokens: 'outputTokens',
+  totalTokens: 'totalTokens',
+  cachedInputTokens: 'cachedInputTokens'
+};
+
 exports.Prisma.WalletScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -406,7 +428,8 @@ exports.AssistantMessageSource = exports.$Enums.AssistantMessageSource = {
   CANONICAL_FALLBACK: 'CANONICAL_FALLBACK',
   SAFE_REQUEST_SUMMARY: 'SAFE_REQUEST_SUMMARY',
   DETERMINISTIC_RENDERER: 'DETERMINISTIC_RENDERER',
-  SAFE_ERROR: 'SAFE_ERROR'
+  SAFE_ERROR: 'SAFE_ERROR',
+  PROVIDER_CLARIFICATION: 'PROVIDER_CLARIFICATION'
 };
 
 exports.AssistantFinancialDraftStatus = exports.$Enums.AssistantFinancialDraftStatus = {
@@ -430,6 +453,14 @@ exports.AssistantToolExecutionStatus = exports.$Enums.AssistantToolExecutionStat
   FAILED: 'FAILED',
   TIMED_OUT: 'TIMED_OUT',
   DENIED: 'DENIED'
+};
+
+exports.AssistantProviderExecutionStatus = exports.$Enums.AssistantProviderExecutionStatus = {
+  STARTED: 'STARTED',
+  PLAN_ACCEPTED: 'PLAN_ACCEPTED',
+  CLARIFICATION: 'CLARIFICATION',
+  UNSUPPORTED: 'UNSUPPORTED',
+  FAILED: 'FAILED'
 };
 
 exports.WalletType = exports.$Enums.WalletType = {
@@ -488,6 +519,7 @@ exports.Prisma.ModelName = {
   AssistantFinancialDraft: 'AssistantFinancialDraft',
   AssistantIdempotencyRecord: 'AssistantIdempotencyRecord',
   AssistantToolExecution: 'AssistantToolExecution',
+  AssistantProviderExecution: 'AssistantProviderExecution',
   Wallet: 'Wallet',
   Category: 'Category',
   MerchantMapping: 'MerchantMapping',

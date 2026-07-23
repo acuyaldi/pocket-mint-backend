@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.corsConfig = exports.rateLimitConfig = exports.trustProxy = exports.databaseConfig = exports.authConfig = exports.reportingConfig = exports.serverConfig = exports.isProduction = void 0;
+exports.corsConfig = exports.rateLimitConfig = exports.trustProxy = exports.assistantProviderConfig = exports.databaseConfig = exports.authConfig = exports.reportingConfig = exports.serverConfig = exports.isProduction = void 0;
 exports.validateConfig = validateConfig;
 require("dotenv/config");
 const reportingTime_1 = require("../domain/reportingTime");
+const assistant_provider_1 = require("./assistant-provider");
 /**
  * Centralized, typed configuration.
  *
@@ -104,6 +105,8 @@ exports.databaseConfig = {
         connectionTimeoutMs: int(process.env.DB_CONNECTION_TIMEOUT_MS, 10000),
     },
 };
+// ---------------- Assistant provider ----------------
+exports.assistantProviderConfig = (0, assistant_provider_1.loadAssistantProviderConfig)(process.env);
 // ---------------- network / rate limiting ----------------
 exports.trustProxy = parseTrustProxy(process.env.TRUST_PROXY);
 /**

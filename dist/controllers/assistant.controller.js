@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cancelAssistantFinancialDraft = exports.confirmAssistantFinancialDraft = exports.archiveAssistantConversation = exports.getAssistantConversation = exports.listAssistantConversations = exports.assistantExecute = void 0;
+exports.cancelAssistantFinancialDraft = exports.confirmAssistantFinancialDraft = exports.archiveAssistantConversation = exports.getAssistantConversation = exports.listAssistantConversations = exports.assistantMessages = exports.assistantExecute = void 0;
 exports.createAssistantControllers = createAssistantControllers;
 const authContext_1 = require("../http/authContext");
 const forwardError_1 = require("../http/forwardError");
@@ -15,6 +15,17 @@ function canonicalRequest(body) {
         (value.conversationId === undefined || typeof value.conversationId === 'string') &&
         (value.locale === undefined || typeof value.locale === 'string');
 }
+function providerMessageRequest(body) {
+    if (typeof body !== 'object' || body === null || Array.isArray(body))
+        return false;
+    const value = body;
+    const keys = Object.keys(value).sort();
+    if (keys.some((key) => key !== 'conversationId' && key !== 'message'))
+        return false;
+    return typeof value.message === 'string' &&
+        Boolean(value.message.trim()) &&
+        (value.conversationId === undefined || typeof value.conversationId === 'string');
+}
 const intQuery = (value) => {
     const text = Array.isArray(value) ? value[0] : value;
     if (typeof text !== 'string' || !/^\d+$/.test(text))
@@ -22,7 +33,7 @@ const intQuery = (value) => {
     return Number(text);
 };
 const routeId = (value) => Array.isArray(value) ? value[0] : value;
-function createAssistantControllers(application, conversations, drafts) {
+function createAssistantControllers(application, conversations, drafts, providerRuntime) {
     async function execute(req, res, next) {
         try {
             const userId = (0, authContext_1.getAuthenticatedUserId)(req);
@@ -34,6 +45,32 @@ function createAssistantControllers(application, conversations, drafts) {
             if (result.response.status === 'success')
                 return (0, response_1.sendSuccess)(res, result.response, 'Assistant executed successfully');
             res.status(result.httpStatus).json({ success: false, error: { ...result.response, statusCode: result.httpStatus } });
+        }
+        catch (error) {
+            (0, forwardError_1.forwardError)(error, res, next);
+        }
+    }
+    async function messages(req, res, next) {
+        try {
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId)
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            if (!providerRuntime)
+                return (0, response_1.sendError)(res, 'Assistant provider is unavailable', 503, 'ASSISTANT_PROVIDER_UNAVAILABLE');
+            if (!providerMessageRequest(req.body)) {
+                return (0, response_1.sendError)(res, 'Request body must include a non-empty string "message" and an optional string "conversationId"', 400, 'BAD_REQUEST');
+            }
+            const result = await providerRuntime.sendMessage(userId, req.correlationId, {
+                message: req.body.message,
+                ...(req.body.conversationId === undefined ? {} : { conversationId: req.body.conversationId }),
+            });
+            if (result.response.status === 'error' || result.response.status === 'rejected') {
+                return void res.status(result.httpStatus).json({
+                    success: false,
+                    error: { ...result.response, statusCode: result.httpStatus },
+                });
+            }
+            (0, response_1.sendSuccess)(res, result.response, 'Assistant message processed');
         }
         catch (error) {
             (0, forwardError_1.forwardError)(error, res, next);
@@ -99,10 +136,11 @@ function createAssistantControllers(application, conversations, drafts) {
             (0, forwardError_1.forwardError)(error, res, next);
         }
     }
-    return { execute, list, get, archive, confirmDraft, cancelDraft };
+    return { execute, messages, list, get, archive, confirmDraft, cancelDraft };
 }
-const controllers = createAssistantControllers(bootstrap_1.assistantApplicationService, bootstrap_1.assistantConversationService, bootstrap_1.assistantFinancialDraftService);
+const controllers = createAssistantControllers(bootstrap_1.assistantApplicationService, bootstrap_1.assistantConversationService, bootstrap_1.assistantFinancialDraftService, bootstrap_1.assistantProviderRuntime);
 exports.assistantExecute = controllers.execute;
+exports.assistantMessages = controllers.messages;
 exports.listAssistantConversations = controllers.list;
 exports.getAssistantConversation = controllers.get;
 exports.archiveAssistantConversation = controllers.archive;

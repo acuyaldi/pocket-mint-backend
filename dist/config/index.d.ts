@@ -41,6 +41,7 @@ export declare const databaseConfig: {
         readonly connectionTimeoutMs: number;
     };
 };
+export declare const assistantProviderConfig: import("./assistant-provider").AssistantProviderConfig;
 export declare const trustProxy: number | boolean;
 /**
  * Rate-limiting configuration. NOTE: the default limiter store is in-memory and

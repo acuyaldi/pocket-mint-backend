@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { assertValidTimeZone } from '../domain/reportingTime';
+import { loadAssistantProviderConfig } from './assistant-provider';
 
 /**
  * Centralized, typed configuration.
@@ -112,6 +113,10 @@ export const databaseConfig = {
     connectionTimeoutMs: int(process.env.DB_CONNECTION_TIMEOUT_MS, 10_000),
   },
 } as const;
+
+// ---------------- Assistant provider ----------------
+
+export const assistantProviderConfig = loadAssistantProviderConfig(process.env);
 
 // ---------------- network / rate limiting ----------------
 

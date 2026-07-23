@@ -49,6 +49,11 @@ export type AssistantIdempotencyRecord = $Result.DefaultSelection<Prisma.$Assist
  */
 export type AssistantToolExecution = $Result.DefaultSelection<Prisma.$AssistantToolExecutionPayload>
 /**
+ * Model AssistantProviderExecution
+ *
+ */
+export type AssistantProviderExecution = $Result.DefaultSelection<Prisma.$AssistantProviderExecutionPayload>
+/**
  * Model Wallet
  *
  */
@@ -133,7 +138,8 @@ export const AssistantMessageSource: {
   CANONICAL_FALLBACK: 'CANONICAL_FALLBACK',
   SAFE_REQUEST_SUMMARY: 'SAFE_REQUEST_SUMMARY',
   DETERMINISTIC_RENDERER: 'DETERMINISTIC_RENDERER',
-  SAFE_ERROR: 'SAFE_ERROR'
+  SAFE_ERROR: 'SAFE_ERROR',
+  PROVIDER_CLARIFICATION: 'PROVIDER_CLARIFICATION'
 };
 
 export type AssistantMessageSource = (typeof AssistantMessageSource)[keyof typeof AssistantMessageSource]
@@ -149,6 +155,17 @@ export const AssistantToolExecutionStatus: {
 };
 
 export type AssistantToolExecutionStatus = (typeof AssistantToolExecutionStatus)[keyof typeof AssistantToolExecutionStatus]
+
+
+export const AssistantProviderExecutionStatus: {
+  STARTED: 'STARTED',
+  PLAN_ACCEPTED: 'PLAN_ACCEPTED',
+  CLARIFICATION: 'CLARIFICATION',
+  UNSUPPORTED: 'UNSUPPORTED',
+  FAILED: 'FAILED'
+};
+
+export type AssistantProviderExecutionStatus = (typeof AssistantProviderExecutionStatus)[keyof typeof AssistantProviderExecutionStatus]
 
 
 export const AssistantFinancialDraftStatus: {
@@ -263,6 +280,10 @@ export const AssistantMessageSource: typeof $Enums.AssistantMessageSource
 export type AssistantToolExecutionStatus = $Enums.AssistantToolExecutionStatus
 
 export const AssistantToolExecutionStatus: typeof $Enums.AssistantToolExecutionStatus
+
+export type AssistantProviderExecutionStatus = $Enums.AssistantProviderExecutionStatus
+
+export const AssistantProviderExecutionStatus: typeof $Enums.AssistantProviderExecutionStatus
 
 export type AssistantFinancialDraftStatus = $Enums.AssistantFinancialDraftStatus
 
@@ -494,6 +515,16 @@ export class PrismaClient<
     * ```
     */
   get assistantToolExecution(): Prisma.AssistantToolExecutionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.assistantProviderExecution`: Exposes CRUD operations for the **AssistantProviderExecution** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AssistantProviderExecutions
+    * const assistantProviderExecutions = await prisma.assistantProviderExecution.findMany()
+    * ```
+    */
+  get assistantProviderExecution(): Prisma.AssistantProviderExecutionDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.wallet`: Exposes CRUD operations for the **Wallet** model.
@@ -1025,6 +1056,7 @@ export namespace Prisma {
     AssistantFinancialDraft: 'AssistantFinancialDraft',
     AssistantIdempotencyRecord: 'AssistantIdempotencyRecord',
     AssistantToolExecution: 'AssistantToolExecution',
+    AssistantProviderExecution: 'AssistantProviderExecution',
     Wallet: 'Wallet',
     Category: 'Category',
     MerchantMapping: 'MerchantMapping',
@@ -1049,7 +1081,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "assistantConversation" | "assistantTurn" | "assistantMessage" | "assistantFinancialDraft" | "assistantIdempotencyRecord" | "assistantToolExecution" | "wallet" | "category" | "merchantMapping" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent" | "savingGoal" | "budget"
+      modelProps: "user" | "assistantConversation" | "assistantTurn" | "assistantMessage" | "assistantFinancialDraft" | "assistantIdempotencyRecord" | "assistantToolExecution" | "assistantProviderExecution" | "wallet" | "category" | "merchantMapping" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent" | "savingGoal" | "budget"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1568,6 +1600,80 @@ export namespace Prisma {
           count: {
             args: Prisma.AssistantToolExecutionCountArgs<ExtArgs>
             result: $Utils.Optional<AssistantToolExecutionCountAggregateOutputType> | number
+          }
+        }
+      }
+      AssistantProviderExecution: {
+        payload: Prisma.$AssistantProviderExecutionPayload<ExtArgs>
+        fields: Prisma.AssistantProviderExecutionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AssistantProviderExecutionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantProviderExecutionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AssistantProviderExecutionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantProviderExecutionPayload>
+          }
+          findFirst: {
+            args: Prisma.AssistantProviderExecutionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantProviderExecutionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AssistantProviderExecutionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantProviderExecutionPayload>
+          }
+          findMany: {
+            args: Prisma.AssistantProviderExecutionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantProviderExecutionPayload>[]
+          }
+          create: {
+            args: Prisma.AssistantProviderExecutionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantProviderExecutionPayload>
+          }
+          createMany: {
+            args: Prisma.AssistantProviderExecutionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AssistantProviderExecutionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantProviderExecutionPayload>[]
+          }
+          delete: {
+            args: Prisma.AssistantProviderExecutionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantProviderExecutionPayload>
+          }
+          update: {
+            args: Prisma.AssistantProviderExecutionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantProviderExecutionPayload>
+          }
+          deleteMany: {
+            args: Prisma.AssistantProviderExecutionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AssistantProviderExecutionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AssistantProviderExecutionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantProviderExecutionPayload>[]
+          }
+          upsert: {
+            args: Prisma.AssistantProviderExecutionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantProviderExecutionPayload>
+          }
+          aggregate: {
+            args: Prisma.AssistantProviderExecutionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAssistantProviderExecution>
+          }
+          groupBy: {
+            args: Prisma.AssistantProviderExecutionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AssistantProviderExecutionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AssistantProviderExecutionCountArgs<ExtArgs>
+            result: $Utils.Optional<AssistantProviderExecutionCountAggregateOutputType> | number
           }
         }
       }
@@ -2352,6 +2458,7 @@ export namespace Prisma {
     assistantFinancialDraft?: AssistantFinancialDraftOmit
     assistantIdempotencyRecord?: AssistantIdempotencyRecordOmit
     assistantToolExecution?: AssistantToolExecutionOmit
+    assistantProviderExecution?: AssistantProviderExecutionOmit
     wallet?: WalletOmit
     category?: CategoryOmit
     merchantMapping?: MerchantMappingOmit
@@ -2452,6 +2559,7 @@ export namespace Prisma {
     assistantConversations: number
     assistantFinancialDrafts: number
     assistantIdempotencyRecords: number
+    assistantProviderExecutions: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2466,6 +2574,7 @@ export namespace Prisma {
     assistantConversations?: boolean | UserCountOutputTypeCountAssistantConversationsArgs
     assistantFinancialDrafts?: boolean | UserCountOutputTypeCountAssistantFinancialDraftsArgs
     assistantIdempotencyRecords?: boolean | UserCountOutputTypeCountAssistantIdempotencyRecordsArgs
+    assistantProviderExecutions?: boolean | UserCountOutputTypeCountAssistantProviderExecutionsArgs
   }
 
   // Custom InputTypes
@@ -2556,6 +2665,13 @@ export namespace Prisma {
     where?: AssistantIdempotencyRecordWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountAssistantProviderExecutionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantProviderExecutionWhereInput
+  }
+
 
   /**
    * Count Type AssistantConversationCountOutputType
@@ -2566,6 +2682,7 @@ export namespace Prisma {
     messages: number
     toolExecutions: number
     financialDrafts: number
+    providerExecutions: number
   }
 
   export type AssistantConversationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2573,6 +2690,7 @@ export namespace Prisma {
     messages?: boolean | AssistantConversationCountOutputTypeCountMessagesArgs
     toolExecutions?: boolean | AssistantConversationCountOutputTypeCountToolExecutionsArgs
     financialDrafts?: boolean | AssistantConversationCountOutputTypeCountFinancialDraftsArgs
+    providerExecutions?: boolean | AssistantConversationCountOutputTypeCountProviderExecutionsArgs
   }
 
   // Custom InputTypes
@@ -2614,6 +2732,13 @@ export namespace Prisma {
     where?: AssistantFinancialDraftWhereInput
   }
 
+  /**
+   * AssistantConversationCountOutputType without action
+   */
+  export type AssistantConversationCountOutputTypeCountProviderExecutionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantProviderExecutionWhereInput
+  }
+
 
   /**
    * Count Type AssistantTurnCountOutputType
@@ -2623,12 +2748,14 @@ export namespace Prisma {
     messages: number
     toolExecutions: number
     financialDrafts: number
+    providerExecutions: number
   }
 
   export type AssistantTurnCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     messages?: boolean | AssistantTurnCountOutputTypeCountMessagesArgs
     toolExecutions?: boolean | AssistantTurnCountOutputTypeCountToolExecutionsArgs
     financialDrafts?: boolean | AssistantTurnCountOutputTypeCountFinancialDraftsArgs
+    providerExecutions?: boolean | AssistantTurnCountOutputTypeCountProviderExecutionsArgs
   }
 
   // Custom InputTypes
@@ -2661,6 +2788,13 @@ export namespace Prisma {
    */
   export type AssistantTurnCountOutputTypeCountFinancialDraftsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AssistantFinancialDraftWhereInput
+  }
+
+  /**
+   * AssistantTurnCountOutputType without action
+   */
+  export type AssistantTurnCountOutputTypeCountProviderExecutionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantProviderExecutionWhereInput
   }
 
 
@@ -3100,6 +3234,7 @@ export namespace Prisma {
     assistantConversations?: boolean | User$assistantConversationsArgs<ExtArgs>
     assistantFinancialDrafts?: boolean | User$assistantFinancialDraftsArgs<ExtArgs>
     assistantIdempotencyRecords?: boolean | User$assistantIdempotencyRecordsArgs<ExtArgs>
+    assistantProviderExecutions?: boolean | User$assistantProviderExecutionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -3143,6 +3278,7 @@ export namespace Prisma {
     assistantConversations?: boolean | User$assistantConversationsArgs<ExtArgs>
     assistantFinancialDrafts?: boolean | User$assistantFinancialDraftsArgs<ExtArgs>
     assistantIdempotencyRecords?: boolean | User$assistantIdempotencyRecordsArgs<ExtArgs>
+    assistantProviderExecutions?: boolean | User$assistantProviderExecutionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -3162,6 +3298,7 @@ export namespace Prisma {
       assistantConversations: Prisma.$AssistantConversationPayload<ExtArgs>[]
       assistantFinancialDrafts: Prisma.$AssistantFinancialDraftPayload<ExtArgs>[]
       assistantIdempotencyRecords: Prisma.$AssistantIdempotencyRecordPayload<ExtArgs>[]
+      assistantProviderExecutions: Prisma.$AssistantProviderExecutionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -3575,6 +3712,7 @@ export namespace Prisma {
     assistantConversations<T extends User$assistantConversationsArgs<ExtArgs> = {}>(args?: Subset<T, User$assistantConversationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     assistantFinancialDrafts<T extends User$assistantFinancialDraftsArgs<ExtArgs> = {}>(args?: Subset<T, User$assistantFinancialDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantFinancialDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     assistantIdempotencyRecords<T extends User$assistantIdempotencyRecordsArgs<ExtArgs> = {}>(args?: Subset<T, User$assistantIdempotencyRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantIdempotencyRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    assistantProviderExecutions<T extends User$assistantProviderExecutionsArgs<ExtArgs> = {}>(args?: Subset<T, User$assistantProviderExecutionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4267,6 +4405,30 @@ export namespace Prisma {
   }
 
   /**
+   * User.assistantProviderExecutions
+   */
+  export type User$assistantProviderExecutionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionInclude<ExtArgs> | null
+    where?: AssistantProviderExecutionWhereInput
+    orderBy?: AssistantProviderExecutionOrderByWithRelationInput | AssistantProviderExecutionOrderByWithRelationInput[]
+    cursor?: AssistantProviderExecutionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AssistantProviderExecutionScalarFieldEnum | AssistantProviderExecutionScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4478,6 +4640,7 @@ export namespace Prisma {
     messages?: boolean | AssistantConversation$messagesArgs<ExtArgs>
     toolExecutions?: boolean | AssistantConversation$toolExecutionsArgs<ExtArgs>
     financialDrafts?: boolean | AssistantConversation$financialDraftsArgs<ExtArgs>
+    providerExecutions?: boolean | AssistantConversation$providerExecutionsArgs<ExtArgs>
     _count?: boolean | AssistantConversationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["assistantConversation"]>
 
@@ -4523,6 +4686,7 @@ export namespace Prisma {
     messages?: boolean | AssistantConversation$messagesArgs<ExtArgs>
     toolExecutions?: boolean | AssistantConversation$toolExecutionsArgs<ExtArgs>
     financialDrafts?: boolean | AssistantConversation$financialDraftsArgs<ExtArgs>
+    providerExecutions?: boolean | AssistantConversation$providerExecutionsArgs<ExtArgs>
     _count?: boolean | AssistantConversationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type AssistantConversationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4540,6 +4704,7 @@ export namespace Prisma {
       messages: Prisma.$AssistantMessagePayload<ExtArgs>[]
       toolExecutions: Prisma.$AssistantToolExecutionPayload<ExtArgs>[]
       financialDrafts: Prisma.$AssistantFinancialDraftPayload<ExtArgs>[]
+      providerExecutions: Prisma.$AssistantProviderExecutionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -4949,6 +5114,7 @@ export namespace Prisma {
     messages<T extends AssistantConversation$messagesArgs<ExtArgs> = {}>(args?: Subset<T, AssistantConversation$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     toolExecutions<T extends AssistantConversation$toolExecutionsArgs<ExtArgs> = {}>(args?: Subset<T, AssistantConversation$toolExecutionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     financialDrafts<T extends AssistantConversation$financialDraftsArgs<ExtArgs> = {}>(args?: Subset<T, AssistantConversation$financialDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantFinancialDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    providerExecutions<T extends AssistantConversation$providerExecutionsArgs<ExtArgs> = {}>(args?: Subset<T, AssistantConversation$providerExecutionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5483,6 +5649,30 @@ export namespace Prisma {
   }
 
   /**
+   * AssistantConversation.providerExecutions
+   */
+  export type AssistantConversation$providerExecutionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionInclude<ExtArgs> | null
+    where?: AssistantProviderExecutionWhereInput
+    orderBy?: AssistantProviderExecutionOrderByWithRelationInput | AssistantProviderExecutionOrderByWithRelationInput[]
+    cursor?: AssistantProviderExecutionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AssistantProviderExecutionScalarFieldEnum | AssistantProviderExecutionScalarFieldEnum[]
+  }
+
+  /**
    * AssistantConversation without action
    */
   export type AssistantConversationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5717,6 +5907,7 @@ export namespace Prisma {
     messages?: boolean | AssistantTurn$messagesArgs<ExtArgs>
     toolExecutions?: boolean | AssistantTurn$toolExecutionsArgs<ExtArgs>
     financialDrafts?: boolean | AssistantTurn$financialDraftsArgs<ExtArgs>
+    providerExecutions?: boolean | AssistantTurn$providerExecutionsArgs<ExtArgs>
     _count?: boolean | AssistantTurnCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["assistantTurn"]>
 
@@ -5770,6 +5961,7 @@ export namespace Prisma {
     messages?: boolean | AssistantTurn$messagesArgs<ExtArgs>
     toolExecutions?: boolean | AssistantTurn$toolExecutionsArgs<ExtArgs>
     financialDrafts?: boolean | AssistantTurn$financialDraftsArgs<ExtArgs>
+    providerExecutions?: boolean | AssistantTurn$providerExecutionsArgs<ExtArgs>
     _count?: boolean | AssistantTurnCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type AssistantTurnIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5786,6 +5978,7 @@ export namespace Prisma {
       messages: Prisma.$AssistantMessagePayload<ExtArgs>[]
       toolExecutions: Prisma.$AssistantToolExecutionPayload<ExtArgs>[]
       financialDrafts: Prisma.$AssistantFinancialDraftPayload<ExtArgs>[]
+      providerExecutions: Prisma.$AssistantProviderExecutionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -6197,6 +6390,7 @@ export namespace Prisma {
     messages<T extends AssistantTurn$messagesArgs<ExtArgs> = {}>(args?: Subset<T, AssistantTurn$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     toolExecutions<T extends AssistantTurn$toolExecutionsArgs<ExtArgs> = {}>(args?: Subset<T, AssistantTurn$toolExecutionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantToolExecutionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     financialDrafts<T extends AssistantTurn$financialDraftsArgs<ExtArgs> = {}>(args?: Subset<T, AssistantTurn$financialDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantFinancialDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    providerExecutions<T extends AssistantTurn$providerExecutionsArgs<ExtArgs> = {}>(args?: Subset<T, AssistantTurn$providerExecutionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6707,6 +6901,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AssistantFinancialDraftScalarFieldEnum | AssistantFinancialDraftScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantTurn.providerExecutions
+   */
+  export type AssistantTurn$providerExecutionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionInclude<ExtArgs> | null
+    where?: AssistantProviderExecutionWhereInput
+    orderBy?: AssistantProviderExecutionOrderByWithRelationInput | AssistantProviderExecutionOrderByWithRelationInput[]
+    cursor?: AssistantProviderExecutionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AssistantProviderExecutionScalarFieldEnum | AssistantProviderExecutionScalarFieldEnum[]
   }
 
   /**
@@ -11582,6 +11800,1344 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: AssistantToolExecutionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AssistantProviderExecution
+   */
+
+  export type AggregateAssistantProviderExecution = {
+    _count: AssistantProviderExecutionCountAggregateOutputType | null
+    _avg: AssistantProviderExecutionAvgAggregateOutputType | null
+    _sum: AssistantProviderExecutionSumAggregateOutputType | null
+    _min: AssistantProviderExecutionMinAggregateOutputType | null
+    _max: AssistantProviderExecutionMaxAggregateOutputType | null
+  }
+
+  export type AssistantProviderExecutionAvgAggregateOutputType = {
+    durationMs: number | null
+    inputBytes: number | null
+    outputBytes: number | null
+    inputTokens: number | null
+    outputTokens: number | null
+    totalTokens: number | null
+    cachedInputTokens: number | null
+  }
+
+  export type AssistantProviderExecutionSumAggregateOutputType = {
+    durationMs: number | null
+    inputBytes: number | null
+    outputBytes: number | null
+    inputTokens: number | null
+    outputTokens: number | null
+    totalTokens: number | null
+    cachedInputTokens: number | null
+  }
+
+  export type AssistantProviderExecutionMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    conversationId: string | null
+    turnId: string | null
+    correlationId: string | null
+    provider: string | null
+    model: string | null
+    status: $Enums.AssistantProviderExecutionStatus | null
+    startedAt: Date | null
+    completedAt: Date | null
+    durationMs: number | null
+    inputBytes: number | null
+    outputBytes: number | null
+    finishClassification: string | null
+    safeErrorCode: string | null
+    inputTokens: number | null
+    outputTokens: number | null
+    totalTokens: number | null
+    cachedInputTokens: number | null
+  }
+
+  export type AssistantProviderExecutionMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    conversationId: string | null
+    turnId: string | null
+    correlationId: string | null
+    provider: string | null
+    model: string | null
+    status: $Enums.AssistantProviderExecutionStatus | null
+    startedAt: Date | null
+    completedAt: Date | null
+    durationMs: number | null
+    inputBytes: number | null
+    outputBytes: number | null
+    finishClassification: string | null
+    safeErrorCode: string | null
+    inputTokens: number | null
+    outputTokens: number | null
+    totalTokens: number | null
+    cachedInputTokens: number | null
+  }
+
+  export type AssistantProviderExecutionCountAggregateOutputType = {
+    id: number
+    userId: number
+    conversationId: number
+    turnId: number
+    correlationId: number
+    provider: number
+    model: number
+    status: number
+    startedAt: number
+    completedAt: number
+    durationMs: number
+    inputBytes: number
+    outputBytes: number
+    finishClassification: number
+    safeErrorCode: number
+    inputTokens: number
+    outputTokens: number
+    totalTokens: number
+    cachedInputTokens: number
+    _all: number
+  }
+
+
+  export type AssistantProviderExecutionAvgAggregateInputType = {
+    durationMs?: true
+    inputBytes?: true
+    outputBytes?: true
+    inputTokens?: true
+    outputTokens?: true
+    totalTokens?: true
+    cachedInputTokens?: true
+  }
+
+  export type AssistantProviderExecutionSumAggregateInputType = {
+    durationMs?: true
+    inputBytes?: true
+    outputBytes?: true
+    inputTokens?: true
+    outputTokens?: true
+    totalTokens?: true
+    cachedInputTokens?: true
+  }
+
+  export type AssistantProviderExecutionMinAggregateInputType = {
+    id?: true
+    userId?: true
+    conversationId?: true
+    turnId?: true
+    correlationId?: true
+    provider?: true
+    model?: true
+    status?: true
+    startedAt?: true
+    completedAt?: true
+    durationMs?: true
+    inputBytes?: true
+    outputBytes?: true
+    finishClassification?: true
+    safeErrorCode?: true
+    inputTokens?: true
+    outputTokens?: true
+    totalTokens?: true
+    cachedInputTokens?: true
+  }
+
+  export type AssistantProviderExecutionMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    conversationId?: true
+    turnId?: true
+    correlationId?: true
+    provider?: true
+    model?: true
+    status?: true
+    startedAt?: true
+    completedAt?: true
+    durationMs?: true
+    inputBytes?: true
+    outputBytes?: true
+    finishClassification?: true
+    safeErrorCode?: true
+    inputTokens?: true
+    outputTokens?: true
+    totalTokens?: true
+    cachedInputTokens?: true
+  }
+
+  export type AssistantProviderExecutionCountAggregateInputType = {
+    id?: true
+    userId?: true
+    conversationId?: true
+    turnId?: true
+    correlationId?: true
+    provider?: true
+    model?: true
+    status?: true
+    startedAt?: true
+    completedAt?: true
+    durationMs?: true
+    inputBytes?: true
+    outputBytes?: true
+    finishClassification?: true
+    safeErrorCode?: true
+    inputTokens?: true
+    outputTokens?: true
+    totalTokens?: true
+    cachedInputTokens?: true
+    _all?: true
+  }
+
+  export type AssistantProviderExecutionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssistantProviderExecution to aggregate.
+     */
+    where?: AssistantProviderExecutionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantProviderExecutions to fetch.
+     */
+    orderBy?: AssistantProviderExecutionOrderByWithRelationInput | AssistantProviderExecutionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: AssistantProviderExecutionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantProviderExecutions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantProviderExecutions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned AssistantProviderExecutions
+    **/
+    _count?: true | AssistantProviderExecutionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to average
+    **/
+    _avg?: AssistantProviderExecutionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to sum
+    **/
+    _sum?: AssistantProviderExecutionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+    **/
+    _min?: AssistantProviderExecutionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+    **/
+    _max?: AssistantProviderExecutionMaxAggregateInputType
+  }
+
+  export type GetAssistantProviderExecutionAggregateType<T extends AssistantProviderExecutionAggregateArgs> = {
+        [P in keyof T & keyof AggregateAssistantProviderExecution]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAssistantProviderExecution[P]>
+      : GetScalarType<T[P], AggregateAssistantProviderExecution[P]>
+  }
+
+
+
+
+  export type AssistantProviderExecutionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantProviderExecutionWhereInput
+    orderBy?: AssistantProviderExecutionOrderByWithAggregationInput | AssistantProviderExecutionOrderByWithAggregationInput[]
+    by: AssistantProviderExecutionScalarFieldEnum[] | AssistantProviderExecutionScalarFieldEnum
+    having?: AssistantProviderExecutionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AssistantProviderExecutionCountAggregateInputType | true
+    _avg?: AssistantProviderExecutionAvgAggregateInputType
+    _sum?: AssistantProviderExecutionSumAggregateInputType
+    _min?: AssistantProviderExecutionMinAggregateInputType
+    _max?: AssistantProviderExecutionMaxAggregateInputType
+  }
+
+  export type AssistantProviderExecutionGroupByOutputType = {
+    id: string
+    userId: string
+    conversationId: string
+    turnId: string | null
+    correlationId: string
+    provider: string
+    model: string
+    status: $Enums.AssistantProviderExecutionStatus
+    startedAt: Date
+    completedAt: Date | null
+    durationMs: number | null
+    inputBytes: number
+    outputBytes: number | null
+    finishClassification: string | null
+    safeErrorCode: string | null
+    inputTokens: number | null
+    outputTokens: number | null
+    totalTokens: number | null
+    cachedInputTokens: number | null
+    _count: AssistantProviderExecutionCountAggregateOutputType | null
+    _avg: AssistantProviderExecutionAvgAggregateOutputType | null
+    _sum: AssistantProviderExecutionSumAggregateOutputType | null
+    _min: AssistantProviderExecutionMinAggregateOutputType | null
+    _max: AssistantProviderExecutionMaxAggregateOutputType | null
+  }
+
+  type GetAssistantProviderExecutionGroupByPayload<T extends AssistantProviderExecutionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AssistantProviderExecutionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AssistantProviderExecutionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AssistantProviderExecutionGroupByOutputType[P]>
+            : GetScalarType<T[P], AssistantProviderExecutionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AssistantProviderExecutionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    conversationId?: boolean
+    turnId?: boolean
+    correlationId?: boolean
+    provider?: boolean
+    model?: boolean
+    status?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    durationMs?: boolean
+    inputBytes?: boolean
+    outputBytes?: boolean
+    finishClassification?: boolean
+    safeErrorCode?: boolean
+    inputTokens?: boolean
+    outputTokens?: boolean
+    totalTokens?: boolean
+    cachedInputTokens?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantProviderExecution$turnArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantProviderExecution"]>
+
+  export type AssistantProviderExecutionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    conversationId?: boolean
+    turnId?: boolean
+    correlationId?: boolean
+    provider?: boolean
+    model?: boolean
+    status?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    durationMs?: boolean
+    inputBytes?: boolean
+    outputBytes?: boolean
+    finishClassification?: boolean
+    safeErrorCode?: boolean
+    inputTokens?: boolean
+    outputTokens?: boolean
+    totalTokens?: boolean
+    cachedInputTokens?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantProviderExecution$turnArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantProviderExecution"]>
+
+  export type AssistantProviderExecutionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    conversationId?: boolean
+    turnId?: boolean
+    correlationId?: boolean
+    provider?: boolean
+    model?: boolean
+    status?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    durationMs?: boolean
+    inputBytes?: boolean
+    outputBytes?: boolean
+    finishClassification?: boolean
+    safeErrorCode?: boolean
+    inputTokens?: boolean
+    outputTokens?: boolean
+    totalTokens?: boolean
+    cachedInputTokens?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantProviderExecution$turnArgs<ExtArgs>
+  }, ExtArgs["result"]["assistantProviderExecution"]>
+
+  export type AssistantProviderExecutionSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    conversationId?: boolean
+    turnId?: boolean
+    correlationId?: boolean
+    provider?: boolean
+    model?: boolean
+    status?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    durationMs?: boolean
+    inputBytes?: boolean
+    outputBytes?: boolean
+    finishClassification?: boolean
+    safeErrorCode?: boolean
+    inputTokens?: boolean
+    outputTokens?: boolean
+    totalTokens?: boolean
+    cachedInputTokens?: boolean
+  }
+
+  export type AssistantProviderExecutionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "conversationId" | "turnId" | "correlationId" | "provider" | "model" | "status" | "startedAt" | "completedAt" | "durationMs" | "inputBytes" | "outputBytes" | "finishClassification" | "safeErrorCode" | "inputTokens" | "outputTokens" | "totalTokens" | "cachedInputTokens", ExtArgs["result"]["assistantProviderExecution"]>
+  export type AssistantProviderExecutionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantProviderExecution$turnArgs<ExtArgs>
+  }
+  export type AssistantProviderExecutionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantProviderExecution$turnArgs<ExtArgs>
+  }
+  export type AssistantProviderExecutionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
+    turn?: boolean | AssistantProviderExecution$turnArgs<ExtArgs>
+  }
+
+  export type $AssistantProviderExecutionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AssistantProviderExecution"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      conversation: Prisma.$AssistantConversationPayload<ExtArgs>
+      turn: Prisma.$AssistantTurnPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      conversationId: string
+      turnId: string | null
+      correlationId: string
+      provider: string
+      model: string
+      status: $Enums.AssistantProviderExecutionStatus
+      startedAt: Date
+      completedAt: Date | null
+      durationMs: number | null
+      inputBytes: number
+      outputBytes: number | null
+      finishClassification: string | null
+      safeErrorCode: string | null
+      inputTokens: number | null
+      outputTokens: number | null
+      totalTokens: number | null
+      cachedInputTokens: number | null
+    }, ExtArgs["result"]["assistantProviderExecution"]>
+    composites: {}
+  }
+
+  type AssistantProviderExecutionGetPayload<S extends boolean | null | undefined | AssistantProviderExecutionDefaultArgs> = $Result.GetResult<Prisma.$AssistantProviderExecutionPayload, S>
+
+  type AssistantProviderExecutionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AssistantProviderExecutionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AssistantProviderExecutionCountAggregateInputType | true
+    }
+
+  export interface AssistantProviderExecutionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AssistantProviderExecution'], meta: { name: 'AssistantProviderExecution' } }
+    /**
+     * Find zero or one AssistantProviderExecution that matches the filter.
+     * @param {AssistantProviderExecutionFindUniqueArgs} args - Arguments to find a AssistantProviderExecution
+     * @example
+     * // Get one AssistantProviderExecution
+     * const assistantProviderExecution = await prisma.assistantProviderExecution.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AssistantProviderExecutionFindUniqueArgs>(args: SelectSubset<T, AssistantProviderExecutionFindUniqueArgs<ExtArgs>>): Prisma__AssistantProviderExecutionClient<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AssistantProviderExecution that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AssistantProviderExecutionFindUniqueOrThrowArgs} args - Arguments to find a AssistantProviderExecution
+     * @example
+     * // Get one AssistantProviderExecution
+     * const assistantProviderExecution = await prisma.assistantProviderExecution.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AssistantProviderExecutionFindUniqueOrThrowArgs>(args: SelectSubset<T, AssistantProviderExecutionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AssistantProviderExecutionClient<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AssistantProviderExecution that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantProviderExecutionFindFirstArgs} args - Arguments to find a AssistantProviderExecution
+     * @example
+     * // Get one AssistantProviderExecution
+     * const assistantProviderExecution = await prisma.assistantProviderExecution.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AssistantProviderExecutionFindFirstArgs>(args?: SelectSubset<T, AssistantProviderExecutionFindFirstArgs<ExtArgs>>): Prisma__AssistantProviderExecutionClient<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AssistantProviderExecution that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantProviderExecutionFindFirstOrThrowArgs} args - Arguments to find a AssistantProviderExecution
+     * @example
+     * // Get one AssistantProviderExecution
+     * const assistantProviderExecution = await prisma.assistantProviderExecution.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AssistantProviderExecutionFindFirstOrThrowArgs>(args?: SelectSubset<T, AssistantProviderExecutionFindFirstOrThrowArgs<ExtArgs>>): Prisma__AssistantProviderExecutionClient<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AssistantProviderExecutions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantProviderExecutionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AssistantProviderExecutions
+     * const assistantProviderExecutions = await prisma.assistantProviderExecution.findMany()
+     *
+     * // Get first 10 AssistantProviderExecutions
+     * const assistantProviderExecutions = await prisma.assistantProviderExecution.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const assistantProviderExecutionWithIdOnly = await prisma.assistantProviderExecution.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends AssistantProviderExecutionFindManyArgs>(args?: SelectSubset<T, AssistantProviderExecutionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AssistantProviderExecution.
+     * @param {AssistantProviderExecutionCreateArgs} args - Arguments to create a AssistantProviderExecution.
+     * @example
+     * // Create one AssistantProviderExecution
+     * const AssistantProviderExecution = await prisma.assistantProviderExecution.create({
+     *   data: {
+     *     // ... data to create a AssistantProviderExecution
+     *   }
+     * })
+     *
+     */
+    create<T extends AssistantProviderExecutionCreateArgs>(args: SelectSubset<T, AssistantProviderExecutionCreateArgs<ExtArgs>>): Prisma__AssistantProviderExecutionClient<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AssistantProviderExecutions.
+     * @param {AssistantProviderExecutionCreateManyArgs} args - Arguments to create many AssistantProviderExecutions.
+     * @example
+     * // Create many AssistantProviderExecutions
+     * const assistantProviderExecution = await prisma.assistantProviderExecution.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends AssistantProviderExecutionCreateManyArgs>(args?: SelectSubset<T, AssistantProviderExecutionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AssistantProviderExecutions and returns the data saved in the database.
+     * @param {AssistantProviderExecutionCreateManyAndReturnArgs} args - Arguments to create many AssistantProviderExecutions.
+     * @example
+     * // Create many AssistantProviderExecutions
+     * const assistantProviderExecution = await prisma.assistantProviderExecution.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many AssistantProviderExecutions and only return the `id`
+     * const assistantProviderExecutionWithIdOnly = await prisma.assistantProviderExecution.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends AssistantProviderExecutionCreateManyAndReturnArgs>(args?: SelectSubset<T, AssistantProviderExecutionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AssistantProviderExecution.
+     * @param {AssistantProviderExecutionDeleteArgs} args - Arguments to delete one AssistantProviderExecution.
+     * @example
+     * // Delete one AssistantProviderExecution
+     * const AssistantProviderExecution = await prisma.assistantProviderExecution.delete({
+     *   where: {
+     *     // ... filter to delete one AssistantProviderExecution
+     *   }
+     * })
+     *
+     */
+    delete<T extends AssistantProviderExecutionDeleteArgs>(args: SelectSubset<T, AssistantProviderExecutionDeleteArgs<ExtArgs>>): Prisma__AssistantProviderExecutionClient<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AssistantProviderExecution.
+     * @param {AssistantProviderExecutionUpdateArgs} args - Arguments to update one AssistantProviderExecution.
+     * @example
+     * // Update one AssistantProviderExecution
+     * const assistantProviderExecution = await prisma.assistantProviderExecution.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends AssistantProviderExecutionUpdateArgs>(args: SelectSubset<T, AssistantProviderExecutionUpdateArgs<ExtArgs>>): Prisma__AssistantProviderExecutionClient<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AssistantProviderExecutions.
+     * @param {AssistantProviderExecutionDeleteManyArgs} args - Arguments to filter AssistantProviderExecutions to delete.
+     * @example
+     * // Delete a few AssistantProviderExecutions
+     * const { count } = await prisma.assistantProviderExecution.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends AssistantProviderExecutionDeleteManyArgs>(args?: SelectSubset<T, AssistantProviderExecutionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssistantProviderExecutions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantProviderExecutionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AssistantProviderExecutions
+     * const assistantProviderExecution = await prisma.assistantProviderExecution.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends AssistantProviderExecutionUpdateManyArgs>(args: SelectSubset<T, AssistantProviderExecutionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssistantProviderExecutions and returns the data updated in the database.
+     * @param {AssistantProviderExecutionUpdateManyAndReturnArgs} args - Arguments to update many AssistantProviderExecutions.
+     * @example
+     * // Update many AssistantProviderExecutions
+     * const assistantProviderExecution = await prisma.assistantProviderExecution.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more AssistantProviderExecutions and only return the `id`
+     * const assistantProviderExecutionWithIdOnly = await prisma.assistantProviderExecution.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends AssistantProviderExecutionUpdateManyAndReturnArgs>(args: SelectSubset<T, AssistantProviderExecutionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AssistantProviderExecution.
+     * @param {AssistantProviderExecutionUpsertArgs} args - Arguments to update or create a AssistantProviderExecution.
+     * @example
+     * // Update or create a AssistantProviderExecution
+     * const assistantProviderExecution = await prisma.assistantProviderExecution.upsert({
+     *   create: {
+     *     // ... data to create a AssistantProviderExecution
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AssistantProviderExecution we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AssistantProviderExecutionUpsertArgs>(args: SelectSubset<T, AssistantProviderExecutionUpsertArgs<ExtArgs>>): Prisma__AssistantProviderExecutionClient<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AssistantProviderExecutions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantProviderExecutionCountArgs} args - Arguments to filter AssistantProviderExecutions to count.
+     * @example
+     * // Count the number of AssistantProviderExecutions
+     * const count = await prisma.assistantProviderExecution.count({
+     *   where: {
+     *     // ... the filter for the AssistantProviderExecutions we want to count
+     *   }
+     * })
+    **/
+    count<T extends AssistantProviderExecutionCountArgs>(
+      args?: Subset<T, AssistantProviderExecutionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AssistantProviderExecutionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AssistantProviderExecution.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantProviderExecutionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AssistantProviderExecutionAggregateArgs>(args: Subset<T, AssistantProviderExecutionAggregateArgs>): Prisma.PrismaPromise<GetAssistantProviderExecutionAggregateType<T>>
+
+    /**
+     * Group by AssistantProviderExecution.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantProviderExecutionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+    **/
+    groupBy<
+      T extends AssistantProviderExecutionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AssistantProviderExecutionGroupByArgs['orderBy'] }
+        : { orderBy?: AssistantProviderExecutionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AssistantProviderExecutionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAssistantProviderExecutionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AssistantProviderExecution model
+   */
+  readonly fields: AssistantProviderExecutionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AssistantProviderExecution.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AssistantProviderExecutionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    conversation<T extends AssistantConversationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AssistantConversationDefaultArgs<ExtArgs>>): Prisma__AssistantConversationClient<$Result.GetResult<Prisma.$AssistantConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    turn<T extends AssistantProviderExecution$turnArgs<ExtArgs> = {}>(args?: Subset<T, AssistantProviderExecution$turnArgs<ExtArgs>>): Prisma__AssistantTurnClient<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AssistantProviderExecution model
+   */
+  interface AssistantProviderExecutionFieldRefs {
+    readonly id: FieldRef<"AssistantProviderExecution", 'String'>
+    readonly userId: FieldRef<"AssistantProviderExecution", 'String'>
+    readonly conversationId: FieldRef<"AssistantProviderExecution", 'String'>
+    readonly turnId: FieldRef<"AssistantProviderExecution", 'String'>
+    readonly correlationId: FieldRef<"AssistantProviderExecution", 'String'>
+    readonly provider: FieldRef<"AssistantProviderExecution", 'String'>
+    readonly model: FieldRef<"AssistantProviderExecution", 'String'>
+    readonly status: FieldRef<"AssistantProviderExecution", 'AssistantProviderExecutionStatus'>
+    readonly startedAt: FieldRef<"AssistantProviderExecution", 'DateTime'>
+    readonly completedAt: FieldRef<"AssistantProviderExecution", 'DateTime'>
+    readonly durationMs: FieldRef<"AssistantProviderExecution", 'Int'>
+    readonly inputBytes: FieldRef<"AssistantProviderExecution", 'Int'>
+    readonly outputBytes: FieldRef<"AssistantProviderExecution", 'Int'>
+    readonly finishClassification: FieldRef<"AssistantProviderExecution", 'String'>
+    readonly safeErrorCode: FieldRef<"AssistantProviderExecution", 'String'>
+    readonly inputTokens: FieldRef<"AssistantProviderExecution", 'Int'>
+    readonly outputTokens: FieldRef<"AssistantProviderExecution", 'Int'>
+    readonly totalTokens: FieldRef<"AssistantProviderExecution", 'Int'>
+    readonly cachedInputTokens: FieldRef<"AssistantProviderExecution", 'Int'>
+  }
+
+
+  // Custom InputTypes
+  /**
+   * AssistantProviderExecution findUnique
+   */
+  export type AssistantProviderExecutionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantProviderExecution to fetch.
+     */
+    where: AssistantProviderExecutionWhereUniqueInput
+  }
+
+  /**
+   * AssistantProviderExecution findUniqueOrThrow
+   */
+  export type AssistantProviderExecutionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantProviderExecution to fetch.
+     */
+    where: AssistantProviderExecutionWhereUniqueInput
+  }
+
+  /**
+   * AssistantProviderExecution findFirst
+   */
+  export type AssistantProviderExecutionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantProviderExecution to fetch.
+     */
+    where?: AssistantProviderExecutionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantProviderExecutions to fetch.
+     */
+    orderBy?: AssistantProviderExecutionOrderByWithRelationInput | AssistantProviderExecutionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for AssistantProviderExecutions.
+     */
+    cursor?: AssistantProviderExecutionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantProviderExecutions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantProviderExecutions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantProviderExecutions.
+     */
+    distinct?: AssistantProviderExecutionScalarFieldEnum | AssistantProviderExecutionScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantProviderExecution findFirstOrThrow
+   */
+  export type AssistantProviderExecutionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantProviderExecution to fetch.
+     */
+    where?: AssistantProviderExecutionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantProviderExecutions to fetch.
+     */
+    orderBy?: AssistantProviderExecutionOrderByWithRelationInput | AssistantProviderExecutionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for AssistantProviderExecutions.
+     */
+    cursor?: AssistantProviderExecutionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantProviderExecutions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantProviderExecutions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantProviderExecutions.
+     */
+    distinct?: AssistantProviderExecutionScalarFieldEnum | AssistantProviderExecutionScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantProviderExecution findMany
+   */
+  export type AssistantProviderExecutionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which AssistantProviderExecutions to fetch.
+     */
+    where?: AssistantProviderExecutionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantProviderExecutions to fetch.
+     */
+    orderBy?: AssistantProviderExecutionOrderByWithRelationInput | AssistantProviderExecutionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing AssistantProviderExecutions.
+     */
+    cursor?: AssistantProviderExecutionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantProviderExecutions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantProviderExecutions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantProviderExecutions.
+     */
+    distinct?: AssistantProviderExecutionScalarFieldEnum | AssistantProviderExecutionScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantProviderExecution create
+   */
+  export type AssistantProviderExecutionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AssistantProviderExecution.
+     */
+    data: XOR<AssistantProviderExecutionCreateInput, AssistantProviderExecutionUncheckedCreateInput>
+  }
+
+  /**
+   * AssistantProviderExecution createMany
+   */
+  export type AssistantProviderExecutionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AssistantProviderExecutions.
+     */
+    data: AssistantProviderExecutionCreateManyInput | AssistantProviderExecutionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AssistantProviderExecution createManyAndReturn
+   */
+  export type AssistantProviderExecutionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * The data used to create many AssistantProviderExecutions.
+     */
+    data: AssistantProviderExecutionCreateManyInput | AssistantProviderExecutionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AssistantProviderExecution update
+   */
+  export type AssistantProviderExecutionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AssistantProviderExecution.
+     */
+    data: XOR<AssistantProviderExecutionUpdateInput, AssistantProviderExecutionUncheckedUpdateInput>
+    /**
+     * Choose, which AssistantProviderExecution to update.
+     */
+    where: AssistantProviderExecutionWhereUniqueInput
+  }
+
+  /**
+   * AssistantProviderExecution updateMany
+   */
+  export type AssistantProviderExecutionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AssistantProviderExecutions.
+     */
+    data: XOR<AssistantProviderExecutionUpdateManyMutationInput, AssistantProviderExecutionUncheckedUpdateManyInput>
+    /**
+     * Filter which AssistantProviderExecutions to update
+     */
+    where?: AssistantProviderExecutionWhereInput
+    /**
+     * Limit how many AssistantProviderExecutions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssistantProviderExecution updateManyAndReturn
+   */
+  export type AssistantProviderExecutionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * The data used to update AssistantProviderExecutions.
+     */
+    data: XOR<AssistantProviderExecutionUpdateManyMutationInput, AssistantProviderExecutionUncheckedUpdateManyInput>
+    /**
+     * Filter which AssistantProviderExecutions to update
+     */
+    where?: AssistantProviderExecutionWhereInput
+    /**
+     * Limit how many AssistantProviderExecutions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AssistantProviderExecution upsert
+   */
+  export type AssistantProviderExecutionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AssistantProviderExecution to update in case it exists.
+     */
+    where: AssistantProviderExecutionWhereUniqueInput
+    /**
+     * In case the AssistantProviderExecution found by the `where` argument doesn't exist, create a new AssistantProviderExecution with this data.
+     */
+    create: XOR<AssistantProviderExecutionCreateInput, AssistantProviderExecutionUncheckedCreateInput>
+    /**
+     * In case the AssistantProviderExecution was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AssistantProviderExecutionUpdateInput, AssistantProviderExecutionUncheckedUpdateInput>
+  }
+
+  /**
+   * AssistantProviderExecution delete
+   */
+  export type AssistantProviderExecutionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionInclude<ExtArgs> | null
+    /**
+     * Filter which AssistantProviderExecution to delete.
+     */
+    where: AssistantProviderExecutionWhereUniqueInput
+  }
+
+  /**
+   * AssistantProviderExecution deleteMany
+   */
+  export type AssistantProviderExecutionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssistantProviderExecutions to delete
+     */
+    where?: AssistantProviderExecutionWhereInput
+    /**
+     * Limit how many AssistantProviderExecutions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssistantProviderExecution.turn
+   */
+  export type AssistantProviderExecution$turnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnInclude<ExtArgs> | null
+    where?: AssistantTurnWhereInput
+  }
+
+  /**
+   * AssistantProviderExecution without action
+   */
+  export type AssistantProviderExecutionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantProviderExecution
+     */
+    select?: AssistantProviderExecutionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantProviderExecution
+     */
+    omit?: AssistantProviderExecutionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantProviderExecutionInclude<ExtArgs> | null
   }
 
 
@@ -23073,6 +24629,31 @@ export namespace Prisma {
   export type AssistantToolExecutionScalarFieldEnum = (typeof AssistantToolExecutionScalarFieldEnum)[keyof typeof AssistantToolExecutionScalarFieldEnum]
 
 
+  export const AssistantProviderExecutionScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    conversationId: 'conversationId',
+    turnId: 'turnId',
+    correlationId: 'correlationId',
+    provider: 'provider',
+    model: 'model',
+    status: 'status',
+    startedAt: 'startedAt',
+    completedAt: 'completedAt',
+    durationMs: 'durationMs',
+    inputBytes: 'inputBytes',
+    outputBytes: 'outputBytes',
+    finishClassification: 'finishClassification',
+    safeErrorCode: 'safeErrorCode',
+    inputTokens: 'inputTokens',
+    outputTokens: 'outputTokens',
+    totalTokens: 'totalTokens',
+    cachedInputTokens: 'cachedInputTokens'
+  };
+
+  export type AssistantProviderExecutionScalarFieldEnum = (typeof AssistantProviderExecutionScalarFieldEnum)[keyof typeof AssistantProviderExecutionScalarFieldEnum]
+
+
   export const WalletScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
@@ -23454,6 +25035,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'AssistantProviderExecutionStatus'
+   */
+  export type EnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantProviderExecutionStatus'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantProviderExecutionStatus[]'
+   */
+  export type ListEnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantProviderExecutionStatus[]'>
+
+
+
+  /**
    * Reference to a field of type 'WalletType'
    */
   export type EnumWalletTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WalletType'>
@@ -23610,6 +25205,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationListRelationFilter
     assistantFinancialDrafts?: AssistantFinancialDraftListRelationFilter
     assistantIdempotencyRecords?: AssistantIdempotencyRecordListRelationFilter
+    assistantProviderExecutions?: AssistantProviderExecutionListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -23630,6 +25226,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationOrderByRelationAggregateInput
     assistantFinancialDrafts?: AssistantFinancialDraftOrderByRelationAggregateInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordOrderByRelationAggregateInput
+    assistantProviderExecutions?: AssistantProviderExecutionOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -23653,6 +25250,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationListRelationFilter
     assistantFinancialDrafts?: AssistantFinancialDraftListRelationFilter
     assistantIdempotencyRecords?: AssistantIdempotencyRecordListRelationFilter
+    assistantProviderExecutions?: AssistantProviderExecutionListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -23696,6 +25294,7 @@ export namespace Prisma {
     messages?: AssistantMessageListRelationFilter
     toolExecutions?: AssistantToolExecutionListRelationFilter
     financialDrafts?: AssistantFinancialDraftListRelationFilter
+    providerExecutions?: AssistantProviderExecutionListRelationFilter
   }
 
   export type AssistantConversationOrderByWithRelationInput = {
@@ -23712,6 +25311,7 @@ export namespace Prisma {
     messages?: AssistantMessageOrderByRelationAggregateInput
     toolExecutions?: AssistantToolExecutionOrderByRelationAggregateInput
     financialDrafts?: AssistantFinancialDraftOrderByRelationAggregateInput
+    providerExecutions?: AssistantProviderExecutionOrderByRelationAggregateInput
   }
 
   export type AssistantConversationWhereUniqueInput = Prisma.AtLeast<{
@@ -23731,6 +25331,7 @@ export namespace Prisma {
     messages?: AssistantMessageListRelationFilter
     toolExecutions?: AssistantToolExecutionListRelationFilter
     financialDrafts?: AssistantFinancialDraftListRelationFilter
+    providerExecutions?: AssistantProviderExecutionListRelationFilter
   }, "id">
 
   export type AssistantConversationOrderByWithAggregationInput = {
@@ -23780,6 +25381,7 @@ export namespace Prisma {
     messages?: AssistantMessageListRelationFilter
     toolExecutions?: AssistantToolExecutionListRelationFilter
     financialDrafts?: AssistantFinancialDraftListRelationFilter
+    providerExecutions?: AssistantProviderExecutionListRelationFilter
   }
 
   export type AssistantTurnOrderByWithRelationInput = {
@@ -23798,6 +25400,7 @@ export namespace Prisma {
     messages?: AssistantMessageOrderByRelationAggregateInput
     toolExecutions?: AssistantToolExecutionOrderByRelationAggregateInput
     financialDrafts?: AssistantFinancialDraftOrderByRelationAggregateInput
+    providerExecutions?: AssistantProviderExecutionOrderByRelationAggregateInput
   }
 
   export type AssistantTurnWhereUniqueInput = Prisma.AtLeast<{
@@ -23819,6 +25422,7 @@ export namespace Prisma {
     messages?: AssistantMessageListRelationFilter
     toolExecutions?: AssistantToolExecutionListRelationFilter
     financialDrafts?: AssistantFinancialDraftListRelationFilter
+    providerExecutions?: AssistantProviderExecutionListRelationFilter
   }, "id" | "correlationId">
 
   export type AssistantTurnOrderByWithAggregationInput = {
@@ -24258,6 +25862,139 @@ export namespace Prisma {
     redactedInput?: JsonNullableWithAggregatesFilter<"AssistantToolExecution">
     outputSummary?: JsonNullableWithAggregatesFilter<"AssistantToolExecution">
     idempotencyKey?: StringNullableWithAggregatesFilter<"AssistantToolExecution"> | string | null
+  }
+
+  export type AssistantProviderExecutionWhereInput = {
+    AND?: AssistantProviderExecutionWhereInput | AssistantProviderExecutionWhereInput[]
+    OR?: AssistantProviderExecutionWhereInput[]
+    NOT?: AssistantProviderExecutionWhereInput | AssistantProviderExecutionWhereInput[]
+    id?: StringFilter<"AssistantProviderExecution"> | string
+    userId?: StringFilter<"AssistantProviderExecution"> | string
+    conversationId?: StringFilter<"AssistantProviderExecution"> | string
+    turnId?: StringNullableFilter<"AssistantProviderExecution"> | string | null
+    correlationId?: StringFilter<"AssistantProviderExecution"> | string
+    provider?: StringFilter<"AssistantProviderExecution"> | string
+    model?: StringFilter<"AssistantProviderExecution"> | string
+    status?: EnumAssistantProviderExecutionStatusFilter<"AssistantProviderExecution"> | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFilter<"AssistantProviderExecution"> | Date | string
+    completedAt?: DateTimeNullableFilter<"AssistantProviderExecution"> | Date | string | null
+    durationMs?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    inputBytes?: IntFilter<"AssistantProviderExecution"> | number
+    outputBytes?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    finishClassification?: StringNullableFilter<"AssistantProviderExecution"> | string | null
+    safeErrorCode?: StringNullableFilter<"AssistantProviderExecution"> | string | null
+    inputTokens?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    outputTokens?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    totalTokens?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    cachedInputTokens?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    conversation?: XOR<AssistantConversationScalarRelationFilter, AssistantConversationWhereInput>
+    turn?: XOR<AssistantTurnNullableScalarRelationFilter, AssistantTurnWhereInput> | null
+  }
+
+  export type AssistantProviderExecutionOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrderInput | SortOrder
+    correlationId?: SortOrder
+    provider?: SortOrder
+    model?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    durationMs?: SortOrderInput | SortOrder
+    inputBytes?: SortOrder
+    outputBytes?: SortOrderInput | SortOrder
+    finishClassification?: SortOrderInput | SortOrder
+    safeErrorCode?: SortOrderInput | SortOrder
+    inputTokens?: SortOrderInput | SortOrder
+    outputTokens?: SortOrderInput | SortOrder
+    totalTokens?: SortOrderInput | SortOrder
+    cachedInputTokens?: SortOrderInput | SortOrder
+    user?: UserOrderByWithRelationInput
+    conversation?: AssistantConversationOrderByWithRelationInput
+    turn?: AssistantTurnOrderByWithRelationInput
+  }
+
+  export type AssistantProviderExecutionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    correlationId?: string
+    AND?: AssistantProviderExecutionWhereInput | AssistantProviderExecutionWhereInput[]
+    OR?: AssistantProviderExecutionWhereInput[]
+    NOT?: AssistantProviderExecutionWhereInput | AssistantProviderExecutionWhereInput[]
+    userId?: StringFilter<"AssistantProviderExecution"> | string
+    conversationId?: StringFilter<"AssistantProviderExecution"> | string
+    turnId?: StringNullableFilter<"AssistantProviderExecution"> | string | null
+    provider?: StringFilter<"AssistantProviderExecution"> | string
+    model?: StringFilter<"AssistantProviderExecution"> | string
+    status?: EnumAssistantProviderExecutionStatusFilter<"AssistantProviderExecution"> | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFilter<"AssistantProviderExecution"> | Date | string
+    completedAt?: DateTimeNullableFilter<"AssistantProviderExecution"> | Date | string | null
+    durationMs?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    inputBytes?: IntFilter<"AssistantProviderExecution"> | number
+    outputBytes?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    finishClassification?: StringNullableFilter<"AssistantProviderExecution"> | string | null
+    safeErrorCode?: StringNullableFilter<"AssistantProviderExecution"> | string | null
+    inputTokens?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    outputTokens?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    totalTokens?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    cachedInputTokens?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    conversation?: XOR<AssistantConversationScalarRelationFilter, AssistantConversationWhereInput>
+    turn?: XOR<AssistantTurnNullableScalarRelationFilter, AssistantTurnWhereInput> | null
+  }, "id" | "correlationId">
+
+  export type AssistantProviderExecutionOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrderInput | SortOrder
+    correlationId?: SortOrder
+    provider?: SortOrder
+    model?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    durationMs?: SortOrderInput | SortOrder
+    inputBytes?: SortOrder
+    outputBytes?: SortOrderInput | SortOrder
+    finishClassification?: SortOrderInput | SortOrder
+    safeErrorCode?: SortOrderInput | SortOrder
+    inputTokens?: SortOrderInput | SortOrder
+    outputTokens?: SortOrderInput | SortOrder
+    totalTokens?: SortOrderInput | SortOrder
+    cachedInputTokens?: SortOrderInput | SortOrder
+    _count?: AssistantProviderExecutionCountOrderByAggregateInput
+    _avg?: AssistantProviderExecutionAvgOrderByAggregateInput
+    _max?: AssistantProviderExecutionMaxOrderByAggregateInput
+    _min?: AssistantProviderExecutionMinOrderByAggregateInput
+    _sum?: AssistantProviderExecutionSumOrderByAggregateInput
+  }
+
+  export type AssistantProviderExecutionScalarWhereWithAggregatesInput = {
+    AND?: AssistantProviderExecutionScalarWhereWithAggregatesInput | AssistantProviderExecutionScalarWhereWithAggregatesInput[]
+    OR?: AssistantProviderExecutionScalarWhereWithAggregatesInput[]
+    NOT?: AssistantProviderExecutionScalarWhereWithAggregatesInput | AssistantProviderExecutionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AssistantProviderExecution"> | string
+    userId?: StringWithAggregatesFilter<"AssistantProviderExecution"> | string
+    conversationId?: StringWithAggregatesFilter<"AssistantProviderExecution"> | string
+    turnId?: StringNullableWithAggregatesFilter<"AssistantProviderExecution"> | string | null
+    correlationId?: StringWithAggregatesFilter<"AssistantProviderExecution"> | string
+    provider?: StringWithAggregatesFilter<"AssistantProviderExecution"> | string
+    model?: StringWithAggregatesFilter<"AssistantProviderExecution"> | string
+    status?: EnumAssistantProviderExecutionStatusWithAggregatesFilter<"AssistantProviderExecution"> | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeWithAggregatesFilter<"AssistantProviderExecution"> | Date | string
+    completedAt?: DateTimeNullableWithAggregatesFilter<"AssistantProviderExecution"> | Date | string | null
+    durationMs?: IntNullableWithAggregatesFilter<"AssistantProviderExecution"> | number | null
+    inputBytes?: IntWithAggregatesFilter<"AssistantProviderExecution"> | number
+    outputBytes?: IntNullableWithAggregatesFilter<"AssistantProviderExecution"> | number | null
+    finishClassification?: StringNullableWithAggregatesFilter<"AssistantProviderExecution"> | string | null
+    safeErrorCode?: StringNullableWithAggregatesFilter<"AssistantProviderExecution"> | string | null
+    inputTokens?: IntNullableWithAggregatesFilter<"AssistantProviderExecution"> | number | null
+    outputTokens?: IntNullableWithAggregatesFilter<"AssistantProviderExecution"> | number | null
+    totalTokens?: IntNullableWithAggregatesFilter<"AssistantProviderExecution"> | number | null
+    cachedInputTokens?: IntNullableWithAggregatesFilter<"AssistantProviderExecution"> | number | null
   }
 
   export type WalletWhereInput = {
@@ -25202,6 +26939,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -25222,6 +26960,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -25242,6 +26981,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -25262,6 +27002,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -25304,6 +27045,7 @@ export namespace Prisma {
     messages?: AssistantMessageCreateNestedManyWithoutConversationInput
     toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutConversationInput
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutConversationInput
+    providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutConversationInput
   }
 
   export type AssistantConversationUncheckedCreateInput = {
@@ -25319,6 +27061,7 @@ export namespace Prisma {
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutConversationInput
     toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutConversationInput
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutConversationInput
+    providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutConversationInput
   }
 
   export type AssistantConversationUpdateInput = {
@@ -25334,6 +27077,7 @@ export namespace Prisma {
     messages?: AssistantMessageUpdateManyWithoutConversationNestedInput
     toolExecutions?: AssistantToolExecutionUpdateManyWithoutConversationNestedInput
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutConversationNestedInput
+    providerExecutions?: AssistantProviderExecutionUpdateManyWithoutConversationNestedInput
   }
 
   export type AssistantConversationUncheckedUpdateInput = {
@@ -25349,6 +27093,7 @@ export namespace Prisma {
     messages?: AssistantMessageUncheckedUpdateManyWithoutConversationNestedInput
     toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutConversationNestedInput
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutConversationNestedInput
+    providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutConversationNestedInput
   }
 
   export type AssistantConversationCreateManyInput = {
@@ -25398,6 +27143,7 @@ export namespace Prisma {
     messages?: AssistantMessageCreateNestedManyWithoutTurnInput
     toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutTurnInput
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutOriginatingTurnInput
+    providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnUncheckedCreateInput = {
@@ -25415,6 +27161,7 @@ export namespace Prisma {
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
     toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutTurnInput
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutOriginatingTurnInput
+    providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnUpdateInput = {
@@ -25432,6 +27179,7 @@ export namespace Prisma {
     messages?: AssistantMessageUpdateManyWithoutTurnNestedInput
     toolExecutions?: AssistantToolExecutionUpdateManyWithoutTurnNestedInput
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutOriginatingTurnNestedInput
+    providerExecutions?: AssistantProviderExecutionUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnUncheckedUpdateInput = {
@@ -25449,6 +27197,7 @@ export namespace Prisma {
     messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
     toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutTurnNestedInput
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutOriginatingTurnNestedInput
+    providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnCreateManyInput = {
@@ -25920,6 +27669,157 @@ export namespace Prisma {
     redactedInput?: NullableJsonNullValueInput | InputJsonValue
     outputSummary?: NullableJsonNullValueInput | InputJsonValue
     idempotencyKey?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AssistantProviderExecutionCreateInput = {
+    id?: string
+    correlationId: string
+    provider: string
+    model: string
+    status?: $Enums.AssistantProviderExecutionStatus
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    inputBytes: number
+    outputBytes?: number | null
+    finishClassification?: string | null
+    safeErrorCode?: string | null
+    inputTokens?: number | null
+    outputTokens?: number | null
+    totalTokens?: number | null
+    cachedInputTokens?: number | null
+    user: UserCreateNestedOneWithoutAssistantProviderExecutionsInput
+    conversation: AssistantConversationCreateNestedOneWithoutProviderExecutionsInput
+    turn?: AssistantTurnCreateNestedOneWithoutProviderExecutionsInput
+  }
+
+  export type AssistantProviderExecutionUncheckedCreateInput = {
+    id?: string
+    userId: string
+    conversationId: string
+    turnId?: string | null
+    correlationId: string
+    provider: string
+    model: string
+    status?: $Enums.AssistantProviderExecutionStatus
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    inputBytes: number
+    outputBytes?: number | null
+    finishClassification?: string | null
+    safeErrorCode?: string | null
+    inputTokens?: number | null
+    outputTokens?: number | null
+    totalTokens?: number | null
+    cachedInputTokens?: number | null
+  }
+
+  export type AssistantProviderExecutionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    inputBytes?: IntFieldUpdateOperationsInput | number
+    outputBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    finishClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    outputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    totalTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    cachedInputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    user?: UserUpdateOneRequiredWithoutAssistantProviderExecutionsNestedInput
+    conversation?: AssistantConversationUpdateOneRequiredWithoutProviderExecutionsNestedInput
+    turn?: AssistantTurnUpdateOneWithoutProviderExecutionsNestedInput
+  }
+
+  export type AssistantProviderExecutionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    turnId?: NullableStringFieldUpdateOperationsInput | string | null
+    correlationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    inputBytes?: IntFieldUpdateOperationsInput | number
+    outputBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    finishClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    outputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    totalTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    cachedInputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type AssistantProviderExecutionCreateManyInput = {
+    id?: string
+    userId: string
+    conversationId: string
+    turnId?: string | null
+    correlationId: string
+    provider: string
+    model: string
+    status?: $Enums.AssistantProviderExecutionStatus
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    inputBytes: number
+    outputBytes?: number | null
+    finishClassification?: string | null
+    safeErrorCode?: string | null
+    inputTokens?: number | null
+    outputTokens?: number | null
+    totalTokens?: number | null
+    cachedInputTokens?: number | null
+  }
+
+  export type AssistantProviderExecutionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    inputBytes?: IntFieldUpdateOperationsInput | number
+    outputBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    finishClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    outputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    totalTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    cachedInputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type AssistantProviderExecutionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    turnId?: NullableStringFieldUpdateOperationsInput | string | null
+    correlationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    inputBytes?: IntFieldUpdateOperationsInput | number
+    outputBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    finishClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    outputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    totalTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    cachedInputTokens?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type WalletCreateInput = {
@@ -27038,6 +28938,12 @@ export namespace Prisma {
     none?: AssistantIdempotencyRecordWhereInput
   }
 
+  export type AssistantProviderExecutionListRelationFilter = {
+    every?: AssistantProviderExecutionWhereInput
+    some?: AssistantProviderExecutionWhereInput
+    none?: AssistantProviderExecutionWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -27084,6 +28990,10 @@ export namespace Prisma {
   }
 
   export type AssistantIdempotencyRecordOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AssistantProviderExecutionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -27754,6 +29664,141 @@ export namespace Prisma {
     _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
+  export type EnumAssistantProviderExecutionStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantProviderExecutionStatus | EnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantProviderExecutionStatus[] | ListEnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantProviderExecutionStatus[] | ListEnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantProviderExecutionStatusFilter<$PrismaModel> | $Enums.AssistantProviderExecutionStatus
+  }
+
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type AssistantTurnNullableScalarRelationFilter = {
+    is?: AssistantTurnWhereInput | null
+    isNot?: AssistantTurnWhereInput | null
+  }
+
+  export type AssistantProviderExecutionCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrder
+    correlationId?: SortOrder
+    provider?: SortOrder
+    model?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    durationMs?: SortOrder
+    inputBytes?: SortOrder
+    outputBytes?: SortOrder
+    finishClassification?: SortOrder
+    safeErrorCode?: SortOrder
+    inputTokens?: SortOrder
+    outputTokens?: SortOrder
+    totalTokens?: SortOrder
+    cachedInputTokens?: SortOrder
+  }
+
+  export type AssistantProviderExecutionAvgOrderByAggregateInput = {
+    durationMs?: SortOrder
+    inputBytes?: SortOrder
+    outputBytes?: SortOrder
+    inputTokens?: SortOrder
+    outputTokens?: SortOrder
+    totalTokens?: SortOrder
+    cachedInputTokens?: SortOrder
+  }
+
+  export type AssistantProviderExecutionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrder
+    correlationId?: SortOrder
+    provider?: SortOrder
+    model?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    durationMs?: SortOrder
+    inputBytes?: SortOrder
+    outputBytes?: SortOrder
+    finishClassification?: SortOrder
+    safeErrorCode?: SortOrder
+    inputTokens?: SortOrder
+    outputTokens?: SortOrder
+    totalTokens?: SortOrder
+    cachedInputTokens?: SortOrder
+  }
+
+  export type AssistantProviderExecutionMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    conversationId?: SortOrder
+    turnId?: SortOrder
+    correlationId?: SortOrder
+    provider?: SortOrder
+    model?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    durationMs?: SortOrder
+    inputBytes?: SortOrder
+    outputBytes?: SortOrder
+    finishClassification?: SortOrder
+    safeErrorCode?: SortOrder
+    inputTokens?: SortOrder
+    outputTokens?: SortOrder
+    totalTokens?: SortOrder
+    cachedInputTokens?: SortOrder
+  }
+
+  export type AssistantProviderExecutionSumOrderByAggregateInput = {
+    durationMs?: SortOrder
+    inputBytes?: SortOrder
+    outputBytes?: SortOrder
+    inputTokens?: SortOrder
+    outputTokens?: SortOrder
+    totalTokens?: SortOrder
+    cachedInputTokens?: SortOrder
+  }
+
+  export type EnumAssistantProviderExecutionStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantProviderExecutionStatus | EnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantProviderExecutionStatus[] | ListEnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantProviderExecutionStatus[] | ListEnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantProviderExecutionStatusWithAggregatesFilter<$PrismaModel> | $Enums.AssistantProviderExecutionStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantProviderExecutionStatusFilter<$PrismaModel>
+    _max?: NestedEnumAssistantProviderExecutionStatusFilter<$PrismaModel>
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
   export type EnumWalletTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.WalletType | EnumWalletTypeFieldRefInput<$PrismaModel>
     in?: $Enums.WalletType[] | ListEnumWalletTypeFieldRefInput<$PrismaModel>
@@ -28058,17 +30103,6 @@ export namespace Prisma {
     amount?: SortOrder
   }
 
-  export type IntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
-  }
-
   export type EnumBillKindFilter<$PrismaModel = never> = {
     equals?: $Enums.BillKind | EnumBillKindFieldRefInput<$PrismaModel>
     in?: $Enums.BillKind[] | ListEnumBillKindFieldRefInput<$PrismaModel>
@@ -28192,22 +30226,6 @@ export namespace Prisma {
     currentTerm?: SortOrder
     monthlyAmount?: SortOrder
     paidTerms?: SortOrder
-  }
-
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type EnumBillKindWithAggregatesFilter<$PrismaModel = never> = {
@@ -28614,6 +30632,13 @@ export namespace Prisma {
     connect?: AssistantIdempotencyRecordWhereUniqueInput | AssistantIdempotencyRecordWhereUniqueInput[]
   }
 
+  export type AssistantProviderExecutionCreateNestedManyWithoutUserInput = {
+    create?: XOR<AssistantProviderExecutionCreateWithoutUserInput, AssistantProviderExecutionUncheckedCreateWithoutUserInput> | AssistantProviderExecutionCreateWithoutUserInput[] | AssistantProviderExecutionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AssistantProviderExecutionCreateOrConnectWithoutUserInput | AssistantProviderExecutionCreateOrConnectWithoutUserInput[]
+    createMany?: AssistantProviderExecutionCreateManyUserInputEnvelope
+    connect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+  }
+
   export type WalletUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<WalletCreateWithoutUserInput, WalletUncheckedCreateWithoutUserInput> | WalletCreateWithoutUserInput[] | WalletUncheckedCreateWithoutUserInput[]
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
@@ -28689,6 +30714,13 @@ export namespace Prisma {
     connectOrCreate?: AssistantIdempotencyRecordCreateOrConnectWithoutUserInput | AssistantIdempotencyRecordCreateOrConnectWithoutUserInput[]
     createMany?: AssistantIdempotencyRecordCreateManyUserInputEnvelope
     connect?: AssistantIdempotencyRecordWhereUniqueInput | AssistantIdempotencyRecordWhereUniqueInput[]
+  }
+
+  export type AssistantProviderExecutionUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<AssistantProviderExecutionCreateWithoutUserInput, AssistantProviderExecutionUncheckedCreateWithoutUserInput> | AssistantProviderExecutionCreateWithoutUserInput[] | AssistantProviderExecutionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AssistantProviderExecutionCreateOrConnectWithoutUserInput | AssistantProviderExecutionCreateOrConnectWithoutUserInput[]
+    createMany?: AssistantProviderExecutionCreateManyUserInputEnvelope
+    connect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -28857,6 +30889,20 @@ export namespace Prisma {
     deleteMany?: AssistantIdempotencyRecordScalarWhereInput | AssistantIdempotencyRecordScalarWhereInput[]
   }
 
+  export type AssistantProviderExecutionUpdateManyWithoutUserNestedInput = {
+    create?: XOR<AssistantProviderExecutionCreateWithoutUserInput, AssistantProviderExecutionUncheckedCreateWithoutUserInput> | AssistantProviderExecutionCreateWithoutUserInput[] | AssistantProviderExecutionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AssistantProviderExecutionCreateOrConnectWithoutUserInput | AssistantProviderExecutionCreateOrConnectWithoutUserInput[]
+    upsert?: AssistantProviderExecutionUpsertWithWhereUniqueWithoutUserInput | AssistantProviderExecutionUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: AssistantProviderExecutionCreateManyUserInputEnvelope
+    set?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    disconnect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    delete?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    connect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    update?: AssistantProviderExecutionUpdateWithWhereUniqueWithoutUserInput | AssistantProviderExecutionUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: AssistantProviderExecutionUpdateManyWithWhereWithoutUserInput | AssistantProviderExecutionUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: AssistantProviderExecutionScalarWhereInput | AssistantProviderExecutionScalarWhereInput[]
+  }
+
   export type WalletUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<WalletCreateWithoutUserInput, WalletUncheckedCreateWithoutUserInput> | WalletCreateWithoutUserInput[] | WalletUncheckedCreateWithoutUserInput[]
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
@@ -29011,6 +31057,20 @@ export namespace Prisma {
     deleteMany?: AssistantIdempotencyRecordScalarWhereInput | AssistantIdempotencyRecordScalarWhereInput[]
   }
 
+  export type AssistantProviderExecutionUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<AssistantProviderExecutionCreateWithoutUserInput, AssistantProviderExecutionUncheckedCreateWithoutUserInput> | AssistantProviderExecutionCreateWithoutUserInput[] | AssistantProviderExecutionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: AssistantProviderExecutionCreateOrConnectWithoutUserInput | AssistantProviderExecutionCreateOrConnectWithoutUserInput[]
+    upsert?: AssistantProviderExecutionUpsertWithWhereUniqueWithoutUserInput | AssistantProviderExecutionUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: AssistantProviderExecutionCreateManyUserInputEnvelope
+    set?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    disconnect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    delete?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    connect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    update?: AssistantProviderExecutionUpdateWithWhereUniqueWithoutUserInput | AssistantProviderExecutionUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: AssistantProviderExecutionUpdateManyWithWhereWithoutUserInput | AssistantProviderExecutionUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: AssistantProviderExecutionScalarWhereInput | AssistantProviderExecutionScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutAssistantConversationsInput = {
     create?: XOR<UserCreateWithoutAssistantConversationsInput, UserUncheckedCreateWithoutAssistantConversationsInput>
     connectOrCreate?: UserCreateOrConnectWithoutAssistantConversationsInput
@@ -29045,6 +31105,13 @@ export namespace Prisma {
     connect?: AssistantFinancialDraftWhereUniqueInput | AssistantFinancialDraftWhereUniqueInput[]
   }
 
+  export type AssistantProviderExecutionCreateNestedManyWithoutConversationInput = {
+    create?: XOR<AssistantProviderExecutionCreateWithoutConversationInput, AssistantProviderExecutionUncheckedCreateWithoutConversationInput> | AssistantProviderExecutionCreateWithoutConversationInput[] | AssistantProviderExecutionUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantProviderExecutionCreateOrConnectWithoutConversationInput | AssistantProviderExecutionCreateOrConnectWithoutConversationInput[]
+    createMany?: AssistantProviderExecutionCreateManyConversationInputEnvelope
+    connect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+  }
+
   export type AssistantTurnUncheckedCreateNestedManyWithoutConversationInput = {
     create?: XOR<AssistantTurnCreateWithoutConversationInput, AssistantTurnUncheckedCreateWithoutConversationInput> | AssistantTurnCreateWithoutConversationInput[] | AssistantTurnUncheckedCreateWithoutConversationInput[]
     connectOrCreate?: AssistantTurnCreateOrConnectWithoutConversationInput | AssistantTurnCreateOrConnectWithoutConversationInput[]
@@ -29071,6 +31138,13 @@ export namespace Prisma {
     connectOrCreate?: AssistantFinancialDraftCreateOrConnectWithoutConversationInput | AssistantFinancialDraftCreateOrConnectWithoutConversationInput[]
     createMany?: AssistantFinancialDraftCreateManyConversationInputEnvelope
     connect?: AssistantFinancialDraftWhereUniqueInput | AssistantFinancialDraftWhereUniqueInput[]
+  }
+
+  export type AssistantProviderExecutionUncheckedCreateNestedManyWithoutConversationInput = {
+    create?: XOR<AssistantProviderExecutionCreateWithoutConversationInput, AssistantProviderExecutionUncheckedCreateWithoutConversationInput> | AssistantProviderExecutionCreateWithoutConversationInput[] | AssistantProviderExecutionUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantProviderExecutionCreateOrConnectWithoutConversationInput | AssistantProviderExecutionCreateOrConnectWithoutConversationInput[]
+    createMany?: AssistantProviderExecutionCreateManyConversationInputEnvelope
+    connect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
   }
 
   export type EnumAssistantConversationStatusFieldUpdateOperationsInput = {
@@ -29145,6 +31219,20 @@ export namespace Prisma {
     deleteMany?: AssistantFinancialDraftScalarWhereInput | AssistantFinancialDraftScalarWhereInput[]
   }
 
+  export type AssistantProviderExecutionUpdateManyWithoutConversationNestedInput = {
+    create?: XOR<AssistantProviderExecutionCreateWithoutConversationInput, AssistantProviderExecutionUncheckedCreateWithoutConversationInput> | AssistantProviderExecutionCreateWithoutConversationInput[] | AssistantProviderExecutionUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantProviderExecutionCreateOrConnectWithoutConversationInput | AssistantProviderExecutionCreateOrConnectWithoutConversationInput[]
+    upsert?: AssistantProviderExecutionUpsertWithWhereUniqueWithoutConversationInput | AssistantProviderExecutionUpsertWithWhereUniqueWithoutConversationInput[]
+    createMany?: AssistantProviderExecutionCreateManyConversationInputEnvelope
+    set?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    disconnect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    delete?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    connect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    update?: AssistantProviderExecutionUpdateWithWhereUniqueWithoutConversationInput | AssistantProviderExecutionUpdateWithWhereUniqueWithoutConversationInput[]
+    updateMany?: AssistantProviderExecutionUpdateManyWithWhereWithoutConversationInput | AssistantProviderExecutionUpdateManyWithWhereWithoutConversationInput[]
+    deleteMany?: AssistantProviderExecutionScalarWhereInput | AssistantProviderExecutionScalarWhereInput[]
+  }
+
   export type AssistantTurnUncheckedUpdateManyWithoutConversationNestedInput = {
     create?: XOR<AssistantTurnCreateWithoutConversationInput, AssistantTurnUncheckedCreateWithoutConversationInput> | AssistantTurnCreateWithoutConversationInput[] | AssistantTurnUncheckedCreateWithoutConversationInput[]
     connectOrCreate?: AssistantTurnCreateOrConnectWithoutConversationInput | AssistantTurnCreateOrConnectWithoutConversationInput[]
@@ -29201,6 +31289,20 @@ export namespace Prisma {
     deleteMany?: AssistantFinancialDraftScalarWhereInput | AssistantFinancialDraftScalarWhereInput[]
   }
 
+  export type AssistantProviderExecutionUncheckedUpdateManyWithoutConversationNestedInput = {
+    create?: XOR<AssistantProviderExecutionCreateWithoutConversationInput, AssistantProviderExecutionUncheckedCreateWithoutConversationInput> | AssistantProviderExecutionCreateWithoutConversationInput[] | AssistantProviderExecutionUncheckedCreateWithoutConversationInput[]
+    connectOrCreate?: AssistantProviderExecutionCreateOrConnectWithoutConversationInput | AssistantProviderExecutionCreateOrConnectWithoutConversationInput[]
+    upsert?: AssistantProviderExecutionUpsertWithWhereUniqueWithoutConversationInput | AssistantProviderExecutionUpsertWithWhereUniqueWithoutConversationInput[]
+    createMany?: AssistantProviderExecutionCreateManyConversationInputEnvelope
+    set?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    disconnect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    delete?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    connect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    update?: AssistantProviderExecutionUpdateWithWhereUniqueWithoutConversationInput | AssistantProviderExecutionUpdateWithWhereUniqueWithoutConversationInput[]
+    updateMany?: AssistantProviderExecutionUpdateManyWithWhereWithoutConversationInput | AssistantProviderExecutionUpdateManyWithWhereWithoutConversationInput[]
+    deleteMany?: AssistantProviderExecutionScalarWhereInput | AssistantProviderExecutionScalarWhereInput[]
+  }
+
   export type AssistantConversationCreateNestedOneWithoutTurnsInput = {
     create?: XOR<AssistantConversationCreateWithoutTurnsInput, AssistantConversationUncheckedCreateWithoutTurnsInput>
     connectOrCreate?: AssistantConversationCreateOrConnectWithoutTurnsInput
@@ -29228,6 +31330,13 @@ export namespace Prisma {
     connect?: AssistantFinancialDraftWhereUniqueInput | AssistantFinancialDraftWhereUniqueInput[]
   }
 
+  export type AssistantProviderExecutionCreateNestedManyWithoutTurnInput = {
+    create?: XOR<AssistantProviderExecutionCreateWithoutTurnInput, AssistantProviderExecutionUncheckedCreateWithoutTurnInput> | AssistantProviderExecutionCreateWithoutTurnInput[] | AssistantProviderExecutionUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantProviderExecutionCreateOrConnectWithoutTurnInput | AssistantProviderExecutionCreateOrConnectWithoutTurnInput[]
+    createMany?: AssistantProviderExecutionCreateManyTurnInputEnvelope
+    connect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+  }
+
   export type AssistantMessageUncheckedCreateNestedManyWithoutTurnInput = {
     create?: XOR<AssistantMessageCreateWithoutTurnInput, AssistantMessageUncheckedCreateWithoutTurnInput> | AssistantMessageCreateWithoutTurnInput[] | AssistantMessageUncheckedCreateWithoutTurnInput[]
     connectOrCreate?: AssistantMessageCreateOrConnectWithoutTurnInput | AssistantMessageCreateOrConnectWithoutTurnInput[]
@@ -29247,6 +31356,13 @@ export namespace Prisma {
     connectOrCreate?: AssistantFinancialDraftCreateOrConnectWithoutOriginatingTurnInput | AssistantFinancialDraftCreateOrConnectWithoutOriginatingTurnInput[]
     createMany?: AssistantFinancialDraftCreateManyOriginatingTurnInputEnvelope
     connect?: AssistantFinancialDraftWhereUniqueInput | AssistantFinancialDraftWhereUniqueInput[]
+  }
+
+  export type AssistantProviderExecutionUncheckedCreateNestedManyWithoutTurnInput = {
+    create?: XOR<AssistantProviderExecutionCreateWithoutTurnInput, AssistantProviderExecutionUncheckedCreateWithoutTurnInput> | AssistantProviderExecutionCreateWithoutTurnInput[] | AssistantProviderExecutionUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantProviderExecutionCreateOrConnectWithoutTurnInput | AssistantProviderExecutionCreateOrConnectWithoutTurnInput[]
+    createMany?: AssistantProviderExecutionCreateManyTurnInputEnvelope
+    connect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
   }
 
   export type EnumAssistantTurnStatusFieldUpdateOperationsInput = {
@@ -29303,6 +31419,20 @@ export namespace Prisma {
     deleteMany?: AssistantFinancialDraftScalarWhereInput | AssistantFinancialDraftScalarWhereInput[]
   }
 
+  export type AssistantProviderExecutionUpdateManyWithoutTurnNestedInput = {
+    create?: XOR<AssistantProviderExecutionCreateWithoutTurnInput, AssistantProviderExecutionUncheckedCreateWithoutTurnInput> | AssistantProviderExecutionCreateWithoutTurnInput[] | AssistantProviderExecutionUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantProviderExecutionCreateOrConnectWithoutTurnInput | AssistantProviderExecutionCreateOrConnectWithoutTurnInput[]
+    upsert?: AssistantProviderExecutionUpsertWithWhereUniqueWithoutTurnInput | AssistantProviderExecutionUpsertWithWhereUniqueWithoutTurnInput[]
+    createMany?: AssistantProviderExecutionCreateManyTurnInputEnvelope
+    set?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    disconnect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    delete?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    connect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    update?: AssistantProviderExecutionUpdateWithWhereUniqueWithoutTurnInput | AssistantProviderExecutionUpdateWithWhereUniqueWithoutTurnInput[]
+    updateMany?: AssistantProviderExecutionUpdateManyWithWhereWithoutTurnInput | AssistantProviderExecutionUpdateManyWithWhereWithoutTurnInput[]
+    deleteMany?: AssistantProviderExecutionScalarWhereInput | AssistantProviderExecutionScalarWhereInput[]
+  }
+
   export type AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput = {
     create?: XOR<AssistantMessageCreateWithoutTurnInput, AssistantMessageUncheckedCreateWithoutTurnInput> | AssistantMessageCreateWithoutTurnInput[] | AssistantMessageUncheckedCreateWithoutTurnInput[]
     connectOrCreate?: AssistantMessageCreateOrConnectWithoutTurnInput | AssistantMessageCreateOrConnectWithoutTurnInput[]
@@ -29343,6 +31473,20 @@ export namespace Prisma {
     update?: AssistantFinancialDraftUpdateWithWhereUniqueWithoutOriginatingTurnInput | AssistantFinancialDraftUpdateWithWhereUniqueWithoutOriginatingTurnInput[]
     updateMany?: AssistantFinancialDraftUpdateManyWithWhereWithoutOriginatingTurnInput | AssistantFinancialDraftUpdateManyWithWhereWithoutOriginatingTurnInput[]
     deleteMany?: AssistantFinancialDraftScalarWhereInput | AssistantFinancialDraftScalarWhereInput[]
+  }
+
+  export type AssistantProviderExecutionUncheckedUpdateManyWithoutTurnNestedInput = {
+    create?: XOR<AssistantProviderExecutionCreateWithoutTurnInput, AssistantProviderExecutionUncheckedCreateWithoutTurnInput> | AssistantProviderExecutionCreateWithoutTurnInput[] | AssistantProviderExecutionUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantProviderExecutionCreateOrConnectWithoutTurnInput | AssistantProviderExecutionCreateOrConnectWithoutTurnInput[]
+    upsert?: AssistantProviderExecutionUpsertWithWhereUniqueWithoutTurnInput | AssistantProviderExecutionUpsertWithWhereUniqueWithoutTurnInput[]
+    createMany?: AssistantProviderExecutionCreateManyTurnInputEnvelope
+    set?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    disconnect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    delete?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    connect?: AssistantProviderExecutionWhereUniqueInput | AssistantProviderExecutionWhereUniqueInput[]
+    update?: AssistantProviderExecutionUpdateWithWhereUniqueWithoutTurnInput | AssistantProviderExecutionUpdateWithWhereUniqueWithoutTurnInput[]
+    updateMany?: AssistantProviderExecutionUpdateManyWithWhereWithoutTurnInput | AssistantProviderExecutionUpdateManyWithWhereWithoutTurnInput[]
+    deleteMany?: AssistantProviderExecutionScalarWhereInput | AssistantProviderExecutionScalarWhereInput[]
   }
 
   export type AssistantConversationCreateNestedOneWithoutMessagesInput = {
@@ -29625,6 +31769,62 @@ export namespace Prisma {
     delete?: AssistantFinancialDraftWhereInput | boolean
     connect?: AssistantFinancialDraftWhereUniqueInput
     update?: XOR<XOR<AssistantFinancialDraftUpdateToOneWithWhereWithoutOriginatingExecutionInput, AssistantFinancialDraftUpdateWithoutOriginatingExecutionInput>, AssistantFinancialDraftUncheckedUpdateWithoutOriginatingExecutionInput>
+  }
+
+  export type UserCreateNestedOneWithoutAssistantProviderExecutionsInput = {
+    create?: XOR<UserCreateWithoutAssistantProviderExecutionsInput, UserUncheckedCreateWithoutAssistantProviderExecutionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAssistantProviderExecutionsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type AssistantConversationCreateNestedOneWithoutProviderExecutionsInput = {
+    create?: XOR<AssistantConversationCreateWithoutProviderExecutionsInput, AssistantConversationUncheckedCreateWithoutProviderExecutionsInput>
+    connectOrCreate?: AssistantConversationCreateOrConnectWithoutProviderExecutionsInput
+    connect?: AssistantConversationWhereUniqueInput
+  }
+
+  export type AssistantTurnCreateNestedOneWithoutProviderExecutionsInput = {
+    create?: XOR<AssistantTurnCreateWithoutProviderExecutionsInput, AssistantTurnUncheckedCreateWithoutProviderExecutionsInput>
+    connectOrCreate?: AssistantTurnCreateOrConnectWithoutProviderExecutionsInput
+    connect?: AssistantTurnWhereUniqueInput
+  }
+
+  export type EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput = {
+    set?: $Enums.AssistantProviderExecutionStatus
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type UserUpdateOneRequiredWithoutAssistantProviderExecutionsNestedInput = {
+    create?: XOR<UserCreateWithoutAssistantProviderExecutionsInput, UserUncheckedCreateWithoutAssistantProviderExecutionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAssistantProviderExecutionsInput
+    upsert?: UserUpsertWithoutAssistantProviderExecutionsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAssistantProviderExecutionsInput, UserUpdateWithoutAssistantProviderExecutionsInput>, UserUncheckedUpdateWithoutAssistantProviderExecutionsInput>
+  }
+
+  export type AssistantConversationUpdateOneRequiredWithoutProviderExecutionsNestedInput = {
+    create?: XOR<AssistantConversationCreateWithoutProviderExecutionsInput, AssistantConversationUncheckedCreateWithoutProviderExecutionsInput>
+    connectOrCreate?: AssistantConversationCreateOrConnectWithoutProviderExecutionsInput
+    upsert?: AssistantConversationUpsertWithoutProviderExecutionsInput
+    connect?: AssistantConversationWhereUniqueInput
+    update?: XOR<XOR<AssistantConversationUpdateToOneWithWhereWithoutProviderExecutionsInput, AssistantConversationUpdateWithoutProviderExecutionsInput>, AssistantConversationUncheckedUpdateWithoutProviderExecutionsInput>
+  }
+
+  export type AssistantTurnUpdateOneWithoutProviderExecutionsNestedInput = {
+    create?: XOR<AssistantTurnCreateWithoutProviderExecutionsInput, AssistantTurnUncheckedCreateWithoutProviderExecutionsInput>
+    connectOrCreate?: AssistantTurnCreateOrConnectWithoutProviderExecutionsInput
+    upsert?: AssistantTurnUpsertWithoutProviderExecutionsInput
+    disconnect?: AssistantTurnWhereInput | boolean
+    delete?: AssistantTurnWhereInput | boolean
+    connect?: AssistantTurnWhereUniqueInput
+    update?: XOR<XOR<AssistantTurnUpdateToOneWithWhereWithoutProviderExecutionsInput, AssistantTurnUpdateWithoutProviderExecutionsInput>, AssistantTurnUncheckedUpdateWithoutProviderExecutionsInput>
   }
 
   export type UserCreateNestedOneWithoutWalletsInput = {
@@ -30257,14 +32457,6 @@ export namespace Prisma {
     connect?: RecurringReminderEventWhereUniqueInput | RecurringReminderEventWhereUniqueInput[]
   }
 
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
-  }
-
   export type EnumBillKindFieldUpdateOperationsInput = {
     set?: $Enums.BillKind
   }
@@ -30871,6 +33063,50 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
+  export type NestedEnumAssistantProviderExecutionStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantProviderExecutionStatus | EnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantProviderExecutionStatus[] | ListEnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantProviderExecutionStatus[] | ListEnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantProviderExecutionStatusFilter<$PrismaModel> | $Enums.AssistantProviderExecutionStatus
+  }
+
+  export type NestedEnumAssistantProviderExecutionStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantProviderExecutionStatus | EnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantProviderExecutionStatus[] | ListEnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantProviderExecutionStatus[] | ListEnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantProviderExecutionStatusWithAggregatesFilter<$PrismaModel> | $Enums.AssistantProviderExecutionStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantProviderExecutionStatusFilter<$PrismaModel>
+    _max?: NestedEnumAssistantProviderExecutionStatusFilter<$PrismaModel>
+  }
+
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
   export type NestedEnumWalletTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.WalletType | EnumWalletTypeFieldRefInput<$PrismaModel>
     in?: $Enums.WalletType[] | ListEnumWalletTypeFieldRefInput<$PrismaModel>
@@ -30947,33 +33183,6 @@ export namespace Prisma {
     in?: $Enums.InstallmentStatus[] | ListEnumInstallmentStatusFieldRefInput<$PrismaModel>
     notIn?: $Enums.InstallmentStatus[] | ListEnumInstallmentStatusFieldRefInput<$PrismaModel>
     not?: NestedEnumInstallmentStatusFilter<$PrismaModel> | $Enums.InstallmentStatus
-  }
-
-  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
-  }
-
-  export type NestedFloatFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
   }
 
   export type NestedEnumBillKindWithAggregatesFilter<$PrismaModel = never> = {
@@ -31428,6 +33637,7 @@ export namespace Prisma {
     messages?: AssistantMessageCreateNestedManyWithoutConversationInput
     toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutConversationInput
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutConversationInput
+    providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutConversationInput
   }
 
   export type AssistantConversationUncheckedCreateWithoutUserInput = {
@@ -31442,6 +33652,7 @@ export namespace Prisma {
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutConversationInput
     toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutConversationInput
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutConversationInput
+    providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutConversationInput
   }
 
   export type AssistantConversationCreateOrConnectWithoutUserInput = {
@@ -31535,6 +33746,58 @@ export namespace Prisma {
 
   export type AssistantIdempotencyRecordCreateManyUserInputEnvelope = {
     data: AssistantIdempotencyRecordCreateManyUserInput | AssistantIdempotencyRecordCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AssistantProviderExecutionCreateWithoutUserInput = {
+    id?: string
+    correlationId: string
+    provider: string
+    model: string
+    status?: $Enums.AssistantProviderExecutionStatus
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    inputBytes: number
+    outputBytes?: number | null
+    finishClassification?: string | null
+    safeErrorCode?: string | null
+    inputTokens?: number | null
+    outputTokens?: number | null
+    totalTokens?: number | null
+    cachedInputTokens?: number | null
+    conversation: AssistantConversationCreateNestedOneWithoutProviderExecutionsInput
+    turn?: AssistantTurnCreateNestedOneWithoutProviderExecutionsInput
+  }
+
+  export type AssistantProviderExecutionUncheckedCreateWithoutUserInput = {
+    id?: string
+    conversationId: string
+    turnId?: string | null
+    correlationId: string
+    provider: string
+    model: string
+    status?: $Enums.AssistantProviderExecutionStatus
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    inputBytes: number
+    outputBytes?: number | null
+    finishClassification?: string | null
+    safeErrorCode?: string | null
+    inputTokens?: number | null
+    outputTokens?: number | null
+    totalTokens?: number | null
+    cachedInputTokens?: number | null
+  }
+
+  export type AssistantProviderExecutionCreateOrConnectWithoutUserInput = {
+    where: AssistantProviderExecutionWhereUniqueInput
+    create: XOR<AssistantProviderExecutionCreateWithoutUserInput, AssistantProviderExecutionUncheckedCreateWithoutUserInput>
+  }
+
+  export type AssistantProviderExecutionCreateManyUserInputEnvelope = {
+    data: AssistantProviderExecutionCreateManyUserInput | AssistantProviderExecutionCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -31916,6 +34179,47 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"AssistantIdempotencyRecord"> | Date | string
   }
 
+  export type AssistantProviderExecutionUpsertWithWhereUniqueWithoutUserInput = {
+    where: AssistantProviderExecutionWhereUniqueInput
+    update: XOR<AssistantProviderExecutionUpdateWithoutUserInput, AssistantProviderExecutionUncheckedUpdateWithoutUserInput>
+    create: XOR<AssistantProviderExecutionCreateWithoutUserInput, AssistantProviderExecutionUncheckedCreateWithoutUserInput>
+  }
+
+  export type AssistantProviderExecutionUpdateWithWhereUniqueWithoutUserInput = {
+    where: AssistantProviderExecutionWhereUniqueInput
+    data: XOR<AssistantProviderExecutionUpdateWithoutUserInput, AssistantProviderExecutionUncheckedUpdateWithoutUserInput>
+  }
+
+  export type AssistantProviderExecutionUpdateManyWithWhereWithoutUserInput = {
+    where: AssistantProviderExecutionScalarWhereInput
+    data: XOR<AssistantProviderExecutionUpdateManyMutationInput, AssistantProviderExecutionUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type AssistantProviderExecutionScalarWhereInput = {
+    AND?: AssistantProviderExecutionScalarWhereInput | AssistantProviderExecutionScalarWhereInput[]
+    OR?: AssistantProviderExecutionScalarWhereInput[]
+    NOT?: AssistantProviderExecutionScalarWhereInput | AssistantProviderExecutionScalarWhereInput[]
+    id?: StringFilter<"AssistantProviderExecution"> | string
+    userId?: StringFilter<"AssistantProviderExecution"> | string
+    conversationId?: StringFilter<"AssistantProviderExecution"> | string
+    turnId?: StringNullableFilter<"AssistantProviderExecution"> | string | null
+    correlationId?: StringFilter<"AssistantProviderExecution"> | string
+    provider?: StringFilter<"AssistantProviderExecution"> | string
+    model?: StringFilter<"AssistantProviderExecution"> | string
+    status?: EnumAssistantProviderExecutionStatusFilter<"AssistantProviderExecution"> | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFilter<"AssistantProviderExecution"> | Date | string
+    completedAt?: DateTimeNullableFilter<"AssistantProviderExecution"> | Date | string | null
+    durationMs?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    inputBytes?: IntFilter<"AssistantProviderExecution"> | number
+    outputBytes?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    finishClassification?: StringNullableFilter<"AssistantProviderExecution"> | string | null
+    safeErrorCode?: StringNullableFilter<"AssistantProviderExecution"> | string | null
+    inputTokens?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    outputTokens?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    totalTokens?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+    cachedInputTokens?: IntNullableFilter<"AssistantProviderExecution"> | number | null
+  }
+
   export type UserCreateWithoutAssistantConversationsInput = {
     id?: string
     email: string
@@ -31933,6 +34237,7 @@ export namespace Prisma {
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAssistantConversationsInput = {
@@ -31952,6 +34257,7 @@ export namespace Prisma {
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAssistantConversationsInput = {
@@ -31973,6 +34279,7 @@ export namespace Prisma {
     messages?: AssistantMessageCreateNestedManyWithoutTurnInput
     toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutTurnInput
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutOriginatingTurnInput
+    providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnUncheckedCreateWithoutConversationInput = {
@@ -31989,6 +34296,7 @@ export namespace Prisma {
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
     toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutTurnInput
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutOriginatingTurnInput
+    providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnCreateOrConnectWithoutConversationInput = {
@@ -32133,6 +34441,58 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type AssistantProviderExecutionCreateWithoutConversationInput = {
+    id?: string
+    correlationId: string
+    provider: string
+    model: string
+    status?: $Enums.AssistantProviderExecutionStatus
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    inputBytes: number
+    outputBytes?: number | null
+    finishClassification?: string | null
+    safeErrorCode?: string | null
+    inputTokens?: number | null
+    outputTokens?: number | null
+    totalTokens?: number | null
+    cachedInputTokens?: number | null
+    user: UserCreateNestedOneWithoutAssistantProviderExecutionsInput
+    turn?: AssistantTurnCreateNestedOneWithoutProviderExecutionsInput
+  }
+
+  export type AssistantProviderExecutionUncheckedCreateWithoutConversationInput = {
+    id?: string
+    userId: string
+    turnId?: string | null
+    correlationId: string
+    provider: string
+    model: string
+    status?: $Enums.AssistantProviderExecutionStatus
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    inputBytes: number
+    outputBytes?: number | null
+    finishClassification?: string | null
+    safeErrorCode?: string | null
+    inputTokens?: number | null
+    outputTokens?: number | null
+    totalTokens?: number | null
+    cachedInputTokens?: number | null
+  }
+
+  export type AssistantProviderExecutionCreateOrConnectWithoutConversationInput = {
+    where: AssistantProviderExecutionWhereUniqueInput
+    create: XOR<AssistantProviderExecutionCreateWithoutConversationInput, AssistantProviderExecutionUncheckedCreateWithoutConversationInput>
+  }
+
+  export type AssistantProviderExecutionCreateManyConversationInputEnvelope = {
+    data: AssistantProviderExecutionCreateManyConversationInput | AssistantProviderExecutionCreateManyConversationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutAssistantConversationsInput = {
     update: XOR<UserUpdateWithoutAssistantConversationsInput, UserUncheckedUpdateWithoutAssistantConversationsInput>
     create: XOR<UserCreateWithoutAssistantConversationsInput, UserUncheckedCreateWithoutAssistantConversationsInput>
@@ -32161,6 +34521,7 @@ export namespace Prisma {
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAssistantConversationsInput = {
@@ -32180,6 +34541,7 @@ export namespace Prisma {
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type AssistantTurnUpsertWithWhereUniqueWithoutConversationInput = {
@@ -32298,6 +34660,22 @@ export namespace Prisma {
     data: XOR<AssistantFinancialDraftUpdateManyMutationInput, AssistantFinancialDraftUncheckedUpdateManyWithoutConversationInput>
   }
 
+  export type AssistantProviderExecutionUpsertWithWhereUniqueWithoutConversationInput = {
+    where: AssistantProviderExecutionWhereUniqueInput
+    update: XOR<AssistantProviderExecutionUpdateWithoutConversationInput, AssistantProviderExecutionUncheckedUpdateWithoutConversationInput>
+    create: XOR<AssistantProviderExecutionCreateWithoutConversationInput, AssistantProviderExecutionUncheckedCreateWithoutConversationInput>
+  }
+
+  export type AssistantProviderExecutionUpdateWithWhereUniqueWithoutConversationInput = {
+    where: AssistantProviderExecutionWhereUniqueInput
+    data: XOR<AssistantProviderExecutionUpdateWithoutConversationInput, AssistantProviderExecutionUncheckedUpdateWithoutConversationInput>
+  }
+
+  export type AssistantProviderExecutionUpdateManyWithWhereWithoutConversationInput = {
+    where: AssistantProviderExecutionScalarWhereInput
+    data: XOR<AssistantProviderExecutionUpdateManyMutationInput, AssistantProviderExecutionUncheckedUpdateManyWithoutConversationInput>
+  }
+
   export type AssistantConversationCreateWithoutTurnsInput = {
     id?: string
     status?: $Enums.AssistantConversationStatus
@@ -32310,6 +34688,7 @@ export namespace Prisma {
     messages?: AssistantMessageCreateNestedManyWithoutConversationInput
     toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutConversationInput
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutConversationInput
+    providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutConversationInput
   }
 
   export type AssistantConversationUncheckedCreateWithoutTurnsInput = {
@@ -32324,6 +34703,7 @@ export namespace Prisma {
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutConversationInput
     toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutConversationInput
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutConversationInput
+    providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutConversationInput
   }
 
   export type AssistantConversationCreateOrConnectWithoutTurnsInput = {
@@ -32463,6 +34843,58 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type AssistantProviderExecutionCreateWithoutTurnInput = {
+    id?: string
+    correlationId: string
+    provider: string
+    model: string
+    status?: $Enums.AssistantProviderExecutionStatus
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    inputBytes: number
+    outputBytes?: number | null
+    finishClassification?: string | null
+    safeErrorCode?: string | null
+    inputTokens?: number | null
+    outputTokens?: number | null
+    totalTokens?: number | null
+    cachedInputTokens?: number | null
+    user: UserCreateNestedOneWithoutAssistantProviderExecutionsInput
+    conversation: AssistantConversationCreateNestedOneWithoutProviderExecutionsInput
+  }
+
+  export type AssistantProviderExecutionUncheckedCreateWithoutTurnInput = {
+    id?: string
+    userId: string
+    conversationId: string
+    correlationId: string
+    provider: string
+    model: string
+    status?: $Enums.AssistantProviderExecutionStatus
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    inputBytes: number
+    outputBytes?: number | null
+    finishClassification?: string | null
+    safeErrorCode?: string | null
+    inputTokens?: number | null
+    outputTokens?: number | null
+    totalTokens?: number | null
+    cachedInputTokens?: number | null
+  }
+
+  export type AssistantProviderExecutionCreateOrConnectWithoutTurnInput = {
+    where: AssistantProviderExecutionWhereUniqueInput
+    create: XOR<AssistantProviderExecutionCreateWithoutTurnInput, AssistantProviderExecutionUncheckedCreateWithoutTurnInput>
+  }
+
+  export type AssistantProviderExecutionCreateManyTurnInputEnvelope = {
+    data: AssistantProviderExecutionCreateManyTurnInput | AssistantProviderExecutionCreateManyTurnInput[]
+    skipDuplicates?: boolean
+  }
+
   export type AssistantConversationUpsertWithoutTurnsInput = {
     update: XOR<AssistantConversationUpdateWithoutTurnsInput, AssistantConversationUncheckedUpdateWithoutTurnsInput>
     create: XOR<AssistantConversationCreateWithoutTurnsInput, AssistantConversationUncheckedCreateWithoutTurnsInput>
@@ -32486,6 +34918,7 @@ export namespace Prisma {
     messages?: AssistantMessageUpdateManyWithoutConversationNestedInput
     toolExecutions?: AssistantToolExecutionUpdateManyWithoutConversationNestedInput
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutConversationNestedInput
+    providerExecutions?: AssistantProviderExecutionUpdateManyWithoutConversationNestedInput
   }
 
   export type AssistantConversationUncheckedUpdateWithoutTurnsInput = {
@@ -32500,6 +34933,7 @@ export namespace Prisma {
     messages?: AssistantMessageUncheckedUpdateManyWithoutConversationNestedInput
     toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutConversationNestedInput
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutConversationNestedInput
+    providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutConversationNestedInput
   }
 
   export type AssistantMessageUpsertWithWhereUniqueWithoutTurnInput = {
@@ -32550,6 +34984,22 @@ export namespace Prisma {
     data: XOR<AssistantFinancialDraftUpdateManyMutationInput, AssistantFinancialDraftUncheckedUpdateManyWithoutOriginatingTurnInput>
   }
 
+  export type AssistantProviderExecutionUpsertWithWhereUniqueWithoutTurnInput = {
+    where: AssistantProviderExecutionWhereUniqueInput
+    update: XOR<AssistantProviderExecutionUpdateWithoutTurnInput, AssistantProviderExecutionUncheckedUpdateWithoutTurnInput>
+    create: XOR<AssistantProviderExecutionCreateWithoutTurnInput, AssistantProviderExecutionUncheckedCreateWithoutTurnInput>
+  }
+
+  export type AssistantProviderExecutionUpdateWithWhereUniqueWithoutTurnInput = {
+    where: AssistantProviderExecutionWhereUniqueInput
+    data: XOR<AssistantProviderExecutionUpdateWithoutTurnInput, AssistantProviderExecutionUncheckedUpdateWithoutTurnInput>
+  }
+
+  export type AssistantProviderExecutionUpdateManyWithWhereWithoutTurnInput = {
+    where: AssistantProviderExecutionScalarWhereInput
+    data: XOR<AssistantProviderExecutionUpdateManyMutationInput, AssistantProviderExecutionUncheckedUpdateManyWithoutTurnInput>
+  }
+
   export type AssistantConversationCreateWithoutMessagesInput = {
     id?: string
     status?: $Enums.AssistantConversationStatus
@@ -32562,6 +35012,7 @@ export namespace Prisma {
     turns?: AssistantTurnCreateNestedManyWithoutConversationInput
     toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutConversationInput
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutConversationInput
+    providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutConversationInput
   }
 
   export type AssistantConversationUncheckedCreateWithoutMessagesInput = {
@@ -32576,6 +35027,7 @@ export namespace Prisma {
     turns?: AssistantTurnUncheckedCreateNestedManyWithoutConversationInput
     toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutConversationInput
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutConversationInput
+    providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutConversationInput
   }
 
   export type AssistantConversationCreateOrConnectWithoutMessagesInput = {
@@ -32597,6 +35049,7 @@ export namespace Prisma {
     conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
     toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutTurnInput
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutOriginatingTurnInput
+    providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnUncheckedCreateWithoutMessagesInput = {
@@ -32613,6 +35066,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutTurnInput
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutOriginatingTurnInput
+    providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnCreateOrConnectWithoutMessagesInput = {
@@ -32643,6 +35097,7 @@ export namespace Prisma {
     turns?: AssistantTurnUpdateManyWithoutConversationNestedInput
     toolExecutions?: AssistantToolExecutionUpdateManyWithoutConversationNestedInput
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutConversationNestedInput
+    providerExecutions?: AssistantProviderExecutionUpdateManyWithoutConversationNestedInput
   }
 
   export type AssistantConversationUncheckedUpdateWithoutMessagesInput = {
@@ -32657,6 +35112,7 @@ export namespace Prisma {
     turns?: AssistantTurnUncheckedUpdateManyWithoutConversationNestedInput
     toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutConversationNestedInput
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutConversationNestedInput
+    providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutConversationNestedInput
   }
 
   export type AssistantTurnUpsertWithoutMessagesInput = {
@@ -32684,6 +35140,7 @@ export namespace Prisma {
     conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
     toolExecutions?: AssistantToolExecutionUpdateManyWithoutTurnNestedInput
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutOriginatingTurnNestedInput
+    providerExecutions?: AssistantProviderExecutionUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnUncheckedUpdateWithoutMessagesInput = {
@@ -32700,6 +35157,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutTurnNestedInput
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutOriginatingTurnNestedInput
+    providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutTurnNestedInput
   }
 
   export type UserCreateWithoutAssistantFinancialDraftsInput = {
@@ -32719,6 +35177,7 @@ export namespace Prisma {
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
     assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAssistantFinancialDraftsInput = {
@@ -32738,6 +35197,7 @@ export namespace Prisma {
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
     assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAssistantFinancialDraftsInput = {
@@ -32757,6 +35217,7 @@ export namespace Prisma {
     turns?: AssistantTurnCreateNestedManyWithoutConversationInput
     messages?: AssistantMessageCreateNestedManyWithoutConversationInput
     toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutConversationInput
+    providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutConversationInput
   }
 
   export type AssistantConversationUncheckedCreateWithoutFinancialDraftsInput = {
@@ -32771,6 +35232,7 @@ export namespace Prisma {
     turns?: AssistantTurnUncheckedCreateNestedManyWithoutConversationInput
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutConversationInput
     toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutConversationInput
+    providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutConversationInput
   }
 
   export type AssistantConversationCreateOrConnectWithoutFinancialDraftsInput = {
@@ -32792,6 +35254,7 @@ export namespace Prisma {
     conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
     messages?: AssistantMessageCreateNestedManyWithoutTurnInput
     toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutTurnInput
+    providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnUncheckedCreateWithoutFinancialDraftsInput = {
@@ -32808,6 +35271,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
     toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutTurnInput
+    providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnCreateOrConnectWithoutFinancialDraftsInput = {
@@ -32955,6 +35419,7 @@ export namespace Prisma {
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
     assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAssistantFinancialDraftsInput = {
@@ -32974,6 +35439,7 @@ export namespace Prisma {
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
     assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type AssistantConversationUpsertWithoutFinancialDraftsInput = {
@@ -32999,6 +35465,7 @@ export namespace Prisma {
     turns?: AssistantTurnUpdateManyWithoutConversationNestedInput
     messages?: AssistantMessageUpdateManyWithoutConversationNestedInput
     toolExecutions?: AssistantToolExecutionUpdateManyWithoutConversationNestedInput
+    providerExecutions?: AssistantProviderExecutionUpdateManyWithoutConversationNestedInput
   }
 
   export type AssistantConversationUncheckedUpdateWithoutFinancialDraftsInput = {
@@ -33013,6 +35480,7 @@ export namespace Prisma {
     turns?: AssistantTurnUncheckedUpdateManyWithoutConversationNestedInput
     messages?: AssistantMessageUncheckedUpdateManyWithoutConversationNestedInput
     toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutConversationNestedInput
+    providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutConversationNestedInput
   }
 
   export type AssistantTurnUpsertWithoutFinancialDraftsInput = {
@@ -33040,6 +35508,7 @@ export namespace Prisma {
     conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
     messages?: AssistantMessageUpdateManyWithoutTurnNestedInput
     toolExecutions?: AssistantToolExecutionUpdateManyWithoutTurnNestedInput
+    providerExecutions?: AssistantProviderExecutionUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnUncheckedUpdateWithoutFinancialDraftsInput = {
@@ -33056,6 +35525,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
     toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutTurnNestedInput
+    providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantToolExecutionUpsertWithoutFinancialDraftInput = {
@@ -33187,6 +35657,7 @@ export namespace Prisma {
     merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
     assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAssistantIdempotencyRecordsInput = {
@@ -33206,6 +35677,7 @@ export namespace Prisma {
     merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
     assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAssistantIdempotencyRecordsInput = {
@@ -33333,6 +35805,7 @@ export namespace Prisma {
     merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
     assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAssistantIdempotencyRecordsInput = {
@@ -33352,6 +35825,7 @@ export namespace Prisma {
     merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
     assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type AssistantFinancialDraftUpsertWithoutIdempotencyRecordsInput = {
@@ -33470,6 +35944,7 @@ export namespace Prisma {
     turns?: AssistantTurnCreateNestedManyWithoutConversationInput
     messages?: AssistantMessageCreateNestedManyWithoutConversationInput
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutConversationInput
+    providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutConversationInput
   }
 
   export type AssistantConversationUncheckedCreateWithoutToolExecutionsInput = {
@@ -33484,6 +35959,7 @@ export namespace Prisma {
     turns?: AssistantTurnUncheckedCreateNestedManyWithoutConversationInput
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutConversationInput
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutConversationInput
+    providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutConversationInput
   }
 
   export type AssistantConversationCreateOrConnectWithoutToolExecutionsInput = {
@@ -33505,6 +35981,7 @@ export namespace Prisma {
     conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
     messages?: AssistantMessageCreateNestedManyWithoutTurnInput
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutOriginatingTurnInput
+    providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnUncheckedCreateWithoutToolExecutionsInput = {
@@ -33521,6 +35998,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutOriginatingTurnInput
+    providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnCreateOrConnectWithoutToolExecutionsInput = {
@@ -33602,6 +36080,7 @@ export namespace Prisma {
     turns?: AssistantTurnUpdateManyWithoutConversationNestedInput
     messages?: AssistantMessageUpdateManyWithoutConversationNestedInput
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutConversationNestedInput
+    providerExecutions?: AssistantProviderExecutionUpdateManyWithoutConversationNestedInput
   }
 
   export type AssistantConversationUncheckedUpdateWithoutToolExecutionsInput = {
@@ -33616,6 +36095,7 @@ export namespace Prisma {
     turns?: AssistantTurnUncheckedUpdateManyWithoutConversationNestedInput
     messages?: AssistantMessageUncheckedUpdateManyWithoutConversationNestedInput
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutConversationNestedInput
+    providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutConversationNestedInput
   }
 
   export type AssistantTurnUpsertWithoutToolExecutionsInput = {
@@ -33643,6 +36123,7 @@ export namespace Prisma {
     conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
     messages?: AssistantMessageUpdateManyWithoutTurnNestedInput
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutOriginatingTurnNestedInput
+    providerExecutions?: AssistantProviderExecutionUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnUncheckedUpdateWithoutToolExecutionsInput = {
@@ -33659,6 +36140,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutOriginatingTurnNestedInput
+    providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantFinancialDraftUpsertWithoutOriginatingExecutionInput = {
@@ -33718,6 +36200,262 @@ export namespace Prisma {
     idempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutDraftNestedInput
   }
 
+  export type UserCreateWithoutAssistantProviderExecutionsInput = {
+    id?: string
+    email: string
+    name: string
+    avatarUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    wallets?: WalletCreateNestedManyWithoutUserInput
+    categories?: CategoryCreateNestedManyWithoutUserInput
+    transactions?: TransactionCreateNestedManyWithoutUserInput
+    installments?: InstallmentCreateNestedManyWithoutUserInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
+    budgets?: BudgetCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
+    assistantFinancialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutUserInput
+    assistantIdempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutAssistantProviderExecutionsInput = {
+    id?: string
+    email: string
+    name: string
+    avatarUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
+    transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
+    budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
+    assistantFinancialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutUserInput
+    assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutAssistantProviderExecutionsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutAssistantProviderExecutionsInput, UserUncheckedCreateWithoutAssistantProviderExecutionsInput>
+  }
+
+  export type AssistantConversationCreateWithoutProviderExecutionsInput = {
+    id?: string
+    status?: $Enums.AssistantConversationStatus
+    locale?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastActivityAt?: Date | string
+    archivedAt?: Date | string | null
+    user: UserCreateNestedOneWithoutAssistantConversationsInput
+    turns?: AssistantTurnCreateNestedManyWithoutConversationInput
+    messages?: AssistantMessageCreateNestedManyWithoutConversationInput
+    toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutConversationInput
+    financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutConversationInput
+  }
+
+  export type AssistantConversationUncheckedCreateWithoutProviderExecutionsInput = {
+    id?: string
+    userId: string
+    status?: $Enums.AssistantConversationStatus
+    locale?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lastActivityAt?: Date | string
+    archivedAt?: Date | string | null
+    turns?: AssistantTurnUncheckedCreateNestedManyWithoutConversationInput
+    messages?: AssistantMessageUncheckedCreateNestedManyWithoutConversationInput
+    toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutConversationInput
+    financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutConversationInput
+  }
+
+  export type AssistantConversationCreateOrConnectWithoutProviderExecutionsInput = {
+    where: AssistantConversationWhereUniqueInput
+    create: XOR<AssistantConversationCreateWithoutProviderExecutionsInput, AssistantConversationUncheckedCreateWithoutProviderExecutionsInput>
+  }
+
+  export type AssistantTurnCreateWithoutProviderExecutionsInput = {
+    id?: string
+    correlationId: string
+    status?: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
+    messages?: AssistantMessageCreateNestedManyWithoutTurnInput
+    toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutTurnInput
+    financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutOriginatingTurnInput
+  }
+
+  export type AssistantTurnUncheckedCreateWithoutProviderExecutionsInput = {
+    id?: string
+    conversationId: string
+    correlationId: string
+    status?: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
+    toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutTurnInput
+    financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutOriginatingTurnInput
+  }
+
+  export type AssistantTurnCreateOrConnectWithoutProviderExecutionsInput = {
+    where: AssistantTurnWhereUniqueInput
+    create: XOR<AssistantTurnCreateWithoutProviderExecutionsInput, AssistantTurnUncheckedCreateWithoutProviderExecutionsInput>
+  }
+
+  export type UserUpsertWithoutAssistantProviderExecutionsInput = {
+    update: XOR<UserUpdateWithoutAssistantProviderExecutionsInput, UserUncheckedUpdateWithoutAssistantProviderExecutionsInput>
+    create: XOR<UserCreateWithoutAssistantProviderExecutionsInput, UserUncheckedCreateWithoutAssistantProviderExecutionsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutAssistantProviderExecutionsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutAssistantProviderExecutionsInput, UserUncheckedUpdateWithoutAssistantProviderExecutionsInput>
+  }
+
+  export type UserUpdateWithoutAssistantProviderExecutionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallets?: WalletUpdateManyWithoutUserNestedInput
+    categories?: CategoryUpdateManyWithoutUserNestedInput
+    transactions?: TransactionUpdateManyWithoutUserNestedInput
+    installments?: InstallmentUpdateManyWithoutUserNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
+    budgets?: BudgetUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
+    assistantFinancialDrafts?: AssistantFinancialDraftUpdateManyWithoutUserNestedInput
+    assistantIdempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutAssistantProviderExecutionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
+    transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
+    budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
+    assistantFinancialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutUserNestedInput
+    assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type AssistantConversationUpsertWithoutProviderExecutionsInput = {
+    update: XOR<AssistantConversationUpdateWithoutProviderExecutionsInput, AssistantConversationUncheckedUpdateWithoutProviderExecutionsInput>
+    create: XOR<AssistantConversationCreateWithoutProviderExecutionsInput, AssistantConversationUncheckedCreateWithoutProviderExecutionsInput>
+    where?: AssistantConversationWhereInput
+  }
+
+  export type AssistantConversationUpdateToOneWithWhereWithoutProviderExecutionsInput = {
+    where?: AssistantConversationWhereInput
+    data: XOR<AssistantConversationUpdateWithoutProviderExecutionsInput, AssistantConversationUncheckedUpdateWithoutProviderExecutionsInput>
+  }
+
+  export type AssistantConversationUpdateWithoutProviderExecutionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    user?: UserUpdateOneRequiredWithoutAssistantConversationsNestedInput
+    turns?: AssistantTurnUpdateManyWithoutConversationNestedInput
+    messages?: AssistantMessageUpdateManyWithoutConversationNestedInput
+    toolExecutions?: AssistantToolExecutionUpdateManyWithoutConversationNestedInput
+    financialDrafts?: AssistantFinancialDraftUpdateManyWithoutConversationNestedInput
+  }
+
+  export type AssistantConversationUncheckedUpdateWithoutProviderExecutionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantConversationStatusFieldUpdateOperationsInput | $Enums.AssistantConversationStatus
+    locale?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastActivityAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    turns?: AssistantTurnUncheckedUpdateManyWithoutConversationNestedInput
+    messages?: AssistantMessageUncheckedUpdateManyWithoutConversationNestedInput
+    toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutConversationNestedInput
+    financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutConversationNestedInput
+  }
+
+  export type AssistantTurnUpsertWithoutProviderExecutionsInput = {
+    update: XOR<AssistantTurnUpdateWithoutProviderExecutionsInput, AssistantTurnUncheckedUpdateWithoutProviderExecutionsInput>
+    create: XOR<AssistantTurnCreateWithoutProviderExecutionsInput, AssistantTurnUncheckedCreateWithoutProviderExecutionsInput>
+    where?: AssistantTurnWhereInput
+  }
+
+  export type AssistantTurnUpdateToOneWithWhereWithoutProviderExecutionsInput = {
+    where?: AssistantTurnWhereInput
+    data: XOR<AssistantTurnUpdateWithoutProviderExecutionsInput, AssistantTurnUncheckedUpdateWithoutProviderExecutionsInput>
+  }
+
+  export type AssistantTurnUpdateWithoutProviderExecutionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
+    messages?: AssistantMessageUpdateManyWithoutTurnNestedInput
+    toolExecutions?: AssistantToolExecutionUpdateManyWithoutTurnNestedInput
+    financialDrafts?: AssistantFinancialDraftUpdateManyWithoutOriginatingTurnNestedInput
+  }
+
+  export type AssistantTurnUncheckedUpdateWithoutProviderExecutionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
+    toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutTurnNestedInput
+    financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutOriginatingTurnNestedInput
+  }
+
   export type UserCreateWithoutWalletsInput = {
     id?: string
     email: string
@@ -33735,6 +36473,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutWalletsInput = {
@@ -33754,6 +36493,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutWalletsInput = {
@@ -33993,6 +36733,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutWalletsInput = {
@@ -34012,6 +36753,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutWalletInput = {
@@ -34095,6 +36837,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutCategoriesInput = {
@@ -34114,6 +36857,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutCategoriesInput = {
@@ -34301,6 +37045,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutCategoriesInput = {
@@ -34320,6 +37065,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutCategoryInput = {
@@ -34403,6 +37149,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMerchantMappingsInput = {
@@ -34422,6 +37169,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMerchantMappingsInput = {
@@ -34490,6 +37238,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMerchantMappingsInput = {
@@ -34509,6 +37258,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type CategoryUpsertWithoutMerchantMappingsInput = {
@@ -34567,6 +37317,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -34586,6 +37337,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -34923,6 +37675,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -34942,6 +37695,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutTransactionsInput = {
@@ -35287,6 +38041,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutInstallmentsInput = {
@@ -35306,6 +38061,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutInstallmentsInput = {
@@ -35474,6 +38230,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutInstallmentsInput = {
@@ -35493,6 +38250,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutInstallmentsInput = {
@@ -35618,6 +38376,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutRecurringTransactionTemplatesInput = {
@@ -35637,6 +38396,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutRecurringTransactionTemplatesInput = {
@@ -35792,6 +38552,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutRecurringTransactionTemplatesInput = {
@@ -35811,6 +38572,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type WalletUpsertWithoutRecurringTransactionTemplatesInput = {
@@ -36246,6 +39008,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSavingGoalsInput = {
@@ -36265,6 +39028,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSavingGoalsInput = {
@@ -36300,6 +39064,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSavingGoalsInput = {
@@ -36319,6 +39084,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutBudgetsInput = {
@@ -36338,6 +39104,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutBudgetsInput = {
@@ -36357,6 +39124,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutUserInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutBudgetsInput = {
@@ -36425,6 +39193,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBudgetsInput = {
@@ -36444,6 +39213,7 @@ export namespace Prisma {
     assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
     assistantFinancialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutUserNestedInput
     assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type CategoryUpsertWithoutBudgetsInput = {
@@ -36641,6 +39411,27 @@ export namespace Prisma {
     key: string
     transactionId?: string | null
     createdAt?: Date | string
+  }
+
+  export type AssistantProviderExecutionCreateManyUserInput = {
+    id?: string
+    conversationId: string
+    turnId?: string | null
+    correlationId: string
+    provider: string
+    model: string
+    status?: $Enums.AssistantProviderExecutionStatus
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    inputBytes: number
+    outputBytes?: number | null
+    finishClassification?: string | null
+    safeErrorCode?: string | null
+    inputTokens?: number | null
+    outputTokens?: number | null
+    totalTokens?: number | null
+    cachedInputTokens?: number | null
   }
 
   export type WalletUpdateWithoutUserInput = {
@@ -37034,6 +39825,7 @@ export namespace Prisma {
     messages?: AssistantMessageUpdateManyWithoutConversationNestedInput
     toolExecutions?: AssistantToolExecutionUpdateManyWithoutConversationNestedInput
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutConversationNestedInput
+    providerExecutions?: AssistantProviderExecutionUpdateManyWithoutConversationNestedInput
   }
 
   export type AssistantConversationUncheckedUpdateWithoutUserInput = {
@@ -37048,6 +39840,7 @@ export namespace Prisma {
     messages?: AssistantMessageUncheckedUpdateManyWithoutConversationNestedInput
     toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutConversationNestedInput
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutConversationNestedInput
+    providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutConversationNestedInput
   }
 
   export type AssistantConversationUncheckedUpdateManyWithoutUserInput = {
@@ -37155,6 +39948,69 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type AssistantProviderExecutionUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    inputBytes?: IntFieldUpdateOperationsInput | number
+    outputBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    finishClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    outputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    totalTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    cachedInputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    conversation?: AssistantConversationUpdateOneRequiredWithoutProviderExecutionsNestedInput
+    turn?: AssistantTurnUpdateOneWithoutProviderExecutionsNestedInput
+  }
+
+  export type AssistantProviderExecutionUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    turnId?: NullableStringFieldUpdateOperationsInput | string | null
+    correlationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    inputBytes?: IntFieldUpdateOperationsInput | number
+    outputBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    finishClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    outputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    totalTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    cachedInputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type AssistantProviderExecutionUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    turnId?: NullableStringFieldUpdateOperationsInput | string | null
+    correlationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    inputBytes?: IntFieldUpdateOperationsInput | number
+    outputBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    finishClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    outputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    totalTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    cachedInputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
   export type AssistantTurnCreateManyConversationInput = {
     id?: string
     correlationId: string
@@ -37217,6 +40073,27 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type AssistantProviderExecutionCreateManyConversationInput = {
+    id?: string
+    userId: string
+    turnId?: string | null
+    correlationId: string
+    provider: string
+    model: string
+    status?: $Enums.AssistantProviderExecutionStatus
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    inputBytes: number
+    outputBytes?: number | null
+    finishClassification?: string | null
+    safeErrorCode?: string | null
+    inputTokens?: number | null
+    outputTokens?: number | null
+    totalTokens?: number | null
+    cachedInputTokens?: number | null
+  }
+
   export type AssistantTurnUpdateWithoutConversationInput = {
     id?: StringFieldUpdateOperationsInput | string
     correlationId?: StringFieldUpdateOperationsInput | string
@@ -37231,6 +40108,7 @@ export namespace Prisma {
     messages?: AssistantMessageUpdateManyWithoutTurnNestedInput
     toolExecutions?: AssistantToolExecutionUpdateManyWithoutTurnNestedInput
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutOriginatingTurnNestedInput
+    providerExecutions?: AssistantProviderExecutionUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnUncheckedUpdateWithoutConversationInput = {
@@ -37247,6 +40125,7 @@ export namespace Prisma {
     messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
     toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutTurnNestedInput
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutOriginatingTurnNestedInput
+    providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnUncheckedUpdateManyWithoutConversationInput = {
@@ -37413,6 +40292,69 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type AssistantProviderExecutionUpdateWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    inputBytes?: IntFieldUpdateOperationsInput | number
+    outputBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    finishClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    outputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    totalTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    cachedInputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    user?: UserUpdateOneRequiredWithoutAssistantProviderExecutionsNestedInput
+    turn?: AssistantTurnUpdateOneWithoutProviderExecutionsNestedInput
+  }
+
+  export type AssistantProviderExecutionUncheckedUpdateWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    turnId?: NullableStringFieldUpdateOperationsInput | string | null
+    correlationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    inputBytes?: IntFieldUpdateOperationsInput | number
+    outputBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    finishClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    outputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    totalTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    cachedInputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type AssistantProviderExecutionUncheckedUpdateManyWithoutConversationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    turnId?: NullableStringFieldUpdateOperationsInput | string | null
+    correlationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    inputBytes?: IntFieldUpdateOperationsInput | number
+    outputBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    finishClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    outputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    totalTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    cachedInputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
   export type AssistantMessageCreateManyTurnInput = {
     id?: string
     conversationId: string
@@ -37460,6 +40402,27 @@ export namespace Prisma {
     transactionId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type AssistantProviderExecutionCreateManyTurnInput = {
+    id?: string
+    userId: string
+    conversationId: string
+    correlationId: string
+    provider: string
+    model: string
+    status?: $Enums.AssistantProviderExecutionStatus
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    durationMs?: number | null
+    inputBytes: number
+    outputBytes?: number | null
+    finishClassification?: string | null
+    safeErrorCode?: string | null
+    inputTokens?: number | null
+    outputTokens?: number | null
+    totalTokens?: number | null
+    cachedInputTokens?: number | null
   }
 
   export type AssistantMessageUpdateWithoutTurnInput = {
@@ -37611,6 +40574,69 @@ export namespace Prisma {
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantProviderExecutionUpdateWithoutTurnInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    inputBytes?: IntFieldUpdateOperationsInput | number
+    outputBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    finishClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    outputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    totalTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    cachedInputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    user?: UserUpdateOneRequiredWithoutAssistantProviderExecutionsNestedInput
+    conversation?: AssistantConversationUpdateOneRequiredWithoutProviderExecutionsNestedInput
+  }
+
+  export type AssistantProviderExecutionUncheckedUpdateWithoutTurnInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    inputBytes?: IntFieldUpdateOperationsInput | number
+    outputBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    finishClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    outputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    totalTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    cachedInputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type AssistantProviderExecutionUncheckedUpdateManyWithoutTurnInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput | $Enums.AssistantProviderExecutionStatus
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    durationMs?: NullableIntFieldUpdateOperationsInput | number | null
+    inputBytes?: IntFieldUpdateOperationsInput | number
+    outputBytes?: NullableIntFieldUpdateOperationsInput | number | null
+    finishClassification?: NullableStringFieldUpdateOperationsInput | string | null
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    inputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    outputTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    totalTokens?: NullableIntFieldUpdateOperationsInput | number | null
+    cachedInputTokens?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type AssistantIdempotencyRecordCreateManyDraftInput = {

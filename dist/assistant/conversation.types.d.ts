@@ -48,4 +48,10 @@ export interface FinalizeToolInput {
     safeErrorCode?: string;
     outputSummary?: Prisma.InputJsonValue;
 }
+export interface FinalizeWithoutToolInput extends BeginTurnResult {
+    turnStatus: AssistantTurnStatus;
+    assistantContent: string;
+    assistantSource: AssistantMessageSource;
+    safeErrorCode?: string;
+}
 //# sourceMappingURL=conversation.types.d.ts.map
