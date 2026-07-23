@@ -25,6 +25,7 @@ export { buildAssistantSystemInstruction } from './provider-instruction';
 export { assembleAssistantModelRequest } from './provider-prompt';
 export { validateAssistantPlan } from './provider-plan';
 export { AssistantProviderError } from './provider-types';
+export * from './entity-resolution';
 export * from './persistence';
 
 export type {

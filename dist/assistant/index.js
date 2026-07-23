@@ -60,5 +60,6 @@ var provider_plan_1 = require("./provider-plan");
 Object.defineProperty(exports, "validateAssistantPlan", { enumerable: true, get: function () { return provider_plan_1.validateAssistantPlan; } });
 var provider_types_1 = require("./provider-types");
 Object.defineProperty(exports, "AssistantProviderError", { enumerable: true, get: function () { return provider_types_1.AssistantProviderError; } });
+__exportStar(require("./entity-resolution"), exports);
 __exportStar(require("./persistence"), exports);
 //# sourceMappingURL=index.js.map
