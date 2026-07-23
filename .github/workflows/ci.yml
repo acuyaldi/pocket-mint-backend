@@ -167,7 +167,6 @@ jobs:
             echo "::error::Build or generation modified tracked files."
             git status --short
             git diff --stat
-            git diff -- dist/assistant/bootstrap.d.ts.map
             exit 1
           fi
 
