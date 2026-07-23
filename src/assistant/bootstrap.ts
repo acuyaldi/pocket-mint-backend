@@ -22,6 +22,7 @@ import { createAssistantProviderAuditService } from './provider-audit.service';
 import { createAssistantProviderRuntime } from './provider-runtime';
 import {
   EntityResolverRegistry,
+  createCategoryResolver,
   createEntityResolutionService,
   createMerchantResolver,
   createWalletResolver,
@@ -41,6 +42,7 @@ toolRegistry.register(transactionCreate);
 handlerRegistry.set(monthlySpendingSummary.id, handleMonthlySpendingSummary as never);
 entityResolverRegistry.register(createWalletResolver(prisma));
 entityResolverRegistry.register(createMerchantResolver(prisma));
+entityResolverRegistry.register(createCategoryResolver(prisma));
 entityResolverRegistry.finalize();
 
 export const assistantConversationService = createAssistantConversationService(prisma);

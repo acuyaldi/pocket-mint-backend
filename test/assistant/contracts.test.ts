@@ -84,18 +84,29 @@ describe('monthlySpendingSummary input validation', () => {
 
 describe('transaction.create input validation', () => {
   const valid = { type: 'EXPENSE', amount: '12500.50', walletId: 'wallet-1', categoryId: 'category-1', date: '2026-07-22', description: 'Lunch' };
-  const providerValid = { type: 'EXPENSE', amount: '12500.50', walletReference: 'BCA', merchantReference: 'Starbucks', categoryId: 'category-1', date: '2026-07-22', description: 'Lunch' };
+  const referenceValid = { type: 'EXPENSE', amount: '12500.50', walletReference: 'BCA', merchantReference: 'Starbucks', categoryReference: 'Food', date: '2026-07-22', description: 'Lunch' };
 
   it('preserves walletId compatibility for deterministic internal callers', () => {
     expect(transactionCreate.validateInput(valid)).toEqual(valid);
   });
 
   it('accepts a textual walletReference without accepting both wallet forms', () => {
-    expect(transactionCreate.validateInput(providerValid)).toEqual(providerValid);
+    expect(transactionCreate.validateInput(referenceValid)).toEqual(referenceValid);
     expect(() => transactionCreate.validateInput({
-      ...providerValid,
+      ...referenceValid,
       walletId: 'provider-must-not-send-this',
     })).toThrow(AssistantError);
+  });
+
+  it('accepts exactly one category form and preserves categoryId only for deterministic compatibility', () => {
+    expect(transactionCreate.validateInput(valid)).toEqual(valid);
+    expect(transactionCreate.validateInput(referenceValid)).toEqual(referenceValid);
+    expect(() => transactionCreate.validateInput({
+      ...referenceValid,
+      categoryId: 'category-1',
+    })).toThrow(AssistantError);
+    const { categoryReference: _categoryReference, ...missing } = referenceValid;
+    expect(() => transactionCreate.validateInput(missing)).toThrow(AssistantError);
   });
 
   it.each([
@@ -109,24 +120,43 @@ describe('transaction.create input validation', () => {
     [{ ...valid, balance: 999 }],
     [{ ...valid, extra: true }],
     [{ ...valid, categoryId: undefined }],
-    [{ ...providerValid, walletReference: '   ' }],
-    [{ ...providerValid, merchantReference: '   ' }],
-    [{ ...providerValid, merchantId: 'merchant-1' }],
-    [{ ...providerValid, merchantMappingId: 'mapping-1' }],
-    [{ ...providerValid, ownerId: 'attacker' }],
-    [{ ...providerValid, confidence: 1000 }],
-    [{ ...providerValid, evidence: ['provider-claim'] }],
+    [{ ...referenceValid, walletReference: '   ' }],
+    [{ ...referenceValid, merchantReference: '   ' }],
+    [{ ...referenceValid, categoryReference: '   ' }],
+    [{ ...referenceValid, merchantId: 'merchant-1' }],
+    [{ ...referenceValid, merchantMappingId: 'mapping-1' }],
+    [{ ...referenceValid, categoryIds: ['category-1'] }],
+    [{ ...referenceValid, categoryIdentifier: 'category-1' }],
+    [{ ...referenceValid, categoryInternalId: 'category-1' }],
+    [{ ...referenceValid, categoryMappingId: 'category-1' }],
+    [{ ...referenceValid, ownerId: 'attacker' }],
+    [{ ...referenceValid, categoryOwnerId: 'attacker' }],
+    [{ ...referenceValid, categoryType: 'EXPENSE' }],
+    [{ ...referenceValid, confidence: 1000 }],
+    [{ ...referenceValid, evidence: ['provider-claim'] }],
+    [{ ...referenceValid, trustedConstraints: { transactionType: 'EXPENSE' } }],
+    [{ ...referenceValid, archived: false }],
+    [{ ...referenceValid, authorized: true }],
+    [{ ...referenceValid, confirmationComplete: true }],
+    [{ ...referenceValid, ['ｃａｔｅｇｏｒｙＩｄ']: 'category-1' }],
   ])('rejects unsafe or invalid arguments %#', (input) => {
     expect(() => transactionCreate.validateInput(input)).toThrow(AssistantError);
   });
 
-  it('exposes only textual wallet and merchant references in provider metadata', () => {
+  it('exposes only textual wallet, merchant, and category references in provider metadata', () => {
     expect(transactionCreate.providerArguments.required).toContain('walletReference');
     expect(transactionCreate.providerArguments.required).toContain('merchantReference');
+    expect(transactionCreate.providerArguments.required).toContain('categoryReference');
     expect(transactionCreate.providerArguments.required).not.toContain('walletId');
+    expect(transactionCreate.providerArguments.required).not.toContain('categoryId');
     expect(transactionCreate.providerArguments.properties).toHaveProperty('walletReference');
     expect(transactionCreate.providerArguments.properties).toHaveProperty('merchantReference');
+    expect(transactionCreate.providerArguments.properties).toHaveProperty('categoryReference');
     expect(transactionCreate.providerArguments.properties).not.toHaveProperty('walletId');
+    expect(transactionCreate.providerArguments.properties).not.toHaveProperty('categoryId');
+    expect(transactionCreate.providerArguments.properties).not.toHaveProperty('categoryIdentifier');
+    expect(transactionCreate.providerArguments.properties).not.toHaveProperty('categoryInternalId');
+    expect(transactionCreate.providerArguments.properties).not.toHaveProperty('categoryMappingId');
     expect(transactionCreate.providerArguments.properties).not.toHaveProperty('merchantId');
     expect(transactionCreate.providerArguments.properties).not.toHaveProperty('merchantMappingId');
   });

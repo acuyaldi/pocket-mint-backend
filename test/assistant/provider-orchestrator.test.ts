@@ -99,6 +99,39 @@ describe('Assistant provider runtime orchestration', () => {
     }));
   });
 
+  it('accepts provider categoryReference and delegates no category identifier', async () => {
+    const argumentsValue = {
+      type: 'EXPENSE',
+      amount: '20000',
+      walletReference: 'BCA',
+      merchantReference: 'Bakso',
+      categoryReference: 'Food',
+      date: '2026-07-23',
+    };
+    const { runtime, application } = setup({
+      kind: 'intent',
+      intent: 'transaction.create',
+      arguments: argumentsValue,
+      clarification: null,
+      userMessage: '',
+    });
+
+    const result = await runtime.sendMessage('u1', 'corr-category-reference', {
+      message: 'Beli bakso 20000 pakai BCA kategori Food',
+    });
+
+    expect(result.response.status).toBe('success');
+    expect(application.execute).toHaveBeenCalledWith(
+      'u1',
+      'corr-category-reference',
+      expect.objectContaining({
+        intent: 'transaction.create',
+        arguments: argumentsValue,
+      }),
+    );
+    expect(JSON.stringify(application.execute.mock.calls)).not.toContain('categoryId');
+  });
+
   it('persists one clarification response and executes no deterministic capability', async () => {
     const { runtime, application, conversations, audit } = setup({
       kind: 'clarification',
@@ -199,16 +232,33 @@ describe('Assistant provider runtime orchestration', () => {
     expect(conversations.finalizeWithoutTool).not.toHaveBeenCalled();
   });
 
-  it('rejects a provider-supplied walletId even though deterministic callers remain compatible', async () => {
+  it.each([
+    ['walletId', 'wallet-secret'],
+    ['categoryId', 'category-secret'],
+    ['categoryIds', ['category-secret']],
+    ['categoryIdentifier', 'category-secret'],
+    ['categoryInternalId', 'category-secret'],
+    ['categoryMappingId', 'category-secret'],
+    ['categoryOwnerId', 'owner-secret'],
+    ['categoryType', 'EXPENSE'],
+    ['confidence', 1000],
+    ['evidence', ['provider-claim']],
+    ['trustedConstraints', { transactionType: 'EXPENSE' }],
+    ['authorized', true],
+    ['confirmationComplete', true],
+    ['ｃａｔｅｇｏｒｙＩｄ', 'category-secret'],
+  ])('rejects provider-supplied authoritative field %s', async (field, fieldValue) => {
     const { runtime, application, conversations } = setup({
       kind: 'intent',
       intent: 'transaction.create',
       arguments: {
         type: 'EXPENSE',
         amount: '20000',
-        walletId: 'wallet-secret',
-        categoryId: 'category-1',
+        walletReference: 'BCA',
+        merchantReference: 'Bakso',
+        categoryReference: 'Food',
         date: '2026-07-23',
+        [field]: fieldValue,
       },
       clarification: null,
       userMessage: '',

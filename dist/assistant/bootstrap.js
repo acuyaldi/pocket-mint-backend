@@ -36,6 +36,7 @@ exports.toolRegistry.register(tools_1.transactionCreate);
 exports.handlerRegistry.set(tools_1.monthlySpendingSummary.id, monthly_spending_summary_handler_1.handleMonthlySpendingSummary);
 exports.entityResolverRegistry.register((0, entity_resolution_1.createWalletResolver)(prisma_1.default));
 exports.entityResolverRegistry.register((0, entity_resolution_1.createMerchantResolver)(prisma_1.default));
+exports.entityResolverRegistry.register((0, entity_resolution_1.createCategoryResolver)(prisma_1.default));
 exports.entityResolverRegistry.finalize();
 exports.assistantConversationService = (0, conversation_service_1.createAssistantConversationService)(prisma_1.default);
 exports.assistantContextService = (0, context_service_1.createAssistantContextService)(prisma_1.default);

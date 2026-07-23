@@ -15,6 +15,7 @@ import type {
 import type { AssistantFinancialDraftService } from './financial-draft.service';
 import type { AssistantContextService, BuildAssistantExecutionContextInput } from './context.service';
 import {
+  createCategoryTransactionCreateConstraints,
   MERCHANT_TRANSACTION_CREATE_CONSTRAINTS,
   WALLET_TRANSACTION_CREATE_CONSTRAINTS,
   toPublicEntityResolutionResult,
@@ -69,7 +70,7 @@ export function createAssistantApplicationService(deps: {
       if (!deps.financialDrafts) throw new Error('Financial draft service is not configured');
       try {
         const transactionInput = validatedInput as TransactionCreateToolInput;
-        const walletResolution = 'walletReference' in transactionInput
+        const walletResolution = transactionInput.walletReference !== undefined
           ? await resolveTransactionWallet(
             deps.entityResolution,
             userId,
@@ -208,14 +209,86 @@ export function createAssistantApplicationService(deps: {
           : merchantResolution?.kind === 'not_found'
             ? safeFreeFormMerchantText(merchantResolution.normalizedReference)
             : undefined;
+        const categoryResolution = transactionInput.categoryReference !== undefined
+          ? await resolveTransactionCategory(
+            deps.entityResolution,
+            userId,
+            transactionInput.categoryReference,
+            transactionInput.type,
+          )
+          : undefined;
+        if (categoryResolution && categoryResolution.kind !== 'resolved') {
+          const publicResolution = toPublicEntityResolutionResult(categoryResolution);
+          if (
+            categoryResolution.kind === 'ambiguous'
+            || categoryResolution.kind === 'not_found'
+          ) {
+            const message = renderCategoryClarification(categoryResolution);
+            await deps.conversations.finalize({
+              executionId,
+              ...turn,
+              status: 'SUCCEEDED',
+              turnStatus: 'CLARIFICATION_REQUIRED',
+              assistantContent: message,
+              assistantSource: 'DETERMINISTIC_RENDERER',
+              durationMs: Date.now() - startedAt,
+              outputSummary: {
+                operation: 'transaction.create',
+                categoryResolution: categoryResolution.kind,
+              },
+            });
+            return {
+              httpStatus: 200,
+              response: {
+                status: 'clarification_required',
+                message,
+                data: publicResolution,
+                correlationId,
+                ...turn,
+              },
+            };
+          }
+          const invalid = AssistantError.invalidInput(
+            'transaction.create',
+            'categoryReference is invalid',
+          );
+          const safeMessage = safeRejectedAssistantMessage(invalid.code);
+          await deps.conversations.finalize({
+            executionId,
+            ...turn,
+            status: 'FAILED',
+            turnStatus: 'REJECTED',
+            assistantContent: safeMessage,
+            assistantSource: 'SAFE_ERROR',
+            durationMs: Date.now() - startedAt,
+            safeErrorCode: invalid.code,
+            outputSummary: {
+              operation: 'transaction.create',
+              categoryResolution: publicResolution.kind,
+            },
+          });
+          return {
+            httpStatus: invalid.statusCode,
+            response: {
+              status: 'rejected',
+              code: invalid.code,
+              message: safeMessage,
+              correlationId,
+              ...turn,
+            },
+          };
+        }
         const walletId = walletResolution
           ? walletResolution.entity.internalId
           : (transactionInput as TransactionCreateInput).walletId;
+        const categoryId = categoryResolution
+          ? categoryResolution.entity.internalId
+          : (transactionInput as TransactionCreateInput).categoryId;
         const draftInput: TransactionCreateInput = {
           type: transactionInput.type,
           amount: transactionInput.amount,
           walletId,
-          categoryId: transactionInput.categoryId,
+          categoryId,
           date: transactionInput.date,
           ...(
             transactionInput.description !== undefined
@@ -304,6 +377,24 @@ async function resolveTransactionMerchant(
   });
 }
 
+async function resolveTransactionCategory(
+  service: EntityResolutionService | undefined,
+  authenticatedUserId: string,
+  categoryReference: string,
+  transactionType: 'INCOME' | 'EXPENSE',
+): Promise<EntityResolutionResult> {
+  if (!service) throw new Error('Entity resolution service is not configured');
+  return service.resolve({
+    authenticatedUserId,
+    reference: {
+      entityType: 'category',
+      referenceText: categoryReference,
+      source: 'provider_extracted',
+    },
+    trustedConstraints: createCategoryTransactionCreateConstraints(transactionType),
+  });
+}
+
 function safeFreeFormMerchantText(normalizedReference: string): string {
   if (
     !normalizedReference
@@ -340,4 +431,16 @@ function renderMerchantClarification(
     .map((option) => option.displayLabel)
     .join(', ');
   return `Merchant yang dimaksud belum jelas. Pilih salah satu: ${options}.`;
+}
+
+function renderCategoryClarification(
+  resolution: Extract<EntityResolutionResult, { kind: 'ambiguous' | 'not_found' }>,
+): string {
+  if (resolution.kind === 'not_found') {
+    return 'Kategori tersebut tidak ditemukan atau tidak sesuai dengan tipe transaksi. Sebutkan nama kategori yang lain.';
+  }
+  const options = resolution.options
+    .map((option) => option.displayLabel)
+    .join(', ');
+  return `Kategori yang dimaksud belum jelas. Pilih salah satu: ${options}.`;
 }

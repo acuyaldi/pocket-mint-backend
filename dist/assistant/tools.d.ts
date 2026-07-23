@@ -8,16 +8,26 @@ export interface TransactionCreateInput {
     description?: string;
     merchantReference?: string;
 }
-export interface TransactionCreateReferenceInput {
+interface TransactionCreateCommonInput {
     type: 'INCOME' | 'EXPENSE';
     amount: string;
-    walletReference: string;
-    categoryId: string;
     date: string;
     description?: string;
     merchantReference?: string;
 }
-export type TransactionCreateToolInput = TransactionCreateInput | TransactionCreateReferenceInput;
+export type TransactionCreateToolInput = TransactionCreateCommonInput & ({
+    walletId: string;
+    walletReference?: never;
+} | {
+    walletId?: never;
+    walletReference: string;
+}) & ({
+    categoryId: string;
+    categoryReference?: never;
+} | {
+    categoryId?: never;
+    categoryReference: string;
+});
 /**
  * One category row in the monthly spending summary. Mirrors the
  * existing AnalyticsCategoryBreakdownItem shape in terminology but

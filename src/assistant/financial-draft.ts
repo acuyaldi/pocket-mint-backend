@@ -14,9 +14,10 @@ export function validateIdempotencyKey(value: unknown): string {
 export function renderTransactionDraftPreview(
   input: TransactionCreateInput,
   walletDisplayLabel = input.walletId,
+  categoryDisplayLabel: string,
   merchantDisplayLabel?: string,
 ): string {
   const note = input.description === undefined ? '' : `, catatan: ${input.description}`;
   const merchant = merchantDisplayLabel === undefined ? '' : `, merchant ${merchantDisplayLabel}`;
-  return `Draft transaksi ${input.type} sebesar ${input.amount} pada ${input.date} (wallet ${walletDisplayLabel}, kategori ${input.categoryId}${merchant}${note}). Konfirmasi eksplisit diperlukan sebelum transaksi dibuat.`;
+  return `Draft transaksi ${input.type} sebesar ${input.amount} pada ${input.date} (wallet ${walletDisplayLabel}, kategori ${categoryDisplayLabel}${merchant}${note}). Konfirmasi eksplisit diperlukan sebelum transaksi dibuat.`;
 }
