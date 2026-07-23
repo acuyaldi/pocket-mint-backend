@@ -53,6 +53,7 @@ const integrationTests = [
   'test/assistant/context-service.integration.test.ts',
   'test/assistant/provider-runtime.integration.test.ts',
   'test/assistant/merchant-resolver.integration.test.ts',
+  'test/assistant/category-resolver.integration.test.ts',
 ];
 
 async function main() {

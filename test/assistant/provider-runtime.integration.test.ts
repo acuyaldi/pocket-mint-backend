@@ -19,6 +19,7 @@ import { errorHandler } from '../../src/middlewares/error.middleware';
 import { AssistantProviderError } from '../../src/assistant/provider-types';
 import {
   EntityResolverRegistry,
+  createCategoryResolver,
   createEntityResolutionService,
   createMerchantResolver,
   createWalletResolver,
@@ -69,7 +70,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
       },
     });
     const category = await resources!.prisma.category.create({
-      data: { userId: user.id, name: 'Food', type: 'EXPENSE', icon: 'food', color: '#000000' },
+      data: { userId: user.id, name: `${label} Food`, type: 'EXPENSE', icon: 'food', color: '#000000' },
     });
     const merchant = await resources!.prisma.merchantMapping.create({
       data: {
@@ -95,6 +96,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
     const entityResolvers = new EntityResolverRegistry();
     entityResolvers.register(createWalletResolver(resources!.prisma));
     entityResolvers.register(createMerchantResolver(resources!.prisma));
+    entityResolvers.register(createCategoryResolver(resources!.prisma));
     entityResolvers.finalize();
     const application = createAssistantApplicationService({
       conversations,
@@ -309,7 +311,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
         amount: '12500.50',
         walletReference: wallet.name,
         merchantReference: merchant.merchantName,
-        categoryId: category.id,
+        categoryReference: category.name,
         date: '2026-07-23',
         description: 'Lunch',
       },
@@ -320,7 +322,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
     const { server } = setup(generate);
 
     const prepared = await request(server).post('/messages').set('x-test-user', user.id)
-      .send({ message: `Catat lunch dari wallet ${wallet.name} kategori ${category.id}` });
+      .send({ message: `Catat lunch dari wallet ${wallet.name} kategori ${category.name}` });
     expect(prepared.status).toBe(200);
     expect(prepared.body.data.data).toMatchObject({
       status: 'PENDING_CONFIRMATION',
@@ -374,7 +376,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
         amount: '20000',
         walletReference: 'BCA',
         merchantReference: merchant.merchantName,
-        categoryId: category.id,
+        categoryReference: category.name,
         date: '2026-07-23',
       },
       clarification: null,
@@ -429,7 +431,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
         amount: '20000',
         walletReference: 'Dormant BCA',
         merchantReference: merchant.merchantName,
-        categoryId: category.id,
+        categoryReference: category.name,
         date: '2026-07-23',
       },
       clarification: null,
@@ -456,7 +458,9 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
     const owner = await fixture(`ownership-owner-${foreignKind}`);
     const other = await fixture(`ownership-other-${foreignKind}`);
     const walletReference = foreignKind === 'wallet' ? other.wallet.name : owner.wallet.name;
-    const categoryId = foreignKind === 'category' ? other.category.id : owner.category.id;
+    const categoryReference = foreignKind === 'category'
+      ? other.category.name
+      : owner.category.name;
     const generate = vi.fn().mockResolvedValue(modelResponse({
       kind: 'intent',
       intent: 'transaction.create',
@@ -465,7 +469,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
         amount: '1000',
         walletReference,
         merchantReference: owner.merchant.merchantName,
-        categoryId,
+        categoryReference,
         date: '2026-07-23',
       },
       clarification: null,
@@ -473,13 +477,11 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
     }));
     const { server } = setup(generate);
     const response = await request(server).post('/messages').set('x-test-user', owner.user.id).send({ message: 'prepare' });
-    expect(response.status).toBe(foreignKind === 'wallet' ? 200 : 404);
-    if (foreignKind === 'wallet') {
-      expect(response.body.data).toMatchObject({
-        status: 'clarification_required',
-        data: { kind: 'not_found', entityType: 'wallet' },
-      });
-    }
+    expect(response.status).toBe(200);
+    expect(response.body.data).toMatchObject({
+      status: 'clarification_required',
+      data: { kind: 'not_found', entityType: foreignKind },
+    });
     expect(await resources!.prisma.assistantFinancialDraft.count({ where: { userId: owner.user.id } })).toBe(0);
     expect(await resources!.prisma.transaction.count({ where: { userId: owner.user.id } })).toBe(0);
   });

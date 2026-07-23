@@ -19,6 +19,7 @@ const TRANSACTION_KEYS = new Set([
     'walletReference',
     'merchantReference',
     'categoryId',
+    'categoryReference',
     'date',
     'description',
 ]);
@@ -69,10 +70,22 @@ function validateTransactionCreateInput(input) {
             || Buffer.byteLength(value.merchantReference, 'utf8') > 256)) {
         throw errors_1.AssistantError.invalidInput('transaction.create', 'merchantReference must be a non-empty bounded string');
     }
-    if (typeof value.categoryId !== 'string'
-        || !value.categoryId.trim()
-        || value.categoryId.length > 191) {
+    const hasCategoryId = value.categoryId !== undefined;
+    const hasCategoryReference = value.categoryReference !== undefined;
+    if (hasCategoryId === hasCategoryReference) {
+        throw errors_1.AssistantError.invalidInput('transaction.create', 'exactly one of categoryId or categoryReference is required');
+    }
+    if (hasCategoryId
+        && (typeof value.categoryId !== 'string'
+            || !value.categoryId.trim()
+            || value.categoryId.length > 191)) {
         throw errors_1.AssistantError.invalidInput('transaction.create', 'categoryId must be a non-empty bounded string');
+    }
+    if (hasCategoryReference
+        && (typeof value.categoryReference !== 'string'
+            || !value.categoryReference.trim()
+            || Buffer.byteLength(value.categoryReference, 'utf8') > 256)) {
+        throw errors_1.AssistantError.invalidInput('transaction.create', 'categoryReference must be a non-empty bounded string');
     }
     if (typeof value.date !== 'string' || !isCalendarDay(value.date)) {
         throw errors_1.AssistantError.invalidInput('transaction.create', 'date must be a valid YYYY-MM-DD day');
@@ -83,16 +96,19 @@ function validateTransactionCreateInput(input) {
     const common = {
         type: value.type,
         amount,
-        categoryId: value.categoryId,
         date: value.date,
         ...(value.description === undefined ? {} : { description: value.description.trim() }),
         ...(value.merchantReference === undefined
             ? {}
             : { merchantReference: value.merchantReference }),
     };
-    return hasWalletId
-        ? { ...common, walletId: value.walletId }
-        : { ...common, walletReference: value.walletReference };
+    const wallet = hasWalletId
+        ? { walletId: value.walletId }
+        : { walletReference: value.walletReference };
+    const category = hasCategoryId
+        ? { categoryId: value.categoryId }
+        : { categoryReference: value.categoryReference };
+    return { ...common, ...wallet, ...category };
 }
 // ---- Validation helpers ----------------------------------------------------
 const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -177,11 +193,11 @@ exports.transactionCreate = {
     timeoutMs: 10000,
     enabled: true,
     providerArguments: {
-        required: ['amount', 'categoryId', 'date', 'merchantReference', 'type', 'walletReference'],
+        required: ['amount', 'categoryReference', 'date', 'merchantReference', 'type', 'walletReference'],
         optional: ['description'],
         properties: {
             amount: { type: 'string', description: 'Positive decimal amount with at most two fraction digits.' },
-            categoryId: { type: 'string', description: 'Category identifier supplied by the user; never invent one.' },
+            categoryReference: { type: 'string', description: 'Textual category name from the user; never invent or supply a category identifier.' },
             date: { type: 'string', format: 'YYYY-MM-DD', description: 'Transaction calendar date.' },
             description: { type: 'string', description: 'Optional short transaction description.' },
             merchantReference: { type: 'string', description: 'Textual merchant name from the user; never supply a merchant or mapping identifier.' },
@@ -191,6 +207,6 @@ exports.transactionCreate = {
     },
     validateInput: validateTransactionCreateInput,
     validateOutput: validateTransactionCreateInput,
-    auditRedact: ['amount', 'description', 'walletId', 'walletReference', 'merchantReference', 'categoryId', 'date'],
+    auditRedact: ['amount', 'description', 'walletId', 'walletReference', 'merchantReference', 'categoryId', 'categoryReference', 'date'],
 };
 //# sourceMappingURL=tools.js.map

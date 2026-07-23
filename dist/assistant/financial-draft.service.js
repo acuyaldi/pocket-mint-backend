@@ -9,14 +9,14 @@ const errors_1 = require("./errors");
 const financial_draft_1 = require("./financial-draft");
 const CONFIRM_INTENT = 'transaction.create.confirm';
 const CANCEL_INTENT = 'transaction.create.cancel';
-function preview(input) {
+function preview(input, categoryName) {
     return {
         type: input.type,
         amount: input.amount,
         ...(input.walletDisplayLabel === undefined
             ? { walletId: input.walletId }
             : { wallet: input.walletDisplayLabel }),
-        categoryId: input.categoryId,
+        category: categoryName,
         ...(input.merchantDisplayLabel === undefined
             ? {}
             : { merchant: input.merchantDisplayLabel }),
@@ -27,7 +27,10 @@ function preview(input) {
 function createAssistantFinancialDraftService(db, transactions, clock = () => new Date()) {
     async function prepare(input) {
         const wallet = await db.wallet.findFirst({ where: { id: input.walletId, userId: input.userId }, select: { id: true } });
-        const category = await db.category.findFirst({ where: { id: input.categoryId, userId: input.userId, type: input.type }, select: { id: true } });
+        const category = await db.category.findFirst({
+            where: { id: input.categoryId, userId: input.userId, type: input.type },
+            select: { id: true, name: true },
+        });
         if (!wallet || !category)
             throw errors_1.AssistantError.draftNotFound();
         const now = input.now ?? new Date();
@@ -42,9 +45,9 @@ function createAssistantFinancialDraftService(db, transactions, clock = () => ne
             draftId: row.id,
             status: row.status,
             expiresAt: row.expiresAt,
-            preview: preview(input),
+            preview: preview(input, category.name),
             confirmationRequired: true,
-            renderedText: (0, financial_draft_1.renderTransactionDraftPreview)(input, input.walletDisplayLabel, input.merchantDisplayLabel),
+            renderedText: (0, financial_draft_1.renderTransactionDraftPreview)(input, input.walletDisplayLabel, category.name, input.merchantDisplayLabel),
         };
     }
     async function confirm(userId, draftId, keyValue, correlationId) {

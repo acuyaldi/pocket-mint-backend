@@ -13,14 +13,14 @@ const CANCEL_INTENT = 'transaction.create.cancel';
 function preview(input: TransactionCreateInput & {
   walletDisplayLabel?: string;
   merchantDisplayLabel?: string;
-}) {
+}, categoryName: string) {
   return {
     type: input.type,
     amount: input.amount,
     ...(input.walletDisplayLabel === undefined
       ? { walletId: input.walletId }
       : { wallet: input.walletDisplayLabel }),
-    categoryId: input.categoryId,
+    category: categoryName,
     ...(input.merchantDisplayLabel === undefined
       ? {}
       : { merchant: input.merchantDisplayLabel }),
@@ -32,7 +32,10 @@ function preview(input: TransactionCreateInput & {
 export function createAssistantFinancialDraftService(db: PrismaClient, transactions: TransactionService, clock: () => Date = () => new Date()) {
   async function prepare(input: TransactionCreateInput & { walletDisplayLabel?: string; merchantDisplayLabel?: string; userId: string; conversationId: string; turnId: string; executionId: string; now?: Date }) {
     const wallet = await db.wallet.findFirst({ where: { id: input.walletId, userId: input.userId }, select: { id: true } });
-    const category = await db.category.findFirst({ where: { id: input.categoryId, userId: input.userId, type: input.type }, select: { id: true } });
+    const category = await db.category.findFirst({
+      where: { id: input.categoryId, userId: input.userId, type: input.type },
+      select: { id: true, name: true },
+    });
     if (!wallet || !category) throw AssistantError.draftNotFound();
     const now = input.now ?? new Date();
     const row = await db.assistantFinancialDraft.create({ data: {
@@ -46,11 +49,12 @@ export function createAssistantFinancialDraftService(db: PrismaClient, transacti
       draftId: row.id,
       status: row.status,
       expiresAt: row.expiresAt,
-      preview: preview(input),
+      preview: preview(input, category.name),
       confirmationRequired: true,
       renderedText: renderTransactionDraftPreview(
         input,
         input.walletDisplayLabel,
+        category.name,
         input.merchantDisplayLabel,
       ),
     };

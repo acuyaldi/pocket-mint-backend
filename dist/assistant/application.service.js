@@ -49,7 +49,7 @@ function createAssistantApplicationService(deps) {
                 throw new Error('Financial draft service is not configured');
             try {
                 const transactionInput = validatedInput;
-                const walletResolution = 'walletReference' in transactionInput
+                const walletResolution = transactionInput.walletReference !== undefined
                     ? await resolveTransactionWallet(deps.entityResolution, userId, transactionInput.walletReference)
                     : undefined;
                 if (walletResolution && walletResolution.kind !== 'resolved') {
@@ -172,14 +172,76 @@ function createAssistantApplicationService(deps) {
                     : merchantResolution?.kind === 'not_found'
                         ? safeFreeFormMerchantText(merchantResolution.normalizedReference)
                         : undefined;
+                const categoryResolution = transactionInput.categoryReference !== undefined
+                    ? await resolveTransactionCategory(deps.entityResolution, userId, transactionInput.categoryReference, transactionInput.type)
+                    : undefined;
+                if (categoryResolution && categoryResolution.kind !== 'resolved') {
+                    const publicResolution = (0, entity_resolution_1.toPublicEntityResolutionResult)(categoryResolution);
+                    if (categoryResolution.kind === 'ambiguous'
+                        || categoryResolution.kind === 'not_found') {
+                        const message = renderCategoryClarification(categoryResolution);
+                        await deps.conversations.finalize({
+                            executionId,
+                            ...turn,
+                            status: 'SUCCEEDED',
+                            turnStatus: 'CLARIFICATION_REQUIRED',
+                            assistantContent: message,
+                            assistantSource: 'DETERMINISTIC_RENDERER',
+                            durationMs: Date.now() - startedAt,
+                            outputSummary: {
+                                operation: 'transaction.create',
+                                categoryResolution: categoryResolution.kind,
+                            },
+                        });
+                        return {
+                            httpStatus: 200,
+                            response: {
+                                status: 'clarification_required',
+                                message,
+                                data: publicResolution,
+                                correlationId,
+                                ...turn,
+                            },
+                        };
+                    }
+                    const invalid = errors_1.AssistantError.invalidInput('transaction.create', 'categoryReference is invalid');
+                    const safeMessage = (0, persistence_1.safeRejectedAssistantMessage)(invalid.code);
+                    await deps.conversations.finalize({
+                        executionId,
+                        ...turn,
+                        status: 'FAILED',
+                        turnStatus: 'REJECTED',
+                        assistantContent: safeMessage,
+                        assistantSource: 'SAFE_ERROR',
+                        durationMs: Date.now() - startedAt,
+                        safeErrorCode: invalid.code,
+                        outputSummary: {
+                            operation: 'transaction.create',
+                            categoryResolution: publicResolution.kind,
+                        },
+                    });
+                    return {
+                        httpStatus: invalid.statusCode,
+                        response: {
+                            status: 'rejected',
+                            code: invalid.code,
+                            message: safeMessage,
+                            correlationId,
+                            ...turn,
+                        },
+                    };
+                }
                 const walletId = walletResolution
                     ? walletResolution.entity.internalId
                     : transactionInput.walletId;
+                const categoryId = categoryResolution
+                    ? categoryResolution.entity.internalId
+                    : transactionInput.categoryId;
                 const draftInput = {
                     type: transactionInput.type,
                     amount: transactionInput.amount,
                     walletId,
-                    categoryId: transactionInput.categoryId,
+                    categoryId,
                     date: transactionInput.date,
                     ...(transactionInput.description !== undefined
                         ? { description: transactionInput.description }
@@ -258,6 +320,19 @@ async function resolveTransactionMerchant(service, authenticatedUserId, merchant
         trustedConstraints: entity_resolution_1.MERCHANT_TRANSACTION_CREATE_CONSTRAINTS,
     });
 }
+async function resolveTransactionCategory(service, authenticatedUserId, categoryReference, transactionType) {
+    if (!service)
+        throw new Error('Entity resolution service is not configured');
+    return service.resolve({
+        authenticatedUserId,
+        reference: {
+            entityType: 'category',
+            referenceText: categoryReference,
+            source: 'provider_extracted',
+        },
+        trustedConstraints: (0, entity_resolution_1.createCategoryTransactionCreateConstraints)(transactionType),
+    });
+}
 function safeFreeFormMerchantText(normalizedReference) {
     if (!normalizedReference
         || Buffer.byteLength(normalizedReference, 'utf8') > 256
@@ -282,5 +357,14 @@ function renderMerchantClarification(resolution) {
         .map((option) => option.displayLabel)
         .join(', ');
     return `Merchant yang dimaksud belum jelas. Pilih salah satu: ${options}.`;
+}
+function renderCategoryClarification(resolution) {
+    if (resolution.kind === 'not_found') {
+        return 'Kategori tersebut tidak ditemukan atau tidak sesuai dengan tipe transaksi. Sebutkan nama kategori yang lain.';
+    }
+    const options = resolution.options
+        .map((option) => option.displayLabel)
+        .join(', ');
+    return `Kategori yang dimaksud belum jelas. Pilih salah satu: ${options}.`;
 }
 //# sourceMappingURL=application.service.js.map

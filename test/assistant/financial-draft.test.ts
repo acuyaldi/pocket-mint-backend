@@ -6,16 +6,18 @@ describe('financial draft helpers', () => {
     const preview = renderTransactionDraftPreview({
       type: 'EXPENSE', amount: '12500.50', walletId: 'wallet-1', categoryId: 'category-1',
       date: '2026-07-22', description: 'Lunch',
-    });
-    expect(preview).toBe('Draft transaksi EXPENSE sebesar 12500.50 pada 2026-07-22 (wallet wallet-1, kategori category-1, catatan: Lunch). Konfirmasi eksplisit diperlukan sebelum transaksi dibuat.');
+    }, 'Cash', 'Food');
+    expect(preview).toBe('Draft transaksi EXPENSE sebesar 12500.50 pada 2026-07-22 (wallet Cash, kategori Food, catatan: Lunch). Konfirmasi eksplisit diperlukan sebelum transaksi dibuat.');
+    expect(preview).not.toContain('category-1');
   });
 
   it('renders a safe merchant label without exposing a mapping identifier', () => {
     const preview = renderTransactionDraftPreview({
       type: 'EXPENSE', amount: '45000', walletId: 'wallet-1', categoryId: 'category-1',
       date: '2026-07-23', description: 'Meeting',
-    }, 'BCA', 'Starbucks');
-    expect(preview).toContain('wallet BCA, kategori category-1, merchant Starbucks');
+    }, 'BCA', 'Food', 'Starbucks');
+    expect(preview).toContain('wallet BCA, kategori Food, merchant Starbucks');
+    expect(preview).not.toContain('category-1');
     expect(preview).not.toContain('merchant-mapping');
   });
 

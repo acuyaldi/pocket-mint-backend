@@ -28,4 +28,9 @@ export {
   createMerchantResolver,
   MERCHANT_TRANSACTION_CREATE_CONSTRAINTS,
 } from './merchant-resolver';
+export {
+  createCategoryResolver,
+  createCategoryTransactionCreateConstraints,
+} from './category-resolver';
+export type { CategoryTransactionType } from './category-resolver';
 export * from './types';

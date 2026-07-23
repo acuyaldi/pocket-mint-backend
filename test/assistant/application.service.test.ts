@@ -22,9 +22,9 @@ function setup() {
     }),
   };
   const entityResolution = {
-    resolve: vi.fn().mockImplementation(async (input: any) => (
-      input.reference.entityType === 'wallet'
-        ? {
+    resolve: vi.fn().mockImplementation(async (input: any) => {
+      if (input.reference.entityType === 'wallet') {
+        return {
           kind: 'resolved',
           entityType: 'wallet',
           entity: { internalId: 'wallet-resolved' },
@@ -32,16 +32,28 @@ function setup() {
           discriminator: 'BANK',
           confidence: { score: 1000, band: 'exact' },
           evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
-        }
-        : {
+        };
+      }
+      if (input.reference.entityType === 'merchant') {
+        return {
           kind: 'resolved',
           entityType: 'merchant',
           entity: { internalId: 'mapping-secret' },
           displayLabel: 'Starbucks',
           confidence: { score: 1000, band: 'exact' },
           evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
-        }
-    )),
+        };
+      }
+      return {
+        kind: 'resolved',
+        entityType: 'category',
+        entity: { internalId: 'category-resolved' },
+        displayLabel: 'Food',
+        discriminator: 'EXPENSE',
+        confidence: { score: 1000, band: 'exact' },
+        evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
+      };
+    }),
   };
   const context = {
     system: { contextVersion: '1' as const, locale: 'id-ID' },
@@ -147,7 +159,7 @@ describe('Assistant application lifecycle', () => {
     expect(conversations.finalize).toHaveBeenCalledTimes(1);
   });
 
-  it('resolves walletReference with backend-owned constraints before preparing a draft', async () => {
+  it('resolves wallet, merchant, and category references in order with backend-owned constraints', async () => {
     const { service, entityResolution, financialDrafts } = setup();
 
     const result = await service.execute('u1', 'corr-wallet', {
@@ -158,7 +170,7 @@ describe('Assistant application lifecycle', () => {
         amount: '20000',
         walletReference: 'bca',
         merchantReference: 'starbucks',
-        categoryId: 'category-1',
+        categoryReference: 'Food',
         date: '2026-07-23',
       },
     });
@@ -180,6 +192,7 @@ describe('Assistant application lifecycle', () => {
       walletId: 'wallet-resolved',
       walletDisplayLabel: 'BCA Debit',
       merchantDisplayLabel: 'Starbucks',
+      categoryId: 'category-resolved',
       description: 'Starbucks',
     }));
     expect(financialDrafts.prepare).not.toHaveBeenCalledWith(expect.objectContaining({
@@ -201,6 +214,139 @@ describe('Assistant application lifecycle', () => {
         eligibleFor: 'transaction.create',
       },
     });
+    expect(entityResolution.resolve).toHaveBeenNthCalledWith(3, {
+      authenticatedUserId: 'u1',
+      reference: {
+        entityType: 'category',
+        referenceText: 'Food',
+        source: 'provider_extracted',
+      },
+      trustedConstraints: {
+        eligibleFor: 'transaction.create',
+        transactionType: 'EXPENSE',
+      },
+    });
+  });
+
+  it.each(['ambiguous', 'not_found'] as const)(
+    'returns safe category %s clarification without drafting or exposing Category IDs',
+    async (kind) => {
+      const { service, entityResolution, financialDrafts, conversations } = setup();
+      entityResolution.resolve.mockImplementation(async (input: any) => {
+        if (input.reference.entityType === 'wallet') {
+          return {
+            kind: 'resolved',
+            entityType: 'wallet',
+            entity: { internalId: 'wallet-resolved' },
+            displayLabel: 'BCA',
+            confidence: { score: 1000, band: 'exact' },
+            evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
+          };
+        }
+        if (input.reference.entityType === 'merchant') {
+          return {
+            kind: 'resolved',
+            entityType: 'merchant',
+            entity: { internalId: 'mapping-secret' },
+            displayLabel: 'Starbucks',
+            confidence: { score: 1000, band: 'exact' },
+            evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
+          };
+        }
+        return kind === 'ambiguous'
+          ? {
+            kind,
+            entityType: 'category',
+            options: [
+              {
+                displayLabel: 'Food Drink',
+                discriminator: 'EXPENSE',
+                confidence: { score: 900, band: 'strong' },
+                evidence: [{ kind: 'normalized_exact', scoreContribution: 900 }],
+                selection: { internalId: 'private-category-a' },
+              },
+              {
+                displayLabel: 'Food-Drink',
+                discriminator: 'EXPENSE',
+                confidence: { score: 900, band: 'strong' },
+                evidence: [{ kind: 'normalized_exact', scoreContribution: 900 }],
+                selection: { internalId: 'private-category-b' },
+              },
+            ],
+          }
+          : {
+            kind,
+            entityType: 'category',
+            normalizedReference: 'private category',
+          };
+      });
+
+      const result = await service.execute('u1', `corr-category-${kind}`, {
+        intent: 'transaction.create',
+        arguments: {
+          type: 'EXPENSE',
+          amount: '45000',
+          walletReference: 'BCA',
+          merchantReference: 'Starbucks',
+          categoryReference: 'Private Category',
+          date: '2026-07-23',
+        },
+      });
+
+      expect(result.response).toMatchObject({
+        status: 'clarification_required',
+        data: { kind, entityType: 'category' },
+      });
+      expect(JSON.stringify(result.response)).not.toContain('private-category-');
+      expect(financialDrafts.prepare).not.toHaveBeenCalled();
+      expect(conversations.finalize).toHaveBeenCalledTimes(1);
+      expect(conversations.finalize).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'SUCCEEDED',
+        turnStatus: 'CLARIFICATION_REQUIRED',
+        outputSummary: {
+          operation: 'transaction.create',
+          categoryResolution: kind,
+        },
+      }));
+    },
+  );
+
+  it('rejects an invalid category reference without drafting', async () => {
+    const { service, entityResolution, financialDrafts } = setup();
+    entityResolution.resolve.mockImplementation(async (input: any) => (
+      input.reference.entityType === 'category'
+        ? {
+          kind: 'invalid_reference',
+          entityType: 'category',
+          code: 'ENTITY_RESOLUTION_INVALID_REFERENCE',
+        }
+        : {
+          kind: 'resolved',
+          entityType: input.reference.entityType,
+          entity: { internalId: `${input.reference.entityType}-resolved` },
+          displayLabel: input.reference.referenceText,
+          confidence: { score: 1000, band: 'exact' },
+          evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
+        }
+    ));
+
+    const result = await service.execute('u1', 'corr-invalid-category', {
+      intent: 'transaction.create',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '45000',
+        walletReference: 'BCA',
+        merchantReference: 'Starbucks',
+        categoryReference: 'Unsafe Category',
+        date: '2026-07-23',
+      },
+    });
+
+    expect(result.response).toMatchObject({
+      status: 'rejected',
+      code: 'ASSISTANT_INVALID_INPUT',
+    });
+    expect(financialDrafts.prepare).not.toHaveBeenCalled();
   });
 
   it('keeps an explicit description authoritative while showing the resolved merchant safely', async () => {

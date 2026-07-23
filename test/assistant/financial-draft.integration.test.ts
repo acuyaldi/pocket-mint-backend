@@ -28,6 +28,11 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
     const category = await resources!.prisma.category.create({ data: { userId: user.id, name: 'Food', type: 'EXPENSE', icon: 'food', color: '#000000' } });
     return { user, wallet, category };
   }
+  function categoryFor(userId: string, name: string, type: 'INCOME' | 'EXPENSE') {
+    return resources!.prisma.category.create({
+      data: { userId, name, type, icon: 'test', color: '#000000' },
+    });
+  }
   function app(clock?: () => Date) {
     const conversations = createAssistantConversationService(resources!.prisma);
     const drafts = createAssistantFinancialDraftService(resources!.prisma, createTransactionService(resources!.prisma), clock);
@@ -46,6 +51,10 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
     const { user, wallet, category } = await fixture('flow'); const server = app();
     const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
     expect(prepared.status).toBe(200); expect(prepared.body.data.data).toMatchObject({ status: 'PENDING_CONFIRMATION', confirmationRequired: true });
+    expect(prepared.body.data.data.preview).toMatchObject({ category: 'Food' });
+    expect(prepared.body.data.data.preview).not.toHaveProperty('categoryId');
+    expect(prepared.body.data.data.renderedText).toContain('kategori Food');
+    expect(prepared.body.data.data.renderedText).not.toContain(category.id);
     expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(0);
     expect((await resources!.prisma.wallet.findUniqueOrThrow({ where: { id: wallet.id } })).balance.toString()).toBe('100000');
     const draftId = prepared.body.data.data.draftId;
@@ -59,6 +68,43 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
     const history = await request(server).get(`/conversations/${prepared.body.data.conversationId}`).set('x-test-user', user.id);
     expect(history.body.data.turns).toHaveLength(2);
     expect(JSON.stringify(history.body.data.turns)).not.toContain('12500.50');
+  });
+
+  it.each([
+    ['cross-owner', async () => {
+      const owner = await fixture('category-owner');
+      const other = await fixture('category-other');
+      return {
+        userId: owner.user.id,
+        walletId: owner.wallet.id,
+        categoryId: other.category.id,
+      };
+    }],
+    ['opposite-type', async () => {
+      const owner = await fixture('category-type');
+      const income = await categoryFor(owner.user.id, 'Salary', 'INCOME');
+      return {
+        userId: owner.user.id,
+        walletId: owner.wallet.id,
+        categoryId: income.id,
+      };
+    }],
+  ])('rejects %s compatibility categoryId without creating a draft', async (_label, arrange) => {
+    const input = await arrange();
+
+    const response = await request(app())
+      .post('/execute')
+      .set('x-test-user', input.userId)
+      .send(draftBody(input.walletId, input.categoryId));
+
+    expect(response.status).toBe(404);
+    expect(response.body.error.code).toBe('ASSISTANT_DRAFT_NOT_FOUND');
+    expect(await resources!.prisma.assistantFinancialDraft.count({
+      where: { userId: input.userId },
+    })).toBe(0);
+    expect(await resources!.prisma.transaction.count({
+      where: { userId: input.userId },
+    })).toBe(0);
   });
 
   it('serializes concurrent confirmations to exactly one transaction', async () => {
@@ -165,5 +211,27 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
     expect((await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status).toBe('FAILED');
     const turns = await resources!.prisma.assistantTurn.findMany({ where: { conversationId: prepared.body.data.conversationId }, include: { toolExecutions: true } });
     expect(turns).toHaveLength(2); expect(turns[1].status).toBe('FAILED'); expect(turns[1].toolExecutions[0].outputSummary).toEqual({ draftId, status: 'FAILED' });
+  });
+
+  it('rejects confirmation without mutation when the Category is deleted after drafting', async () => {
+    const { user, wallet, category } = await fixture('deleted-category');
+    const server = app();
+    const prepared = await request(server).post('/execute').set('x-test-user', user.id)
+      .send(draftBody(wallet.id, category.id));
+    const draftId = prepared.body.data.data.draftId;
+    await resources!.prisma.category.delete({ where: { id: category.id } });
+
+    const response = await request(server).post(`/drafts/${draftId}/confirm`)
+      .set('x-test-user', user.id)
+      .set('Idempotency-Key', 'deleted-category-key');
+
+    expect(response.status).toBe(404);
+    expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(0);
+    expect((await resources!.prisma.wallet.findUniqueOrThrow({
+      where: { id: wallet.id },
+    })).balance.toString()).toBe('100000');
+    expect((await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({
+      where: { id: draftId },
+    })).status).toBe('FAILED');
   });
 });
