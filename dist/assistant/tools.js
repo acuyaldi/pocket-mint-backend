@@ -17,6 +17,7 @@ const TRANSACTION_KEYS = new Set([
     'amount',
     'walletId',
     'walletReference',
+    'merchantReference',
     'categoryId',
     'date',
     'description',
@@ -62,6 +63,12 @@ function validateTransactionCreateInput(input) {
             || Buffer.byteLength(value.walletReference, 'utf8') > 256)) {
         throw errors_1.AssistantError.invalidInput('transaction.create', 'walletReference must be a non-empty bounded string');
     }
+    if (value.merchantReference !== undefined
+        && (typeof value.merchantReference !== 'string'
+            || !value.merchantReference.trim()
+            || Buffer.byteLength(value.merchantReference, 'utf8') > 256)) {
+        throw errors_1.AssistantError.invalidInput('transaction.create', 'merchantReference must be a non-empty bounded string');
+    }
     if (typeof value.categoryId !== 'string'
         || !value.categoryId.trim()
         || value.categoryId.length > 191) {
@@ -79,6 +86,9 @@ function validateTransactionCreateInput(input) {
         categoryId: value.categoryId,
         date: value.date,
         ...(value.description === undefined ? {} : { description: value.description.trim() }),
+        ...(value.merchantReference === undefined
+            ? {}
+            : { merchantReference: value.merchantReference }),
     };
     return hasWalletId
         ? { ...common, walletId: value.walletId }
@@ -167,19 +177,20 @@ exports.transactionCreate = {
     timeoutMs: 10000,
     enabled: true,
     providerArguments: {
-        required: ['amount', 'categoryId', 'date', 'type', 'walletReference'],
+        required: ['amount', 'categoryId', 'date', 'merchantReference', 'type', 'walletReference'],
         optional: ['description'],
         properties: {
             amount: { type: 'string', description: 'Positive decimal amount with at most two fraction digits.' },
             categoryId: { type: 'string', description: 'Category identifier supplied by the user; never invent one.' },
             date: { type: 'string', format: 'YYYY-MM-DD', description: 'Transaction calendar date.' },
             description: { type: 'string', description: 'Optional short transaction description.' },
+            merchantReference: { type: 'string', description: 'Textual merchant name from the user; never supply a merchant or mapping identifier.' },
             type: { type: 'string', enum: ['INCOME', 'EXPENSE'], description: 'Regular transaction type.' },
             walletReference: { type: 'string', description: 'Textual wallet name or alias from the user; never supply a wallet identifier.' },
         },
     },
     validateInput: validateTransactionCreateInput,
     validateOutput: validateTransactionCreateInput,
-    auditRedact: ['amount', 'description', 'walletId', 'walletReference', 'categoryId', 'date'],
+    auditRedact: ['amount', 'description', 'walletId', 'walletReference', 'merchantReference', 'categoryId', 'date'],
 };
 //# sourceMappingURL=tools.js.map

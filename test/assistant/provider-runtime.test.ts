@@ -68,7 +68,7 @@ describe('provider-safe capability catalogue and prompt', () => {
     });
     expect(catalog[1]).toMatchObject({
       category: 'transaction.create',
-      requiredArguments: ['amount', 'categoryId', 'date', 'type', 'walletReference'],
+      requiredArguments: ['amount', 'categoryId', 'date', 'merchantReference', 'type', 'walletReference'],
       optionalArguments: ['description'],
       confirmationMayBeRequired: true,
     });
@@ -121,6 +121,30 @@ describe('structured Assistant plan validation', () => {
       arguments: { month: '2026-07' },
       policy: { action: 'EXECUTE_IMMEDIATELY' },
     });
+  });
+
+  it.each([
+    ['merchantId', 'merchant-secret'],
+    ['merchantMappingId', 'mapping-secret'],
+    ['ownerId', 'owner-claim'],
+    ['confidence', 1000],
+    ['evidence', ['provider-claim']],
+  ])('rejects provider-supplied authoritative merchant field %s', (field, value) => {
+    expect(() => validateAssistantPlan({
+      kind: 'intent',
+      intent: 'transaction.create',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '45000',
+        walletReference: 'BCA',
+        merchantReference: 'Starbucks',
+        categoryId: 'category-1',
+        date: '2026-07-23',
+        [field]: value,
+      },
+      clarification: null,
+      userMessage: '',
+    }, registry())).toThrowError(AssistantProviderError);
   });
 
   it('accepts one bounded safe clarification question', () => {

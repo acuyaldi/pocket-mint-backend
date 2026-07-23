@@ -6,6 +6,7 @@ export interface TransactionCreateInput {
     categoryId: string;
     date: string;
     description?: string;
+    merchantReference?: string;
 }
 export interface TransactionCreateReferenceInput {
     type: 'INCOME' | 'EXPENSE';
@@ -14,6 +15,7 @@ export interface TransactionCreateReferenceInput {
     categoryId: string;
     date: string;
     description?: string;
+    merchantReference?: string;
 }
 export type TransactionCreateToolInput = TransactionCreateInput | TransactionCreateReferenceInput;
 /**

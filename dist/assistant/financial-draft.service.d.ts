@@ -4,6 +4,7 @@ import type { TransactionCreateInput } from './tools';
 export declare function createAssistantFinancialDraftService(db: PrismaClient, transactions: TransactionService, clock?: () => Date): {
     prepare: (input: TransactionCreateInput & {
         walletDisplayLabel?: string;
+        merchantDisplayLabel?: string;
         userId: string;
         conversationId: string;
         turnId: string;
@@ -15,15 +16,17 @@ export declare function createAssistantFinancialDraftService(db: PrismaClient, t
         expiresAt: Date;
         preview: {
             description?: string | undefined;
-            categoryId: string;
             date: string;
+            merchant?: string | undefined;
+            categoryId: string;
             walletId: string;
             type: "INCOME" | "EXPENSE";
             amount: string;
         } | {
             description?: string | undefined;
-            categoryId: string;
             date: string;
+            merchant?: string | undefined;
+            categoryId: string;
             wallet: string;
             type: "INCOME" | "EXPENSE";
             amount: string;

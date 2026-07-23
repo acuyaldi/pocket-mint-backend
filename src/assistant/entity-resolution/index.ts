@@ -24,4 +24,8 @@ export {
   createWalletResolver,
   WALLET_TRANSACTION_CREATE_CONSTRAINTS,
 } from './wallet-resolver';
+export {
+  createMerchantResolver,
+  MERCHANT_TRANSACTION_CREATE_CONSTRAINTS,
+} from './merchant-resolver';
 export * from './types';
