@@ -49,13 +49,13 @@ function createAssistantApplicationService(deps) {
                 throw new Error('Financial draft service is not configured');
             try {
                 const transactionInput = validatedInput;
-                const resolution = 'walletReference' in transactionInput
+                const walletResolution = 'walletReference' in transactionInput
                     ? await resolveTransactionWallet(deps.entityResolution, userId, transactionInput.walletReference)
                     : undefined;
-                if (resolution && resolution.kind !== 'resolved') {
-                    const publicResolution = (0, entity_resolution_1.toPublicEntityResolutionResult)(resolution);
-                    if (resolution.kind === 'ambiguous' || resolution.kind === 'not_found') {
-                        const message = renderWalletClarification(resolution);
+                if (walletResolution && walletResolution.kind !== 'resolved') {
+                    const publicResolution = (0, entity_resolution_1.toPublicEntityResolutionResult)(walletResolution);
+                    if (walletResolution.kind === 'ambiguous' || walletResolution.kind === 'not_found') {
+                        const message = renderWalletClarification(walletResolution);
                         await deps.conversations.finalize({
                             executionId,
                             ...turn,
@@ -66,7 +66,7 @@ function createAssistantApplicationService(deps) {
                             durationMs: Date.now() - startedAt,
                             outputSummary: {
                                 operation: 'transaction.create',
-                                walletResolution: resolution.kind,
+                                walletResolution: walletResolution.kind,
                             },
                         });
                         return {
@@ -107,23 +107,94 @@ function createAssistantApplicationService(deps) {
                         },
                     };
                 }
-                const draftInput = resolution
-                    ? {
-                        type: transactionInput.type,
-                        amount: transactionInput.amount,
-                        walletId: resolution.entity.internalId,
-                        categoryId: transactionInput.categoryId,
-                        date: transactionInput.date,
-                        ...(transactionInput.description === undefined
+                const merchantResolution = transactionInput.merchantReference === undefined
+                    ? undefined
+                    : await resolveTransactionMerchant(deps.entityResolution, userId, transactionInput.merchantReference);
+                if (merchantResolution?.kind === 'ambiguous') {
+                    const publicResolution = (0, entity_resolution_1.toPublicEntityResolutionResult)(merchantResolution);
+                    const message = renderMerchantClarification(merchantResolution);
+                    await deps.conversations.finalize({
+                        executionId,
+                        ...turn,
+                        status: 'SUCCEEDED',
+                        turnStatus: 'CLARIFICATION_REQUIRED',
+                        assistantContent: message,
+                        assistantSource: 'DETERMINISTIC_RENDERER',
+                        durationMs: Date.now() - startedAt,
+                        outputSummary: {
+                            operation: 'transaction.create',
+                            merchantResolution: merchantResolution.kind,
+                        },
+                    });
+                    return {
+                        httpStatus: 200,
+                        response: {
+                            status: 'clarification_required',
+                            message,
+                            data: publicResolution,
+                            correlationId,
+                            ...turn,
+                        },
+                    };
+                }
+                if (merchantResolution
+                    && merchantResolution.kind !== 'resolved'
+                    && merchantResolution.kind !== 'not_found') {
+                    const invalid = errors_1.AssistantError.invalidInput('transaction.create', 'merchantReference is invalid');
+                    const safeMessage = (0, persistence_1.safeRejectedAssistantMessage)(invalid.code);
+                    await deps.conversations.finalize({
+                        executionId,
+                        ...turn,
+                        status: 'FAILED',
+                        turnStatus: 'REJECTED',
+                        assistantContent: safeMessage,
+                        assistantSource: 'SAFE_ERROR',
+                        durationMs: Date.now() - startedAt,
+                        safeErrorCode: invalid.code,
+                        outputSummary: {
+                            operation: 'transaction.create',
+                            merchantResolution: merchantResolution.kind,
+                        },
+                    });
+                    return {
+                        httpStatus: invalid.statusCode,
+                        response: {
+                            status: 'rejected',
+                            code: invalid.code,
+                            message: safeMessage,
+                            correlationId,
+                            ...turn,
+                        },
+                    };
+                }
+                const merchantDisplayLabel = merchantResolution?.kind === 'resolved'
+                    ? merchantResolution.displayLabel
+                    : merchantResolution?.kind === 'not_found'
+                        ? safeFreeFormMerchantText(merchantResolution.normalizedReference)
+                        : undefined;
+                const walletId = walletResolution
+                    ? walletResolution.entity.internalId
+                    : transactionInput.walletId;
+                const draftInput = {
+                    type: transactionInput.type,
+                    amount: transactionInput.amount,
+                    walletId,
+                    categoryId: transactionInput.categoryId,
+                    date: transactionInput.date,
+                    ...(transactionInput.description !== undefined
+                        ? { description: transactionInput.description }
+                        : merchantDisplayLabel === undefined
                             ? {}
-                            : { description: transactionInput.description }),
-                    }
-                    : transactionInput;
+                            : { description: merchantDisplayLabel }),
+                };
                 const draft = await deps.financialDrafts.prepare({
                     ...draftInput,
-                    ...(resolution === undefined
+                    ...(walletResolution === undefined
                         ? {}
-                        : { walletDisplayLabel: resolution.displayLabel }),
+                        : { walletDisplayLabel: walletResolution.displayLabel }),
+                    ...(merchantDisplayLabel === undefined
+                        ? {}
+                        : { merchantDisplayLabel }),
                     userId,
                     ...turn,
                     executionId,
@@ -174,6 +245,27 @@ async function resolveTransactionWallet(service, authenticatedUserId, walletRefe
         trustedConstraints: entity_resolution_1.WALLET_TRANSACTION_CREATE_CONSTRAINTS,
     });
 }
+async function resolveTransactionMerchant(service, authenticatedUserId, merchantReference) {
+    if (!service)
+        throw new Error('Entity resolution service is not configured');
+    return service.resolve({
+        authenticatedUserId,
+        reference: {
+            entityType: 'merchant',
+            referenceText: merchantReference,
+            source: 'provider_extracted',
+        },
+        trustedConstraints: entity_resolution_1.MERCHANT_TRANSACTION_CREATE_CONSTRAINTS,
+    });
+}
+function safeFreeFormMerchantText(normalizedReference) {
+    if (!normalizedReference
+        || Buffer.byteLength(normalizedReference, 'utf8') > 256
+        || /[<>\u0000-\u001f\u007f-\u009f]/u.test(normalizedReference)) {
+        throw errors_1.AssistantError.invalidInput('transaction.create', 'merchantReference is invalid');
+    }
+    return normalizedReference;
+}
 function renderWalletClarification(resolution) {
     if (resolution.kind === 'not_found') {
         return 'Wallet tersebut tidak ditemukan atau tidak dapat digunakan. Sebutkan nama wallet aktif yang lain.';
@@ -184,5 +276,11 @@ function renderWalletClarification(resolution) {
         : option.displayLabel)
         .join(', ');
     return `Wallet yang dimaksud belum jelas. Pilih salah satu: ${options}.`;
+}
+function renderMerchantClarification(resolution) {
+    const options = resolution.options
+        .map((option) => option.displayLabel)
+        .join(', ');
+    return `Merchant yang dimaksud belum jelas. Pilih salah satu: ${options}.`;
 }
 //# sourceMappingURL=application.service.js.map

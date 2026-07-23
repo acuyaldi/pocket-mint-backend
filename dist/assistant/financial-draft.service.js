@@ -17,6 +17,9 @@ function preview(input) {
             ? { walletId: input.walletId }
             : { wallet: input.walletDisplayLabel }),
         categoryId: input.categoryId,
+        ...(input.merchantDisplayLabel === undefined
+            ? {}
+            : { merchant: input.merchantDisplayLabel }),
         date: input.date,
         ...(input.description === undefined ? {} : { description: input.description }),
     };
@@ -41,7 +44,7 @@ function createAssistantFinancialDraftService(db, transactions, clock = () => ne
             expiresAt: row.expiresAt,
             preview: preview(input),
             confirmationRequired: true,
-            renderedText: (0, financial_draft_1.renderTransactionDraftPreview)(input, input.walletDisplayLabel),
+            renderedText: (0, financial_draft_1.renderTransactionDraftPreview)(input, input.walletDisplayLabel, input.merchantDisplayLabel),
         };
     }
     async function confirm(userId, draftId, keyValue, correlationId) {

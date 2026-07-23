@@ -22,15 +22,26 @@ function setup() {
     }),
   };
   const entityResolution = {
-    resolve: vi.fn().mockResolvedValue({
-      kind: 'resolved',
-      entityType: 'wallet',
-      entity: { internalId: 'wallet-resolved' },
-      displayLabel: 'BCA Debit',
-      discriminator: 'BANK',
-      confidence: { score: 1000, band: 'exact' },
-      evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
-    }),
+    resolve: vi.fn().mockImplementation(async (input: any) => (
+      input.reference.entityType === 'wallet'
+        ? {
+          kind: 'resolved',
+          entityType: 'wallet',
+          entity: { internalId: 'wallet-resolved' },
+          displayLabel: 'BCA Debit',
+          discriminator: 'BANK',
+          confidence: { score: 1000, band: 'exact' },
+          evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
+        }
+        : {
+          kind: 'resolved',
+          entityType: 'merchant',
+          entity: { internalId: 'mapping-secret' },
+          displayLabel: 'Starbucks',
+          confidence: { score: 1000, band: 'exact' },
+          evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
+        }
+    )),
   };
   const context = {
     system: { contextVersion: '1' as const, locale: 'id-ID' },
@@ -146,6 +157,7 @@ describe('Assistant application lifecycle', () => {
         type: 'EXPENSE',
         amount: '20000',
         walletReference: 'bca',
+        merchantReference: 'starbucks',
         categoryId: 'category-1',
         date: '2026-07-23',
       },
@@ -167,10 +179,209 @@ describe('Assistant application lifecycle', () => {
     expect(financialDrafts.prepare).toHaveBeenCalledWith(expect.objectContaining({
       walletId: 'wallet-resolved',
       walletDisplayLabel: 'BCA Debit',
+      merchantDisplayLabel: 'Starbucks',
+      description: 'Starbucks',
     }));
     expect(financialDrafts.prepare).not.toHaveBeenCalledWith(expect.objectContaining({
       walletReference: expect.anything(),
     }));
+    expect(financialDrafts.prepare).not.toHaveBeenCalledWith(expect.objectContaining({
+      merchantReference: expect.anything(),
+      merchantId: expect.anything(),
+      merchantMappingId: expect.anything(),
+    }));
+    expect(entityResolution.resolve).toHaveBeenNthCalledWith(2, {
+      authenticatedUserId: 'u1',
+      reference: {
+        entityType: 'merchant',
+        referenceText: 'starbucks',
+        source: 'provider_extracted',
+      },
+      trustedConstraints: {
+        eligibleFor: 'transaction.create',
+      },
+    });
+  });
+
+  it('keeps an explicit description authoritative while showing the resolved merchant safely', async () => {
+    const { service, financialDrafts } = setup();
+
+    await service.execute('u1', 'corr-merchant-note', {
+      intent: 'transaction.create',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '45000',
+        walletReference: 'BCA',
+        merchantReference: 'starbucks',
+        categoryId: 'category-1',
+        date: '2026-07-23',
+        description: 'Meeting with client',
+      },
+    });
+
+    expect(financialDrafts.prepare).toHaveBeenCalledWith(expect.objectContaining({
+      merchantDisplayLabel: 'Starbucks',
+      description: 'Meeting with client',
+    }));
+  });
+
+  it('returns safe merchant ambiguity without drafting or exposing mapping IDs', async () => {
+    const { service, entityResolution, financialDrafts } = setup();
+    entityResolution.resolve.mockImplementation(async (input: any) => (
+      input.reference.entityType === 'wallet'
+        ? {
+          kind: 'resolved',
+          entityType: 'wallet',
+          entity: { internalId: 'wallet-resolved' },
+          displayLabel: 'BCA',
+          confidence: { score: 1000, band: 'exact' },
+          evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
+        }
+        : {
+          kind: 'ambiguous',
+          entityType: 'merchant',
+          options: [
+            {
+              displayLabel: 'ＢＣＡ',
+              confidence: { score: 1000, band: 'exact' },
+              evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
+              selection: { internalId: 'private-mapping-z' },
+            },
+            {
+              displayLabel: 'BCA',
+              confidence: { score: 1000, band: 'exact' },
+              evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
+              selection: { internalId: 'private-mapping-a' },
+            },
+          ],
+        }
+    ));
+
+    const result = await service.execute('u1', 'corr-merchant-ambiguous', {
+      intent: 'transaction.create',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '45000',
+        walletReference: 'BCA',
+        merchantReference: 'bca',
+        categoryId: 'category-1',
+        date: '2026-07-23',
+      },
+    });
+
+    expect(result.response).toMatchObject({
+      status: 'clarification_required',
+      data: {
+        kind: 'ambiguous',
+        entityType: 'merchant',
+        options: [
+          { displayLabel: 'ＢＣＡ' },
+          { displayLabel: 'BCA' },
+        ],
+      },
+    });
+    expect(JSON.stringify(result.response)).not.toContain('private-mapping');
+    expect(financialDrafts.prepare).not.toHaveBeenCalled();
+  });
+
+  it('continues a not_found merchant as bounded normalized free-form text', async () => {
+    const { service, entityResolution, financialDrafts } = setup();
+    entityResolution.resolve.mockImplementation(async (input: any) => (
+      input.reference.entityType === 'wallet'
+        ? {
+          kind: 'resolved',
+          entityType: 'wallet',
+          entity: { internalId: 'wallet-resolved' },
+          displayLabel: 'BCA',
+          confidence: { score: 1000, band: 'exact' },
+          evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
+        }
+        : {
+          kind: 'not_found',
+          entityType: 'merchant',
+          normalizedReference: 'warung baru',
+        }
+    ));
+
+    const result = await service.execute('u1', 'corr-merchant-freeform', {
+      intent: 'transaction.create',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '45000',
+        walletReference: 'BCA',
+        merchantReference: 'Warung—Baru',
+        categoryId: 'category-1',
+        date: '2026-07-23',
+      },
+    });
+
+    expect(result.response.status).toBe('success');
+    expect(financialDrafts.prepare).toHaveBeenCalledWith(expect.objectContaining({
+      merchantDisplayLabel: 'warung baru',
+      description: 'warung baru',
+    }));
+  });
+
+  it('rejects unsafe free-form merchant markup as inert data without drafting', async () => {
+    const { service, entityResolution, financialDrafts } = setup();
+    entityResolution.resolve.mockImplementation(async (input: any) => (
+      input.reference.entityType === 'wallet'
+        ? {
+          kind: 'resolved',
+          entityType: 'wallet',
+          entity: { internalId: 'wallet-resolved' },
+          displayLabel: 'BCA',
+          confidence: { score: 1000, band: 'exact' },
+          evidence: [{ kind: 'canonical_exact', scoreContribution: 1000 }],
+        }
+        : {
+          kind: 'not_found',
+          entityType: 'merchant',
+          normalizedReference: '<script alert 1 >',
+        }
+    ));
+
+    const result = await service.execute('u1', 'corr-merchant-markup', {
+      intent: 'transaction.create',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '45000',
+        walletReference: 'BCA',
+        merchantReference: '<script>alert(1)</script>',
+        categoryId: 'category-1',
+        date: '2026-07-23',
+      },
+    });
+
+    expect(result.response).toMatchObject({
+      status: 'error',
+      code: 'ASSISTANT_INVALID_INPUT',
+    });
+    expect(financialDrafts.prepare).not.toHaveBeenCalled();
+  });
+
+  it('never forwards merchantReference or mapping identity on the internal wallet path', async () => {
+    const { service, financialDrafts } = setup();
+
+    await service.execute('u1', 'corr-internal-merchant', {
+      intent: 'transaction.create',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '45000',
+        walletId: 'wallet-internal',
+        merchantReference: 'Starbucks',
+        categoryId: 'category-1',
+        date: '2026-07-23',
+      },
+    });
+
+    expect(financialDrafts.prepare).toHaveBeenCalledWith(expect.objectContaining({
+      walletId: 'wallet-internal',
+      merchantDisplayLabel: 'Starbucks',
+    }));
+    const prepared = financialDrafts.prepare.mock.calls[0][0];
+    expect(prepared).not.toHaveProperty('merchantReference');
+    expect(JSON.stringify(prepared)).not.toContain('mapping-secret');
   });
 
   it('returns deterministic safe options for ambiguous wallets without drafting', async () => {

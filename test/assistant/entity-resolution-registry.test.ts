@@ -14,6 +14,14 @@ function resolver(entityType: 'wallet' | 'merchant' | 'category'): EntityResolve
 }
 
 describe('EntityResolverRegistry', () => {
+  it('registers exactly one wallet and one merchant resolver in production bootstrap', async () => {
+    const { entityResolverRegistry } = await import('../../src/assistant/bootstrap');
+    expect(entityResolverRegistry.isFinalized).toBe(true);
+    expect(entityResolverRegistry.registeredTypes()).toEqual(['merchant', 'wallet']);
+    expect(entityResolverRegistry.get('merchant')?.entityType).toBe('merchant');
+    expect(entityResolverRegistry.get('wallet')?.entityType).toBe('wallet');
+  });
+
   it('registers, looks up, and lists closed entity types stably', () => {
     const registry = new EntityResolverRegistry();
     registry.register(resolver('wallet'));

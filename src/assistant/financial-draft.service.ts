@@ -10,7 +10,10 @@ import type { TransactionCreateInput } from './tools';
 const CONFIRM_INTENT = 'transaction.create.confirm';
 const CANCEL_INTENT = 'transaction.create.cancel';
 
-function preview(input: TransactionCreateInput & { walletDisplayLabel?: string }) {
+function preview(input: TransactionCreateInput & {
+  walletDisplayLabel?: string;
+  merchantDisplayLabel?: string;
+}) {
   return {
     type: input.type,
     amount: input.amount,
@@ -18,13 +21,16 @@ function preview(input: TransactionCreateInput & { walletDisplayLabel?: string }
       ? { walletId: input.walletId }
       : { wallet: input.walletDisplayLabel }),
     categoryId: input.categoryId,
+    ...(input.merchantDisplayLabel === undefined
+      ? {}
+      : { merchant: input.merchantDisplayLabel }),
     date: input.date,
     ...(input.description === undefined ? {} : { description: input.description }),
   };
 }
 
 export function createAssistantFinancialDraftService(db: PrismaClient, transactions: TransactionService, clock: () => Date = () => new Date()) {
-  async function prepare(input: TransactionCreateInput & { walletDisplayLabel?: string; userId: string; conversationId: string; turnId: string; executionId: string; now?: Date }) {
+  async function prepare(input: TransactionCreateInput & { walletDisplayLabel?: string; merchantDisplayLabel?: string; userId: string; conversationId: string; turnId: string; executionId: string; now?: Date }) {
     const wallet = await db.wallet.findFirst({ where: { id: input.walletId, userId: input.userId }, select: { id: true } });
     const category = await db.category.findFirst({ where: { id: input.categoryId, userId: input.userId, type: input.type }, select: { id: true } });
     if (!wallet || !category) throw AssistantError.draftNotFound();
@@ -42,7 +48,11 @@ export function createAssistantFinancialDraftService(db: PrismaClient, transacti
       expiresAt: row.expiresAt,
       preview: preview(input),
       confirmationRequired: true,
-      renderedText: renderTransactionDraftPreview(input, input.walletDisplayLabel),
+      renderedText: renderTransactionDraftPreview(
+        input,
+        input.walletDisplayLabel,
+        input.merchantDisplayLabel,
+      ),
     };
   }
 

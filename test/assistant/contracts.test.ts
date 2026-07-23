@@ -84,7 +84,7 @@ describe('monthlySpendingSummary input validation', () => {
 
 describe('transaction.create input validation', () => {
   const valid = { type: 'EXPENSE', amount: '12500.50', walletId: 'wallet-1', categoryId: 'category-1', date: '2026-07-22', description: 'Lunch' };
-  const providerValid = { type: 'EXPENSE', amount: '12500.50', walletReference: 'BCA', categoryId: 'category-1', date: '2026-07-22', description: 'Lunch' };
+  const providerValid = { type: 'EXPENSE', amount: '12500.50', walletReference: 'BCA', merchantReference: 'Starbucks', categoryId: 'category-1', date: '2026-07-22', description: 'Lunch' };
 
   it('preserves walletId compatibility for deterministic internal callers', () => {
     expect(transactionCreate.validateInput(valid)).toEqual(valid);
@@ -110,15 +110,25 @@ describe('transaction.create input validation', () => {
     [{ ...valid, extra: true }],
     [{ ...valid, categoryId: undefined }],
     [{ ...providerValid, walletReference: '   ' }],
+    [{ ...providerValid, merchantReference: '   ' }],
+    [{ ...providerValid, merchantId: 'merchant-1' }],
+    [{ ...providerValid, merchantMappingId: 'mapping-1' }],
+    [{ ...providerValid, ownerId: 'attacker' }],
+    [{ ...providerValid, confidence: 1000 }],
+    [{ ...providerValid, evidence: ['provider-claim'] }],
   ])('rejects unsafe or invalid arguments %#', (input) => {
     expect(() => transactionCreate.validateInput(input)).toThrow(AssistantError);
   });
 
-  it('exposes only walletReference in provider metadata', () => {
+  it('exposes only textual wallet and merchant references in provider metadata', () => {
     expect(transactionCreate.providerArguments.required).toContain('walletReference');
+    expect(transactionCreate.providerArguments.required).toContain('merchantReference');
     expect(transactionCreate.providerArguments.required).not.toContain('walletId');
     expect(transactionCreate.providerArguments.properties).toHaveProperty('walletReference');
+    expect(transactionCreate.providerArguments.properties).toHaveProperty('merchantReference');
     expect(transactionCreate.providerArguments.properties).not.toHaveProperty('walletId');
+    expect(transactionCreate.providerArguments.properties).not.toHaveProperty('merchantId');
+    expect(transactionCreate.providerArguments.properties).not.toHaveProperty('merchantMappingId');
   });
 });
 

@@ -20,6 +20,7 @@ import { AssistantProviderError } from '../../src/assistant/provider-types';
 import {
   EntityResolverRegistry,
   createEntityResolutionService,
+  createMerchantResolver,
   createWalletResolver,
 } from '../../src/assistant/entity-resolution';
 
@@ -70,7 +71,15 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
     const category = await resources!.prisma.category.create({
       data: { userId: user.id, name: 'Food', type: 'EXPENSE', icon: 'food', color: '#000000' },
     });
-    return { user, wallet, category };
+    const merchant = await resources!.prisma.merchantMapping.create({
+      data: {
+        userId: user.id,
+        merchantName: `${label} Merchant`,
+        normalizedMerchant: `${label} merchant`,
+        categoryId: category.id,
+      },
+    });
+    return { user, wallet, category, merchant };
   }
 
   function setup(providerImplementation: ReturnType<typeof vi.fn>, timeoutMs = 100) {
@@ -85,6 +94,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
     registry.register(transactionCreate);
     const entityResolvers = new EntityResolverRegistry();
     entityResolvers.register(createWalletResolver(resources!.prisma));
+    entityResolvers.register(createMerchantResolver(resources!.prisma));
     entityResolvers.finalize();
     const application = createAssistantApplicationService({
       conversations,
@@ -290,7 +300,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
   });
 
   it('creates only a transaction draft, leaves the wallet unchanged, and requires the existing explicit confirmation endpoint', async () => {
-    const { user, wallet, category } = await fixture('draft');
+    const { user, wallet, category, merchant } = await fixture('draft');
     const plan = modelResponse({
       kind: 'intent',
       intent: 'transaction.create',
@@ -298,6 +308,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
         type: 'EXPENSE',
         amount: '12500.50',
         walletReference: wallet.name,
+        merchantReference: merchant.merchantName,
         categoryId: category.id,
         date: '2026-07-23',
         description: 'Lunch',
@@ -316,6 +327,10 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
       confirmationRequired: true,
       preview: { wallet: wallet.name },
     });
+    expect(prepared.body.data.data.preview).toMatchObject({
+      merchant: merchant.merchantName,
+      description: 'Lunch',
+    });
     expect(prepared.body.data.data.preview).not.toHaveProperty('walletId');
     expect(prepared.body.data.renderedText).not.toContain('Transaction created successfully');
     expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(0);
@@ -330,7 +345,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
   });
 
   it('returns safe deterministic options for ambiguous wallet aliases without creating a draft', async () => {
-    const { user, category } = await fixture('ambiguous');
+    const { user, category, merchant } = await fixture('ambiguous');
     const wallets = await Promise.all([
       resources!.prisma.wallet.create({
         data: {
@@ -358,6 +373,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
         type: 'EXPENSE',
         amount: '20000',
         walletReference: 'BCA',
+        merchantReference: merchant.merchantName,
         categoryId: category.id,
         date: '2026-07-23',
       },
@@ -394,7 +410,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
   });
 
   it('treats an archived wallet as not_found and creates no financial state', async () => {
-    const { user, category } = await fixture('archived');
+    const { user, category, merchant } = await fixture('archived');
     await resources!.prisma.wallet.create({
       data: {
         userId: user.id,
@@ -412,6 +428,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
         type: 'EXPENSE',
         amount: '20000',
         walletReference: 'Dormant BCA',
+        merchantReference: merchant.merchantName,
         categoryId: category.id,
         date: '2026-07-23',
       },
@@ -447,6 +464,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
         type: 'EXPENSE',
         amount: '1000',
         walletReference,
+        merchantReference: owner.merchant.merchantName,
         categoryId,
         date: '2026-07-23',
       },

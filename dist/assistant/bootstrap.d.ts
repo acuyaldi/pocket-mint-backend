@@ -79,6 +79,7 @@ export declare const assistantContextService: {
 export declare const assistantFinancialDraftService: {
     prepare: (input: import("./tools").TransactionCreateInput & {
         walletDisplayLabel?: string;
+        merchantDisplayLabel?: string;
         userId: string;
         conversationId: string;
         turnId: string;
@@ -90,15 +91,17 @@ export declare const assistantFinancialDraftService: {
         expiresAt: Date;
         preview: {
             description?: string | undefined;
-            categoryId: string;
             date: string;
+            merchant?: string | undefined;
+            categoryId: string;
             walletId: string;
             type: "INCOME" | "EXPENSE";
             amount: string;
         } | {
             description?: string | undefined;
-            categoryId: string;
             date: string;
+            merchant?: string | undefined;
+            categoryId: string;
             wallet: string;
             type: "INCOME" | "EXPENSE";
             amount: string;

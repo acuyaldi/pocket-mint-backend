@@ -10,6 +10,15 @@ describe('financial draft helpers', () => {
     expect(preview).toBe('Draft transaksi EXPENSE sebesar 12500.50 pada 2026-07-22 (wallet wallet-1, kategori category-1, catatan: Lunch). Konfirmasi eksplisit diperlukan sebelum transaksi dibuat.');
   });
 
+  it('renders a safe merchant label without exposing a mapping identifier', () => {
+    const preview = renderTransactionDraftPreview({
+      type: 'EXPENSE', amount: '45000', walletId: 'wallet-1', categoryId: 'category-1',
+      date: '2026-07-23', description: 'Meeting',
+    }, 'BCA', 'Starbucks');
+    expect(preview).toContain('wallet BCA, kategori category-1, merchant Starbucks');
+    expect(preview).not.toContain('merchant-mapping');
+  });
+
   it.each(['', ' ', 'a'.repeat(129), 'contains space', 'slash/key'])('rejects malformed idempotency keys', (key) => {
     expect(() => validateIdempotencyKey(key)).toThrow();
   });

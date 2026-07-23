@@ -23,6 +23,7 @@ import { createAssistantProviderRuntime } from './provider-runtime';
 import {
   EntityResolverRegistry,
   createEntityResolutionService,
+  createMerchantResolver,
   createWalletResolver,
 } from './entity-resolution';
 
@@ -39,6 +40,7 @@ toolRegistry.register(monthlySpendingSummary);
 toolRegistry.register(transactionCreate);
 handlerRegistry.set(monthlySpendingSummary.id, handleMonthlySpendingSummary as never);
 entityResolverRegistry.register(createWalletResolver(prisma));
+entityResolverRegistry.register(createMerchantResolver(prisma));
 entityResolverRegistry.finalize();
 
 export const assistantConversationService = createAssistantConversationService(prisma);
