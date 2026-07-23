@@ -10,12 +10,21 @@ import type { TransactionCreateInput } from './tools';
 const CONFIRM_INTENT = 'transaction.create.confirm';
 const CANCEL_INTENT = 'transaction.create.cancel';
 
-function preview(input: TransactionCreateInput) {
-  return { type: input.type, amount: input.amount, walletId: input.walletId, categoryId: input.categoryId, date: input.date, ...(input.description === undefined ? {} : { description: input.description }) };
+function preview(input: TransactionCreateInput & { walletDisplayLabel?: string }) {
+  return {
+    type: input.type,
+    amount: input.amount,
+    ...(input.walletDisplayLabel === undefined
+      ? { walletId: input.walletId }
+      : { wallet: input.walletDisplayLabel }),
+    categoryId: input.categoryId,
+    date: input.date,
+    ...(input.description === undefined ? {} : { description: input.description }),
+  };
 }
 
 export function createAssistantFinancialDraftService(db: PrismaClient, transactions: TransactionService, clock: () => Date = () => new Date()) {
-  async function prepare(input: TransactionCreateInput & { userId: string; conversationId: string; turnId: string; executionId: string; now?: Date }) {
+  async function prepare(input: TransactionCreateInput & { walletDisplayLabel?: string; userId: string; conversationId: string; turnId: string; executionId: string; now?: Date }) {
     const wallet = await db.wallet.findFirst({ where: { id: input.walletId, userId: input.userId }, select: { id: true } });
     const category = await db.category.findFirst({ where: { id: input.categoryId, userId: input.userId, type: input.type }, select: { id: true } });
     if (!wallet || !category) throw AssistantError.draftNotFound();
@@ -27,7 +36,14 @@ export function createAssistantFinancialDraftService(db: PrismaClient, transacti
       transactionDate: parseBusinessDate(input.date, reportingConfig.timezone), description: input.description ?? null,
       expiresAt: new Date(now.getTime() + ASSISTANT_FINANCIAL_DRAFT_TTL_MS),
     }});
-    return { draftId: row.id, status: row.status, expiresAt: row.expiresAt, preview: preview(input), confirmationRequired: true, renderedText: renderTransactionDraftPreview(input) };
+    return {
+      draftId: row.id,
+      status: row.status,
+      expiresAt: row.expiresAt,
+      preview: preview(input),
+      confirmationRequired: true,
+      renderedText: renderTransactionDraftPreview(input, input.walletDisplayLabel),
+    };
   }
 
   async function confirm(userId: string, draftId: string, keyValue: unknown, correlationId: string) {

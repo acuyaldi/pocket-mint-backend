@@ -8,13 +8,29 @@ import type { AssistantConversationService } from './conversation.service';
 import { assertAssistantMessageLength, monthlySummaryFallback, monthlySummaryInputForAudit, monthlySummaryOutputForAudit, normalizeProvidedMessage, safeRejectedAssistantMessage, safeRejectedUserMessage, SAFE_REJECTED_INTENT } from './persistence';
 import { evaluatePolicy } from './policy';
 import { logger } from '../utils/logger';
-import type { TransactionCreateInput } from './tools';
+import type {
+  TransactionCreateInput,
+  TransactionCreateToolInput,
+} from './tools';
 import type { AssistantFinancialDraftService } from './financial-draft.service';
 import type { AssistantContextService, BuildAssistantExecutionContextInput } from './context.service';
+import {
+  WALLET_TRANSACTION_CREATE_CONSTRAINTS,
+  toPublicEntityResolutionResult,
+  type EntityResolutionResult,
+  type EntityResolutionService,
+} from './entity-resolution';
 
 export interface AssistantApplicationResult { response: AssistantCanonicalResponse; httpStatus: number }
 
-export function createAssistantApplicationService(deps: { conversations: AssistantConversationService; contexts?: AssistantContextService; toolRegistry: ToolRegistry; handlerRegistry: HandlerRegistry; financialDrafts?: AssistantFinancialDraftService }) {
+export function createAssistantApplicationService(deps: {
+  conversations: AssistantConversationService;
+  contexts?: AssistantContextService;
+  toolRegistry: ToolRegistry;
+  handlerRegistry: HandlerRegistry;
+  financialDrafts?: AssistantFinancialDraftService;
+  entityResolution?: EntityResolutionService;
+}) {
   async function prepareProviderExecution(input: BuildAssistantExecutionContextInput) {
     if (!deps.contexts) throw new Error('Assistant context service is not configured');
     return deps.contexts.buildExecutionContext(input);
@@ -25,12 +41,14 @@ export function createAssistantApplicationService(deps: { conversations: Assista
     if (request.conversationId) await deps.conversations.assertContinuable(userId, request.conversationId);
     const provided = normalizeProvidedMessage(request.message);
     let resolved: ReturnType<typeof resolveIntent>;
-    let validatedInput: { month: string } | TransactionCreateInput;
+    let validatedInput: { month: string } | TransactionCreateToolInput;
     try {
       resolved = resolveIntent(request);
       const contract = deps.toolRegistry.get(resolved.toolId);
       if (!contract) throw AssistantError.toolNotFound(resolved.toolId);
-      validatedInput = contract.validateInput(resolved.arguments) as { month: string } | TransactionCreateInput;
+      validatedInput = contract.validateInput(resolved.arguments) as
+        | { month: string }
+        | TransactionCreateToolInput;
     } catch (error) {
       const operational = error instanceof AssistantError ? error : AssistantError.invalidRequest('request cannot be validated');
       const safeMessage = safeRejectedAssistantMessage(operational.code);
@@ -49,7 +67,95 @@ export function createAssistantApplicationService(deps: { conversations: Assista
     if (policy.action === 'DRAFT_AND_CONFIRM') {
       if (!deps.financialDrafts) throw new Error('Financial draft service is not configured');
       try {
-        const draft = await deps.financialDrafts.prepare({ ...(validatedInput as TransactionCreateInput), userId, ...turn, executionId });
+        const transactionInput = validatedInput as TransactionCreateToolInput;
+        const resolution = 'walletReference' in transactionInput
+          ? await resolveTransactionWallet(
+            deps.entityResolution,
+            userId,
+            transactionInput.walletReference,
+          )
+          : undefined;
+        if (resolution && resolution.kind !== 'resolved') {
+          const publicResolution = toPublicEntityResolutionResult(resolution);
+          if (resolution.kind === 'ambiguous' || resolution.kind === 'not_found') {
+            const message = renderWalletClarification(resolution);
+            await deps.conversations.finalize({
+              executionId,
+              ...turn,
+              status: 'SUCCEEDED',
+              turnStatus: 'CLARIFICATION_REQUIRED',
+              assistantContent: message,
+              assistantSource: 'DETERMINISTIC_RENDERER',
+              durationMs: Date.now() - startedAt,
+              outputSummary: {
+                operation: 'transaction.create',
+                walletResolution: resolution.kind,
+              },
+            });
+            return {
+              httpStatus: 200,
+              response: {
+                status: 'clarification_required',
+                message,
+                data: publicResolution,
+                correlationId,
+                ...turn,
+              },
+            };
+          }
+          const invalid = AssistantError.invalidInput(
+            'transaction.create',
+            'walletReference is invalid',
+          );
+          const safeMessage = safeRejectedAssistantMessage(invalid.code);
+          await deps.conversations.finalize({
+            executionId,
+            ...turn,
+            status: 'FAILED',
+            turnStatus: 'REJECTED',
+            assistantContent: safeMessage,
+            assistantSource: 'SAFE_ERROR',
+            durationMs: Date.now() - startedAt,
+            safeErrorCode: invalid.code,
+            outputSummary: {
+              operation: 'transaction.create',
+              walletResolution: publicResolution.kind,
+            },
+          });
+          return {
+            httpStatus: invalid.statusCode,
+            response: {
+              status: 'rejected',
+              code: invalid.code,
+              message: safeMessage,
+              correlationId,
+              ...turn,
+            },
+          };
+        }
+        const draftInput: TransactionCreateInput = resolution
+          ? {
+            type: transactionInput.type,
+            amount: transactionInput.amount,
+            walletId: resolution.entity.internalId,
+            categoryId: transactionInput.categoryId,
+            date: transactionInput.date,
+            ...(
+              transactionInput.description === undefined
+                ? {}
+                : { description: transactionInput.description }
+            ),
+          }
+          : transactionInput as TransactionCreateInput;
+        const draft = await deps.financialDrafts.prepare({
+          ...draftInput,
+          ...(resolution === undefined
+            ? {}
+            : { walletDisplayLabel: resolution.displayLabel }),
+          userId,
+          ...turn,
+          executionId,
+        });
         await deps.conversations.finalize({ executionId, ...turn, status: 'SUCCEEDED', turnStatus: 'SUCCEEDED', assistantContent: draft.renderedText, assistantSource: 'DETERMINISTIC_RENDERER', durationMs: Date.now() - startedAt, outputSummary: { draftId: draft.draftId, operation: 'transaction.create', status: 'PENDING_CONFIRMATION' } });
         return { httpStatus: 200, response: { status: 'success', renderedText: draft.renderedText, data: draft, correlationId, ...turn } };
       } catch (error) {
@@ -82,3 +188,35 @@ export function createAssistantApplicationService(deps: { conversations: Assista
 }
 
 export type AssistantApplicationService = ReturnType<typeof createAssistantApplicationService>;
+
+async function resolveTransactionWallet(
+  service: EntityResolutionService | undefined,
+  authenticatedUserId: string,
+  walletReference: string,
+): Promise<EntityResolutionResult> {
+  if (!service) throw new Error('Entity resolution service is not configured');
+  return service.resolve({
+    authenticatedUserId,
+    reference: {
+      entityType: 'wallet',
+      referenceText: walletReference,
+      source: 'provider_extracted',
+    },
+    trustedConstraints: WALLET_TRANSACTION_CREATE_CONSTRAINTS,
+  });
+}
+
+function renderWalletClarification(
+  resolution: Extract<EntityResolutionResult, { kind: 'ambiguous' | 'not_found' }>,
+): string {
+  if (resolution.kind === 'not_found') {
+    return 'Wallet tersebut tidak ditemukan atau tidak dapat digunakan. Sebutkan nama wallet aktif yang lain.';
+  }
+  const options = resolution.options
+    .map((option) =>
+      option.discriminator
+        ? `${option.displayLabel} (${option.discriminator})`
+        : option.displayLabel)
+    .join(', ');
+  return `Wallet yang dimaksud belum jelas. Pilih salah satu: ${options}.`;
+}

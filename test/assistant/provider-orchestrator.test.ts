@@ -199,6 +199,33 @@ describe('Assistant provider runtime orchestration', () => {
     expect(conversations.finalizeWithoutTool).not.toHaveBeenCalled();
   });
 
+  it('rejects a provider-supplied walletId even though deterministic callers remain compatible', async () => {
+    const { runtime, application, conversations } = setup({
+      kind: 'intent',
+      intent: 'transaction.create',
+      arguments: {
+        type: 'EXPENSE',
+        amount: '20000',
+        walletId: 'wallet-secret',
+        categoryId: 'category-1',
+        date: '2026-07-23',
+      },
+      clarification: null,
+      userMessage: '',
+    });
+
+    const result = await runtime.sendMessage('u1', 'corr-1', {
+      message: 'Beli bakso 20000 pakai BCA',
+    });
+
+    expect(result).toMatchObject({
+      httpStatus: 502,
+      response: { code: 'ASSISTANT_PROVIDER_INVALID_RESPONSE' },
+    });
+    expect(application.execute).not.toHaveBeenCalled();
+    expect(conversations.finalizeWithoutTool).toHaveBeenCalledOnce();
+  });
+
   it('returns a committed deterministic result when provider-audit finalization fails', async () => {
     const { runtime, application, audit } = setup();
     audit.finalize.mockRejectedValue(new Error('audit update failed'));

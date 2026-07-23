@@ -1,9 +1,11 @@
 import { ToolRegistry } from './registry';
 import type { HandlerRegistry } from './executor';
+import { EntityResolverRegistry } from './entity-resolution';
 /** The application-wide tool registry. Populated at startup. */
 export declare const toolRegistry: ToolRegistry;
 /** The application-wide handler registry. Populated at startup. */
 export declare const handlerRegistry: HandlerRegistry;
+export declare const entityResolverRegistry: EntityResolverRegistry;
 export declare const assistantConversationService: {
     assertContinuable: (userId: string, id: string) => Promise<void>;
     establishConversation: (userId: string, conversationId: string | undefined, locale: string) => Promise<string>;
@@ -76,6 +78,7 @@ export declare const assistantContextService: {
 };
 export declare const assistantFinancialDraftService: {
     prepare: (input: import("./tools").TransactionCreateInput & {
+        walletDisplayLabel?: string;
         userId: string;
         conversationId: string;
         turnId: string;
@@ -87,11 +90,18 @@ export declare const assistantFinancialDraftService: {
         expiresAt: Date;
         preview: {
             description?: string | undefined;
-            type: "INCOME" | "EXPENSE";
-            amount: string;
-            walletId: string;
             categoryId: string;
             date: string;
+            walletId: string;
+            type: "INCOME" | "EXPENSE";
+            amount: string;
+        } | {
+            description?: string | undefined;
+            categoryId: string;
+            date: string;
+            wallet: string;
+            type: "INCOME" | "EXPENSE";
+            amount: string;
         };
         confirmationRequired: boolean;
         renderedText: string;
@@ -123,6 +133,7 @@ export declare const assistantFinancialDraftService: {
         conversationId: string;
     }>;
 };
+export declare const entityResolutionService: import("./entity-resolution").EntityResolutionService;
 export declare const assistantApplicationService: {
     execute: (userId: string, correlationId: string, request: import("./types").AssistantCanonicalRequest) => Promise<import("./application.service").AssistantApplicationResult>;
     prepareProviderExecution: (input: import("./context.service").BuildAssistantExecutionContextInput) => Promise<import("./context.types").AssistantContext>;

@@ -21,7 +21,28 @@ export interface TransactionCreateInput {
   description?: string;
 }
 
-const TRANSACTION_KEYS = new Set(['type', 'amount', 'walletId', 'categoryId', 'date', 'description']);
+export interface TransactionCreateReferenceInput {
+  type: 'INCOME' | 'EXPENSE';
+  amount: string;
+  walletReference: string;
+  categoryId: string;
+  date: string;
+  description?: string;
+}
+
+export type TransactionCreateToolInput =
+  | TransactionCreateInput
+  | TransactionCreateReferenceInput;
+
+const TRANSACTION_KEYS = new Set([
+  'type',
+  'amount',
+  'walletId',
+  'walletReference',
+  'categoryId',
+  'date',
+  'description',
+]);
 const MONEY_RE = /^(?:0|[1-9]\d{0,12})(?:\.\d{1,2})?$/;
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -32,7 +53,7 @@ function isCalendarDay(value: string): boolean {
   return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day;
 }
 
-function validateTransactionCreateInput(input: unknown): TransactionCreateInput {
+function validateTransactionCreateInput(input: unknown): TransactionCreateToolInput {
   if (typeof input !== 'object' || input === null || Array.isArray(input)) {
     throw AssistantError.invalidInput('transaction.create', 'Input must be a non-null object');
   }
@@ -47,10 +68,45 @@ function validateTransactionCreateInput(input: unknown): TransactionCreateInput 
   if (typeof amount !== 'string' || !MONEY_RE.test(amount) || amount === '0' || /^0(?:\.0{1,2})?$/.test(amount)) {
     throw AssistantError.invalidInput('transaction.create', 'amount must be a positive decimal with at most two fraction digits');
   }
-  for (const key of ['walletId', 'categoryId'] as const) {
-    if (typeof value[key] !== 'string' || !value[key].trim() || value[key].length > 191) {
-      throw AssistantError.invalidInput('transaction.create', `${key} must be a non-empty bounded string`);
-    }
+  const hasWalletId = value.walletId !== undefined;
+  const hasWalletReference = value.walletReference !== undefined;
+  if (hasWalletId === hasWalletReference) {
+    throw AssistantError.invalidInput(
+      'transaction.create',
+      'exactly one of walletId or walletReference is required',
+    );
+  }
+  if (
+    hasWalletId
+    && (typeof value.walletId !== 'string'
+      || !value.walletId.trim()
+      || value.walletId.length > 191)
+  ) {
+    throw AssistantError.invalidInput(
+      'transaction.create',
+      'walletId must be a non-empty bounded string',
+    );
+  }
+  if (
+    hasWalletReference
+    && (typeof value.walletReference !== 'string'
+      || !value.walletReference.trim()
+      || Buffer.byteLength(value.walletReference, 'utf8') > 256)
+  ) {
+    throw AssistantError.invalidInput(
+      'transaction.create',
+      'walletReference must be a non-empty bounded string',
+    );
+  }
+  if (
+    typeof value.categoryId !== 'string'
+    || !value.categoryId.trim()
+    || value.categoryId.length > 191
+  ) {
+    throw AssistantError.invalidInput(
+      'transaction.create',
+      'categoryId must be a non-empty bounded string',
+    );
   }
   if (typeof value.date !== 'string' || !isCalendarDay(value.date)) {
     throw AssistantError.invalidInput('transaction.create', 'date must be a valid YYYY-MM-DD day');
@@ -58,14 +114,16 @@ function validateTransactionCreateInput(input: unknown): TransactionCreateInput 
   if (value.description !== undefined && (typeof value.description !== 'string' || !value.description.trim() || value.description.length > 500)) {
     throw AssistantError.invalidInput('transaction.create', 'description must be at most 500 characters');
   }
-  return {
+  const common: Omit<TransactionCreateInput, 'walletId'> = {
     type: value.type,
     amount,
-    walletId: value.walletId as string,
     categoryId: value.categoryId as string,
     date: value.date,
     ...(value.description === undefined ? {} : { description: (value.description as string).trim() }),
   };
+  return hasWalletId
+    ? { ...common, walletId: value.walletId as string }
+    : { ...common, walletReference: value.walletReference as string };
 }
 
 // ---- Validation helpers ----------------------------------------------------
@@ -194,7 +252,10 @@ export const monthlySpendingSummary: ToolContract<
   validateOutput: validateMonthlySpendingOutput,
 };
 
-export const transactionCreate: ToolContract<TransactionCreateInput, TransactionCreateInput> = {
+export const transactionCreate: ToolContract<
+  TransactionCreateToolInput,
+  TransactionCreateToolInput
+> = {
   id: 'transaction.create',
   description: 'Prepare a regular income or expense transaction draft. A separate explicit confirmation is required before creation.',
   capability: 'transaction.create',
@@ -204,7 +265,7 @@ export const transactionCreate: ToolContract<TransactionCreateInput, Transaction
   timeoutMs: 10_000,
   enabled: true,
   providerArguments: {
-    required: ['amount', 'categoryId', 'date', 'type', 'walletId'],
+    required: ['amount', 'categoryId', 'date', 'type', 'walletReference'],
     optional: ['description'],
     properties: {
       amount: { type: 'string', description: 'Positive decimal amount with at most two fraction digits.' },
@@ -212,10 +273,10 @@ export const transactionCreate: ToolContract<TransactionCreateInput, Transaction
       date: { type: 'string', format: 'YYYY-MM-DD', description: 'Transaction calendar date.' },
       description: { type: 'string', description: 'Optional short transaction description.' },
       type: { type: 'string', enum: ['INCOME', 'EXPENSE'], description: 'Regular transaction type.' },
-      walletId: { type: 'string', description: 'Wallet identifier supplied by the user; never invent one.' },
+      walletReference: { type: 'string', description: 'Textual wallet name or alias from the user; never supply a wallet identifier.' },
     },
   },
   validateInput: validateTransactionCreateInput,
   validateOutput: validateTransactionCreateInput,
-  auditRedact: ['amount', 'description', 'walletId', 'categoryId', 'date'],
+  auditRedact: ['amount', 'description', 'walletId', 'walletReference', 'categoryId', 'date'],
 };

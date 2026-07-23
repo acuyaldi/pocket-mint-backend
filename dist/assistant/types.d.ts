@@ -105,6 +105,7 @@ export interface AssistantSuccessResponse {
 export interface AssistantClarificationResponse {
     readonly status: 'clarification_required';
     readonly message: string;
+    readonly data?: unknown;
     readonly correlationId: string;
     readonly conversationId: string;
     readonly turnId: string;

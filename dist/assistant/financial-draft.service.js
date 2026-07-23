@@ -10,7 +10,16 @@ const financial_draft_1 = require("./financial-draft");
 const CONFIRM_INTENT = 'transaction.create.confirm';
 const CANCEL_INTENT = 'transaction.create.cancel';
 function preview(input) {
-    return { type: input.type, amount: input.amount, walletId: input.walletId, categoryId: input.categoryId, date: input.date, ...(input.description === undefined ? {} : { description: input.description }) };
+    return {
+        type: input.type,
+        amount: input.amount,
+        ...(input.walletDisplayLabel === undefined
+            ? { walletId: input.walletId }
+            : { wallet: input.walletDisplayLabel }),
+        categoryId: input.categoryId,
+        date: input.date,
+        ...(input.description === undefined ? {} : { description: input.description }),
+    };
 }
 function createAssistantFinancialDraftService(db, transactions, clock = () => new Date()) {
     async function prepare(input) {
@@ -26,7 +35,14 @@ function createAssistantFinancialDraftService(db, transactions, clock = () => ne
                 transactionDate: (0, reportingTime_1.parseBusinessDate)(input.date, config_1.reportingConfig.timezone), description: input.description ?? null,
                 expiresAt: new Date(now.getTime() + financial_draft_1.ASSISTANT_FINANCIAL_DRAFT_TTL_MS),
             } });
-        return { draftId: row.id, status: row.status, expiresAt: row.expiresAt, preview: preview(input), confirmationRequired: true, renderedText: (0, financial_draft_1.renderTransactionDraftPreview)(input) };
+        return {
+            draftId: row.id,
+            status: row.status,
+            expiresAt: row.expiresAt,
+            preview: preview(input),
+            confirmationRequired: true,
+            renderedText: (0, financial_draft_1.renderTransactionDraftPreview)(input, input.walletDisplayLabel),
+        };
     }
     async function confirm(userId, draftId, keyValue, correlationId) {
         const key = (0, financial_draft_1.validateIdempotencyKey)(keyValue);

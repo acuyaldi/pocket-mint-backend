@@ -12,7 +12,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.transactionCreate = exports.monthlySpendingSummary = void 0;
 const errors_1 = require("./errors");
-const TRANSACTION_KEYS = new Set(['type', 'amount', 'walletId', 'categoryId', 'date', 'description']);
+const TRANSACTION_KEYS = new Set([
+    'type',
+    'amount',
+    'walletId',
+    'walletReference',
+    'categoryId',
+    'date',
+    'description',
+]);
 const MONEY_RE = /^(?:0|[1-9]\d{0,12})(?:\.\d{1,2})?$/;
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 function isCalendarDay(value) {
@@ -37,10 +45,27 @@ function validateTransactionCreateInput(input) {
     if (typeof amount !== 'string' || !MONEY_RE.test(amount) || amount === '0' || /^0(?:\.0{1,2})?$/.test(amount)) {
         throw errors_1.AssistantError.invalidInput('transaction.create', 'amount must be a positive decimal with at most two fraction digits');
     }
-    for (const key of ['walletId', 'categoryId']) {
-        if (typeof value[key] !== 'string' || !value[key].trim() || value[key].length > 191) {
-            throw errors_1.AssistantError.invalidInput('transaction.create', `${key} must be a non-empty bounded string`);
-        }
+    const hasWalletId = value.walletId !== undefined;
+    const hasWalletReference = value.walletReference !== undefined;
+    if (hasWalletId === hasWalletReference) {
+        throw errors_1.AssistantError.invalidInput('transaction.create', 'exactly one of walletId or walletReference is required');
+    }
+    if (hasWalletId
+        && (typeof value.walletId !== 'string'
+            || !value.walletId.trim()
+            || value.walletId.length > 191)) {
+        throw errors_1.AssistantError.invalidInput('transaction.create', 'walletId must be a non-empty bounded string');
+    }
+    if (hasWalletReference
+        && (typeof value.walletReference !== 'string'
+            || !value.walletReference.trim()
+            || Buffer.byteLength(value.walletReference, 'utf8') > 256)) {
+        throw errors_1.AssistantError.invalidInput('transaction.create', 'walletReference must be a non-empty bounded string');
+    }
+    if (typeof value.categoryId !== 'string'
+        || !value.categoryId.trim()
+        || value.categoryId.length > 191) {
+        throw errors_1.AssistantError.invalidInput('transaction.create', 'categoryId must be a non-empty bounded string');
     }
     if (typeof value.date !== 'string' || !isCalendarDay(value.date)) {
         throw errors_1.AssistantError.invalidInput('transaction.create', 'date must be a valid YYYY-MM-DD day');
@@ -48,14 +73,16 @@ function validateTransactionCreateInput(input) {
     if (value.description !== undefined && (typeof value.description !== 'string' || !value.description.trim() || value.description.length > 500)) {
         throw errors_1.AssistantError.invalidInput('transaction.create', 'description must be at most 500 characters');
     }
-    return {
+    const common = {
         type: value.type,
         amount,
-        walletId: value.walletId,
         categoryId: value.categoryId,
         date: value.date,
         ...(value.description === undefined ? {} : { description: value.description.trim() }),
     };
+    return hasWalletId
+        ? { ...common, walletId: value.walletId }
+        : { ...common, walletReference: value.walletReference };
 }
 // ---- Validation helpers ----------------------------------------------------
 const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -140,7 +167,7 @@ exports.transactionCreate = {
     timeoutMs: 10000,
     enabled: true,
     providerArguments: {
-        required: ['amount', 'categoryId', 'date', 'type', 'walletId'],
+        required: ['amount', 'categoryId', 'date', 'type', 'walletReference'],
         optional: ['description'],
         properties: {
             amount: { type: 'string', description: 'Positive decimal amount with at most two fraction digits.' },
@@ -148,11 +175,11 @@ exports.transactionCreate = {
             date: { type: 'string', format: 'YYYY-MM-DD', description: 'Transaction calendar date.' },
             description: { type: 'string', description: 'Optional short transaction description.' },
             type: { type: 'string', enum: ['INCOME', 'EXPENSE'], description: 'Regular transaction type.' },
-            walletId: { type: 'string', description: 'Wallet identifier supplied by the user; never invent one.' },
+            walletReference: { type: 'string', description: 'Textual wallet name or alias from the user; never supply a wallet identifier.' },
         },
     },
     validateInput: validateTransactionCreateInput,
     validateOutput: validateTransactionCreateInput,
-    auditRedact: ['amount', 'description', 'walletId', 'categoryId', 'date'],
+    auditRedact: ['amount', 'description', 'walletId', 'walletReference', 'categoryId', 'date'],
 };
 //# sourceMappingURL=tools.js.map

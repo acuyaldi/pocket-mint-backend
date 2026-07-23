@@ -4,6 +4,7 @@ import type { AssistantCanonicalRequest, AssistantCanonicalResponse } from './ty
 import type { AssistantConversationService } from './conversation.service';
 import type { AssistantFinancialDraftService } from './financial-draft.service';
 import type { AssistantContextService, BuildAssistantExecutionContextInput } from './context.service';
+import { type EntityResolutionService } from './entity-resolution';
 export interface AssistantApplicationResult {
     response: AssistantCanonicalResponse;
     httpStatus: number;
@@ -14,6 +15,7 @@ export declare function createAssistantApplicationService(deps: {
     toolRegistry: ToolRegistry;
     handlerRegistry: HandlerRegistry;
     financialDrafts?: AssistantFinancialDraftService;
+    entityResolution?: EntityResolutionService;
 }): {
     execute: (userId: string, correlationId: string, request: AssistantCanonicalRequest) => Promise<AssistantApplicationResult>;
     prepareProviderExecution: (input: BuildAssistantExecutionContextInput) => Promise<import("./context.types").AssistantContext>;

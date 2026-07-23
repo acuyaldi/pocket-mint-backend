@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toPublicEntityResolutionResult = exports.createEntityResolutionService = exports.EntityResolverRegistry = exports.parseEntityReferenceInput = exports.normalizeEntityReference = exports.normalizeEvidence = exports.matchEntityCandidate = exports.confidenceFromEvidence = exports.EntityResolutionError = exports.createEntityCandidate = void 0;
+exports.WALLET_TRANSACTION_CREATE_CONSTRAINTS = exports.createWalletResolver = exports.toPublicEntityResolutionResult = exports.createEntityResolutionService = exports.EntityResolverRegistry = exports.parseEntityReferenceInput = exports.normalizeEntityReference = exports.normalizeEvidence = exports.matchEntityCandidate = exports.confidenceFromEvidence = exports.EntityResolutionError = exports.createEntityCandidate = void 0;
 var candidate_1 = require("./candidate");
 Object.defineProperty(exports, "createEntityCandidate", { enumerable: true, get: function () { return candidate_1.createEntityCandidate; } });
 var errors_1 = require("./errors");
@@ -32,5 +32,8 @@ Object.defineProperty(exports, "EntityResolverRegistry", { enumerable: true, get
 var service_1 = require("./service");
 Object.defineProperty(exports, "createEntityResolutionService", { enumerable: true, get: function () { return service_1.createEntityResolutionService; } });
 Object.defineProperty(exports, "toPublicEntityResolutionResult", { enumerable: true, get: function () { return service_1.toPublicEntityResolutionResult; } });
+var wallet_resolver_1 = require("./wallet-resolver");
+Object.defineProperty(exports, "createWalletResolver", { enumerable: true, get: function () { return wallet_resolver_1.createWalletResolver; } });
+Object.defineProperty(exports, "WALLET_TRANSACTION_CREATE_CONSTRAINTS", { enumerable: true, get: function () { return wallet_resolver_1.WALLET_TRANSACTION_CREATE_CONSTRAINTS; } });
 __exportStar(require("./types"), exports);
 //# sourceMappingURL=index.js.map

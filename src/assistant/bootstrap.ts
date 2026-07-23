@@ -20,23 +20,39 @@ import { assistantProviderConfig } from '../config';
 import { createGeminiAssistantProvider } from './providers/gemini.provider';
 import { createAssistantProviderAuditService } from './provider-audit.service';
 import { createAssistantProviderRuntime } from './provider-runtime';
+import {
+  EntityResolverRegistry,
+  createEntityResolutionService,
+  createWalletResolver,
+} from './entity-resolution';
 
 /** The application-wide tool registry. Populated at startup. */
 export const toolRegistry = new ToolRegistry();
 
 /** The application-wide handler registry. Populated at startup. */
 export const handlerRegistry: HandlerRegistry = new Map();
+export const entityResolverRegistry = new EntityResolverRegistry();
 
 // ---- Register Phase 21.2 tools ---------------------------------------------
 
 toolRegistry.register(monthlySpendingSummary);
 toolRegistry.register(transactionCreate);
 handlerRegistry.set(monthlySpendingSummary.id, handleMonthlySpendingSummary as never);
+entityResolverRegistry.register(createWalletResolver(prisma));
+entityResolverRegistry.finalize();
 
 export const assistantConversationService = createAssistantConversationService(prisma);
 export const assistantContextService = createAssistantContextService(prisma);
 export const assistantFinancialDraftService = createAssistantFinancialDraftService(prisma, transactionService);
-export const assistantApplicationService = createAssistantApplicationService({ conversations: assistantConversationService, contexts: assistantContextService, toolRegistry, handlerRegistry, financialDrafts: assistantFinancialDraftService });
+export const entityResolutionService = createEntityResolutionService(entityResolverRegistry);
+export const assistantApplicationService = createAssistantApplicationService({
+  conversations: assistantConversationService,
+  contexts: assistantContextService,
+  toolRegistry,
+  handlerRegistry,
+  financialDrafts: assistantFinancialDraftService,
+  entityResolution: entityResolutionService,
+});
 export const assistantProviderAuditService = createAssistantProviderAuditService(prisma);
 export const assistantProviderRuntime = assistantProviderConfig.enabled
   ? createAssistantProviderRuntime({

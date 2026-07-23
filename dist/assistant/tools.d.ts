@@ -7,6 +7,15 @@ export interface TransactionCreateInput {
     date: string;
     description?: string;
 }
+export interface TransactionCreateReferenceInput {
+    type: 'INCOME' | 'EXPENSE';
+    amount: string;
+    walletReference: string;
+    categoryId: string;
+    date: string;
+    description?: string;
+}
+export type TransactionCreateToolInput = TransactionCreateInput | TransactionCreateReferenceInput;
 /**
  * One category row in the monthly spending summary. Mirrors the
  * existing AnalyticsCategoryBreakdownItem shape in terminology but
@@ -47,6 +56,6 @@ interface MonthlySpendingSummaryOutput {
 export declare const monthlySpendingSummary: ToolContract<{
     month: string;
 }, MonthlySpendingSummaryOutput>;
-export declare const transactionCreate: ToolContract<TransactionCreateInput, TransactionCreateInput>;
+export declare const transactionCreate: ToolContract<TransactionCreateToolInput, TransactionCreateToolInput>;
 export {};
 //# sourceMappingURL=tools.d.ts.map
