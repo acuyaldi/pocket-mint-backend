@@ -1,9 +1,10 @@
-import type { PrismaClient } from '../generated/prisma/client';
+import { type PrismaClient } from '../generated/prisma/client';
 import type { AssistantContext, AssistantContextLimits } from './context.types';
 export interface BuildAssistantExecutionContextInput {
-    userId: string;
-    conversationId: string;
-    currentRequest: string;
+    readonly userId: string;
+    readonly conversationId: string;
+    /** Unpersisted request for the in-progress provider turn; appended exactly once. */
+    readonly currentRequest: string;
 }
 export declare function createAssistantContextService(db: PrismaClient, clock?: () => Date, limits?: AssistantContextLimits): {
     buildExecutionContext: (input: BuildAssistantExecutionContextInput) => Promise<AssistantContext>;

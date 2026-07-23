@@ -4,6 +4,7 @@ import {
   DEFAULT_ASSISTANT_CONTEXT_LIMITS,
 } from '../../src/assistant/context.assembler';
 import { serializeAssistantContext } from '../../src/assistant/context.serializer';
+import { AssistantError } from '../../src/assistant/errors';
 
 const at = (second: number) => new Date(`2026-07-23T00:00:${String(second).padStart(2, '0')}.000Z`);
 
@@ -64,8 +65,9 @@ describe('Assistant context assembly', () => {
 
     expect(second).toBe(first);
     expect(first.indexOf('"system"')).toBeLessThan(first.indexOf('"conversation"'));
-    expect(first.indexOf('"pendingDraft"')).toBeLessThan(first.indexOf('"toolExecutions"'));
-    expect(first.indexOf('"toolExecutions"')).toBeLessThan(first.indexOf('"currentRequest"'));
+    expect(first.indexOf('"toolExecutions"')).toBeLessThan(first.indexOf('"pendingDraft"'));
+    expect(first.indexOf('"pendingDraft"')).toBeLessThan(first.indexOf('"currentRequest"'));
+    expect(first.match(/"currentRequest"/g)).toHaveLength(1);
   });
 
   it('enforces count limits using newest rows while preserving oldest-to-newest output', () => {
@@ -85,12 +87,12 @@ describe('Assistant context assembly', () => {
   it('trims oldest removable history to the byte limit and preserves protected entries', () => {
     const value = input();
     value.messages.unshift({ id: 'message-3', turnId: 'turn-3', role: 'USER', source: 'USER_PROVIDED', content: 'x'.repeat(500), createdAt: at(8), turn: { status: 'SUCCEEDED', createdAt: at(8), startedAt: at(9) } });
-    const limits = { ...DEFAULT_ASSISTANT_CONTEXT_LIMITS, maxSerializedBytes: 900 };
+    const limits = { ...DEFAULT_ASSISTANT_CONTEXT_LIMITS, maxSerializedBytes: 1_200 };
 
     const context = assembleAssistantContext(value, limits);
     const serialized = serializeAssistantContext(context);
 
-    expect(Buffer.byteLength(serialized, 'utf8')).toBeLessThanOrEqual(900);
+    expect(Buffer.byteLength(serialized, 'utf8')).toBeLessThanOrEqual(1_200);
     expect(serialized).toContain('Jawaban terbaru');
     expect(serialized).toContain('draft-public');
     expect(serialized).toContain('Tampilkan konteks saya');
@@ -106,7 +108,7 @@ describe('Assistant context assembly', () => {
     ];
     value.toolExecutions = [{ id: 'middle-tool', toolId: 'keep-this-tool', status: 'SUCCEEDED', startedAt: at(6), outputSummary: null }];
 
-    const context = assembleAssistantContext(value, { ...DEFAULT_ASSISTANT_CONTEXT_LIMITS, maxSerializedBytes: 900 });
+    const context = assembleAssistantContext(value, { ...DEFAULT_ASSISTANT_CONTEXT_LIMITS, maxSerializedBytes: 1_200 });
     const serialized = serializeAssistantContext(context);
 
     expect(serialized).not.toContain('old-turnold-turn');
@@ -115,9 +117,90 @@ describe('Assistant context assembly', () => {
 
   it('fails deterministically when protected content alone exceeds the byte limit', () => {
     const value = input();
-    value.currentRequest = 'x'.repeat(1_000);
+    value.currentRequest = 'x'.repeat(2_000);
 
-    expect(() => assembleAssistantContext(value, { ...DEFAULT_ASSISTANT_CONTEXT_LIMITS, maxSerializedBytes: 256 }))
-      .toThrow('Assistant context protected content exceeds 256 bytes');
+    expect(() => assembleAssistantContext(value, { ...DEFAULT_ASSISTANT_CONTEXT_LIMITS, maxSerializedBytes: 1_024 }))
+      .toThrow(AssistantError.contextTooLarge());
+  });
+
+  it.each([
+    { ...DEFAULT_ASSISTANT_CONTEXT_LIMITS, messages: -1 },
+    { ...DEFAULT_ASSISTANT_CONTEXT_LIMITS, turns: 0 },
+    { ...DEFAULT_ASSISTANT_CONTEXT_LIMITS, toolExecutions: 1.5 },
+    { ...DEFAULT_ASSISTANT_CONTEXT_LIMITS, pendingDrafts: 2 },
+    { ...DEFAULT_ASSISTANT_CONTEXT_LIMITS, maxSerializedBytes: Number.NaN },
+    { ...DEFAULT_ASSISTANT_CONTEXT_LIMITS, maxSerializedBytes: 1_023 },
+  ])('rejects invalid context limits before assembly', (limits) => {
+    expect(() => assembleAssistantContext(input(), limits))
+      .toThrow(AssistantError.invalidContextConfiguration());
+  });
+
+  it('enforces the byte ceiling over UTF-8 JSON rather than JavaScript string length', () => {
+    const value = input();
+    value.messages = [];
+    value.toolExecutions = [];
+    value.pendingDraft = null;
+    value.currentRequest = 'ASCII Indonesia: makan siang; multibyte: rupiah–hemat; emoji: 💰; JSON: "\\\n"'.repeat(20);
+    const unbounded = assembleAssistantContext(value);
+    const serialized = serializeAssistantContext(unbounded);
+    const utf8Bytes = Buffer.byteLength(serialized, 'utf8');
+
+    expect(utf8Bytes).toBeGreaterThan(serialized.length);
+    expect(() => assembleAssistantContext(value, { ...DEFAULT_ASSISTANT_CONTEXT_LIMITS, maxSerializedBytes: utf8Bytes - 1 }))
+      .toThrow(AssistantError.contextTooLarge());
+    expect(Buffer.byteLength(serializeAssistantContext(assembleAssistantContext(value, {
+      ...DEFAULT_ASSISTANT_CONTEXT_LIMITS,
+      maxSerializedBytes: utf8Bytes,
+    })), 'utf8')).toBe(utf8Bytes);
+  });
+
+  it('filters explicit sensitive keys recursively without broad substring matching', () => {
+    const value = input();
+    value.toolExecutions[0]!.outputSummary = Object.assign(JSON.parse('{"__proto__":{"polluted":true}}'), {
+      userId: 'hidden', OWNER_ID: 'hidden', CorrelationId: 'hidden', idempotencyKey: 'hidden',
+      policyDecision: 'hidden', risk: 'hidden', stack: 'hidden', sql: 'hidden', password: 'hidden',
+      token: 'hidden', SECRET: 'hidden', api_key: 'hidden', accessToken: 'hidden', refresh_token: 'hidden',
+      balance: 'hidden', constructor: 'hidden', prototype: 'hidden',
+      nested: [{ apiKey: 'hidden', safe: 'kept' }], tokenCount: 3, riskAdjustedReturn: 'kept', balancedBudget: 'kept',
+    });
+
+    const serialized = serializeAssistantContext(assembleAssistantContext(value));
+    const summary = assembleAssistantContext(value).toolExecutions[1]!.safeOutputSummary as object;
+
+    expect(serialized).not.toContain('hidden');
+    expect(Object.getPrototypeOf(summary)).toBe(Object.prototype);
+    expect(serialized).toContain('"tokenCount":3');
+    expect(serialized).toContain('"riskAdjustedReturn":"kept"');
+    expect(serialized).toContain('"balancedBudget":"kept"');
+    expect(serialized).toContain('"safe":"kept"');
+  });
+
+  it.each([
+    new Date('2026-07-23T00:00:00Z'),
+    1n,
+    undefined,
+    () => 'unsafe',
+    Object.assign(Object.create(null), { safe: true }),
+  ])('rejects unsupported safe-summary values deterministically', (unsupported) => {
+    const value = input();
+    value.toolExecutions[0]!.outputSummary = { unsupported };
+
+    expect(() => assembleAssistantContext(value)).toThrow(AssistantError.unsupportedContextData());
+  });
+
+  it('rejects circular safe-summary values deterministically', () => {
+    const circular: Record<string, unknown> = {};
+    circular.self = circular;
+    const value = input();
+    value.toolExecutions[0]!.outputSummary = circular;
+
+    expect(() => assembleAssistantContext(value)).toThrow(AssistantError.unsupportedContextData());
+  });
+
+  it.each([0, false, 'safe summary'])('preserves supported scalar safe-summary values', (safeSummary) => {
+    const value = input();
+    value.toolExecutions[0]!.outputSummary = safeSummary;
+
+    expect(assembleAssistantContext(value).toolExecutions[1]!.safeOutputSummary).toBe(safeSummary);
   });
 });

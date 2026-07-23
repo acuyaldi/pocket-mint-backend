@@ -61,6 +61,18 @@ class AssistantError extends Error {
     static conversationNotContinuable() {
         return new AssistantError('Conversation cannot be continued', 409, 'ASSISTANT_CONVERSATION_NOT_CONTINUABLE');
     }
+    static invalidContextConfiguration() {
+        return new AssistantError('Assistant context configuration is invalid', 500, 'ASSISTANT_CONTEXT_INVALID_CONFIGURATION');
+    }
+    static contextTooLarge() {
+        return new AssistantError('Assistant context required content exceeds the size limit', 413, 'ASSISTANT_CONTEXT_TOO_LARGE');
+    }
+    static unsupportedContextData() {
+        return new AssistantError('Assistant context contains unsupported data', 500, 'ASSISTANT_CONTEXT_UNSUPPORTED_DATA');
+    }
+    static contextPreparationFailed() {
+        return new AssistantError('Assistant context could not be prepared', 500, 'ASSISTANT_CONTEXT_PREPARATION_FAILED');
+    }
     static invalidIdempotencyKey() {
         return new AssistantError('Idempotency-Key must use 1-128 safe characters', 400, 'ASSISTANT_INVALID_IDEMPOTENCY_KEY');
     }

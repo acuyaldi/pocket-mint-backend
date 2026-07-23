@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DEFAULT_ASSISTANT_CONTEXT_LIMITS = void 0;
+exports.validateAssistantContextLimits = validateAssistantContextLimits;
 exports.assembleAssistantContext = assembleAssistantContext;
 const context_serializer_1 = require("./context.serializer");
+const errors_1 = require("./errors");
 exports.DEFAULT_ASSISTANT_CONTEXT_LIMITS = Object.freeze({
     messages: 40,
     turns: 20,
@@ -10,41 +12,63 @@ exports.DEFAULT_ASSISTANT_CONTEXT_LIMITS = Object.freeze({
     pendingDrafts: 1,
     maxSerializedBytes: 64 * 1024,
 });
-const HIDDEN_KEY_FRAGMENT = /(correlation|policy|risk|prisma|database|stack|sql|lock|idempotency|audit|reasoning|argument|raw|payload|executionmetadata)/i;
+const HIDDEN_KEYS = new Set([
+    'id', 'userid', 'ownerid', 'requestid', 'conversationid', 'turnid', 'messageid', 'executionid',
+    'transactionid', 'walletid', 'categoryid', 'resourceid', 'correlationid', 'idempotencykey',
+    'policydecision', 'risk', 'risklevel', 'prisma', 'database', 'stack', 'sql', 'lock', 'audit',
+    'reasoning', 'arguments', 'rawarguments', 'rawoutput', 'rawpayload', 'payload', 'executionmetadata',
+    'inputaudit', 'password', 'token', 'secret', 'apikey', 'accesstoken', 'refreshtoken', 'balance',
+    'proto', 'constructor', 'prototype',
+]);
 function compareText(a, b) {
     return a < b ? -1 : a > b ? 1 : 0;
 }
 function isHiddenKey(key) {
-    const normalized = key.replace(/[_-]/g, '');
-    if (normalized.toLowerCase() === 'draftid')
-        return false;
-    if (/^id$/i.test(key) || /(?:Id|ID|_id|_ID|-id|-ID)$/.test(key))
-        return true;
-    if (/^(?:user|owner|request|conversation|turn|message|execution|transaction|wallet|category|resource)id$/i.test(normalized))
-        return true;
-    return HIDDEN_KEY_FRAGMENT.test(normalized);
+    const normalized = key.replace(/[_-]/g, '').toLowerCase();
+    return normalized !== 'draftid' && HIDDEN_KEYS.has(normalized);
 }
 function compareNewest(a, b) {
     return b.createdAt.getTime() - a.createdAt.getTime() || compareText(b.id, a.id);
 }
-function canonicalSafeValue(value) {
+function canonicalSafeValue(value, active = new WeakSet()) {
     if (value === null || typeof value === 'string' || typeof value === 'boolean')
         return value;
-    if (typeof value === 'number')
-        return Number.isFinite(value) ? value : undefined;
-    if (Array.isArray(value))
-        return value.map(canonicalSafeValue).filter((item) => item !== undefined);
+    if (typeof value === 'number') {
+        if (Number.isFinite(value))
+            return value;
+        throw errors_1.AssistantError.unsupportedContextData();
+    }
     if (typeof value !== 'object')
-        return undefined;
+        throw errors_1.AssistantError.unsupportedContextData();
+    if (active.has(value))
+        throw errors_1.AssistantError.unsupportedContextData();
+    active.add(value);
+    if (Array.isArray(value)) {
+        const mapped = value.map((item) => canonicalSafeValue(item, active));
+        active.delete(value);
+        return mapped;
+    }
+    if (Object.getPrototypeOf(value) !== Object.prototype)
+        throw errors_1.AssistantError.unsupportedContextData();
     const result = {};
     for (const key of Object.keys(value).sort()) {
         if (isHiddenKey(key))
             continue;
-        const mapped = canonicalSafeValue(value[key]);
-        if (mapped !== undefined)
-            result[key] = mapped;
+        result[key] = canonicalSafeValue(value[key], active);
     }
+    active.delete(value);
     return result;
+}
+function validateAssistantContextLimits(limits) {
+    const integers = [limits.messages, limits.turns, limits.toolExecutions, limits.pendingDrafts, limits.maxSerializedBytes];
+    if (integers.some((value) => !Number.isSafeInteger(value))
+        || limits.messages < 1 || limits.messages > 1000
+        || limits.turns < 1 || limits.turns > 500
+        || limits.toolExecutions < 0 || limits.toolExecutions > 100
+        || limits.pendingDrafts < 0 || limits.pendingDrafts > 1
+        || limits.maxSerializedBytes < 1024 || limits.maxSerializedBytes > 1024 * 1024) {
+        throw errors_1.AssistantError.invalidContextConfiguration();
+    }
 }
 function normalizedDecimal(value) {
     const raw = value.toString();
@@ -109,18 +133,21 @@ function mapTools(rows, limit) {
         .slice(0, limit)
         .sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime() || compareText(a.id, b.id))
         .map((row) => {
-        const summary = canonicalSafeValue(row.outputSummary);
+        const summary = row.outputSummary === null ? undefined : canonicalSafeValue(row.outputSummary);
+        const hasSummary = summary !== undefined
+            && (typeof summary !== 'object' || Object.keys(summary).length > 0);
         return {
             _id: row.id,
             _time: row.startedAt.getTime(),
             tool: row.toolId,
             status: row.status,
             timestamp: row.startedAt.toISOString(),
-            ...(summary && typeof summary === 'object' && Object.keys(summary).length > 0 ? { safeOutputSummary: summary } : {}),
+            ...(hasSummary ? { safeOutputSummary: summary } : {}),
         };
     });
 }
 function assembleAssistantContext(input, limits = exports.DEFAULT_ASSISTANT_CONTEXT_LIMITS) {
+    validateAssistantContextLimits(limits);
     const turns = mapTurns(selectMessages(input.messages, limits));
     const tools = mapTools(input.toolExecutions, limits.toolExecutions);
     const pendingDraft = limits.pendingDrafts > 0 ? draftContext(input.pendingDraft) : undefined;
@@ -133,8 +160,8 @@ function assembleAssistantContext(input, limits = exports.DEFAULT_ASSISTANT_CONT
             archived: input.conversation.status === 'ARCHIVED',
         },
         turns: turns.map(({ _id, _time, _protected, ...turn }) => turn),
-        ...(pendingDraft ? { pendingDraft } : {}),
         toolExecutions: tools.map(({ _id, _time, ...tool }) => tool),
+        ...(pendingDraft ? { pendingDraft } : {}),
         currentRequest: { role: 'USER', content: input.currentRequest, source: 'CURRENT_REQUEST' },
     });
     let context = materialize();
@@ -142,7 +169,7 @@ function assembleAssistantContext(input, limits = exports.DEFAULT_ASSISTANT_CONT
         const oldestTurn = turns.find((turn) => !turn._protected);
         const oldestTool = tools[0];
         if (!oldestTurn && !oldestTool) {
-            throw new Error(`Assistant context protected content exceeds ${limits.maxSerializedBytes} bytes`);
+            throw errors_1.AssistantError.contextTooLarge();
         }
         if (oldestTurn && (!oldestTool || oldestTurn._time < oldestTool._time
             || (oldestTurn._time === oldestTool._time && compareText(oldestTurn._id, oldestTool._id) <= 0))) {

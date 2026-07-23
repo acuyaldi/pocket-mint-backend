@@ -4,10 +4,16 @@ import { createPrismaResources } from '../../src/lib/prismaFactory';
 import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
 import { createAssistantContextService } from '../../src/assistant/context.service';
 import { serializeAssistantContext } from '../../src/assistant/context.serializer';
+import { AssistantError } from '../../src/assistant/errors';
 
 const url = process.env.TEST_DATABASE_URL;
 if (url) assertTestDatabaseUrl(url);
-const resources = url ? createPrismaResources(url, { max: 5 }) : undefined;
+const resources = url ? createPrismaResources(url, { max: 5 }, [{ emit: 'event', level: 'query' }]) : undefined;
+const capturedQueries: string[] = [];
+let captureQueries = false;
+resources?.prisma.$on('query', (event) => {
+  if (captureQueries) capturedQueries.push(event.query);
+});
 const userIds: string[] = [];
 afterAll(() => resources?.close());
 afterEach(async () => {
@@ -19,6 +25,31 @@ afterEach(async () => {
 describe.skipIf(!url)('Assistant context service (disposable PostgreSQL)', () => {
   const db = () => resources!.prisma;
   const service = () => createAssistantContextService(db(), () => new Date('2026-07-23T12:00:00Z'));
+
+  async function captureContextQueries<T>(work: () => Promise<T>): Promise<{ result: T; queries: string[] }> {
+    capturedQueries.length = 0;
+    captureQueries = true;
+    try {
+      return { result: await work(), queries: [...capturedQueries] };
+    } finally {
+      captureQueries = false;
+    }
+  }
+
+  async function captureContextFailure(work: () => Promise<unknown>): Promise<{ error: unknown; queries: string[] }> {
+    capturedQueries.length = 0;
+    captureQueries = true;
+    let error: unknown;
+    try {
+      await work();
+    } catch (caught) {
+      error = caught;
+    } finally {
+      captureQueries = false;
+    }
+    if (!error) throw new Error('Expected context preparation to fail');
+    return { error, queries: [...capturedQueries] };
+  }
 
   async function user(label: string) {
     const row = await db().user.create({ data: { email: `${label}-${Date.now()}-${Math.random()}@test.local`, name: label } });
@@ -72,8 +103,10 @@ describe.skipIf(!url)('Assistant context service (disposable PostgreSQL)', () =>
       } });
     }
 
-    const first = await service().buildExecutionContext({ userId: owner, conversationId: row.id, currentRequest: '  Lanjutkan  ' });
-    const second = await service().buildExecutionContext({ userId: owner, conversationId: row.id, currentRequest: 'Lanjutkan' });
+    const firstRun = await captureContextQueries(() => service().buildExecutionContext({ userId: owner, conversationId: row.id, currentRequest: '  Lanjutkan  ' }));
+    const secondRun = await captureContextQueries(() => service().buildExecutionContext({ userId: owner, conversationId: row.id, currentRequest: 'Lanjutkan' }));
+    const first = firstRun.result;
+    const second = secondRun.result;
 
     expect(first.pendingDraft).toMatchObject({ draftId: draft.id, operation: 'transaction.create', status: 'PENDING_CONFIRMATION', confirmationRequired: true });
     expect(first.toolExecutions).toHaveLength(10);
@@ -85,6 +118,8 @@ describe.skipIf(!url)('Assistant context service (disposable PostgreSQL)', () =>
     expect(first.currentRequest.content).toBe('Lanjutkan');
     expect(serializeAssistantContext(first)).toBe(serializeAssistantContext(second));
     expect(serializeAssistantContext(first)).not.toMatch(/hidden|walletId|categoryId|policyDecision|transactionId/);
+    expect(firstRun.queries, firstRun.queries.join('\n---\n')).toHaveLength(4);
+    expect(secondRun.queries).toHaveLength(4);
   });
 
   it('makes unknown and cross-user conversations indistinguishable and rejects archived conversations', async () => {
@@ -106,7 +141,8 @@ describe.skipIf(!url)('Assistant context service (disposable PostgreSQL)', () =>
     const row = await conversation(owner);
     for (let index = 0; index < 45; index += 1) await turnWithMessages(row.id, index, 2_000);
 
-    const context = await service().buildExecutionContext({ userId: owner, conversationId: row.id, currentRequest: 'Ringkas' });
+    const run = await captureContextQueries(() => service().buildExecutionContext({ userId: owner, conversationId: row.id, currentRequest: 'Ringkas' }));
+    const context = run.result;
     const serialized = serializeAssistantContext(context);
 
     expect(context).not.toHaveProperty('pendingDraft');
@@ -115,30 +151,56 @@ describe.skipIf(!url)('Assistant context service (disposable PostgreSQL)', () =>
     expect(Buffer.byteLength(serialized, 'utf8')).toBeLessThanOrEqual(64 * 1024);
     expect(serialized).toContain('assistant-44');
     expect(serialized).not.toContain('assistant-0');
+    expect(run.queries).toHaveLength(4);
   });
 
-  it('uses exactly four bounded Prisma reads and writes no Assistant or financial rows', async () => {
+  it('uses exactly four SQL reads and changes no Assistant or financial state', async () => {
     const owner = await user('context-queries');
     const row = await conversation(owner);
     await turnWithMessages(row.id, 1);
+    const wallet = await db().wallet.create({ data: { userId: owner, name: 'Read-only cash', type: 'CASH', balance: new Prisma.Decimal('99.50') } });
     const before = await Promise.all([
       db().assistantConversation.count(), db().assistantTurn.count(), db().assistantMessage.count(),
       db().assistantFinancialDraft.count(), db().assistantToolExecution.count(), db().assistantIdempotencyRecord.count(), db().transaction.count(),
+      db().assistantConversation.findUniqueOrThrow({ where: { id: row.id }, select: { updatedAt: true, lastActivityAt: true } }),
+      db().wallet.findUniqueOrThrow({ where: { id: wallet.id }, select: { balance: true } }),
     ]);
-    const reads = [
-      vi.spyOn(db().assistantConversation, 'findFirst'),
-      vi.spyOn(db().assistantMessage, 'findMany'),
-      vi.spyOn(db().assistantFinancialDraft, 'findFirst'),
-      vi.spyOn(db().assistantToolExecution, 'findMany'),
-    ];
 
-    await service().buildExecutionContext({ userId: owner, conversationId: row.id, currentRequest: 'Read only' });
+    const run = await captureContextQueries(() => service().buildExecutionContext({ userId: owner, conversationId: row.id, currentRequest: 'Read only' }));
 
-    expect(reads.map((read) => read.mock.calls.length)).toEqual([1, 1, 1, 1]);
+    expect(run.queries).toHaveLength(4);
     const after = await Promise.all([
       db().assistantConversation.count(), db().assistantTurn.count(), db().assistantMessage.count(),
       db().assistantFinancialDraft.count(), db().assistantToolExecution.count(), db().assistantIdempotencyRecord.count(), db().transaction.count(),
+      db().assistantConversation.findUniqueOrThrow({ where: { id: row.id }, select: { updatedAt: true, lastActivityAt: true } }),
+      db().wallet.findUniqueOrThrow({ where: { id: wallet.id }, select: { balance: true } }),
     ]);
     expect(after).toEqual(before);
   });
+
+  it('keeps database state unchanged for cross-user and protected-overflow failures', async () => {
+    const owner = await user('context-failure-owner');
+    const other = await user('context-failure-other');
+    const row = await conversation(owner);
+    await turnWithMessages(row.id, 1, 70_000);
+    const wallet = await db().wallet.create({ data: { userId: owner, name: 'Failure cash', type: 'CASH', balance: new Prisma.Decimal('77.25') } });
+    const snapshot = () => Promise.all([
+      db().assistantConversation.count(), db().assistantTurn.count(), db().assistantMessage.count(),
+      db().assistantFinancialDraft.count(), db().assistantToolExecution.count(), db().assistantIdempotencyRecord.count(),
+      db().transaction.count(),
+      db().assistantConversation.findUniqueOrThrow({ where: { id: row.id }, select: { updatedAt: true, lastActivityAt: true } }),
+      db().wallet.findUniqueOrThrow({ where: { id: wallet.id }, select: { balance: true } }),
+    ]);
+    const before = await snapshot();
+
+    const crossUser = await captureContextFailure(() => service().buildExecutionContext({ userId: other, conversationId: row.id, currentRequest: 'Halo' }));
+    expect(crossUser.error).toEqual(AssistantError.conversationNotFound());
+    expect(crossUser.queries).toHaveLength(1);
+    expect(await snapshot()).toEqual(before);
+
+    const overflow = await captureContextFailure(() => service().buildExecutionContext({ userId: owner, conversationId: row.id, currentRequest: 'Halo' }));
+    expect(overflow.error).toEqual(AssistantError.contextTooLarge());
+    expect(overflow.queries).toHaveLength(4);
+    expect(await snapshot()).toEqual(before);
+  }, 20_000);
 });

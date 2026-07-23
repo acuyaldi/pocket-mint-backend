@@ -1,59 +1,59 @@
 export interface AssistantContextLimits {
-  messages: number;
-  turns: number;
-  toolExecutions: number;
-  pendingDrafts: number;
-  maxSerializedBytes: number;
+  readonly messages: number;
+  readonly turns: number;
+  readonly toolExecutions: number;
+  readonly pendingDrafts: number;
+  readonly maxSerializedBytes: number;
 }
 
 export interface MessageContext {
-  role: 'USER' | 'ASSISTANT';
-  content: string;
-  source: string;
-  timestamp?: string;
+  readonly role: 'USER' | 'ASSISTANT';
+  readonly content: string;
+  readonly source: string;
+  readonly timestamp?: string;
 }
 
 export interface TurnContext {
-  status: string;
-  timestamp: string;
-  messages: MessageContext[];
+  readonly status: string;
+  readonly timestamp: string;
+  readonly messages: readonly MessageContext[];
 }
 
 export interface ConversationContext {
-  conversationId: string;
-  createdAt: string;
-  updatedAt: string;
-  archived: boolean;
+  readonly conversationId: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+  readonly archived: boolean;
 }
 
 export interface DraftContext {
-  draftId: string;
-  operation: string;
-  status: string;
-  preview: {
-    type: string;
-    amount: string;
-    date: string;
-    description?: string;
+  readonly draftId: string;
+  readonly operation: string;
+  readonly status: string;
+  readonly preview: {
+    readonly type: string;
+    readonly amount: string;
+    readonly date: string;
+    readonly description?: string;
   };
-  expiresAt: string;
-  confirmationRequired: true;
+  readonly expiresAt: string;
+  readonly confirmationRequired: true;
 }
 
 export interface ToolExecutionContext {
-  tool: string;
-  status: string;
-  timestamp: string;
-  safeOutputSummary?: unknown;
+  readonly tool: string;
+  readonly status: string;
+  readonly timestamp: string;
+  readonly safeOutputSummary?: unknown;
 }
 
 export interface AssistantContext {
-  system: { contextVersion: '1'; locale: string };
-  conversation: ConversationContext;
-  turns: TurnContext[];
-  pendingDraft?: DraftContext;
-  toolExecutions: ToolExecutionContext[];
-  currentRequest: MessageContext & { role: 'USER'; source: 'CURRENT_REQUEST'; timestamp?: never };
+  readonly system: { readonly contextVersion: '1'; readonly locale: string };
+  readonly conversation: ConversationContext;
+  readonly turns: readonly TurnContext[];
+  readonly toolExecutions: readonly ToolExecutionContext[];
+  readonly pendingDraft?: DraftContext;
+  readonly currentRequest: MessageContext & { readonly role: 'USER'; readonly source: 'CURRENT_REQUEST'; readonly timestamp?: never };
 }
 
 export interface ContextConversationRow {
@@ -94,9 +94,9 @@ export interface ContextToolExecutionRow {
 }
 
 export interface AssistantContextAssemblyInput {
-  conversation: ContextConversationRow;
-  messages: ContextMessageRow[];
-  pendingDraft: ContextDraftRow | null;
-  toolExecutions: ContextToolExecutionRow[];
-  currentRequest: string;
+  readonly conversation: ContextConversationRow;
+  readonly messages: readonly ContextMessageRow[];
+  readonly pendingDraft: ContextDraftRow | null;
+  readonly toolExecutions: readonly ContextToolExecutionRow[];
+  readonly currentRequest: string;
 }
