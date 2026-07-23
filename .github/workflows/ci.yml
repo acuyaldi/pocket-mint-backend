@@ -166,6 +166,7 @@ jobs:
           if ! git diff --quiet; then
             echo "::error::Build or generation modified tracked files."
             git status --short
+            git diff -- dist/assistant/bootstrap.d.ts.map
             git diff --stat
             exit 1
           fi
