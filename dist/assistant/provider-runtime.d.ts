@@ -36,6 +36,8 @@ export interface AssistantProviderRuntimeResult {
         readonly conversationId: string;
         readonly turnId: string;
     };
+    /** Present only when the caller supplied an Idempotency-Key (Phase 27). Log-only — never sent to the client. */
+    readonly idempotencyOutcome?: 'new' | 'replay';
 }
 interface RuntimeDependencies {
     application: AssistantApplicationService;
@@ -47,7 +49,7 @@ interface RuntimeDependencies {
     timeoutMs: number;
 }
 export declare function createAssistantProviderRuntime(deps: RuntimeDependencies): {
-    sendMessage: (userId: string, correlationId: string, input: AssistantProviderMessageInput) => Promise<AssistantProviderRuntimeResult>;
+    sendMessage: (userId: string, correlationId: string, input: AssistantProviderMessageInput, idempotencyKey?: string) => Promise<AssistantProviderRuntimeResult>;
     selectClarification: (userId: string, correlationId: string, token: string, conversationId: string, clarificationId?: string) => Promise<AssistantApplicationResult>;
     cancelClarification: (userId: string, correlationId: string, clarificationId: string, conversationId: string) => Promise<AssistantApplicationResult>;
     confirmDraft: (userId: string, draftId: string, idempotencyKey: string, correlationId: string) => Promise<{

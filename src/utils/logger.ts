@@ -148,6 +148,7 @@ export interface AssistantLogEvent {
   readonly hasActiveClarification?: boolean;
   readonly hasPendingDraft?: boolean;
   readonly hasTerminalClarification?: boolean;
+  readonly hasActiveTurn?: boolean;
   readonly attempt?: number;
   readonly leaseRecovered?: boolean;
   /** Callback interaction taxonomy (Phase 26A) — bounded closed-enum labels only, never token/payload content. */

@@ -153,6 +153,7 @@ model AssistantTurn {
   financialDrafts       AssistantFinancialDraft[]
   providerExecutions    AssistantProviderExecution[]
   clarificationRequests ClarificationRequest[]
+  idempotencyRecords    AssistantIdempotencyRecord[]
 
   @@index([conversationId, createdAt, id])
   @@index([status, startedAt])
@@ -210,21 +211,36 @@ model AssistantFinancialDraft {
   @@map("assistant_financial_drafts")
 }
 
-model AssistantIdempotencyRecord {
-  id            String   @id @default(cuid())
-  userId        String   @map("user_id")
-  draftId       String   @map("draft_id")
-  operation     String
-  key           String
-  transactionId String?  @map("transaction_id")
-  createdAt     DateTime @default(now()) @map("created_at")
+enum AssistantIdempotencyStatus {
+  RUNNING
+  COMPLETED
+}
 
-  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  draft       AssistantFinancialDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
-  transaction Transaction?            @relation(fields: [transactionId], references: [id], onDelete: Restrict)
+model AssistantIdempotencyRecord {
+  id             String                     @id @default(cuid())
+  userId         String                     @map("user_id")
+  // Draft-confirm idempotency (Phase 21.4) is draft-scoped; request-level
+  // idempotency for /messages and /execute (Phase 27) is turn-scoped. A row
+  // populates at most one of the two, never both.
+  draftId        String?                    @map("draft_id")
+  turnId         String?                    @map("turn_id")
+  operation      String
+  key            String
+  status         AssistantIdempotencyStatus @default(COMPLETED) @map("status")
+  responseStatus Int?                       @map("response_status")
+  responseBody   Json?                      @map("response_body")
+  transactionId  String?                    @map("transaction_id")
+  createdAt      DateTime                   @default(now()) @map("created_at")
+  updatedAt      DateTime                   @updatedAt @map("updated_at")
+
+  user        User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  draft       AssistantFinancialDraft? @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  turn        AssistantTurn?           @relation(fields: [turnId], references: [id], onDelete: Cascade)
+  transaction Transaction?             @relation(fields: [transactionId], references: [id], onDelete: Restrict)
 
   @@unique([userId, key])
   @@index([draftId])
+  @@index([turnId])
   @@map("assistant_idempotency_records")
 }
 

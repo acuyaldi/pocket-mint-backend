@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAssistantConversationService = createAssistantConversationService;
 const errors_1 = require("./errors");
 const persistence_1 = require("./persistence");
+const financial_draft_1 = require("./financial-draft");
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 const pageArgs = (page, limit) => {
@@ -162,6 +163,59 @@ function createAssistantConversationService(db) {
         const updated = await db.assistantConversation.update({ where: { id }, data: { status: 'ARCHIVED', archivedAt: new Date() } });
         return { id: updated.id, status: updated.status, archivedAt: updated.archivedAt };
     }
-    return { assertContinuable, assertOwned: owned, establishConversation, beginTurn, markTurnRunning, beginToolExecution, finalize, finalizeRejected, finalizeWithoutTool, listOwnedConversations, getOwnedConversation, archiveOwnedConversation };
+    /**
+     * Insert-first-wins claim on a Web-originated request's Idempotency-Key — the same
+     * concurrency pattern as the Telegram channel guard (assistantOperationGuard.ts),
+     * not financial-draft.service.ts's whole-request advisory lock: /messages and
+     * /execute can hold an outbound LLM call open for seconds, so nothing here may
+     * hold a DB lock across the actual work. A `RUNNING` row is claimed synchronously
+     * before that work starts; `resolveIdempotencyKey` fills in the outcome after.
+     * An unresolved `RUNNING` row (e.g. a process crash mid-request) stays in progress
+     * indefinitely — the same fail-closed gap the channel guard's `ambiguous` outcome
+     * already accepts; recovery/dead-letter handling is out of scope for this phase.
+     */
+    async function claimIdempotencyKey(userId, keyValue, operation) {
+        const key = (0, financial_draft_1.validateIdempotencyKey)(keyValue);
+        try {
+            await db.assistantIdempotencyRecord.create({ data: { userId, key, operation, status: 'RUNNING' } });
+            return { outcome: 'new' };
+        }
+        catch (error) {
+            if (error.code !== 'P2002')
+                throw error;
+            const existing = await db.assistantIdempotencyRecord.findUniqueOrThrow({ where: { userId_key: { userId, key } } });
+            if (existing.operation !== operation)
+                throw errors_1.AssistantError.idempotencyConflict();
+            if (existing.status === 'RUNNING')
+                return { outcome: 'in_progress' };
+            return { outcome: 'replay', httpStatus: existing.responseStatus ?? 200, response: existing.responseBody };
+        }
+    }
+    /** Terminal outcome for a key claimed via `claimIdempotencyKey`. Never throws — a logging-only failure here must not mask the real response. */
+    async function resolveIdempotencyKey(userId, keyValue, result) {
+        const key = (0, financial_draft_1.validateIdempotencyKey)(keyValue);
+        await db.assistantIdempotencyRecord.update({
+            where: { userId_key: { userId, key } },
+            data: {
+                status: 'COMPLETED',
+                responseStatus: result.httpStatus,
+                responseBody: result.response,
+                ...(result.turnId ? { turnId: result.turnId } : {}),
+            },
+        }).catch(() => undefined);
+    }
+    /**
+     * Releases a key claimed via `claimIdempotencyKey` when the underlying operation threw
+     * before producing a terminal result to resolve (e.g. `assertContinuable` rejecting an
+     * already-archived conversation before any turn exists) — otherwise that key would stay
+     * `RUNNING` forever even though the process didn't crash. Only removes a still-`RUNNING`
+     * row, so it can never clobber a terminal row written by a concurrent request. Never
+     * throws — the caller is already rethrowing the real error.
+     */
+    async function releaseIdempotencyKey(userId, keyValue) {
+        const key = (0, financial_draft_1.validateIdempotencyKey)(keyValue);
+        await db.assistantIdempotencyRecord.deleteMany({ where: { userId, key, status: 'RUNNING' } }).catch(() => undefined);
+    }
+    return { assertContinuable, assertOwned: owned, establishConversation, beginTurn, markTurnRunning, beginToolExecution, finalize, finalizeRejected, finalizeWithoutTool, listOwnedConversations, getOwnedConversation, archiveOwnedConversation, claimIdempotencyKey, resolveIdempotencyKey, releaseIdempotencyKey };
 }
 //# sourceMappingURL=conversation.service.js.map

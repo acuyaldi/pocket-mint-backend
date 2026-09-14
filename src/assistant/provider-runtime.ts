@@ -50,6 +50,8 @@ export interface AssistantProviderRuntimeResult {
       readonly conversationId: string;
       readonly turnId: string;
     };
+  /** Present only when the caller supplied an Idempotency-Key (Phase 27). Log-only — never sent to the client. */
+  readonly idempotencyOutcome?: 'new' | 'replay';
 }
 
 interface RuntimeDependencies {
@@ -162,7 +164,37 @@ export function createAssistantProviderRuntime(deps: RuntimeDependencies) {
     }
   }
 
+  /**
+   * `idempotencyKey`, when present, governs the whole message turn (LLM call plus any
+   * nested `application.execute`) — the nested call below never receives its own key,
+   * so it can't double-claim. Omitted key reproduces pre-Phase-27 behavior exactly.
+   */
   async function sendMessage(
+    userId: string,
+    correlationId: string,
+    input: AssistantProviderMessageInput,
+    idempotencyKey?: string,
+  ): Promise<AssistantProviderRuntimeResult> {
+    if (idempotencyKey !== undefined) {
+      const claim = await deps.conversations.claimIdempotencyKey(userId, idempotencyKey, 'assistant.messages');
+      if (claim.outcome === 'in_progress') throw AssistantError.requestInProgress();
+      if (claim.outcome === 'replay') return { httpStatus: claim.httpStatus, response: claim.response as AssistantProviderRuntimeResult['response'], idempotencyOutcome: 'replay' };
+    }
+    let result: AssistantProviderRuntimeResult;
+    try {
+      result = await sendMessageInner(userId, correlationId, input);
+    } catch (error) {
+      if (idempotencyKey !== undefined) await deps.conversations.releaseIdempotencyKey(userId, idempotencyKey);
+      throw error;
+    }
+    if (idempotencyKey !== undefined) {
+      await deps.conversations.resolveIdempotencyKey(userId, idempotencyKey, { httpStatus: result.httpStatus, response: result.response, turnId: result.response.turnId });
+      return { ...result, idempotencyOutcome: 'new' };
+    }
+    return result;
+  }
+
+  async function sendMessageInner(
     userId: string,
     correlationId: string,
     input: AssistantProviderMessageInput,

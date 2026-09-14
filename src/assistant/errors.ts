@@ -152,6 +152,10 @@ export class AssistantError extends Error {
     return new AssistantError('Idempotency key is already bound to another operation', 409, 'ASSISTANT_IDEMPOTENCY_CONFLICT');
   }
 
+  static requestInProgress(): AssistantError {
+    return new AssistantError('A request with this Idempotency-Key is already being processed', 409, 'ASSISTANT_REQUEST_IN_PROGRESS');
+  }
+
   static clarificationNotFound(): AssistantError {
     return new AssistantError('Clarification not found', 404, 'ASSISTANT_CLARIFICATION_NOT_FOUND');
   }

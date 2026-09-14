@@ -60,6 +60,7 @@ describe('POST /api/v1/assistant/messages', () => {
       'user-1',
       expect.any(String),
       { conversationId: 'c1', locale: 'id-ID', message: 'Ringkas Juli' },
+      undefined,
     );
   });
 

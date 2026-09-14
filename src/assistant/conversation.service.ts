@@ -1,7 +1,14 @@
 import type { PrismaClient, Prisma } from '../generated/prisma/client';
 import { AssistantError } from './errors';
 import { assertAssistantMessageLength } from './persistence';
+import { validateIdempotencyKey } from './financial-draft';
 import type { BeginTurnInput, BeginTurnResult, ConversationMessageDto, ConversationSummaryDto, FinalizeToolInput, FinalizeWithoutToolInput, Page } from './conversation.types';
+
+/** Outcome of claiming a request-level Idempotency-Key for /assistant/messages or /assistant/execute. */
+export type IdempotencyClaim =
+  | { outcome: 'new' }
+  | { outcome: 'in_progress' }
+  | { outcome: 'replay'; httpStatus: number; response: unknown };
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
@@ -167,7 +174,59 @@ export function createAssistantConversationService(db: PrismaClient) {
     return { id: updated.id, status: updated.status, archivedAt: updated.archivedAt };
   }
 
-  return { assertContinuable, assertOwned: owned, establishConversation, beginTurn, markTurnRunning, beginToolExecution, finalize, finalizeRejected, finalizeWithoutTool, listOwnedConversations, getOwnedConversation, archiveOwnedConversation };
+  /**
+   * Insert-first-wins claim on a Web-originated request's Idempotency-Key — the same
+   * concurrency pattern as the Telegram channel guard (assistantOperationGuard.ts),
+   * not financial-draft.service.ts's whole-request advisory lock: /messages and
+   * /execute can hold an outbound LLM call open for seconds, so nothing here may
+   * hold a DB lock across the actual work. A `RUNNING` row is claimed synchronously
+   * before that work starts; `resolveIdempotencyKey` fills in the outcome after.
+   * An unresolved `RUNNING` row (e.g. a process crash mid-request) stays in progress
+   * indefinitely — the same fail-closed gap the channel guard's `ambiguous` outcome
+   * already accepts; recovery/dead-letter handling is out of scope for this phase.
+   */
+  async function claimIdempotencyKey(userId: string, keyValue: string, operation: string): Promise<IdempotencyClaim> {
+    const key = validateIdempotencyKey(keyValue);
+    try {
+      await db.assistantIdempotencyRecord.create({ data: { userId, key, operation, status: 'RUNNING' } });
+      return { outcome: 'new' };
+    } catch (error) {
+      if ((error as { code?: string }).code !== 'P2002') throw error;
+      const existing = await db.assistantIdempotencyRecord.findUniqueOrThrow({ where: { userId_key: { userId, key } } });
+      if (existing.operation !== operation) throw AssistantError.idempotencyConflict();
+      if (existing.status === 'RUNNING') return { outcome: 'in_progress' };
+      return { outcome: 'replay', httpStatus: existing.responseStatus ?? 200, response: existing.responseBody };
+    }
+  }
+
+  /** Terminal outcome for a key claimed via `claimIdempotencyKey`. Never throws — a logging-only failure here must not mask the real response. */
+  async function resolveIdempotencyKey(userId: string, keyValue: string, result: { httpStatus: number; response: unknown; turnId?: string }): Promise<void> {
+    const key = validateIdempotencyKey(keyValue);
+    await db.assistantIdempotencyRecord.update({
+      where: { userId_key: { userId, key } },
+      data: {
+        status: 'COMPLETED',
+        responseStatus: result.httpStatus,
+        responseBody: result.response as Prisma.InputJsonValue,
+        ...(result.turnId ? { turnId: result.turnId } : {}),
+      },
+    }).catch(() => undefined);
+  }
+
+  /**
+   * Releases a key claimed via `claimIdempotencyKey` when the underlying operation threw
+   * before producing a terminal result to resolve (e.g. `assertContinuable` rejecting an
+   * already-archived conversation before any turn exists) — otherwise that key would stay
+   * `RUNNING` forever even though the process didn't crash. Only removes a still-`RUNNING`
+   * row, so it can never clobber a terminal row written by a concurrent request. Never
+   * throws — the caller is already rethrowing the real error.
+   */
+  async function releaseIdempotencyKey(userId: string, keyValue: string): Promise<void> {
+    const key = validateIdempotencyKey(keyValue);
+    await db.assistantIdempotencyRecord.deleteMany({ where: { userId, key, status: 'RUNNING' } }).catch(() => undefined);
+  }
+
+  return { assertContinuable, assertOwned: owned, establishConversation, beginTurn, markTurnRunning, beginToolExecution, finalize, finalizeRejected, finalizeWithoutTool, listOwnedConversations, getOwnedConversation, archiveOwnedConversation, claimIdempotencyKey, resolveIdempotencyKey, releaseIdempotencyKey };
 }
 
 export type AssistantConversationService = ReturnType<typeof createAssistantConversationService>;

@@ -86,6 +86,13 @@ export declare const assistantConversationService: {
         status: import("@/generated/prisma").$Enums.AssistantConversationStatus;
         archivedAt: Date | null;
     }>;
+    claimIdempotencyKey: (userId: string, keyValue: string, operation: string) => Promise<import("./conversation.service").IdempotencyClaim>;
+    resolveIdempotencyKey: (userId: string, keyValue: string, result: {
+        httpStatus: number;
+        response: unknown;
+        turnId?: string;
+    }) => Promise<void>;
+    releaseIdempotencyKey: (userId: string, keyValue: string) => Promise<void>;
 };
 export declare const assistantContextService: {
     buildExecutionContext: (input: import("./context.service").BuildAssistantExecutionContextInput) => Promise<import("./context.types").AssistantContext>;
@@ -170,7 +177,7 @@ export declare const clarificationService: {
     _generateToken: () => string;
 };
 export declare const assistantApplicationService: {
-    execute: (userId: string, correlationId: string, request: import("./types").AssistantCanonicalRequest) => Promise<import("./application.service").AssistantApplicationResult>;
+    execute: (userId: string, correlationId: string, request: import("./types").AssistantCanonicalRequest, idempotencyKey?: string) => Promise<import("./application.service").AssistantApplicationResult>;
     prepareProviderExecution: (input: import("./context.service").BuildAssistantExecutionContextInput) => Promise<import("./context.types").AssistantContext>;
     selectClarification: (userId: string, correlationId: string, token: string, conversationId: string, clarificationId?: string) => Promise<import("./application.service").AssistantApplicationResult>;
     submitGuidedClarification: (userId: string, correlationId: string, fields: Record<string, unknown>, conversationId: string, clarificationId: string) => Promise<import("./application.service").AssistantApplicationResult>;
@@ -180,7 +187,7 @@ export declare const assistantApplicationService: {
 };
 export declare const assistantProviderAuditService: import("./provider-runtime").AssistantProviderAudit;
 export declare const assistantProviderRuntime: {
-    sendMessage: (userId: string, correlationId: string, input: import("./provider-runtime").AssistantProviderMessageInput) => Promise<import("./provider-runtime").AssistantProviderRuntimeResult>;
+    sendMessage: (userId: string, correlationId: string, input: import("./provider-runtime").AssistantProviderMessageInput, idempotencyKey?: string) => Promise<import("./provider-runtime").AssistantProviderRuntimeResult>;
     selectClarification: (userId: string, correlationId: string, token: string, conversationId: string, clarificationId?: string) => Promise<import("./application.service").AssistantApplicationResult>;
     cancelClarification: (userId: string, correlationId: string, clarificationId: string, conversationId: string) => Promise<import("./application.service").AssistantApplicationResult>;
     confirmDraft: (userId: string, draftId: string, idempotencyKey: string, correlationId: string) => Promise<{

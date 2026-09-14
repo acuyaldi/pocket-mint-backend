@@ -39,7 +39,12 @@ type TxClient = Prisma.TransactionClient;
  */
 const FALLBACK_CATEGORY_NAME = 'Lainnya';
 
-export interface AssistantApplicationResult { response: AssistantCanonicalResponse; httpStatus: number }
+export interface AssistantApplicationResult {
+  response: AssistantCanonicalResponse;
+  httpStatus: number;
+  /** Present only when the caller supplied an Idempotency-Key (Phase 27). Log-only — never sent to the client. */
+  idempotencyOutcome?: 'new' | 'replay';
+}
 
 export function createAssistantApplicationService(deps: {
   conversations: AssistantConversationService;
@@ -208,7 +213,34 @@ export function createAssistantApplicationService(deps: {
 
   // ---- Main execute ---------------------------------------------------------
 
-  async function execute(userId: string, correlationId: string, request: AssistantCanonicalRequest): Promise<AssistantApplicationResult> {
+  /**
+   * Request-level idempotency for Web (Phase 27) — Telegram is already covered by
+   * assistantOperationGuard at the channel layer. `idempotencyKey` is optional and
+   * omitted by internal callers (e.g. provider-runtime's nested call after its own
+   * message-level key already governs the whole turn) — omitting it reproduces the
+   * pre-Phase-27 behavior exactly (no dedup, a fresh turn every call).
+   */
+  async function execute(userId: string, correlationId: string, request: AssistantCanonicalRequest, idempotencyKey?: string): Promise<AssistantApplicationResult> {
+    if (idempotencyKey !== undefined) {
+      const claim = await deps.conversations.claimIdempotencyKey(userId, idempotencyKey, 'assistant.execute');
+      if (claim.outcome === 'in_progress') throw AssistantError.requestInProgress();
+      if (claim.outcome === 'replay') return { httpStatus: claim.httpStatus, response: claim.response as AssistantCanonicalResponse, idempotencyOutcome: 'replay' };
+    }
+    let result: AssistantApplicationResult;
+    try {
+      result = await executeInner(userId, correlationId, request);
+    } catch (error) {
+      if (idempotencyKey !== undefined) await deps.conversations.releaseIdempotencyKey(userId, idempotencyKey);
+      throw error;
+    }
+    if (idempotencyKey !== undefined) {
+      await deps.conversations.resolveIdempotencyKey(userId, idempotencyKey, { httpStatus: result.httpStatus, response: result.response, turnId: result.response.turnId });
+      return { ...result, idempotencyOutcome: 'new' };
+    }
+    return result;
+  }
+
+  async function executeInner(userId: string, correlationId: string, request: AssistantCanonicalRequest): Promise<AssistantApplicationResult> {
     const locale = request.locale?.trim() || 'id-ID';
     if (request.conversationId) await deps.conversations.assertContinuable(userId, request.conversationId);
     const provided = normalizeProvidedMessage(request.message);

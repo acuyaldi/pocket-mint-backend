@@ -422,7 +422,7 @@ export function createClarificationService(db: PrismaClient) {
     userId: string,
     conversationId: string,
   ): Promise<AssistantStateProjection> {
-    const [activeRequest, pendingDraft, latestTerminal] = await Promise.all([
+    const [activeRequest, pendingDraft, latestTerminal, runningTurn] = await Promise.all([
       db.clarificationRequest.findFirst({
         where: { conversationId, userId, status: 'PENDING' },
         include: { options: true },
@@ -451,6 +451,14 @@ export function createClarificationService(db: PrismaClient) {
           status: { in: ['CONSUMED', 'CANCELLED', 'STALE'] },
         },
         orderBy: { updatedAt: 'desc' },
+      }),
+      // Conversation ownership is already asserted by the caller (see
+      // assistant.controller.ts's recoveryState) — assistantTurn has no
+      // userId column of its own, so conversationId scoping is sufficient here.
+      db.assistantTurn.findFirst({
+        where: { conversationId, status: 'RUNNING' },
+        orderBy: { startedAt: 'desc' },
+        select: { id: true, intent: true, startedAt: true },
       }),
     ]);
 
@@ -488,10 +496,17 @@ export function createClarificationService(db: PrismaClient) {
       restartRequired: latestTerminal.restartRequired,
     } : undefined;
 
+    const activeTurn = runningTurn ? {
+      turnId: runningTurn.id,
+      intent: runningTurn.intent,
+      startedAt: runningTurn.startedAt.toISOString(),
+    } : undefined;
+
     return {
       ...(activeClarification ? { activeClarification } : {}),
       ...(safeDraft ? { pendingDraft: safeDraft } : {}),
       ...(terminal ? { latestTerminalClarification: terminal } : {}),
+      ...(activeTurn ? { activeTurn } : {}),
     };
   }
 
