@@ -1,5 +1,15 @@
 import type { PrismaClient, Prisma } from '../generated/prisma/client';
 import type { BeginTurnInput, BeginTurnResult, ConversationMessageDto, ConversationSummaryDto, FinalizeToolInput, FinalizeWithoutToolInput, Page } from './conversation.types';
+/** Outcome of claiming a request-level Idempotency-Key for /assistant/messages or /assistant/execute. */
+export type IdempotencyClaim = {
+    outcome: 'new';
+} | {
+    outcome: 'in_progress';
+} | {
+    outcome: 'replay';
+    httpStatus: number;
+    response: unknown;
+};
 export declare function createAssistantConversationService(db: PrismaClient): {
     assertContinuable: (userId: string, id: string) => Promise<void>;
     assertOwned: (userId: string, id: string) => Promise<{
@@ -80,5 +90,12 @@ export declare function createAssistantConversationService(db: PrismaClient): {
         status: import("@/generated/prisma").$Enums.AssistantConversationStatus;
         archivedAt: Date | null;
     }>;
+    claimIdempotencyKey: (userId: string, keyValue: string, operation: string) => Promise<IdempotencyClaim>;
+    resolveIdempotencyKey: (userId: string, keyValue: string, result: {
+        httpStatus: number;
+        response: unknown;
+        turnId?: string;
+    }) => Promise<void>;
+    releaseIdempotencyKey: (userId: string, keyValue: string) => Promise<void>;
 };
 export type AssistantConversationService = ReturnType<typeof createAssistantConversationService>;

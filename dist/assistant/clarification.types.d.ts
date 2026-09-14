@@ -95,11 +95,22 @@ export interface SafeDraftMetadata {
     readonly status: string;
     readonly preview: Record<string, unknown>;
 }
+/**
+ * A turn still `RUNNING` on this conversation (Phase 27) — lets the client
+ * disable duplicate submission and show a "still processing" state after a
+ * dropped connection, instead of guessing from a stale local view.
+ */
+export interface ActiveTurnMetadata {
+    readonly turnId: string;
+    readonly intent: string;
+    readonly startedAt: string;
+}
 /** Bounded assistantState projection exposed to the client. */
 export interface AssistantStateProjection {
     readonly activeClarification?: ClarificationProjection;
     readonly pendingDraft?: SafeDraftMetadata;
     readonly latestTerminalClarification?: TerminalClarification;
+    readonly activeTurn?: ActiveTurnMetadata;
 }
 export interface CreateClarificationInput {
     readonly userId: string;

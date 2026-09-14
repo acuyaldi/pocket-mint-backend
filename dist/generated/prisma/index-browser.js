@@ -191,10 +191,15 @@ exports.Prisma.AssistantIdempotencyRecordScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   draftId: 'draftId',
+  turnId: 'turnId',
   operation: 'operation',
   key: 'key',
+  status: 'status',
+  responseStatus: 'responseStatus',
+  responseBody: 'responseBody',
   transactionId: 'transactionId',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.AssistantToolExecutionScalarFieldEnum = {
@@ -576,6 +581,11 @@ exports.TransactionType = exports.$Enums.TransactionType = {
   INCOME: 'INCOME',
   EXPENSE: 'EXPENSE',
   TRANSFER: 'TRANSFER'
+};
+
+exports.AssistantIdempotencyStatus = exports.$Enums.AssistantIdempotencyStatus = {
+  RUNNING: 'RUNNING',
+  COMPLETED: 'COMPLETED'
 };
 
 exports.AssistantToolExecutionStatus = exports.$Enums.AssistantToolExecutionStatus = {

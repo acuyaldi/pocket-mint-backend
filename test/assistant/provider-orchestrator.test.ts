@@ -4,6 +4,7 @@ import { createAssistantApplicationService } from '../../src/assistant/applicati
 import { ToolRegistry } from '../../src/assistant/registry';
 import { monthlySpendingSummary, transactionCreate } from '../../src/assistant/tools';
 import { AssistantProviderError } from '../../src/assistant/provider-types';
+import { AssistantError } from '../../src/assistant/errors';
 import type { AssistantContext } from '../../src/assistant/context.types';
 
 const context: AssistantContext = {
@@ -787,6 +788,42 @@ describe('Provider clarification boundary', () => {
       'analytics.monthly-spending-summary',
       'transaction.create',
     ]);
+  });
+});
+
+describe('Request-level idempotency claim release (Phase 27)', () => {
+  it('releases a claimed key and rethrows when sendMessage fails before producing a terminal response', async () => {
+    const { runtime, conversations } = setup();
+    const mutableConversations = conversations as any;
+    mutableConversations.establishConversation = vi.fn().mockRejectedValue(AssistantError.conversationNotContinuable());
+    mutableConversations.claimIdempotencyKey = vi.fn().mockResolvedValue({ outcome: 'new' });
+    mutableConversations.resolveIdempotencyKey = vi.fn();
+    mutableConversations.releaseIdempotencyKey = vi.fn();
+
+    await expect(runtime.sendMessage('u1', 'corr-1', { message: 'Ringkas Juli', conversationId: 'archived-convo' }, 'key-1'))
+      .rejects.toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_CONTINUABLE' });
+
+    expect(mutableConversations.releaseIdempotencyKey).toHaveBeenCalledWith('u1', 'key-1');
+    expect(mutableConversations.resolveIdempotencyKey).not.toHaveBeenCalled();
+  });
+
+  it('releases a claimed key and rethrows when the request fails before producing a terminal response', async () => {
+    const { service, conversations } = setupWithClarification();
+    conversations.assertContinuable = vi.fn().mockRejectedValue(AssistantError.conversationNotContinuable());
+    conversations.claimIdempotencyKey = vi.fn().mockResolvedValue({ outcome: 'new' });
+    conversations.resolveIdempotencyKey = vi.fn();
+    conversations.releaseIdempotencyKey = vi.fn();
+
+    await expect(service.execute('u1', 'corr-1', {
+      conversationId: 'archived-convo',
+      intent: 'analytics.monthly-spending-summary',
+      arguments: { month: '2026-07' },
+    }, 'key-1')).rejects.toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_CONTINUABLE' });
+
+    // A stuck RUNNING row would make every retry with this key see 409
+    // ASSISTANT_REQUEST_IN_PROGRESS forever instead of the real error.
+    expect(conversations.releaseIdempotencyKey).toHaveBeenCalledWith('u1', 'key-1');
+    expect(conversations.resolveIdempotencyKey).not.toHaveBeenCalled();
   });
 });
 

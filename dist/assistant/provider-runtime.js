@@ -92,7 +92,35 @@ function createAssistantProviderRuntime(deps) {
                 clearTimeout(timer);
         }
     }
-    async function sendMessage(userId, correlationId, input) {
+    /**
+     * `idempotencyKey`, when present, governs the whole message turn (LLM call plus any
+     * nested `application.execute`) — the nested call below never receives its own key,
+     * so it can't double-claim. Omitted key reproduces pre-Phase-27 behavior exactly.
+     */
+    async function sendMessage(userId, correlationId, input, idempotencyKey) {
+        if (idempotencyKey !== undefined) {
+            const claim = await deps.conversations.claimIdempotencyKey(userId, idempotencyKey, 'assistant.messages');
+            if (claim.outcome === 'in_progress')
+                throw errors_1.AssistantError.requestInProgress();
+            if (claim.outcome === 'replay')
+                return { httpStatus: claim.httpStatus, response: claim.response, idempotencyOutcome: 'replay' };
+        }
+        let result;
+        try {
+            result = await sendMessageInner(userId, correlationId, input);
+        }
+        catch (error) {
+            if (idempotencyKey !== undefined)
+                await deps.conversations.releaseIdempotencyKey(userId, idempotencyKey);
+            throw error;
+        }
+        if (idempotencyKey !== undefined) {
+            await deps.conversations.resolveIdempotencyKey(userId, idempotencyKey, { httpStatus: result.httpStatus, response: result.response, turnId: result.response.turnId });
+            return { ...result, idempotencyOutcome: 'new' };
+        }
+        return result;
+    }
+    async function sendMessageInner(userId, correlationId, input) {
         const message = (0, persistence_1.normalizeProvidedMessage)(input.message);
         if (!message)
             throw errors_1.AssistantError.invalidRequest('message is required');

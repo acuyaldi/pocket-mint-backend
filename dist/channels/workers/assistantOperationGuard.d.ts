@@ -13,10 +13,12 @@ export type OperationBeginResult = {
 export declare function channelOperationId(provider: string, inboundJobId: string): string;
 /**
  * Operation-identity guard binding one inbound job to at most one Assistant
- * turn (see docs/product/decisions/015 — the Assistant module itself has no
- * request-level idempotency contract, so this lives entirely in the channel
- * layer instead of touching it). Insert-first-wins: a conflict means a
- * previous attempt on this exact job already started.
+ * turn (see docs/product/decisions/015). Telegram never supplies an
+ * `Idempotency-Key` (Phase 27, PD-017 — the Assistant module itself now has
+ * a request-level idempotency contract for Web), so this channel-layer guard
+ * remains Telegram's sole protection, unaffected by and unchanged since
+ * Phase 27. Insert-first-wins: a conflict means a previous attempt on this
+ * exact job already started.
  */
 export declare function beginAssistantOperation(db: PrismaClient, operationId: string, userId: string): Promise<OperationBeginResult>;
 export declare function completeAssistantOperation(db: PrismaClient, operationId: string, turnId: string, renderedText: string): Promise<void>;

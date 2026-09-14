@@ -229,6 +229,14 @@ export const AssistantClarificationStatus: {
 export type AssistantClarificationStatus = (typeof AssistantClarificationStatus)[keyof typeof AssistantClarificationStatus]
 
 
+export const AssistantIdempotencyStatus: {
+  RUNNING: 'RUNNING',
+  COMPLETED: 'COMPLETED'
+};
+
+export type AssistantIdempotencyStatus = (typeof AssistantIdempotencyStatus)[keyof typeof AssistantIdempotencyStatus]
+
+
 export const WalletType: {
   CASH: 'CASH',
   BANK: 'BANK',
@@ -424,6 +432,10 @@ export const AssistantFinancialDraftStatus: typeof $Enums.AssistantFinancialDraf
 export type AssistantClarificationStatus = $Enums.AssistantClarificationStatus
 
 export const AssistantClarificationStatus: typeof $Enums.AssistantClarificationStatus
+
+export type AssistantIdempotencyStatus = $Enums.AssistantIdempotencyStatus
+
+export const AssistantIdempotencyStatus: typeof $Enums.AssistantIdempotencyStatus
 
 export type WalletType = $Enums.WalletType
 
@@ -3655,6 +3667,7 @@ export namespace Prisma {
     financialDrafts: number
     providerExecutions: number
     clarificationRequests: number
+    idempotencyRecords: number
   }
 
   export type AssistantTurnCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3663,6 +3676,7 @@ export namespace Prisma {
     financialDrafts?: boolean | AssistantTurnCountOutputTypeCountFinancialDraftsArgs
     providerExecutions?: boolean | AssistantTurnCountOutputTypeCountProviderExecutionsArgs
     clarificationRequests?: boolean | AssistantTurnCountOutputTypeCountClarificationRequestsArgs
+    idempotencyRecords?: boolean | AssistantTurnCountOutputTypeCountIdempotencyRecordsArgs
   }
 
   // Custom InputTypes
@@ -3709,6 +3723,13 @@ export namespace Prisma {
    */
   export type AssistantTurnCountOutputTypeCountClarificationRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ClarificationRequestWhereInput
+  }
+
+  /**
+   * AssistantTurnCountOutputType without action
+   */
+  export type AssistantTurnCountOutputTypeCountIdempotencyRecordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantIdempotencyRecordWhereInput
   }
 
 
@@ -7105,6 +7126,7 @@ export namespace Prisma {
     financialDrafts?: boolean | AssistantTurn$financialDraftsArgs<ExtArgs>
     providerExecutions?: boolean | AssistantTurn$providerExecutionsArgs<ExtArgs>
     clarificationRequests?: boolean | AssistantTurn$clarificationRequestsArgs<ExtArgs>
+    idempotencyRecords?: boolean | AssistantTurn$idempotencyRecordsArgs<ExtArgs>
     _count?: boolean | AssistantTurnCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["assistantTurn"]>
 
@@ -7160,6 +7182,7 @@ export namespace Prisma {
     financialDrafts?: boolean | AssistantTurn$financialDraftsArgs<ExtArgs>
     providerExecutions?: boolean | AssistantTurn$providerExecutionsArgs<ExtArgs>
     clarificationRequests?: boolean | AssistantTurn$clarificationRequestsArgs<ExtArgs>
+    idempotencyRecords?: boolean | AssistantTurn$idempotencyRecordsArgs<ExtArgs>
     _count?: boolean | AssistantTurnCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type AssistantTurnIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7178,6 +7201,7 @@ export namespace Prisma {
       financialDrafts: Prisma.$AssistantFinancialDraftPayload<ExtArgs>[]
       providerExecutions: Prisma.$AssistantProviderExecutionPayload<ExtArgs>[]
       clarificationRequests: Prisma.$ClarificationRequestPayload<ExtArgs>[]
+      idempotencyRecords: Prisma.$AssistantIdempotencyRecordPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -7591,6 +7615,7 @@ export namespace Prisma {
     financialDrafts<T extends AssistantTurn$financialDraftsArgs<ExtArgs> = {}>(args?: Subset<T, AssistantTurn$financialDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantFinancialDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     providerExecutions<T extends AssistantTurn$providerExecutionsArgs<ExtArgs> = {}>(args?: Subset<T, AssistantTurn$providerExecutionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantProviderExecutionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     clarificationRequests<T extends AssistantTurn$clarificationRequestsArgs<ExtArgs> = {}>(args?: Subset<T, AssistantTurn$clarificationRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClarificationRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    idempotencyRecords<T extends AssistantTurn$idempotencyRecordsArgs<ExtArgs> = {}>(args?: Subset<T, AssistantTurn$idempotencyRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantIdempotencyRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8149,6 +8174,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: ClarificationRequestScalarFieldEnum | ClarificationRequestScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantTurn.idempotencyRecords
+   */
+  export type AssistantTurn$idempotencyRecordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantIdempotencyRecord
+     */
+    select?: AssistantIdempotencyRecordSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantIdempotencyRecord
+     */
+    omit?: AssistantIdempotencyRecordOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantIdempotencyRecordInclude<ExtArgs> | null
+    where?: AssistantIdempotencyRecordWhereInput
+    orderBy?: AssistantIdempotencyRecordOrderByWithRelationInput | AssistantIdempotencyRecordOrderByWithRelationInput[]
+    cursor?: AssistantIdempotencyRecordWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AssistantIdempotencyRecordScalarFieldEnum | AssistantIdempotencyRecordScalarFieldEnum[]
   }
 
   /**
@@ -10646,70 +10695,114 @@ export namespace Prisma {
 
   export type AggregateAssistantIdempotencyRecord = {
     _count: AssistantIdempotencyRecordCountAggregateOutputType | null
+    _avg: AssistantIdempotencyRecordAvgAggregateOutputType | null
+    _sum: AssistantIdempotencyRecordSumAggregateOutputType | null
     _min: AssistantIdempotencyRecordMinAggregateOutputType | null
     _max: AssistantIdempotencyRecordMaxAggregateOutputType | null
+  }
+
+  export type AssistantIdempotencyRecordAvgAggregateOutputType = {
+    responseStatus: number | null
+  }
+
+  export type AssistantIdempotencyRecordSumAggregateOutputType = {
+    responseStatus: number | null
   }
 
   export type AssistantIdempotencyRecordMinAggregateOutputType = {
     id: string | null
     userId: string | null
     draftId: string | null
+    turnId: string | null
     operation: string | null
     key: string | null
+    status: $Enums.AssistantIdempotencyStatus | null
+    responseStatus: number | null
     transactionId: string | null
     createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type AssistantIdempotencyRecordMaxAggregateOutputType = {
     id: string | null
     userId: string | null
     draftId: string | null
+    turnId: string | null
     operation: string | null
     key: string | null
+    status: $Enums.AssistantIdempotencyStatus | null
+    responseStatus: number | null
     transactionId: string | null
     createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type AssistantIdempotencyRecordCountAggregateOutputType = {
     id: number
     userId: number
     draftId: number
+    turnId: number
     operation: number
     key: number
+    status: number
+    responseStatus: number
+    responseBody: number
     transactionId: number
     createdAt: number
+    updatedAt: number
     _all: number
   }
 
+
+  export type AssistantIdempotencyRecordAvgAggregateInputType = {
+    responseStatus?: true
+  }
+
+  export type AssistantIdempotencyRecordSumAggregateInputType = {
+    responseStatus?: true
+  }
 
   export type AssistantIdempotencyRecordMinAggregateInputType = {
     id?: true
     userId?: true
     draftId?: true
+    turnId?: true
     operation?: true
     key?: true
+    status?: true
+    responseStatus?: true
     transactionId?: true
     createdAt?: true
+    updatedAt?: true
   }
 
   export type AssistantIdempotencyRecordMaxAggregateInputType = {
     id?: true
     userId?: true
     draftId?: true
+    turnId?: true
     operation?: true
     key?: true
+    status?: true
+    responseStatus?: true
     transactionId?: true
     createdAt?: true
+    updatedAt?: true
   }
 
   export type AssistantIdempotencyRecordCountAggregateInputType = {
     id?: true
     userId?: true
     draftId?: true
+    turnId?: true
     operation?: true
     key?: true
+    status?: true
+    responseStatus?: true
+    responseBody?: true
     transactionId?: true
     createdAt?: true
+    updatedAt?: true
     _all?: true
   }
 
@@ -10751,6 +10844,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      *
+     * Select which fields to average
+    **/
+    _avg?: AssistantIdempotencyRecordAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to sum
+    **/
+    _sum?: AssistantIdempotencyRecordSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
      * Select which fields to find the minimum value
     **/
     _min?: AssistantIdempotencyRecordMinAggregateInputType
@@ -10781,6 +10886,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: AssistantIdempotencyRecordCountAggregateInputType | true
+    _avg?: AssistantIdempotencyRecordAvgAggregateInputType
+    _sum?: AssistantIdempotencyRecordSumAggregateInputType
     _min?: AssistantIdempotencyRecordMinAggregateInputType
     _max?: AssistantIdempotencyRecordMaxAggregateInputType
   }
@@ -10788,12 +10895,19 @@ export namespace Prisma {
   export type AssistantIdempotencyRecordGroupByOutputType = {
     id: string
     userId: string
-    draftId: string
+    draftId: string | null
+    turnId: string | null
     operation: string
     key: string
+    status: $Enums.AssistantIdempotencyStatus
+    responseStatus: number | null
+    responseBody: JsonValue | null
     transactionId: string | null
     createdAt: Date
+    updatedAt: Date
     _count: AssistantIdempotencyRecordCountAggregateOutputType | null
+    _avg: AssistantIdempotencyRecordAvgAggregateOutputType | null
+    _sum: AssistantIdempotencyRecordSumAggregateOutputType | null
     _min: AssistantIdempotencyRecordMinAggregateOutputType | null
     _max: AssistantIdempotencyRecordMaxAggregateOutputType | null
   }
@@ -10816,12 +10930,18 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     draftId?: boolean
+    turnId?: boolean
     operation?: boolean
     key?: boolean
+    status?: boolean
+    responseStatus?: boolean
+    responseBody?: boolean
     transactionId?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
-    draft?: boolean | AssistantFinancialDraftDefaultArgs<ExtArgs>
+    draft?: boolean | AssistantIdempotencyRecord$draftArgs<ExtArgs>
+    turn?: boolean | AssistantIdempotencyRecord$turnArgs<ExtArgs>
     transaction?: boolean | AssistantIdempotencyRecord$transactionArgs<ExtArgs>
   }, ExtArgs["result"]["assistantIdempotencyRecord"]>
 
@@ -10829,12 +10949,18 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     draftId?: boolean
+    turnId?: boolean
     operation?: boolean
     key?: boolean
+    status?: boolean
+    responseStatus?: boolean
+    responseBody?: boolean
     transactionId?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
-    draft?: boolean | AssistantFinancialDraftDefaultArgs<ExtArgs>
+    draft?: boolean | AssistantIdempotencyRecord$draftArgs<ExtArgs>
+    turn?: boolean | AssistantIdempotencyRecord$turnArgs<ExtArgs>
     transaction?: boolean | AssistantIdempotencyRecord$transactionArgs<ExtArgs>
   }, ExtArgs["result"]["assistantIdempotencyRecord"]>
 
@@ -10842,12 +10968,18 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     draftId?: boolean
+    turnId?: boolean
     operation?: boolean
     key?: boolean
+    status?: boolean
+    responseStatus?: boolean
+    responseBody?: boolean
     transactionId?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
-    draft?: boolean | AssistantFinancialDraftDefaultArgs<ExtArgs>
+    draft?: boolean | AssistantIdempotencyRecord$draftArgs<ExtArgs>
+    turn?: boolean | AssistantIdempotencyRecord$turnArgs<ExtArgs>
     transaction?: boolean | AssistantIdempotencyRecord$transactionArgs<ExtArgs>
   }, ExtArgs["result"]["assistantIdempotencyRecord"]>
 
@@ -10855,26 +10987,34 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     draftId?: boolean
+    turnId?: boolean
     operation?: boolean
     key?: boolean
+    status?: boolean
+    responseStatus?: boolean
+    responseBody?: boolean
     transactionId?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
   }
 
-  export type AssistantIdempotencyRecordOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "draftId" | "operation" | "key" | "transactionId" | "createdAt", ExtArgs["result"]["assistantIdempotencyRecord"]>
+  export type AssistantIdempotencyRecordOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "draftId" | "turnId" | "operation" | "key" | "status" | "responseStatus" | "responseBody" | "transactionId" | "createdAt" | "updatedAt", ExtArgs["result"]["assistantIdempotencyRecord"]>
   export type AssistantIdempotencyRecordInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
-    draft?: boolean | AssistantFinancialDraftDefaultArgs<ExtArgs>
+    draft?: boolean | AssistantIdempotencyRecord$draftArgs<ExtArgs>
+    turn?: boolean | AssistantIdempotencyRecord$turnArgs<ExtArgs>
     transaction?: boolean | AssistantIdempotencyRecord$transactionArgs<ExtArgs>
   }
   export type AssistantIdempotencyRecordIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
-    draft?: boolean | AssistantFinancialDraftDefaultArgs<ExtArgs>
+    draft?: boolean | AssistantIdempotencyRecord$draftArgs<ExtArgs>
+    turn?: boolean | AssistantIdempotencyRecord$turnArgs<ExtArgs>
     transaction?: boolean | AssistantIdempotencyRecord$transactionArgs<ExtArgs>
   }
   export type AssistantIdempotencyRecordIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
-    draft?: boolean | AssistantFinancialDraftDefaultArgs<ExtArgs>
+    draft?: boolean | AssistantIdempotencyRecord$draftArgs<ExtArgs>
+    turn?: boolean | AssistantIdempotencyRecord$turnArgs<ExtArgs>
     transaction?: boolean | AssistantIdempotencyRecord$transactionArgs<ExtArgs>
   }
 
@@ -10882,17 +11022,23 @@ export namespace Prisma {
     name: "AssistantIdempotencyRecord"
     objects: {
       user: Prisma.$UserPayload<ExtArgs>
-      draft: Prisma.$AssistantFinancialDraftPayload<ExtArgs>
+      draft: Prisma.$AssistantFinancialDraftPayload<ExtArgs> | null
+      turn: Prisma.$AssistantTurnPayload<ExtArgs> | null
       transaction: Prisma.$TransactionPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       userId: string
-      draftId: string
+      draftId: string | null
+      turnId: string | null
       operation: string
       key: string
+      status: $Enums.AssistantIdempotencyStatus
+      responseStatus: number | null
+      responseBody: Prisma.JsonValue | null
       transactionId: string | null
       createdAt: Date
+      updatedAt: Date
     }, ExtArgs["result"]["assistantIdempotencyRecord"]>
     composites: {}
   }
@@ -11288,7 +11434,8 @@ export namespace Prisma {
   export interface Prisma__AssistantIdempotencyRecordClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    draft<T extends AssistantFinancialDraftDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AssistantFinancialDraftDefaultArgs<ExtArgs>>): Prisma__AssistantFinancialDraftClient<$Result.GetResult<Prisma.$AssistantFinancialDraftPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    draft<T extends AssistantIdempotencyRecord$draftArgs<ExtArgs> = {}>(args?: Subset<T, AssistantIdempotencyRecord$draftArgs<ExtArgs>>): Prisma__AssistantFinancialDraftClient<$Result.GetResult<Prisma.$AssistantFinancialDraftPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    turn<T extends AssistantIdempotencyRecord$turnArgs<ExtArgs> = {}>(args?: Subset<T, AssistantIdempotencyRecord$turnArgs<ExtArgs>>): Prisma__AssistantTurnClient<$Result.GetResult<Prisma.$AssistantTurnPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     transaction<T extends AssistantIdempotencyRecord$transactionArgs<ExtArgs> = {}>(args?: Subset<T, AssistantIdempotencyRecord$transactionArgs<ExtArgs>>): Prisma__TransactionClient<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -11322,10 +11469,15 @@ export namespace Prisma {
     readonly id: FieldRef<"AssistantIdempotencyRecord", 'String'>
     readonly userId: FieldRef<"AssistantIdempotencyRecord", 'String'>
     readonly draftId: FieldRef<"AssistantIdempotencyRecord", 'String'>
+    readonly turnId: FieldRef<"AssistantIdempotencyRecord", 'String'>
     readonly operation: FieldRef<"AssistantIdempotencyRecord", 'String'>
     readonly key: FieldRef<"AssistantIdempotencyRecord", 'String'>
+    readonly status: FieldRef<"AssistantIdempotencyRecord", 'AssistantIdempotencyStatus'>
+    readonly responseStatus: FieldRef<"AssistantIdempotencyRecord", 'Int'>
+    readonly responseBody: FieldRef<"AssistantIdempotencyRecord", 'Json'>
     readonly transactionId: FieldRef<"AssistantIdempotencyRecord", 'String'>
     readonly createdAt: FieldRef<"AssistantIdempotencyRecord", 'DateTime'>
+    readonly updatedAt: FieldRef<"AssistantIdempotencyRecord", 'DateTime'>
   }
 
 
@@ -11724,6 +11876,44 @@ export namespace Prisma {
      * Limit how many AssistantIdempotencyRecords to delete.
      */
     limit?: number
+  }
+
+  /**
+   * AssistantIdempotencyRecord.draft
+   */
+  export type AssistantIdempotencyRecord$draftArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantFinancialDraft
+     */
+    select?: AssistantFinancialDraftSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantFinancialDraft
+     */
+    omit?: AssistantFinancialDraftOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantFinancialDraftInclude<ExtArgs> | null
+    where?: AssistantFinancialDraftWhereInput
+  }
+
+  /**
+   * AssistantIdempotencyRecord.turn
+   */
+  export type AssistantIdempotencyRecord$turnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantTurn
+     */
+    select?: AssistantTurnSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantTurn
+     */
+    omit?: AssistantTurnOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AssistantTurnInclude<ExtArgs> | null
+    where?: AssistantTurnWhereInput
   }
 
   /**
@@ -35502,10 +35692,15 @@ export namespace Prisma {
     id: 'id',
     userId: 'userId',
     draftId: 'draftId',
+    turnId: 'turnId',
     operation: 'operation',
     key: 'key',
+    status: 'status',
+    responseStatus: 'responseStatus',
+    responseBody: 'responseBody',
     transactionId: 'transactionId',
-    createdAt: 'createdAt'
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   };
 
   export type AssistantIdempotencyRecordScalarFieldEnum = (typeof AssistantIdempotencyRecordScalarFieldEnum)[keyof typeof AssistantIdempotencyRecordScalarFieldEnum]
@@ -36056,16 +36251,16 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'AssistantToolExecutionStatus'
+   * Reference to a field of type 'AssistantIdempotencyStatus'
    */
-  export type EnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantToolExecutionStatus'>
+  export type EnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantIdempotencyStatus'>
 
 
 
   /**
-   * Reference to a field of type 'AssistantToolExecutionStatus[]'
+   * Reference to a field of type 'AssistantIdempotencyStatus[]'
    */
-  export type ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantToolExecutionStatus[]'>
+  export type ListEnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantIdempotencyStatus[]'>
 
 
 
@@ -36094,6 +36289,20 @@ export namespace Prisma {
    * Reference to a field of type 'QueryMode'
    */
   export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantToolExecutionStatus'
+   */
+  export type EnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantToolExecutionStatus'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantToolExecutionStatus[]'
+   */
+  export type ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantToolExecutionStatus[]'>
 
 
 
@@ -36601,6 +36810,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftListRelationFilter
     providerExecutions?: AssistantProviderExecutionListRelationFilter
     clarificationRequests?: ClarificationRequestListRelationFilter
+    idempotencyRecords?: AssistantIdempotencyRecordListRelationFilter
   }
 
   export type AssistantTurnOrderByWithRelationInput = {
@@ -36621,6 +36831,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftOrderByRelationAggregateInput
     providerExecutions?: AssistantProviderExecutionOrderByRelationAggregateInput
     clarificationRequests?: ClarificationRequestOrderByRelationAggregateInput
+    idempotencyRecords?: AssistantIdempotencyRecordOrderByRelationAggregateInput
   }
 
   export type AssistantTurnWhereUniqueInput = Prisma.AtLeast<{
@@ -36644,6 +36855,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftListRelationFilter
     providerExecutions?: AssistantProviderExecutionListRelationFilter
     clarificationRequests?: ClarificationRequestListRelationFilter
+    idempotencyRecords?: AssistantIdempotencyRecordListRelationFilter
   }, "id" | "correlationId">
 
   export type AssistantTurnOrderByWithAggregationInput = {
@@ -36901,26 +37113,38 @@ export namespace Prisma {
     NOT?: AssistantIdempotencyRecordWhereInput | AssistantIdempotencyRecordWhereInput[]
     id?: StringFilter<"AssistantIdempotencyRecord"> | string
     userId?: StringFilter<"AssistantIdempotencyRecord"> | string
-    draftId?: StringFilter<"AssistantIdempotencyRecord"> | string
+    draftId?: StringNullableFilter<"AssistantIdempotencyRecord"> | string | null
+    turnId?: StringNullableFilter<"AssistantIdempotencyRecord"> | string | null
     operation?: StringFilter<"AssistantIdempotencyRecord"> | string
     key?: StringFilter<"AssistantIdempotencyRecord"> | string
+    status?: EnumAssistantIdempotencyStatusFilter<"AssistantIdempotencyRecord"> | $Enums.AssistantIdempotencyStatus
+    responseStatus?: IntNullableFilter<"AssistantIdempotencyRecord"> | number | null
+    responseBody?: JsonNullableFilter<"AssistantIdempotencyRecord">
     transactionId?: StringNullableFilter<"AssistantIdempotencyRecord"> | string | null
     createdAt?: DateTimeFilter<"AssistantIdempotencyRecord"> | Date | string
+    updatedAt?: DateTimeFilter<"AssistantIdempotencyRecord"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
-    draft?: XOR<AssistantFinancialDraftScalarRelationFilter, AssistantFinancialDraftWhereInput>
+    draft?: XOR<AssistantFinancialDraftNullableScalarRelationFilter, AssistantFinancialDraftWhereInput> | null
+    turn?: XOR<AssistantTurnNullableScalarRelationFilter, AssistantTurnWhereInput> | null
     transaction?: XOR<TransactionNullableScalarRelationFilter, TransactionWhereInput> | null
   }
 
   export type AssistantIdempotencyRecordOrderByWithRelationInput = {
     id?: SortOrder
     userId?: SortOrder
-    draftId?: SortOrder
+    draftId?: SortOrderInput | SortOrder
+    turnId?: SortOrderInput | SortOrder
     operation?: SortOrder
     key?: SortOrder
+    status?: SortOrder
+    responseStatus?: SortOrderInput | SortOrder
+    responseBody?: SortOrderInput | SortOrder
     transactionId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
     draft?: AssistantFinancialDraftOrderByWithRelationInput
+    turn?: AssistantTurnOrderByWithRelationInput
     transaction?: TransactionOrderByWithRelationInput
   }
 
@@ -36931,27 +37155,40 @@ export namespace Prisma {
     OR?: AssistantIdempotencyRecordWhereInput[]
     NOT?: AssistantIdempotencyRecordWhereInput | AssistantIdempotencyRecordWhereInput[]
     userId?: StringFilter<"AssistantIdempotencyRecord"> | string
-    draftId?: StringFilter<"AssistantIdempotencyRecord"> | string
+    draftId?: StringNullableFilter<"AssistantIdempotencyRecord"> | string | null
+    turnId?: StringNullableFilter<"AssistantIdempotencyRecord"> | string | null
     operation?: StringFilter<"AssistantIdempotencyRecord"> | string
     key?: StringFilter<"AssistantIdempotencyRecord"> | string
+    status?: EnumAssistantIdempotencyStatusFilter<"AssistantIdempotencyRecord"> | $Enums.AssistantIdempotencyStatus
+    responseStatus?: IntNullableFilter<"AssistantIdempotencyRecord"> | number | null
+    responseBody?: JsonNullableFilter<"AssistantIdempotencyRecord">
     transactionId?: StringNullableFilter<"AssistantIdempotencyRecord"> | string | null
     createdAt?: DateTimeFilter<"AssistantIdempotencyRecord"> | Date | string
+    updatedAt?: DateTimeFilter<"AssistantIdempotencyRecord"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
-    draft?: XOR<AssistantFinancialDraftScalarRelationFilter, AssistantFinancialDraftWhereInput>
+    draft?: XOR<AssistantFinancialDraftNullableScalarRelationFilter, AssistantFinancialDraftWhereInput> | null
+    turn?: XOR<AssistantTurnNullableScalarRelationFilter, AssistantTurnWhereInput> | null
     transaction?: XOR<TransactionNullableScalarRelationFilter, TransactionWhereInput> | null
   }, "id" | "userId_key">
 
   export type AssistantIdempotencyRecordOrderByWithAggregationInput = {
     id?: SortOrder
     userId?: SortOrder
-    draftId?: SortOrder
+    draftId?: SortOrderInput | SortOrder
+    turnId?: SortOrderInput | SortOrder
     operation?: SortOrder
     key?: SortOrder
+    status?: SortOrder
+    responseStatus?: SortOrderInput | SortOrder
+    responseBody?: SortOrderInput | SortOrder
     transactionId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
     _count?: AssistantIdempotencyRecordCountOrderByAggregateInput
+    _avg?: AssistantIdempotencyRecordAvgOrderByAggregateInput
     _max?: AssistantIdempotencyRecordMaxOrderByAggregateInput
     _min?: AssistantIdempotencyRecordMinOrderByAggregateInput
+    _sum?: AssistantIdempotencyRecordSumOrderByAggregateInput
   }
 
   export type AssistantIdempotencyRecordScalarWhereWithAggregatesInput = {
@@ -36960,11 +37197,16 @@ export namespace Prisma {
     NOT?: AssistantIdempotencyRecordScalarWhereWithAggregatesInput | AssistantIdempotencyRecordScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"AssistantIdempotencyRecord"> | string
     userId?: StringWithAggregatesFilter<"AssistantIdempotencyRecord"> | string
-    draftId?: StringWithAggregatesFilter<"AssistantIdempotencyRecord"> | string
+    draftId?: StringNullableWithAggregatesFilter<"AssistantIdempotencyRecord"> | string | null
+    turnId?: StringNullableWithAggregatesFilter<"AssistantIdempotencyRecord"> | string | null
     operation?: StringWithAggregatesFilter<"AssistantIdempotencyRecord"> | string
     key?: StringWithAggregatesFilter<"AssistantIdempotencyRecord"> | string
+    status?: EnumAssistantIdempotencyStatusWithAggregatesFilter<"AssistantIdempotencyRecord"> | $Enums.AssistantIdempotencyStatus
+    responseStatus?: IntNullableWithAggregatesFilter<"AssistantIdempotencyRecord"> | number | null
+    responseBody?: JsonNullableWithAggregatesFilter<"AssistantIdempotencyRecord">
     transactionId?: StringNullableWithAggregatesFilter<"AssistantIdempotencyRecord"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"AssistantIdempotencyRecord"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"AssistantIdempotencyRecord"> | Date | string
   }
 
   export type AssistantToolExecutionWhereInput = {
@@ -39187,6 +39429,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutOriginatingTurnInput
     providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutTurnInput
     clarificationRequests?: ClarificationRequestCreateNestedManyWithoutOriginatingTurnInput
+    idempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnUncheckedCreateInput = {
@@ -39206,6 +39449,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutOriginatingTurnInput
     providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutTurnInput
     clarificationRequests?: ClarificationRequestUncheckedCreateNestedManyWithoutOriginatingTurnInput
+    idempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnUpdateInput = {
@@ -39225,6 +39469,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutOriginatingTurnNestedInput
     providerExecutions?: AssistantProviderExecutionUpdateManyWithoutTurnNestedInput
     clarificationRequests?: ClarificationRequestUpdateManyWithoutOriginatingTurnNestedInput
+    idempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnUncheckedUpdateInput = {
@@ -39244,6 +39489,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutOriginatingTurnNestedInput
     providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutTurnNestedInput
     clarificationRequests?: ClarificationRequestUncheckedUpdateManyWithoutOriginatingTurnNestedInput
+    idempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnCreateManyInput = {
@@ -39519,67 +39765,101 @@ export namespace Prisma {
     id?: string
     operation: string
     key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    updatedAt?: Date | string
     user: UserCreateNestedOneWithoutAssistantIdempotencyRecordsInput
-    draft: AssistantFinancialDraftCreateNestedOneWithoutIdempotencyRecordsInput
+    draft?: AssistantFinancialDraftCreateNestedOneWithoutIdempotencyRecordsInput
+    turn?: AssistantTurnCreateNestedOneWithoutIdempotencyRecordsInput
     transaction?: TransactionCreateNestedOneWithoutAssistantIdempotencyRecordsInput
   }
 
   export type AssistantIdempotencyRecordUncheckedCreateInput = {
     id?: string
     userId: string
-    draftId: string
+    draftId?: string | null
+    turnId?: string | null
     operation: string
     key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     transactionId?: string | null
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AssistantIdempotencyRecordUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     operation?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutAssistantIdempotencyRecordsNestedInput
-    draft?: AssistantFinancialDraftUpdateOneRequiredWithoutIdempotencyRecordsNestedInput
+    draft?: AssistantFinancialDraftUpdateOneWithoutIdempotencyRecordsNestedInput
+    turn?: AssistantTurnUpdateOneWithoutIdempotencyRecordsNestedInput
     transaction?: TransactionUpdateOneWithoutAssistantIdempotencyRecordsNestedInput
   }
 
   export type AssistantIdempotencyRecordUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    draftId?: StringFieldUpdateOperationsInput | string
+    draftId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnId?: NullableStringFieldUpdateOperationsInput | string | null
     operation?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AssistantIdempotencyRecordCreateManyInput = {
     id?: string
     userId: string
-    draftId: string
+    draftId?: string | null
+    turnId?: string | null
     operation: string
     key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     transactionId?: string | null
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AssistantIdempotencyRecordUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     operation?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AssistantIdempotencyRecordUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    draftId?: StringFieldUpdateOperationsInput | string
+    draftId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnId?: NullableStringFieldUpdateOperationsInput | string | null
     operation?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AssistantToolExecutionCreateInput = {
@@ -42449,51 +42729,11 @@ export namespace Prisma {
     _max?: NestedDecimalFilter<$PrismaModel>
   }
 
-  export type AssistantFinancialDraftScalarRelationFilter = {
-    is?: AssistantFinancialDraftWhereInput
-    isNot?: AssistantFinancialDraftWhereInput
-  }
-
-  export type AssistantIdempotencyRecordUserIdKeyCompoundUniqueInput = {
-    userId: string
-    key: string
-  }
-
-  export type AssistantIdempotencyRecordCountOrderByAggregateInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    draftId?: SortOrder
-    operation?: SortOrder
-    key?: SortOrder
-    transactionId?: SortOrder
-    createdAt?: SortOrder
-  }
-
-  export type AssistantIdempotencyRecordMaxOrderByAggregateInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    draftId?: SortOrder
-    operation?: SortOrder
-    key?: SortOrder
-    transactionId?: SortOrder
-    createdAt?: SortOrder
-  }
-
-  export type AssistantIdempotencyRecordMinOrderByAggregateInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    draftId?: SortOrder
-    operation?: SortOrder
-    key?: SortOrder
-    transactionId?: SortOrder
-    createdAt?: SortOrder
-  }
-
-  export type EnumAssistantToolExecutionStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.AssistantToolExecutionStatus | EnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel> | $Enums.AssistantToolExecutionStatus
+  export type EnumAssistantIdempotencyStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantIdempotencyStatus | EnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantIdempotencyStatus[] | ListEnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantIdempotencyStatus[] | ListEnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantIdempotencyStatusFilter<$PrismaModel> | $Enums.AssistantIdempotencyStatus
   }
 
   export type IntNullableFilter<$PrismaModel = never> = {
@@ -42533,6 +42773,126 @@ export namespace Prisma {
   export type AssistantFinancialDraftNullableScalarRelationFilter = {
     is?: AssistantFinancialDraftWhereInput | null
     isNot?: AssistantFinancialDraftWhereInput | null
+  }
+
+  export type AssistantTurnNullableScalarRelationFilter = {
+    is?: AssistantTurnWhereInput | null
+    isNot?: AssistantTurnWhereInput | null
+  }
+
+  export type AssistantIdempotencyRecordUserIdKeyCompoundUniqueInput = {
+    userId: string
+    key: string
+  }
+
+  export type AssistantIdempotencyRecordCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    draftId?: SortOrder
+    turnId?: SortOrder
+    operation?: SortOrder
+    key?: SortOrder
+    status?: SortOrder
+    responseStatus?: SortOrder
+    responseBody?: SortOrder
+    transactionId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AssistantIdempotencyRecordAvgOrderByAggregateInput = {
+    responseStatus?: SortOrder
+  }
+
+  export type AssistantIdempotencyRecordMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    draftId?: SortOrder
+    turnId?: SortOrder
+    operation?: SortOrder
+    key?: SortOrder
+    status?: SortOrder
+    responseStatus?: SortOrder
+    transactionId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AssistantIdempotencyRecordMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    draftId?: SortOrder
+    turnId?: SortOrder
+    operation?: SortOrder
+    key?: SortOrder
+    status?: SortOrder
+    responseStatus?: SortOrder
+    transactionId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AssistantIdempotencyRecordSumOrderByAggregateInput = {
+    responseStatus?: SortOrder
+  }
+
+  export type EnumAssistantIdempotencyStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantIdempotencyStatus | EnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantIdempotencyStatus[] | ListEnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantIdempotencyStatus[] | ListEnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantIdempotencyStatusWithAggregatesFilter<$PrismaModel> | $Enums.AssistantIdempotencyStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantIdempotencyStatusFilter<$PrismaModel>
+    _max?: NestedEnumAssistantIdempotencyStatusFilter<$PrismaModel>
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
+  }
+
+  export type EnumAssistantToolExecutionStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantToolExecutionStatus | EnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel> | $Enums.AssistantToolExecutionStatus
   }
 
   export type AssistantToolExecutionCountOrderByAggregateInput = {
@@ -42606,48 +42966,6 @@ export namespace Prisma {
     _max?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel>
   }
 
-  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
-  }
-  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedJsonNullableFilter<$PrismaModel>
-    _max?: NestedJsonNullableFilter<$PrismaModel>
-  }
-
   export type EnumAssistantProviderExecutionStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.AssistantProviderExecutionStatus | EnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel>
     in?: $Enums.AssistantProviderExecutionStatus[] | ListEnumAssistantProviderExecutionStatusFieldRefInput<$PrismaModel>
@@ -42664,11 +42982,6 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntFilter<$PrismaModel> | number
-  }
-
-  export type AssistantTurnNullableScalarRelationFilter = {
-    is?: AssistantTurnWhereInput | null
-    isNot?: AssistantTurnWhereInput | null
   }
 
   export type AssistantProviderExecutionCountOrderByAggregateInput = {
@@ -45273,6 +45586,13 @@ export namespace Prisma {
     connect?: ClarificationRequestWhereUniqueInput | ClarificationRequestWhereUniqueInput[]
   }
 
+  export type AssistantIdempotencyRecordCreateNestedManyWithoutTurnInput = {
+    create?: XOR<AssistantIdempotencyRecordCreateWithoutTurnInput, AssistantIdempotencyRecordUncheckedCreateWithoutTurnInput> | AssistantIdempotencyRecordCreateWithoutTurnInput[] | AssistantIdempotencyRecordUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantIdempotencyRecordCreateOrConnectWithoutTurnInput | AssistantIdempotencyRecordCreateOrConnectWithoutTurnInput[]
+    createMany?: AssistantIdempotencyRecordCreateManyTurnInputEnvelope
+    connect?: AssistantIdempotencyRecordWhereUniqueInput | AssistantIdempotencyRecordWhereUniqueInput[]
+  }
+
   export type AssistantMessageUncheckedCreateNestedManyWithoutTurnInput = {
     create?: XOR<AssistantMessageCreateWithoutTurnInput, AssistantMessageUncheckedCreateWithoutTurnInput> | AssistantMessageCreateWithoutTurnInput[] | AssistantMessageUncheckedCreateWithoutTurnInput[]
     connectOrCreate?: AssistantMessageCreateOrConnectWithoutTurnInput | AssistantMessageCreateOrConnectWithoutTurnInput[]
@@ -45306,6 +45626,13 @@ export namespace Prisma {
     connectOrCreate?: ClarificationRequestCreateOrConnectWithoutOriginatingTurnInput | ClarificationRequestCreateOrConnectWithoutOriginatingTurnInput[]
     createMany?: ClarificationRequestCreateManyOriginatingTurnInputEnvelope
     connect?: ClarificationRequestWhereUniqueInput | ClarificationRequestWhereUniqueInput[]
+  }
+
+  export type AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutTurnInput = {
+    create?: XOR<AssistantIdempotencyRecordCreateWithoutTurnInput, AssistantIdempotencyRecordUncheckedCreateWithoutTurnInput> | AssistantIdempotencyRecordCreateWithoutTurnInput[] | AssistantIdempotencyRecordUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantIdempotencyRecordCreateOrConnectWithoutTurnInput | AssistantIdempotencyRecordCreateOrConnectWithoutTurnInput[]
+    createMany?: AssistantIdempotencyRecordCreateManyTurnInputEnvelope
+    connect?: AssistantIdempotencyRecordWhereUniqueInput | AssistantIdempotencyRecordWhereUniqueInput[]
   }
 
   export type EnumAssistantTurnStatusFieldUpdateOperationsInput = {
@@ -45390,6 +45717,20 @@ export namespace Prisma {
     deleteMany?: ClarificationRequestScalarWhereInput | ClarificationRequestScalarWhereInput[]
   }
 
+  export type AssistantIdempotencyRecordUpdateManyWithoutTurnNestedInput = {
+    create?: XOR<AssistantIdempotencyRecordCreateWithoutTurnInput, AssistantIdempotencyRecordUncheckedCreateWithoutTurnInput> | AssistantIdempotencyRecordCreateWithoutTurnInput[] | AssistantIdempotencyRecordUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantIdempotencyRecordCreateOrConnectWithoutTurnInput | AssistantIdempotencyRecordCreateOrConnectWithoutTurnInput[]
+    upsert?: AssistantIdempotencyRecordUpsertWithWhereUniqueWithoutTurnInput | AssistantIdempotencyRecordUpsertWithWhereUniqueWithoutTurnInput[]
+    createMany?: AssistantIdempotencyRecordCreateManyTurnInputEnvelope
+    set?: AssistantIdempotencyRecordWhereUniqueInput | AssistantIdempotencyRecordWhereUniqueInput[]
+    disconnect?: AssistantIdempotencyRecordWhereUniqueInput | AssistantIdempotencyRecordWhereUniqueInput[]
+    delete?: AssistantIdempotencyRecordWhereUniqueInput | AssistantIdempotencyRecordWhereUniqueInput[]
+    connect?: AssistantIdempotencyRecordWhereUniqueInput | AssistantIdempotencyRecordWhereUniqueInput[]
+    update?: AssistantIdempotencyRecordUpdateWithWhereUniqueWithoutTurnInput | AssistantIdempotencyRecordUpdateWithWhereUniqueWithoutTurnInput[]
+    updateMany?: AssistantIdempotencyRecordUpdateManyWithWhereWithoutTurnInput | AssistantIdempotencyRecordUpdateManyWithWhereWithoutTurnInput[]
+    deleteMany?: AssistantIdempotencyRecordScalarWhereInput | AssistantIdempotencyRecordScalarWhereInput[]
+  }
+
   export type AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput = {
     create?: XOR<AssistantMessageCreateWithoutTurnInput, AssistantMessageUncheckedCreateWithoutTurnInput> | AssistantMessageCreateWithoutTurnInput[] | AssistantMessageUncheckedCreateWithoutTurnInput[]
     connectOrCreate?: AssistantMessageCreateOrConnectWithoutTurnInput | AssistantMessageCreateOrConnectWithoutTurnInput[]
@@ -45458,6 +45799,20 @@ export namespace Prisma {
     update?: ClarificationRequestUpdateWithWhereUniqueWithoutOriginatingTurnInput | ClarificationRequestUpdateWithWhereUniqueWithoutOriginatingTurnInput[]
     updateMany?: ClarificationRequestUpdateManyWithWhereWithoutOriginatingTurnInput | ClarificationRequestUpdateManyWithWhereWithoutOriginatingTurnInput[]
     deleteMany?: ClarificationRequestScalarWhereInput | ClarificationRequestScalarWhereInput[]
+  }
+
+  export type AssistantIdempotencyRecordUncheckedUpdateManyWithoutTurnNestedInput = {
+    create?: XOR<AssistantIdempotencyRecordCreateWithoutTurnInput, AssistantIdempotencyRecordUncheckedCreateWithoutTurnInput> | AssistantIdempotencyRecordCreateWithoutTurnInput[] | AssistantIdempotencyRecordUncheckedCreateWithoutTurnInput[]
+    connectOrCreate?: AssistantIdempotencyRecordCreateOrConnectWithoutTurnInput | AssistantIdempotencyRecordCreateOrConnectWithoutTurnInput[]
+    upsert?: AssistantIdempotencyRecordUpsertWithWhereUniqueWithoutTurnInput | AssistantIdempotencyRecordUpsertWithWhereUniqueWithoutTurnInput[]
+    createMany?: AssistantIdempotencyRecordCreateManyTurnInputEnvelope
+    set?: AssistantIdempotencyRecordWhereUniqueInput | AssistantIdempotencyRecordWhereUniqueInput[]
+    disconnect?: AssistantIdempotencyRecordWhereUniqueInput | AssistantIdempotencyRecordWhereUniqueInput[]
+    delete?: AssistantIdempotencyRecordWhereUniqueInput | AssistantIdempotencyRecordWhereUniqueInput[]
+    connect?: AssistantIdempotencyRecordWhereUniqueInput | AssistantIdempotencyRecordWhereUniqueInput[]
+    update?: AssistantIdempotencyRecordUpdateWithWhereUniqueWithoutTurnInput | AssistantIdempotencyRecordUpdateWithWhereUniqueWithoutTurnInput[]
+    updateMany?: AssistantIdempotencyRecordUpdateManyWithWhereWithoutTurnInput | AssistantIdempotencyRecordUpdateManyWithWhereWithoutTurnInput[]
+    deleteMany?: AssistantIdempotencyRecordScalarWhereInput | AssistantIdempotencyRecordScalarWhereInput[]
   }
 
   export type AssistantConversationCreateNestedOneWithoutMessagesInput = {
@@ -45638,10 +45993,28 @@ export namespace Prisma {
     connect?: AssistantFinancialDraftWhereUniqueInput
   }
 
+  export type AssistantTurnCreateNestedOneWithoutIdempotencyRecordsInput = {
+    create?: XOR<AssistantTurnCreateWithoutIdempotencyRecordsInput, AssistantTurnUncheckedCreateWithoutIdempotencyRecordsInput>
+    connectOrCreate?: AssistantTurnCreateOrConnectWithoutIdempotencyRecordsInput
+    connect?: AssistantTurnWhereUniqueInput
+  }
+
   export type TransactionCreateNestedOneWithoutAssistantIdempotencyRecordsInput = {
     create?: XOR<TransactionCreateWithoutAssistantIdempotencyRecordsInput, TransactionUncheckedCreateWithoutAssistantIdempotencyRecordsInput>
     connectOrCreate?: TransactionCreateOrConnectWithoutAssistantIdempotencyRecordsInput
     connect?: TransactionWhereUniqueInput
+  }
+
+  export type EnumAssistantIdempotencyStatusFieldUpdateOperationsInput = {
+    set?: $Enums.AssistantIdempotencyStatus
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type UserUpdateOneRequiredWithoutAssistantIdempotencyRecordsNestedInput = {
@@ -45652,12 +46025,24 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAssistantIdempotencyRecordsInput, UserUpdateWithoutAssistantIdempotencyRecordsInput>, UserUncheckedUpdateWithoutAssistantIdempotencyRecordsInput>
   }
 
-  export type AssistantFinancialDraftUpdateOneRequiredWithoutIdempotencyRecordsNestedInput = {
+  export type AssistantFinancialDraftUpdateOneWithoutIdempotencyRecordsNestedInput = {
     create?: XOR<AssistantFinancialDraftCreateWithoutIdempotencyRecordsInput, AssistantFinancialDraftUncheckedCreateWithoutIdempotencyRecordsInput>
     connectOrCreate?: AssistantFinancialDraftCreateOrConnectWithoutIdempotencyRecordsInput
     upsert?: AssistantFinancialDraftUpsertWithoutIdempotencyRecordsInput
+    disconnect?: AssistantFinancialDraftWhereInput | boolean
+    delete?: AssistantFinancialDraftWhereInput | boolean
     connect?: AssistantFinancialDraftWhereUniqueInput
     update?: XOR<XOR<AssistantFinancialDraftUpdateToOneWithWhereWithoutIdempotencyRecordsInput, AssistantFinancialDraftUpdateWithoutIdempotencyRecordsInput>, AssistantFinancialDraftUncheckedUpdateWithoutIdempotencyRecordsInput>
+  }
+
+  export type AssistantTurnUpdateOneWithoutIdempotencyRecordsNestedInput = {
+    create?: XOR<AssistantTurnCreateWithoutIdempotencyRecordsInput, AssistantTurnUncheckedCreateWithoutIdempotencyRecordsInput>
+    connectOrCreate?: AssistantTurnCreateOrConnectWithoutIdempotencyRecordsInput
+    upsert?: AssistantTurnUpsertWithoutIdempotencyRecordsInput
+    disconnect?: AssistantTurnWhereInput | boolean
+    delete?: AssistantTurnWhereInput | boolean
+    connect?: AssistantTurnWhereUniqueInput
+    update?: XOR<XOR<AssistantTurnUpdateToOneWithWhereWithoutIdempotencyRecordsInput, AssistantTurnUpdateWithoutIdempotencyRecordsInput>, AssistantTurnUncheckedUpdateWithoutIdempotencyRecordsInput>
   }
 
   export type TransactionUpdateOneWithoutAssistantIdempotencyRecordsNestedInput = {
@@ -45696,14 +46081,6 @@ export namespace Prisma {
 
   export type EnumAssistantToolExecutionStatusFieldUpdateOperationsInput = {
     set?: $Enums.AssistantToolExecutionStatus
-  }
-
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type AssistantConversationUpdateOneRequiredWithoutToolExecutionsNestedInput = {
@@ -47435,21 +47812,21 @@ export namespace Prisma {
     _max?: NestedDecimalFilter<$PrismaModel>
   }
 
-  export type NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel = never> = {
-    equals?: $Enums.AssistantToolExecutionStatus | EnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel> | $Enums.AssistantToolExecutionStatus
+  export type NestedEnumAssistantIdempotencyStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantIdempotencyStatus | EnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantIdempotencyStatus[] | ListEnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantIdempotencyStatus[] | ListEnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantIdempotencyStatusFilter<$PrismaModel> | $Enums.AssistantIdempotencyStatus
   }
 
-  export type NestedEnumAssistantToolExecutionStatusWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.AssistantToolExecutionStatus | EnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
-    in?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
-    notIn?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
-    not?: NestedEnumAssistantToolExecutionStatusWithAggregatesFilter<$PrismaModel> | $Enums.AssistantToolExecutionStatus
+  export type NestedEnumAssistantIdempotencyStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantIdempotencyStatus | EnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantIdempotencyStatus[] | ListEnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantIdempotencyStatus[] | ListEnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantIdempotencyStatusWithAggregatesFilter<$PrismaModel> | $Enums.AssistantIdempotencyStatus
     _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel>
-    _max?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel>
+    _min?: NestedEnumAssistantIdempotencyStatusFilter<$PrismaModel>
+    _max?: NestedEnumAssistantIdempotencyStatusFilter<$PrismaModel>
   }
 
   export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -47500,6 +47877,23 @@ export namespace Prisma {
     gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantToolExecutionStatus | EnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel> | $Enums.AssistantToolExecutionStatus
+  }
+
+  export type NestedEnumAssistantToolExecutionStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantToolExecutionStatus | EnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantToolExecutionStatus[] | ListEnumAssistantToolExecutionStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantToolExecutionStatusWithAggregatesFilter<$PrismaModel> | $Enums.AssistantToolExecutionStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel>
+    _max?: NestedEnumAssistantToolExecutionStatusFilter<$PrismaModel>
   }
 
   export type NestedEnumAssistantProviderExecutionStatusFilter<$PrismaModel = never> = {
@@ -48361,18 +48755,28 @@ export namespace Prisma {
     id?: string
     operation: string
     key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
-    draft: AssistantFinancialDraftCreateNestedOneWithoutIdempotencyRecordsInput
+    updatedAt?: Date | string
+    draft?: AssistantFinancialDraftCreateNestedOneWithoutIdempotencyRecordsInput
+    turn?: AssistantTurnCreateNestedOneWithoutIdempotencyRecordsInput
     transaction?: TransactionCreateNestedOneWithoutAssistantIdempotencyRecordsInput
   }
 
   export type AssistantIdempotencyRecordUncheckedCreateWithoutUserInput = {
     id?: string
-    draftId: string
+    draftId?: string | null
+    turnId?: string | null
     operation: string
     key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     transactionId?: string | null
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AssistantIdempotencyRecordCreateOrConnectWithoutUserInput = {
@@ -48926,11 +49330,16 @@ export namespace Prisma {
     NOT?: AssistantIdempotencyRecordScalarWhereInput | AssistantIdempotencyRecordScalarWhereInput[]
     id?: StringFilter<"AssistantIdempotencyRecord"> | string
     userId?: StringFilter<"AssistantIdempotencyRecord"> | string
-    draftId?: StringFilter<"AssistantIdempotencyRecord"> | string
+    draftId?: StringNullableFilter<"AssistantIdempotencyRecord"> | string | null
+    turnId?: StringNullableFilter<"AssistantIdempotencyRecord"> | string | null
     operation?: StringFilter<"AssistantIdempotencyRecord"> | string
     key?: StringFilter<"AssistantIdempotencyRecord"> | string
+    status?: EnumAssistantIdempotencyStatusFilter<"AssistantIdempotencyRecord"> | $Enums.AssistantIdempotencyStatus
+    responseStatus?: IntNullableFilter<"AssistantIdempotencyRecord"> | number | null
+    responseBody?: JsonNullableFilter<"AssistantIdempotencyRecord">
     transactionId?: StringNullableFilter<"AssistantIdempotencyRecord"> | string | null
     createdAt?: DateTimeFilter<"AssistantIdempotencyRecord"> | Date | string
+    updatedAt?: DateTimeFilter<"AssistantIdempotencyRecord"> | Date | string
   }
 
   export type AssistantProviderExecutionUpsertWithWhereUniqueWithoutUserInput = {
@@ -49141,6 +49550,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutOriginatingTurnInput
     providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutTurnInput
     clarificationRequests?: ClarificationRequestCreateNestedManyWithoutOriginatingTurnInput
+    idempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnUncheckedCreateWithoutConversationInput = {
@@ -49159,6 +49569,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutOriginatingTurnInput
     providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutTurnInput
     clarificationRequests?: ClarificationRequestUncheckedCreateNestedManyWithoutOriginatingTurnInput
+    idempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnCreateOrConnectWithoutConversationInput = {
@@ -49941,6 +50352,44 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type AssistantIdempotencyRecordCreateWithoutTurnInput = {
+    id?: string
+    operation: string
+    key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutAssistantIdempotencyRecordsInput
+    draft?: AssistantFinancialDraftCreateNestedOneWithoutIdempotencyRecordsInput
+    transaction?: TransactionCreateNestedOneWithoutAssistantIdempotencyRecordsInput
+  }
+
+  export type AssistantIdempotencyRecordUncheckedCreateWithoutTurnInput = {
+    id?: string
+    userId: string
+    draftId?: string | null
+    operation: string
+    key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
+    transactionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AssistantIdempotencyRecordCreateOrConnectWithoutTurnInput = {
+    where: AssistantIdempotencyRecordWhereUniqueInput
+    create: XOR<AssistantIdempotencyRecordCreateWithoutTurnInput, AssistantIdempotencyRecordUncheckedCreateWithoutTurnInput>
+  }
+
+  export type AssistantIdempotencyRecordCreateManyTurnInputEnvelope = {
+    data: AssistantIdempotencyRecordCreateManyTurnInput | AssistantIdempotencyRecordCreateManyTurnInput[]
+    skipDuplicates?: boolean
+  }
+
   export type AssistantConversationUpsertWithoutTurnsInput = {
     update: XOR<AssistantConversationUpdateWithoutTurnsInput, AssistantConversationUncheckedUpdateWithoutTurnsInput>
     create: XOR<AssistantConversationCreateWithoutTurnsInput, AssistantConversationUncheckedCreateWithoutTurnsInput>
@@ -50066,6 +50515,22 @@ export namespace Prisma {
     data: XOR<ClarificationRequestUpdateManyMutationInput, ClarificationRequestUncheckedUpdateManyWithoutOriginatingTurnInput>
   }
 
+  export type AssistantIdempotencyRecordUpsertWithWhereUniqueWithoutTurnInput = {
+    where: AssistantIdempotencyRecordWhereUniqueInput
+    update: XOR<AssistantIdempotencyRecordUpdateWithoutTurnInput, AssistantIdempotencyRecordUncheckedUpdateWithoutTurnInput>
+    create: XOR<AssistantIdempotencyRecordCreateWithoutTurnInput, AssistantIdempotencyRecordUncheckedCreateWithoutTurnInput>
+  }
+
+  export type AssistantIdempotencyRecordUpdateWithWhereUniqueWithoutTurnInput = {
+    where: AssistantIdempotencyRecordWhereUniqueInput
+    data: XOR<AssistantIdempotencyRecordUpdateWithoutTurnInput, AssistantIdempotencyRecordUncheckedUpdateWithoutTurnInput>
+  }
+
+  export type AssistantIdempotencyRecordUpdateManyWithWhereWithoutTurnInput = {
+    where: AssistantIdempotencyRecordScalarWhereInput
+    data: XOR<AssistantIdempotencyRecordUpdateManyMutationInput, AssistantIdempotencyRecordUncheckedUpdateManyWithoutTurnInput>
+  }
+
   export type AssistantConversationCreateWithoutMessagesInput = {
     id?: string
     status?: $Enums.AssistantConversationStatus
@@ -50121,6 +50586,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutOriginatingTurnInput
     providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutTurnInput
     clarificationRequests?: ClarificationRequestCreateNestedManyWithoutOriginatingTurnInput
+    idempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnUncheckedCreateWithoutMessagesInput = {
@@ -50139,6 +50605,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutOriginatingTurnInput
     providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutTurnInput
     clarificationRequests?: ClarificationRequestUncheckedCreateNestedManyWithoutOriginatingTurnInput
+    idempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnCreateOrConnectWithoutMessagesInput = {
@@ -50218,6 +50685,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutOriginatingTurnNestedInput
     providerExecutions?: AssistantProviderExecutionUpdateManyWithoutTurnNestedInput
     clarificationRequests?: ClarificationRequestUpdateManyWithoutOriginatingTurnNestedInput
+    idempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnUncheckedUpdateWithoutMessagesInput = {
@@ -50236,6 +50704,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutOriginatingTurnNestedInput
     providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutTurnNestedInput
     clarificationRequests?: ClarificationRequestUncheckedUpdateManyWithoutOriginatingTurnNestedInput
+    idempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutTurnNestedInput
   }
 
   export type UserCreateWithoutAssistantFinancialDraftsInput = {
@@ -50344,6 +50813,7 @@ export namespace Prisma {
     toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutTurnInput
     providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutTurnInput
     clarificationRequests?: ClarificationRequestCreateNestedManyWithoutOriginatingTurnInput
+    idempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnUncheckedCreateWithoutFinancialDraftsInput = {
@@ -50362,6 +50832,7 @@ export namespace Prisma {
     toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutTurnInput
     providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutTurnInput
     clarificationRequests?: ClarificationRequestUncheckedCreateNestedManyWithoutOriginatingTurnInput
+    idempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnCreateOrConnectWithoutFinancialDraftsInput = {
@@ -50457,18 +50928,28 @@ export namespace Prisma {
     id?: string
     operation: string
     key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    updatedAt?: Date | string
     user: UserCreateNestedOneWithoutAssistantIdempotencyRecordsInput
+    turn?: AssistantTurnCreateNestedOneWithoutIdempotencyRecordsInput
     transaction?: TransactionCreateNestedOneWithoutAssistantIdempotencyRecordsInput
   }
 
   export type AssistantIdempotencyRecordUncheckedCreateWithoutDraftInput = {
     id?: string
     userId: string
+    turnId?: string | null
     operation: string
     key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     transactionId?: string | null
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AssistantIdempotencyRecordCreateOrConnectWithoutDraftInput = {
@@ -50610,6 +51091,7 @@ export namespace Prisma {
     toolExecutions?: AssistantToolExecutionUpdateManyWithoutTurnNestedInput
     providerExecutions?: AssistantProviderExecutionUpdateManyWithoutTurnNestedInput
     clarificationRequests?: ClarificationRequestUpdateManyWithoutOriginatingTurnNestedInput
+    idempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnUncheckedUpdateWithoutFinancialDraftsInput = {
@@ -50628,6 +51110,7 @@ export namespace Prisma {
     toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutTurnNestedInput
     providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutTurnNestedInput
     clarificationRequests?: ClarificationRequestUncheckedUpdateManyWithoutOriginatingTurnNestedInput
+    idempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantToolExecutionUpsertWithoutFinancialDraftInput = {
@@ -50844,6 +51327,49 @@ export namespace Prisma {
     create: XOR<AssistantFinancialDraftCreateWithoutIdempotencyRecordsInput, AssistantFinancialDraftUncheckedCreateWithoutIdempotencyRecordsInput>
   }
 
+  export type AssistantTurnCreateWithoutIdempotencyRecordsInput = {
+    id?: string
+    correlationId: string
+    status?: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
+    messages?: AssistantMessageCreateNestedManyWithoutTurnInput
+    toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutTurnInput
+    financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutOriginatingTurnInput
+    providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutTurnInput
+    clarificationRequests?: ClarificationRequestCreateNestedManyWithoutOriginatingTurnInput
+  }
+
+  export type AssistantTurnUncheckedCreateWithoutIdempotencyRecordsInput = {
+    id?: string
+    conversationId: string
+    correlationId: string
+    status?: $Enums.AssistantTurnStatus
+    intent: string
+    locale: string
+    safeErrorCode?: string | null
+    startedAt?: Date | string
+    finishedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
+    toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutTurnInput
+    financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutOriginatingTurnInput
+    providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutTurnInput
+    clarificationRequests?: ClarificationRequestUncheckedCreateNestedManyWithoutOriginatingTurnInput
+  }
+
+  export type AssistantTurnCreateOrConnectWithoutIdempotencyRecordsInput = {
+    where: AssistantTurnWhereUniqueInput
+    create: XOR<AssistantTurnCreateWithoutIdempotencyRecordsInput, AssistantTurnUncheckedCreateWithoutIdempotencyRecordsInput>
+  }
+
   export type TransactionCreateWithoutAssistantIdempotencyRecordsInput = {
     id?: string
     type: $Enums.TransactionType
@@ -50999,6 +51525,55 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type AssistantTurnUpsertWithoutIdempotencyRecordsInput = {
+    update: XOR<AssistantTurnUpdateWithoutIdempotencyRecordsInput, AssistantTurnUncheckedUpdateWithoutIdempotencyRecordsInput>
+    create: XOR<AssistantTurnCreateWithoutIdempotencyRecordsInput, AssistantTurnUncheckedCreateWithoutIdempotencyRecordsInput>
+    where?: AssistantTurnWhereInput
+  }
+
+  export type AssistantTurnUpdateToOneWithWhereWithoutIdempotencyRecordsInput = {
+    where?: AssistantTurnWhereInput
+    data: XOR<AssistantTurnUpdateWithoutIdempotencyRecordsInput, AssistantTurnUncheckedUpdateWithoutIdempotencyRecordsInput>
+  }
+
+  export type AssistantTurnUpdateWithoutIdempotencyRecordsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
+    messages?: AssistantMessageUpdateManyWithoutTurnNestedInput
+    toolExecutions?: AssistantToolExecutionUpdateManyWithoutTurnNestedInput
+    financialDrafts?: AssistantFinancialDraftUpdateManyWithoutOriginatingTurnNestedInput
+    providerExecutions?: AssistantProviderExecutionUpdateManyWithoutTurnNestedInput
+    clarificationRequests?: ClarificationRequestUpdateManyWithoutOriginatingTurnNestedInput
+  }
+
+  export type AssistantTurnUncheckedUpdateWithoutIdempotencyRecordsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    conversationId?: StringFieldUpdateOperationsInput | string
+    correlationId?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantTurnStatusFieldUpdateOperationsInput | $Enums.AssistantTurnStatus
+    intent?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
+    toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutTurnNestedInput
+    financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutOriginatingTurnNestedInput
+    providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutTurnNestedInput
+    clarificationRequests?: ClarificationRequestUncheckedUpdateManyWithoutOriginatingTurnNestedInput
+  }
+
   export type TransactionUpsertWithoutAssistantIdempotencyRecordsInput = {
     update: XOR<TransactionUpdateWithoutAssistantIdempotencyRecordsInput, TransactionUncheckedUpdateWithoutAssistantIdempotencyRecordsInput>
     create: XOR<TransactionCreateWithoutAssistantIdempotencyRecordsInput, TransactionUncheckedCreateWithoutAssistantIdempotencyRecordsInput>
@@ -51101,6 +51676,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutOriginatingTurnInput
     providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutTurnInput
     clarificationRequests?: ClarificationRequestCreateNestedManyWithoutOriginatingTurnInput
+    idempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnUncheckedCreateWithoutToolExecutionsInput = {
@@ -51119,6 +51695,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutOriginatingTurnInput
     providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutTurnInput
     clarificationRequests?: ClarificationRequestUncheckedCreateNestedManyWithoutOriginatingTurnInput
+    idempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnCreateOrConnectWithoutToolExecutionsInput = {
@@ -51249,6 +51826,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutOriginatingTurnNestedInput
     providerExecutions?: AssistantProviderExecutionUpdateManyWithoutTurnNestedInput
     clarificationRequests?: ClarificationRequestUpdateManyWithoutOriginatingTurnNestedInput
+    idempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnUncheckedUpdateWithoutToolExecutionsInput = {
@@ -51267,6 +51845,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutOriginatingTurnNestedInput
     providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutTurnNestedInput
     clarificationRequests?: ClarificationRequestUncheckedUpdateManyWithoutOriginatingTurnNestedInput
+    idempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantFinancialDraftUpsertWithoutOriginatingExecutionInput = {
@@ -51432,6 +52011,7 @@ export namespace Prisma {
     toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutTurnInput
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutOriginatingTurnInput
     clarificationRequests?: ClarificationRequestCreateNestedManyWithoutOriginatingTurnInput
+    idempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnUncheckedCreateWithoutProviderExecutionsInput = {
@@ -51450,6 +52030,7 @@ export namespace Prisma {
     toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutTurnInput
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutOriginatingTurnInput
     clarificationRequests?: ClarificationRequestUncheckedCreateNestedManyWithoutOriginatingTurnInput
+    idempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnCreateOrConnectWithoutProviderExecutionsInput = {
@@ -51586,6 +52167,7 @@ export namespace Prisma {
     toolExecutions?: AssistantToolExecutionUpdateManyWithoutTurnNestedInput
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutOriginatingTurnNestedInput
     clarificationRequests?: ClarificationRequestUpdateManyWithoutOriginatingTurnNestedInput
+    idempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnUncheckedUpdateWithoutProviderExecutionsInput = {
@@ -51604,6 +52186,7 @@ export namespace Prisma {
     toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutTurnNestedInput
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutOriginatingTurnNestedInput
     clarificationRequests?: ClarificationRequestUncheckedUpdateManyWithoutOriginatingTurnNestedInput
+    idempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutTurnNestedInput
   }
 
   export type UserCreateWithoutClarificationRequestsInput = {
@@ -51712,6 +52295,7 @@ export namespace Prisma {
     toolExecutions?: AssistantToolExecutionCreateNestedManyWithoutTurnInput
     financialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutOriginatingTurnInput
     providerExecutions?: AssistantProviderExecutionCreateNestedManyWithoutTurnInput
+    idempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnUncheckedCreateWithoutClarificationRequestsInput = {
@@ -51730,6 +52314,7 @@ export namespace Prisma {
     toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutTurnInput
     financialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutOriginatingTurnInput
     providerExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutTurnInput
+    idempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutTurnInput
   }
 
   export type AssistantTurnCreateOrConnectWithoutClarificationRequestsInput = {
@@ -51993,6 +52578,7 @@ export namespace Prisma {
     toolExecutions?: AssistantToolExecutionUpdateManyWithoutTurnNestedInput
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutOriginatingTurnNestedInput
     providerExecutions?: AssistantProviderExecutionUpdateManyWithoutTurnNestedInput
+    idempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnUncheckedUpdateWithoutClarificationRequestsInput = {
@@ -52011,6 +52597,7 @@ export namespace Prisma {
     toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutTurnNestedInput
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutOriginatingTurnNestedInput
     providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutTurnNestedInput
+    idempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutTurnNestedInput
   }
 
   export type ClarificationRequestUpsertWithoutChildrenInput = {
@@ -53420,18 +54007,28 @@ export namespace Prisma {
     id?: string
     operation: string
     key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    updatedAt?: Date | string
     user: UserCreateNestedOneWithoutAssistantIdempotencyRecordsInput
-    draft: AssistantFinancialDraftCreateNestedOneWithoutIdempotencyRecordsInput
+    draft?: AssistantFinancialDraftCreateNestedOneWithoutIdempotencyRecordsInput
+    turn?: AssistantTurnCreateNestedOneWithoutIdempotencyRecordsInput
   }
 
   export type AssistantIdempotencyRecordUncheckedCreateWithoutTransactionInput = {
     id?: string
     userId: string
-    draftId: string
+    draftId?: string | null
+    turnId?: string | null
     operation: string
     key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AssistantIdempotencyRecordCreateOrConnectWithoutTransactionInput = {
@@ -56238,11 +56835,16 @@ export namespace Prisma {
 
   export type AssistantIdempotencyRecordCreateManyUserInput = {
     id?: string
-    draftId: string
+    draftId?: string | null
+    turnId?: string | null
     operation: string
     key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     transactionId?: string | null
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AssistantProviderExecutionCreateManyUserInput = {
@@ -56801,27 +57403,42 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     operation?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    draft?: AssistantFinancialDraftUpdateOneRequiredWithoutIdempotencyRecordsNestedInput
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    draft?: AssistantFinancialDraftUpdateOneWithoutIdempotencyRecordsNestedInput
+    turn?: AssistantTurnUpdateOneWithoutIdempotencyRecordsNestedInput
     transaction?: TransactionUpdateOneWithoutAssistantIdempotencyRecordsNestedInput
   }
 
   export type AssistantIdempotencyRecordUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    draftId?: StringFieldUpdateOperationsInput | string
+    draftId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnId?: NullableStringFieldUpdateOperationsInput | string | null
     operation?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AssistantIdempotencyRecordUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    draftId?: StringFieldUpdateOperationsInput | string
+    draftId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnId?: NullableStringFieldUpdateOperationsInput | string | null
     operation?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AssistantProviderExecutionUpdateWithoutUserInput = {
@@ -57145,6 +57762,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftUpdateManyWithoutOriginatingTurnNestedInput
     providerExecutions?: AssistantProviderExecutionUpdateManyWithoutTurnNestedInput
     clarificationRequests?: ClarificationRequestUpdateManyWithoutOriginatingTurnNestedInput
+    idempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnUncheckedUpdateWithoutConversationInput = {
@@ -57163,6 +57781,7 @@ export namespace Prisma {
     financialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutOriginatingTurnNestedInput
     providerExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutTurnNestedInput
     clarificationRequests?: ClarificationRequestUncheckedUpdateManyWithoutOriginatingTurnNestedInput
+    idempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutTurnNestedInput
   }
 
   export type AssistantTurnUncheckedUpdateManyWithoutConversationInput = {
@@ -57582,6 +58201,20 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type AssistantIdempotencyRecordCreateManyTurnInput = {
+    id?: string
+    userId: string
+    draftId?: string | null
+    operation: string
+    key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
+    transactionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type AssistantMessageUpdateWithoutTurnInput = {
     id?: StringFieldUpdateOperationsInput | string
     role?: EnumAssistantMessageRoleFieldUpdateOperationsInput | $Enums.AssistantMessageRole
@@ -57857,40 +58490,102 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type AssistantIdempotencyRecordUpdateWithoutTurnInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    operation?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutAssistantIdempotencyRecordsNestedInput
+    draft?: AssistantFinancialDraftUpdateOneWithoutIdempotencyRecordsNestedInput
+    transaction?: TransactionUpdateOneWithoutAssistantIdempotencyRecordsNestedInput
+  }
+
+  export type AssistantIdempotencyRecordUncheckedUpdateWithoutTurnInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    draftId?: NullableStringFieldUpdateOperationsInput | string | null
+    operation?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantIdempotencyRecordUncheckedUpdateManyWithoutTurnInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    draftId?: NullableStringFieldUpdateOperationsInput | string | null
+    operation?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
+    transactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type AssistantIdempotencyRecordCreateManyDraftInput = {
     id?: string
     userId: string
+    turnId?: string | null
     operation: string
     key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     transactionId?: string | null
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AssistantIdempotencyRecordUpdateWithoutDraftInput = {
     id?: StringFieldUpdateOperationsInput | string
     operation?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutAssistantIdempotencyRecordsNestedInput
+    turn?: AssistantTurnUpdateOneWithoutIdempotencyRecordsNestedInput
     transaction?: TransactionUpdateOneWithoutAssistantIdempotencyRecordsNestedInput
   }
 
   export type AssistantIdempotencyRecordUncheckedUpdateWithoutDraftInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    turnId?: NullableStringFieldUpdateOperationsInput | string | null
     operation?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AssistantIdempotencyRecordUncheckedUpdateManyWithoutDraftInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    turnId?: NullableStringFieldUpdateOperationsInput | string | null
     operation?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ClarificationRequestCreateManyParentInput = {
@@ -58538,37 +59233,57 @@ export namespace Prisma {
   export type AssistantIdempotencyRecordCreateManyTransactionInput = {
     id?: string
     userId: string
-    draftId: string
+    draftId?: string | null
+    turnId?: string | null
     operation: string
     key: string
+    status?: $Enums.AssistantIdempotencyStatus
+    responseStatus?: number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AssistantIdempotencyRecordUpdateWithoutTransactionInput = {
     id?: StringFieldUpdateOperationsInput | string
     operation?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutAssistantIdempotencyRecordsNestedInput
-    draft?: AssistantFinancialDraftUpdateOneRequiredWithoutIdempotencyRecordsNestedInput
+    draft?: AssistantFinancialDraftUpdateOneWithoutIdempotencyRecordsNestedInput
+    turn?: AssistantTurnUpdateOneWithoutIdempotencyRecordsNestedInput
   }
 
   export type AssistantIdempotencyRecordUncheckedUpdateWithoutTransactionInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    draftId?: StringFieldUpdateOperationsInput | string
+    draftId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnId?: NullableStringFieldUpdateOperationsInput | string | null
     operation?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AssistantIdempotencyRecordUncheckedUpdateManyWithoutTransactionInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    draftId?: StringFieldUpdateOperationsInput | string
+    draftId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnId?: NullableStringFieldUpdateOperationsInput | string | null
     operation?: StringFieldUpdateOperationsInput | string
     key?: StringFieldUpdateOperationsInput | string
+    status?: EnumAssistantIdempotencyStatusFieldUpdateOperationsInput | $Enums.AssistantIdempotencyStatus
+    responseStatus?: NullableIntFieldUpdateOperationsInput | number | null
+    responseBody?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TransactionCreateManyInstallmentInput = {

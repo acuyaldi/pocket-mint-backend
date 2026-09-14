@@ -39,13 +39,23 @@ Missing transaction `amount` stays in this provider-text path. Wallet/category `
 
 The provider-audit row is created before the external call. Its terminal update occurs only after the corresponding deterministic/non-tool result is durable. If that metadata-only update fails, the API returns the already-durable result instead of turning a committed draft into a retry-triggering error; the audit row can remain `STARTED` for manual investigation because this phase has no recovery worker.
 
-`POST /messages` has no request-idempotency contract. Each HTTP request invokes the provider at most once and executes a deterministic capability at most once, but two independent or concurrent duplicate submissions are two requests and may create two turns and two pending drafts. Confirmation idempotency is scoped to one draft and does not deduplicate draft creation.
+`POST /messages` accepts an optional request-level `Idempotency-Key` header (Phase 27; same 1–128 ASCII `[A-Za-z0-9_.:-]` format as draft confirm). See "Request-level idempotency" below for the full contract. Telegram does not use this header — its duplicate-execution protection is a separate channel-layer guard (`assistantOperationGuard`, PD-015) that already binds one inbound job to at most one turn.
 
 ## Execute
 
-`POST /execute` accepts `message?`, canonical `intent`, `arguments`, `conversationId?`, and `locale?`. `MAX_ASSISTANT_MESSAGE_LENGTH` is 10,000 characters for every canonical USER or ASSISTANT message, independently of the HTTP body limit. Empty or whitespace-only user messages are absent. Oversized user input returns a safe validation error before any conversation, turn, message, or tool-execution row is created; input is never truncated. When a message is absent, the backend persists a fallback constructed only after arguments validate. Deterministic output and persistence-service writes are checked against the same limit. Successful and post-resolution error responses contain `conversationId`, `turnId`, and the server-generated `correlationId`.
+`POST /execute` accepts `message?`, canonical `intent`, `arguments`, `conversationId?`, `locale?`, and the same optional `Idempotency-Key` header as `/messages` (Phase 27). `MAX_ASSISTANT_MESSAGE_LENGTH` is 10,000 characters for every canonical USER or ASSISTANT message, independently of the HTTP body limit. Empty or whitespace-only user messages are absent. Oversized user input returns a safe validation error before any conversation, turn, message, or tool-execution row is created; input is never truncated. When a message is absent, the backend persists a fallback constructed only after arguments validate. Deterministic output and persistence-service writes are checked against the same limit. Successful and post-resolution error responses contain `conversationId`, `turnId`, and the server-generated `correlationId`.
 
 Unknown and cross-user conversation IDs return the same not-found response. Archived or expired conversations cannot be continued.
+
+### Request-level idempotency (Phase 27)
+
+Draft confirm's idempotency contract (see "Financial transaction drafts" below) is draft-scoped and does not cover the two endpoints that create a turn in the first place. `POST /messages` and `POST /execute` each accept the same optional `Idempotency-Key` header format — 1–128 ASCII letters, digits, `_`, `.`, `:`, or `-` — scoped independently per endpoint operation (a key used on `/execute` cannot be reused on `/messages`, and vice versa; reuse across operations returns `409 ASSISTANT_IDEMPOTENCY_CONFLICT`).
+
+Omitting the header reproduces the exact pre-Phase-27 behavior: no deduplication, a fresh turn (and, for `transaction.create`, a fresh draft) on every call. This keeps every existing caller — including Telegram, which never sends this header — unaffected.
+
+When the header is present, the first request with a given key claims it immediately (an insert-first-wins record, not a database lock held across the request) and proceeds normally. Because `/messages` can hold an outbound provider call open for seconds, no lock is held across that work — a concurrent or retried request with the same key while the first is still in flight returns `409 ASSISTANT_REQUEST_IN_PROGRESS` rather than blocking or starting a second turn. A request received after the first has completed replays the original response verbatim (same HTTP status and body, including `conversationId`/`turnId`) instead of executing anything again. A malformed key is rejected with `400 ASSISTANT_INVALID_IDEMPOTENCY_KEY` before any conversation, turn, or draft row is created.
+
+A claimed key that fails synchronously — a business-level error raised before any turn is created, e.g. an already-archived `conversationId` — releases the claim immediately rather than leaving it in progress, so the caller's next attempt with the same key is evaluated fresh instead of hitting `409 ASSISTANT_REQUEST_IN_PROGRESS` forever. Only an actual interrupted process (a crash between claiming the key and recording its outcome — resolved or released) leaves that key's record showing in-progress indefinitely — the same fail-closed gap `assistantOperationGuard`'s `ambiguous` outcome already accepts at the channel layer. There is no recovery worker or automatic expiry for that case in this phase; see "Conversation state and recovery" for how a client discovers this state without guessing.
 
 ## List and history
 
@@ -58,9 +68,13 @@ Unsupported intents and malformed arguments establish a durable rejected turn wi
 
 A `RUNNING` turn is durable execution state, not evidence that a process is still active and not a completed response. If a tool succeeds but final persistence does not, the API does not return success and retrieval continues to show the incomplete `RUNNING` lifecycle. Phase 21.3 does not retry, reconcile, or automatically recover stale records. Correlation IDs on structured logs and lifecycle records support investigation; raw financial results are not logged. Mutation retry remains forbidden until Phase 21.4 provides idempotency.
 
-## Archive
+## Archive, restore, and delete
 
-`POST /conversations/:conversationId/archive` is ownership-scoped and idempotent. It does not delete messages, execution history, or finance data. Phase 21.3 has no permanent deletion or automatic expiration job.
+`POST /conversations/:conversationId/archive` is ownership-scoped and idempotent. It does not delete messages, execution history, or finance data.
+
+`POST /conversations/:conversationId/restore` is ownership-scoped and idempotent — it reverses `archive`, setting the conversation back to `ACTIVE` and clearing `archivedAt` so it can be continued again. An `EXPIRED` conversation cannot be restored, mirroring `archive`'s own continuation check.
+
+`DELETE /conversations/:conversationId` is ownership-scoped and permanently removes the conversation and its own Assistant rows (messages, turns, tool executions, financial drafts, provider executions, clarification requests) via schema-declared cascades. `ChannelConnection.conversationId` and `Transaction.conversationId` are `onDelete: SetNull`, so channel links and authoritative finance rows are never cascaded away — deleting Assistant history never deletes a transaction. There is no automatic expiration job; deletion is always explicit and user-initiated.
 
 Assistant records are historical snapshots of what was presented. Finance-domain tables remain authoritative current truth.
 
@@ -200,4 +214,6 @@ Cancelling creates no child clarification and no draft.
 
 ### Conversation state and recovery
 
-The bounded `assistantState` projection returned with conversation reads exposes at most one active clarification (safe labels and optional discriminators only — no tokens, digests, or candidate IDs), one pending draft preview, and the most recent terminal clarification outcome (status and `terminalCode` when applicable). If a User loses an issued option token, conversation state cannot recover or reissue it; the only path forward is cancelling (or waiting for expiry) and letting a new request re-resolve the ambiguity from scratch.
+The bounded `assistantState` projection returned with conversation reads exposes at most one active clarification (safe labels and optional discriminators only — no tokens, digests, or candidate IDs), one pending draft preview, the most recent terminal clarification outcome (status and `terminalCode` when applicable), and — since Phase 27 — at most one `activeTurn` (`turnId`, `intent`, `startedAt`) when a turn on this conversation is still `RUNNING`. If a User loses an issued option token, conversation state cannot recover or reissue it; the only path forward is cancelling (or waiting for expiry) and letting a new request re-resolve the ambiguity from scratch.
+
+`activeTurn` exists so a Web client that lost its connection mid-request (rather than merely retrying) has something authoritative to check before resubmitting: `GET /conversations/:conversationId/recovery-state` surfaces the same `RUNNING` turn independently of whether the original request used an `Idempotency-Key`, so recovery does not depend on the client having kept one. It reflects the same fail-closed limitation as the idempotency claim itself — a crashed process leaves the turn `RUNNING` (and therefore `activeTurn` populated) with no automatic recovery in this phase.

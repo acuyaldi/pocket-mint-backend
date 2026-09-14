@@ -112,7 +112,37 @@ function createAssistantApplicationService(deps) {
         return fallback.kind === 'resolved' ? fallback.entity.internalId : undefined;
     }
     // ---- Main execute ---------------------------------------------------------
-    async function execute(userId, correlationId, request) {
+    /**
+     * Request-level idempotency for Web (Phase 27) — Telegram is already covered by
+     * assistantOperationGuard at the channel layer. `idempotencyKey` is optional and
+     * omitted by internal callers (e.g. provider-runtime's nested call after its own
+     * message-level key already governs the whole turn) — omitting it reproduces the
+     * pre-Phase-27 behavior exactly (no dedup, a fresh turn every call).
+     */
+    async function execute(userId, correlationId, request, idempotencyKey) {
+        if (idempotencyKey !== undefined) {
+            const claim = await deps.conversations.claimIdempotencyKey(userId, idempotencyKey, 'assistant.execute');
+            if (claim.outcome === 'in_progress')
+                throw errors_1.AssistantError.requestInProgress();
+            if (claim.outcome === 'replay')
+                return { httpStatus: claim.httpStatus, response: claim.response, idempotencyOutcome: 'replay' };
+        }
+        let result;
+        try {
+            result = await executeInner(userId, correlationId, request);
+        }
+        catch (error) {
+            if (idempotencyKey !== undefined)
+                await deps.conversations.releaseIdempotencyKey(userId, idempotencyKey);
+            throw error;
+        }
+        if (idempotencyKey !== undefined) {
+            await deps.conversations.resolveIdempotencyKey(userId, idempotencyKey, { httpStatus: result.httpStatus, response: result.response, turnId: result.response.turnId });
+            return { ...result, idempotencyOutcome: 'new' };
+        }
+        return result;
+    }
+    async function executeInner(userId, correlationId, request) {
         const locale = request.locale?.trim() || 'id-ID';
         if (request.conversationId)
             await deps.conversations.assertContinuable(userId, request.conversationId);

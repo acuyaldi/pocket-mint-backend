@@ -184,7 +184,7 @@ describe('POST /v1/assistant/execute — input validation', () => {
     // Should succeed (extra fields ignored) but handler receives trusted userId
     expect(res.status).toBe(200);
     // Verify the handler was called with the trusted userId, not the spoofed one
-    expect(h.execute).toHaveBeenCalledWith(USER, expect.any(String), expect.objectContaining({ arguments: expect.objectContaining({ userId: 'hacker' }) }));
+    expect(h.execute).toHaveBeenCalledWith(USER, expect.any(String), expect.objectContaining({ arguments: expect.objectContaining({ userId: 'hacker' }) }), undefined);
   });
 });
 

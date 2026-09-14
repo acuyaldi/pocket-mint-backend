@@ -111,7 +111,7 @@ function createAssistantControllers(application, conversations, drafts, provider
             if (!canonicalRequest(req.body))
                 return (0, response_1.sendError)(res, 'Request body must include a string "intent" field and valid optional fields', 400, 'BAD_REQUEST');
             (0, logger_1.logEvent)('info', { event: 'assistant.message.received', requestId: req.correlationId, operation: 'execute' });
-            const result = await application.execute(userId, req.correlationId, req.body);
+            const { idempotencyOutcome, ...result } = await application.execute(userId, req.correlationId, req.body, req.header('Idempotency-Key'));
             (0, logger_1.logEvent)('info', {
                 event: 'assistant.message.completed',
                 requestId: req.correlationId,
@@ -121,6 +121,8 @@ function createAssistantControllers(application, conversations, drafts, provider
                 durationMs: elapsed(),
                 clarificationRequired: result.response.status === 'clarification_required',
                 draftCreated: draftWasCreated(result.response),
+                idempotencyOutcome,
+                idempotentReplay: idempotencyOutcome === 'replay',
             });
             if (result.response.status === 'success')
                 return (0, response_1.sendSuccess)(res, result.response, 'Assistant executed successfully');
@@ -143,11 +145,11 @@ function createAssistantControllers(application, conversations, drafts, provider
                 return (0, response_1.sendError)(res, 'Request body must include a non-empty string "message" and an optional string "conversationId"', 400, 'BAD_REQUEST');
             }
             (0, logger_1.logEvent)('info', { event: 'assistant.message.received', requestId: req.correlationId, operation: 'messages' });
-            const result = await providerRuntime.sendMessage(userId, req.correlationId, {
+            const { idempotencyOutcome, ...result } = await providerRuntime.sendMessage(userId, req.correlationId, {
                 message: req.body.message,
                 ...(req.body.conversationId === undefined ? {} : { conversationId: req.body.conversationId }),
                 ...(req.body.locale === undefined ? {} : { locale: req.body.locale }),
-            });
+            }, req.header('Idempotency-Key'));
             (0, logger_1.logEvent)('info', {
                 event: 'assistant.message.completed',
                 requestId: req.correlationId,
@@ -157,6 +159,8 @@ function createAssistantControllers(application, conversations, drafts, provider
                 durationMs: elapsed(),
                 clarificationRequired: result.response.status === 'clarification_required',
                 draftCreated: draftWasCreated(result.response),
+                idempotencyOutcome,
+                idempotentReplay: idempotencyOutcome === 'replay',
             });
             if (result.response.status === 'error' || result.response.status === 'rejected') {
                 return void res.status(result.httpStatus).json({
@@ -209,7 +213,8 @@ function createAssistantControllers(application, conversations, drafts, provider
             const hasActiveClarification = Boolean(state.activeClarification);
             const hasPendingDraft = Boolean(state.pendingDraft);
             const hasTerminalClarification = Boolean(state.latestTerminalClarification);
-            const resolved = hasActiveClarification || hasPendingDraft || hasTerminalClarification;
+            const hasActiveTurn = Boolean(state.activeTurn);
+            const resolved = hasActiveClarification || hasPendingDraft || hasTerminalClarification || hasActiveTurn;
             (0, logger_1.logEvent)('info', {
                 event: resolved ? 'assistant.recovery.resolved' : 'assistant.recovery.unresolved',
                 requestId: req.correlationId,
@@ -217,6 +222,7 @@ function createAssistantControllers(application, conversations, drafts, provider
                 hasActiveClarification,
                 hasPendingDraft,
                 hasTerminalClarification,
+                hasActiveTurn,
             });
             (0, response_1.sendSuccess)(res, state);
         }

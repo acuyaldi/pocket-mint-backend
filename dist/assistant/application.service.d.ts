@@ -12,6 +12,8 @@ type TxClient = Prisma.TransactionClient;
 export interface AssistantApplicationResult {
     response: AssistantCanonicalResponse;
     httpStatus: number;
+    /** Present only when the caller supplied an Idempotency-Key (Phase 27). Log-only — never sent to the client. */
+    idempotencyOutcome?: 'new' | 'replay';
 }
 export declare function createAssistantApplicationService(deps: {
     conversations: AssistantConversationService;
@@ -28,7 +30,7 @@ export declare function createAssistantApplicationService(deps: {
         }): Promise<readonly CategorySuggestion[]>;
     };
 }): {
-    execute: (userId: string, correlationId: string, request: AssistantCanonicalRequest) => Promise<AssistantApplicationResult>;
+    execute: (userId: string, correlationId: string, request: AssistantCanonicalRequest, idempotencyKey?: string) => Promise<AssistantApplicationResult>;
     prepareProviderExecution: (input: BuildAssistantExecutionContextInput) => Promise<import("./context.types").AssistantContext>;
     selectClarification: (userId: string, correlationId: string, token: string, conversationId: string, clarificationId?: string) => Promise<AssistantApplicationResult>;
     submitGuidedClarification: (userId: string, correlationId: string, fields: Record<string, unknown>, conversationId: string, clarificationId: string) => Promise<AssistantApplicationResult>;

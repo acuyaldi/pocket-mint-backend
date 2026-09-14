@@ -342,7 +342,7 @@ function createClarificationService(db) {
     }
     // ---- State projection ------------------------------------------------------
     async function getAssistantState(userId, conversationId) {
-        const [activeRequest, pendingDraft, latestTerminal] = await Promise.all([
+        const [activeRequest, pendingDraft, latestTerminal, runningTurn] = await Promise.all([
             db.clarificationRequest.findFirst({
                 where: { conversationId, userId, status: 'PENDING' },
                 include: { options: true },
@@ -371,6 +371,14 @@ function createClarificationService(db) {
                     status: { in: ['CONSUMED', 'CANCELLED', 'STALE'] },
                 },
                 orderBy: { updatedAt: 'desc' },
+            }),
+            // Conversation ownership is already asserted by the caller (see
+            // assistant.controller.ts's recoveryState) — assistantTurn has no
+            // userId column of its own, so conversationId scoping is sufficient here.
+            db.assistantTurn.findFirst({
+                where: { conversationId, status: 'RUNNING' },
+                orderBy: { startedAt: 'desc' },
+                select: { id: true, intent: true, startedAt: true },
             }),
         ]);
         const activeClarification = activeRequest ? {
@@ -404,10 +412,16 @@ function createClarificationService(db) {
             ...(latestTerminal.terminalCode ? { terminalCode: latestTerminal.terminalCode } : {}),
             restartRequired: latestTerminal.restartRequired,
         } : undefined;
+        const activeTurn = runningTurn ? {
+            turnId: runningTurn.id,
+            intent: runningTurn.intent,
+            startedAt: runningTurn.startedAt.toISOString(),
+        } : undefined;
         return {
             ...(activeClarification ? { activeClarification } : {}),
             ...(safeDraft ? { pendingDraft: safeDraft } : {}),
             ...(terminal ? { latestTerminalClarification: terminal } : {}),
+            ...(activeTurn ? { activeTurn } : {}),
         };
     }
     // ---- Sequential continuation -----------------------------------------------
