@@ -21,6 +21,20 @@ async function markSucceeded(db, jobId) {
         data: { status: 'SUCCEEDED', completedAt: new Date(), leaseOwner: null, leaseExpiresAt: null },
     });
 }
+/**
+ * Phase 30 channel attribution — best-effort only, never blocks reply
+ * delivery. Idempotent (re-stamping TELEGRAM on a replay is a no-op change).
+ */
+async function stampTelegramChannel(db, turnId, correlationId) {
+    if (!turnId)
+        return;
+    try {
+        await db.assistantTurn.update({ where: { id: turnId }, data: { channel: 'TELEGRAM' } });
+    }
+    catch (error) {
+        (0, logger_1.logEvent)('warn', { event: 'channel.turn_attribution_failed', requestId: correlationId, provider: 'telegram', errorCategory: (0, errorCategory_1.categorizeError)(error) });
+    }
+}
 async function markFailed(db, job, category, maxAttempts, backoff) {
     const decision = (0, retry_1.decideRetry)(category, job.attempt, maxAttempts, backoff);
     await db.channelInboundJob.update({
@@ -116,6 +130,7 @@ async function processCallbackJob(deps, job, correlationId) {
             clearOriginalKeyboard = result.clearOriginalKeyboard;
             if (result.keyboard)
                 keyboard = (0, keyboardRenderer_1.renderInlineKeyboard)(result.keyboard);
+            await stampTelegramChannel(deps.db, result.turnId, correlationId);
             await (0, assistantOperationGuard_1.completeCallbackOperation)(deps.db, operationId, terminalStatus, replyText);
             (0, logger_1.logEvent)('info', {
                 event: 'channel.callback.completed',
@@ -235,6 +250,7 @@ async function processJob(deps, job, correlationId) {
             await (0, assistantOperationGuard_1.completeAssistantOperation)(deps.db, operationId, turnId, replyText);
         }
         await deps.db.channelInboundJob.update({ where: { id: job.id }, data: { assistantTurnId: turnId } });
+        await stampTelegramChannel(deps.db, turnId, correlationId);
         await ensureOutboundDelivery(deps.db, job, replyText, keyboard);
         await markSucceeded(deps.db, job.id);
         (0, logger_1.logEvent)('info', { event: 'channel.inbound.completed', requestId: correlationId, provider: 'telegram', attempt: job.attempt });

@@ -54,6 +54,7 @@ export declare function createAssistantConversationService(db: PrismaClient): {
             createdAt: Date;
             updatedAt: Date;
             lastActivityAt: Date;
+            sourceChannels: import("@/generated/prisma").$Enums.AssistantChannel[];
         };
         messages: {
             items: ConversationMessageDto[];
@@ -70,6 +71,7 @@ export declare function createAssistantConversationService(db: PrismaClient): {
             safeErrorCode: string | null;
             intent: string;
             finishedAt: Date | null;
+            channel: import("@/generated/prisma").$Enums.AssistantChannel;
             toolExecutions: {
                 durationMs: number | null;
                 id: string;

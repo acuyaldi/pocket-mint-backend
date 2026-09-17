@@ -50,6 +50,7 @@ export declare const assistantConversationService: {
             createdAt: Date;
             updatedAt: Date;
             lastActivityAt: Date;
+            sourceChannels: import("@/generated/prisma").$Enums.AssistantChannel[];
         };
         messages: {
             items: import("./conversation.types").ConversationMessageDto[];
@@ -66,6 +67,7 @@ export declare const assistantConversationService: {
             safeErrorCode: string | null;
             intent: string;
             finishedAt: Date | null;
+            channel: import("@/generated/prisma").$Enums.AssistantChannel;
             toolExecutions: {
                 durationMs: number | null;
                 id: string;

@@ -1,4 +1,4 @@
-import type { AssistantMessageRole, AssistantMessageSource, AssistantToolExecutionStatus, AssistantTurnStatus, Prisma } from '../generated/prisma/client';
+import type { AssistantChannel, AssistantMessageRole, AssistantMessageSource, AssistantToolExecutionStatus, AssistantTurnStatus, Prisma } from '../generated/prisma/client';
 
 export interface BeginTurnInput {
   userId: string;
@@ -22,6 +22,12 @@ export interface ConversationSummaryDto {
   /** First USER-authored message — the original request that started the conversation. Used as the display title. */
   title?: string;
   lastMessage?: string;
+  /**
+   * Distinct channels that produced at least one turn in this conversation
+   * (Phase 30). Never carries provider identifiers — only the safe
+   * `AssistantChannel` label. Empty for a conversation with no turns yet.
+   */
+  sourceChannels: AssistantChannel[];
 }
 
 export interface ConversationMessageDto {

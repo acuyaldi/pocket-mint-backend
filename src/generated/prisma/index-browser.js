@@ -150,6 +150,7 @@ exports.Prisma.AssistantTurnScalarFieldEnum = {
   safeErrorCode: 'safeErrorCode',
   startedAt: 'startedAt',
   finishedAt: 'finishedAt',
+  channel: 'channel',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -555,6 +556,11 @@ exports.AssistantTurnStatus = exports.$Enums.AssistantTurnStatus = {
   FAILED: 'FAILED',
   REJECTED: 'REJECTED',
   CLARIFICATION_REQUIRED: 'CLARIFICATION_REQUIRED'
+};
+
+exports.AssistantChannel = exports.$Enums.AssistantChannel = {
+  WEB: 'WEB',
+  TELEGRAM: 'TELEGRAM'
 };
 
 exports.AssistantMessageRole = exports.$Enums.AssistantMessageRole = {

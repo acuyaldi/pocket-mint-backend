@@ -101,6 +101,7 @@ async function renderApplicationResult(db, connectionId, conversationId, result)
             replyText: response.data.clarification.prompt ?? response.message ?? 'Please choose one option.',
             keyboard: { rows: buttons.map((b) => [b]) },
             clearOriginalKeyboard: true,
+            turnId: response.turnId,
         };
     }
     if (response.status === 'clarification_required' && response.data?.kind === 'guided_fields') {
@@ -108,6 +109,7 @@ async function renderApplicationResult(db, connectionId, conversationId, result)
             terminalStatus: 'guided_fields_handoff',
             replyText: response.message ?? 'Please continue in the Pocket Mint web app to complete this clarification.',
             clearOriginalKeyboard: true,
+            turnId: response.turnId,
         };
     }
     if (response.status === 'success' && response.data?.draftId) {
@@ -117,12 +119,13 @@ async function renderApplicationResult(db, connectionId, conversationId, result)
             replyText: response.renderedText ?? 'A transaction draft is ready for confirmation.',
             keyboard: { rows: [buttons] },
             clearOriginalKeyboard: true,
+            turnId: response.turnId,
         };
     }
     if (response.status === 'success') {
-        return { terminalStatus: 'success', replyText: response.message ?? response.renderedText ?? 'Done.', clearOriginalKeyboard: true };
+        return { terminalStatus: 'success', replyText: response.message ?? response.renderedText ?? 'Done.', clearOriginalKeyboard: true, turnId: response.turnId };
     }
-    return { terminalStatus: 'failed', replyText: response.message ?? 'This action could not be completed.', clearOriginalKeyboard: true };
+    return { terminalStatus: 'failed', replyText: response.message ?? 'This action could not be completed.', clearOriginalKeyboard: true, turnId: response.turnId };
 }
 /**
  * The single entry point for a CALLBACK job. Re-derives every piece of

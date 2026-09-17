@@ -40,6 +40,19 @@ async function markSucceeded(db: PrismaClient, jobId: string): Promise<void> {
   });
 }
 
+/**
+ * Phase 30 channel attribution — best-effort only, never blocks reply
+ * delivery. Idempotent (re-stamping TELEGRAM on a replay is a no-op change).
+ */
+async function stampTelegramChannel(db: PrismaClient, turnId: string | undefined, correlationId: string): Promise<void> {
+  if (!turnId) return;
+  try {
+    await db.assistantTurn.update({ where: { id: turnId }, data: { channel: 'TELEGRAM' } });
+  } catch (error) {
+    logEvent('warn', { event: 'channel.turn_attribution_failed', requestId: correlationId, provider: 'telegram', errorCategory: categorizeError(error) });
+  }
+}
+
 async function markFailed(
   db: PrismaClient,
   job: ClaimedInboundJob,
@@ -146,6 +159,7 @@ async function processCallbackJob(deps: InboundWorkerDeps, job: ClaimedInboundJo
       replyText = result.replyText;
       clearOriginalKeyboard = result.clearOriginalKeyboard;
       if (result.keyboard) keyboard = renderInlineKeyboard(result.keyboard);
+      await stampTelegramChannel(deps.db, result.turnId, correlationId);
       await completeCallbackOperation(deps.db, operationId, terminalStatus, replyText);
       logEvent('info', {
         event: 'channel.callback.completed',
@@ -283,6 +297,7 @@ export async function processJob(deps: InboundWorkerDeps, job: ClaimedInboundJob
     }
 
     await deps.db.channelInboundJob.update({ where: { id: job.id }, data: { assistantTurnId: turnId } });
+    await stampTelegramChannel(deps.db, turnId, correlationId);
     await ensureOutboundDelivery(deps.db, job, replyText, keyboard);
     await markSucceeded(deps.db, job.id);
     logEvent('info', { event: 'channel.inbound.completed', requestId: correlationId, provider: 'telegram', attempt: job.attempt });

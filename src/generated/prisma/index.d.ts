@@ -173,6 +173,14 @@ export const AssistantMessageRole: {
 export type AssistantMessageRole = (typeof AssistantMessageRole)[keyof typeof AssistantMessageRole]
 
 
+export const AssistantChannel: {
+  WEB: 'WEB',
+  TELEGRAM: 'TELEGRAM'
+};
+
+export type AssistantChannel = (typeof AssistantChannel)[keyof typeof AssistantChannel]
+
+
 export const AssistantMessageSource: {
   USER_PROVIDED: 'USER_PROVIDED',
   CANONICAL_FALLBACK: 'CANONICAL_FALLBACK',
@@ -412,6 +420,10 @@ export const AssistantTurnStatus: typeof $Enums.AssistantTurnStatus
 export type AssistantMessageRole = $Enums.AssistantMessageRole
 
 export const AssistantMessageRole: typeof $Enums.AssistantMessageRole
+
+export type AssistantChannel = $Enums.AssistantChannel
+
+export const AssistantChannel: typeof $Enums.AssistantChannel
 
 export type AssistantMessageSource = $Enums.AssistantMessageSource
 
@@ -6928,6 +6940,7 @@ export namespace Prisma {
     safeErrorCode: string | null
     startedAt: Date | null
     finishedAt: Date | null
+    channel: $Enums.AssistantChannel | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -6942,6 +6955,7 @@ export namespace Prisma {
     safeErrorCode: string | null
     startedAt: Date | null
     finishedAt: Date | null
+    channel: $Enums.AssistantChannel | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -6956,6 +6970,7 @@ export namespace Prisma {
     safeErrorCode: number
     startedAt: number
     finishedAt: number
+    channel: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -6972,6 +6987,7 @@ export namespace Prisma {
     safeErrorCode?: true
     startedAt?: true
     finishedAt?: true
+    channel?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -6986,6 +7002,7 @@ export namespace Prisma {
     safeErrorCode?: true
     startedAt?: true
     finishedAt?: true
+    channel?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -7000,6 +7017,7 @@ export namespace Prisma {
     safeErrorCode?: true
     startedAt?: true
     finishedAt?: true
+    channel?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -7087,6 +7105,7 @@ export namespace Prisma {
     safeErrorCode: string | null
     startedAt: Date
     finishedAt: Date | null
+    channel: $Enums.AssistantChannel
     createdAt: Date
     updatedAt: Date
     _count: AssistantTurnCountAggregateOutputType | null
@@ -7118,6 +7137,7 @@ export namespace Prisma {
     safeErrorCode?: boolean
     startedAt?: boolean
     finishedAt?: boolean
+    channel?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
@@ -7140,6 +7160,7 @@ export namespace Prisma {
     safeErrorCode?: boolean
     startedAt?: boolean
     finishedAt?: boolean
+    channel?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
@@ -7155,6 +7176,7 @@ export namespace Prisma {
     safeErrorCode?: boolean
     startedAt?: boolean
     finishedAt?: boolean
+    channel?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
@@ -7170,11 +7192,12 @@ export namespace Prisma {
     safeErrorCode?: boolean
     startedAt?: boolean
     finishedAt?: boolean
+    channel?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type AssistantTurnOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "conversationId" | "correlationId" | "status" | "intent" | "locale" | "safeErrorCode" | "startedAt" | "finishedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["assistantTurn"]>
+  export type AssistantTurnOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "conversationId" | "correlationId" | "status" | "intent" | "locale" | "safeErrorCode" | "startedAt" | "finishedAt" | "channel" | "createdAt" | "updatedAt", ExtArgs["result"]["assistantTurn"]>
   export type AssistantTurnInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
     messages?: boolean | AssistantTurn$messagesArgs<ExtArgs>
@@ -7213,6 +7236,7 @@ export namespace Prisma {
       safeErrorCode: string | null
       startedAt: Date
       finishedAt: Date | null
+      channel: $Enums.AssistantChannel
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["assistantTurn"]>
@@ -7654,6 +7678,7 @@ export namespace Prisma {
     readonly safeErrorCode: FieldRef<"AssistantTurn", 'String'>
     readonly startedAt: FieldRef<"AssistantTurn", 'DateTime'>
     readonly finishedAt: FieldRef<"AssistantTurn", 'DateTime'>
+    readonly channel: FieldRef<"AssistantTurn", 'AssistantChannel'>
     readonly createdAt: FieldRef<"AssistantTurn", 'DateTime'>
     readonly updatedAt: FieldRef<"AssistantTurn", 'DateTime'>
   }
@@ -35681,6 +35706,7 @@ export namespace Prisma {
     safeErrorCode: 'safeErrorCode',
     startedAt: 'startedAt',
     finishedAt: 'finishedAt',
+    channel: 'channel',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -36219,6 +36245,20 @@ export namespace Prisma {
    * Reference to a field of type 'AssistantTurnStatus[]'
    */
   export type ListEnumAssistantTurnStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantTurnStatus[]'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantChannel'
+   */
+  export type EnumAssistantChannelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantChannel'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantChannel[]'
+   */
+  export type ListEnumAssistantChannelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantChannel[]'>
 
 
 
@@ -36844,6 +36884,7 @@ export namespace Prisma {
     safeErrorCode?: StringNullableFilter<"AssistantTurn"> | string | null
     startedAt?: DateTimeFilter<"AssistantTurn"> | Date | string
     finishedAt?: DateTimeNullableFilter<"AssistantTurn"> | Date | string | null
+    channel?: EnumAssistantChannelFilter<"AssistantTurn"> | $Enums.AssistantChannel
     createdAt?: DateTimeFilter<"AssistantTurn"> | Date | string
     updatedAt?: DateTimeFilter<"AssistantTurn"> | Date | string
     conversation?: XOR<AssistantConversationScalarRelationFilter, AssistantConversationWhereInput>
@@ -36865,6 +36906,7 @@ export namespace Prisma {
     safeErrorCode?: SortOrderInput | SortOrder
     startedAt?: SortOrder
     finishedAt?: SortOrderInput | SortOrder
+    channel?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     conversation?: AssistantConversationOrderByWithRelationInput
@@ -36889,6 +36931,7 @@ export namespace Prisma {
     safeErrorCode?: StringNullableFilter<"AssistantTurn"> | string | null
     startedAt?: DateTimeFilter<"AssistantTurn"> | Date | string
     finishedAt?: DateTimeNullableFilter<"AssistantTurn"> | Date | string | null
+    channel?: EnumAssistantChannelFilter<"AssistantTurn"> | $Enums.AssistantChannel
     createdAt?: DateTimeFilter<"AssistantTurn"> | Date | string
     updatedAt?: DateTimeFilter<"AssistantTurn"> | Date | string
     conversation?: XOR<AssistantConversationScalarRelationFilter, AssistantConversationWhereInput>
@@ -36910,6 +36953,7 @@ export namespace Prisma {
     safeErrorCode?: SortOrderInput | SortOrder
     startedAt?: SortOrder
     finishedAt?: SortOrderInput | SortOrder
+    channel?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: AssistantTurnCountOrderByAggregateInput
@@ -36930,6 +36974,7 @@ export namespace Prisma {
     safeErrorCode?: StringNullableWithAggregatesFilter<"AssistantTurn"> | string | null
     startedAt?: DateTimeWithAggregatesFilter<"AssistantTurn"> | Date | string
     finishedAt?: DateTimeNullableWithAggregatesFilter<"AssistantTurn"> | Date | string | null
+    channel?: EnumAssistantChannelWithAggregatesFilter<"AssistantTurn"> | $Enums.AssistantChannel
     createdAt?: DateTimeWithAggregatesFilter<"AssistantTurn"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"AssistantTurn"> | Date | string
   }
@@ -39478,6 +39523,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
@@ -39499,6 +39545,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
@@ -39518,6 +39565,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
@@ -39539,6 +39587,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
@@ -39559,6 +39608,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -39572,6 +39622,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -39586,6 +39637,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -42533,6 +42585,13 @@ export namespace Prisma {
     not?: NestedEnumAssistantTurnStatusFilter<$PrismaModel> | $Enums.AssistantTurnStatus
   }
 
+  export type EnumAssistantChannelFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantChannel | EnumAssistantChannelFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantChannel[] | ListEnumAssistantChannelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantChannel[] | ListEnumAssistantChannelFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantChannelFilter<$PrismaModel> | $Enums.AssistantChannel
+  }
+
   export type AssistantConversationScalarRelationFilter = {
     is?: AssistantConversationWhereInput
     isNot?: AssistantConversationWhereInput
@@ -42548,6 +42607,7 @@ export namespace Prisma {
     safeErrorCode?: SortOrder
     startedAt?: SortOrder
     finishedAt?: SortOrder
+    channel?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -42562,6 +42622,7 @@ export namespace Prisma {
     safeErrorCode?: SortOrder
     startedAt?: SortOrder
     finishedAt?: SortOrder
+    channel?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -42576,6 +42637,7 @@ export namespace Prisma {
     safeErrorCode?: SortOrder
     startedAt?: SortOrder
     finishedAt?: SortOrder
+    channel?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -42588,6 +42650,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumAssistantTurnStatusFilter<$PrismaModel>
     _max?: NestedEnumAssistantTurnStatusFilter<$PrismaModel>
+  }
+
+  export type EnumAssistantChannelWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantChannel | EnumAssistantChannelFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantChannel[] | ListEnumAssistantChannelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantChannel[] | ListEnumAssistantChannelFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantChannelWithAggregatesFilter<$PrismaModel> | $Enums.AssistantChannel
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantChannelFilter<$PrismaModel>
+    _max?: NestedEnumAssistantChannelFilter<$PrismaModel>
   }
 
   export type EnumAssistantMessageRoleFilter<$PrismaModel = never> = {
@@ -45726,6 +45798,10 @@ export namespace Prisma {
     set?: $Enums.AssistantTurnStatus
   }
 
+  export type EnumAssistantChannelFieldUpdateOperationsInput = {
+    set?: $Enums.AssistantChannel
+  }
+
   export type AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput = {
     create?: XOR<AssistantConversationCreateWithoutTurnsInput, AssistantConversationUncheckedCreateWithoutTurnsInput>
     connectOrCreate?: AssistantConversationCreateOrConnectWithoutTurnsInput
@@ -47794,6 +47870,13 @@ export namespace Prisma {
     not?: NestedEnumAssistantTurnStatusFilter<$PrismaModel> | $Enums.AssistantTurnStatus
   }
 
+  export type NestedEnumAssistantChannelFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantChannel | EnumAssistantChannelFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantChannel[] | ListEnumAssistantChannelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantChannel[] | ListEnumAssistantChannelFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantChannelFilter<$PrismaModel> | $Enums.AssistantChannel
+  }
+
   export type NestedEnumAssistantTurnStatusWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.AssistantTurnStatus | EnumAssistantTurnStatusFieldRefInput<$PrismaModel>
     in?: $Enums.AssistantTurnStatus[] | ListEnumAssistantTurnStatusFieldRefInput<$PrismaModel>
@@ -47802,6 +47885,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumAssistantTurnStatusFilter<$PrismaModel>
     _max?: NestedEnumAssistantTurnStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumAssistantChannelWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantChannel | EnumAssistantChannelFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantChannel[] | ListEnumAssistantChannelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantChannel[] | ListEnumAssistantChannelFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantChannelWithAggregatesFilter<$PrismaModel> | $Enums.AssistantChannel
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantChannelFilter<$PrismaModel>
+    _max?: NestedEnumAssistantChannelFilter<$PrismaModel>
   }
 
   export type NestedEnumAssistantMessageRoleFilter<$PrismaModel = never> = {
@@ -49630,6 +49723,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     messages?: AssistantMessageCreateNestedManyWithoutTurnInput
@@ -49649,6 +49743,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
@@ -50029,6 +50124,7 @@ export namespace Prisma {
     safeErrorCode?: StringNullableFilter<"AssistantTurn"> | string | null
     startedAt?: DateTimeFilter<"AssistantTurn"> | Date | string
     finishedAt?: DateTimeNullableFilter<"AssistantTurn"> | Date | string | null
+    channel?: EnumAssistantChannelFilter<"AssistantTurn"> | $Enums.AssistantChannel
     createdAt?: DateTimeFilter<"AssistantTurn"> | Date | string
     updatedAt?: DateTimeFilter<"AssistantTurn"> | Date | string
   }
@@ -50666,6 +50762,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
@@ -50686,6 +50783,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     toolExecutions?: AssistantToolExecutionUncheckedCreateNestedManyWithoutTurnInput
@@ -50765,6 +50863,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
@@ -50785,6 +50884,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     toolExecutions?: AssistantToolExecutionUncheckedUpdateManyWithoutTurnNestedInput
@@ -50893,6 +50993,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
@@ -50913,6 +51014,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
@@ -51171,6 +51273,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
@@ -51191,6 +51294,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
@@ -51423,6 +51527,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
@@ -51443,6 +51548,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
@@ -51632,6 +51738,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
@@ -51652,6 +51759,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
@@ -51756,6 +51864,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
@@ -51776,6 +51885,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
@@ -51906,6 +52016,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
@@ -51926,6 +52037,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
@@ -52091,6 +52203,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
@@ -52111,6 +52224,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
@@ -52247,6 +52361,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
@@ -52267,6 +52382,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
@@ -52375,6 +52491,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     conversation: AssistantConversationCreateNestedOneWithoutTurnsInput
@@ -52395,6 +52512,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
     messages?: AssistantMessageUncheckedCreateNestedManyWithoutTurnInput
@@ -52658,6 +52776,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     conversation?: AssistantConversationUpdateOneRequiredWithoutTurnsNestedInput
@@ -52678,6 +52797,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
@@ -57749,6 +57869,7 @@ export namespace Prisma {
     safeErrorCode?: string | null
     startedAt?: Date | string
     finishedAt?: Date | string | null
+    channel?: $Enums.AssistantChannel
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -57863,6 +57984,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     messages?: AssistantMessageUpdateManyWithoutTurnNestedInput
@@ -57882,6 +58004,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     messages?: AssistantMessageUncheckedUpdateManyWithoutTurnNestedInput
@@ -57901,6 +58024,7 @@ export namespace Prisma {
     safeErrorCode?: NullableStringFieldUpdateOperationsInput | string | null
     startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     finishedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    channel?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
