@@ -10,6 +10,7 @@ function appFor(conversations: any) {
   app.use((req, _res, next) => { (req as any).auth = { userId: 'owner-1' }; next(); });
   const c = createAssistantControllers({ execute: vi.fn() } as any, conversations);
   app.get('/conversations', c.list); app.get('/conversations/:conversationId', c.get); app.post('/conversations/:conversationId/archive', c.archive);
+  app.post('/conversations/:conversationId/restore', c.restore); app.delete('/conversations/:conversationId', c.remove);
   app.use(errorHandler); return app;
 }
 
@@ -34,5 +35,28 @@ describe('Assistant conversation HTTP boundary', () => {
     const conversations = { archiveOwnedConversation: vi.fn().mockResolvedValue({ id: 'c1', status: 'ARCHIVED' }) };
     const res = await request(appFor(conversations)).post('/conversations/c1/archive');
     expect(res.status).toBe(200); expect(conversations.archiveOwnedConversation).toHaveBeenCalledWith('owner-1', 'c1');
+  });
+
+  it('restores through the ownership-scoped service', async () => {
+    const conversations = { restoreOwnedConversation: vi.fn().mockResolvedValue({ id: 'c1', status: 'ACTIVE', archivedAt: null }) };
+    const res = await request(appFor(conversations)).post('/conversations/c1/restore');
+    expect(res.status).toBe(200); expect(conversations.restoreOwnedConversation).toHaveBeenCalledWith('owner-1', 'c1');
+  });
+
+  it('deletes through the ownership-scoped service, using DELETE rather than reusing archive', async () => {
+    const conversations = { deleteOwnedConversation: vi.fn().mockResolvedValue({ id: 'c1' }) };
+    const res = await request(appFor(conversations)).delete('/conversations/c1');
+    expect(res.status).toBe(200); expect(conversations.deleteOwnedConversation).toHaveBeenCalledWith('owner-1', 'c1');
+  });
+
+  it('returns 401 without a forwarded error when unauthenticated on the new routes', async () => {
+    const app = express(); app.use(express.json()); app.use(correlationMiddleware);
+    app.use((req, _res, next) => { (req as any).auth = {}; next(); });
+    const c = createAssistantControllers({ execute: vi.fn() } as any, { restoreOwnedConversation: vi.fn(), deleteOwnedConversation: vi.fn() } as any);
+    app.post('/conversations/:conversationId/restore', c.restore);
+    app.delete('/conversations/:conversationId', c.remove);
+    app.use(errorHandler);
+    expect((await request(app).post('/conversations/c1/restore')).status).toBe(401);
+    expect((await request(app).delete('/conversations/c1')).status).toBe(401);
   });
 });

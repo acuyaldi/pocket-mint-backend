@@ -15,6 +15,8 @@ assistantRouter.get('/conversations', apiKeyAuth_1.requireUser, assistant_contro
 assistantRouter.get('/conversations/:conversationId', apiKeyAuth_1.requireUser, assistant_controller_1.getAssistantConversation);
 assistantRouter.get('/conversations/:conversationId/recovery-state', apiKeyAuth_1.requireUser, assistant_controller_1.getAssistantRecoveryState);
 assistantRouter.post('/conversations/:conversationId/archive', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, assistant_controller_1.archiveAssistantConversation);
+assistantRouter.post('/conversations/:conversationId/restore', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, assistant_controller_1.restoreAssistantConversation);
+assistantRouter.delete('/conversations/:conversationId', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, assistant_controller_1.deleteAssistantConversation);
 assistantRouter.post('/drafts/:draftId/confirm', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, assistant_controller_1.confirmAssistantFinancialDraft);
 assistantRouter.post('/drafts/:draftId/cancel', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, assistant_controller_1.cancelAssistantFinancialDraft);
 assistantRouter.post('/conversations/:conversationId/clarifications/:clarificationId/select', apiKeyAuth_1.requireUser, rateLimit_1.mutationLimiter, assistant_controller_1.selectAssistantClarification);

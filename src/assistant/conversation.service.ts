@@ -141,9 +141,23 @@ export function createAssistantConversationService(db: PrismaClient) {
         include: { messages: { where: { role: { in: ['USER', 'ASSISTANT'] } }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: 1 } } }),
       db.assistantConversation.count({ where }),
     ]);
+    // The first USER message is the original request that started the conversation — used as
+    // the display title, distinct from `lastMessage` (latest message, any role) used for preview
+    // search. `distinct` on an indexed (conversationId, createdAt, id)-ordered scan keeps this to
+    // one extra bounded query instead of N+1.
+    const titleRows = rows.length
+      ? await db.assistantMessage.findMany({
+          where: { conversationId: { in: rows.map((row) => row.id) }, role: 'USER' },
+          orderBy: [{ conversationId: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }],
+          distinct: ['conversationId'],
+          select: { conversationId: true, content: true },
+        })
+      : [];
+    const titleByConversationId = new Map(titleRows.map((row) => [row.conversationId, row.content]));
     return { items: rows.map((row) => ({
       id: row.id, status: row.status, locale: row.locale, createdAt: row.createdAt,
       updatedAt: row.updatedAt, lastActivityAt: row.lastActivityAt,
+      title: titleByConversationId.get(row.id)?.slice(0, 160),
       lastMessage: row.messages[0]?.content.slice(0, 160),
     })), page: p.page, limit: p.limit, total, hasMore: p.skip + rows.length < total };
   }
@@ -172,6 +186,33 @@ export function createAssistantConversationService(db: PrismaClient) {
     if (conversation.status === 'EXPIRED') throw AssistantError.conversationNotContinuable();
     const updated = await db.assistantConversation.update({ where: { id }, data: { status: 'ARCHIVED', archivedAt: new Date() } });
     return { id: updated.id, status: updated.status, archivedAt: updated.archivedAt };
+  }
+
+  async function restoreOwnedConversation(userId: string, id: string) {
+    const conversation = await owned(userId, id);
+    if (conversation.status === 'ACTIVE') return { id, status: conversation.status, archivedAt: conversation.archivedAt };
+    if (conversation.status === 'EXPIRED') throw AssistantError.conversationNotContinuable();
+    const updated = await db.assistantConversation.update({ where: { id }, data: { status: 'ACTIVE', archivedAt: null } });
+    return { id: updated.id, status: updated.status, archivedAt: updated.archivedAt };
+  }
+
+  /**
+   * Permanent delete — distinct from archive. Schema-declared cascades remove only the
+   * conversation's own Assistant rows (messages, turns, tool executions, financial drafts,
+   * provider executions, idempotency records, clarification requests). `Transaction` has no
+   * relation to `AssistantConversation` at all — it's only referenced *from*
+   * `AssistantFinancialDraft.transactionId` / `AssistantIdempotencyRecord.transactionId`
+   * (both `onDelete: Restrict`, which guards the Transaction against deletion while
+   * referenced, not the reverse), so cascading away a conversation's drafts and idempotency
+   * records never touches the transactions they reference. `ChannelConnection.conversationId`
+   * is the one real `onDelete: SetNull`: the channel link survives, pointing at nothing.
+   * Matches "deleting Assistant history never cascades to a transaction"
+   * (docs/api/assistant-conversations.md).
+   */
+  async function deleteOwnedConversation(userId: string, id: string): Promise<{ id: string }> {
+    await owned(userId, id);
+    await db.assistantConversation.delete({ where: { id } });
+    return { id };
   }
 
   /**
@@ -226,7 +267,7 @@ export function createAssistantConversationService(db: PrismaClient) {
     await db.assistantIdempotencyRecord.deleteMany({ where: { userId, key, status: 'RUNNING' } }).catch(() => undefined);
   }
 
-  return { assertContinuable, assertOwned: owned, establishConversation, beginTurn, markTurnRunning, beginToolExecution, finalize, finalizeRejected, finalizeWithoutTool, listOwnedConversations, getOwnedConversation, archiveOwnedConversation, claimIdempotencyKey, resolveIdempotencyKey, releaseIdempotencyKey };
+  return { assertContinuable, assertOwned: owned, establishConversation, beginTurn, markTurnRunning, beginToolExecution, finalize, finalizeRejected, finalizeWithoutTool, listOwnedConversations, getOwnedConversation, archiveOwnedConversation, restoreOwnedConversation, deleteOwnedConversation, claimIdempotencyKey, resolveIdempotencyKey, releaseIdempotencyKey };
 }
 
 export type AssistantConversationService = ReturnType<typeof createAssistantConversationService>;

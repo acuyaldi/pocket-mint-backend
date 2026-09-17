@@ -229,6 +229,20 @@ export function createAssistantControllers(
       sendSuccess(res, await conversations.archiveOwnedConversation(userId, routeId(req.params.conversationId)), 'Conversation archived');
     } catch (error) { forwardError(error, res, next); }
   }
+  async function restore(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = getAuthenticatedUserId(req);
+      if (!userId) return sendError(res, 'Unauthorized', 401);
+      sendSuccess(res, await conversations.restoreOwnedConversation(userId, routeId(req.params.conversationId)), 'Conversation restored');
+    } catch (error) { forwardError(error, res, next); }
+  }
+  async function remove(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = getAuthenticatedUserId(req);
+      if (!userId) return sendError(res, 'Unauthorized', 401);
+      sendSuccess(res, await conversations.deleteOwnedConversation(userId, routeId(req.params.conversationId)), 'Conversation deleted');
+    } catch (error) { forwardError(error, res, next); }
+  }
   async function confirmDraft(req: Request, res: Response, next: NextFunction): Promise<void> {
     const elapsed = startTimer();
     try {
@@ -320,7 +334,7 @@ export function createAssistantControllers(
       forwardError(error, res, next);
     }
   }
-  return { execute, messages, list, get, recoveryState, archive, confirmDraft, cancelDraft, selectClarification, cancelClarification };
+  return { execute, messages, list, get, recoveryState, archive, restore, remove, confirmDraft, cancelDraft, selectClarification, cancelClarification };
 }
 
 const controllers = createAssistantControllers(assistantApplicationService, assistantConversationService, assistantFinancialDraftService, assistantProviderRuntime);
@@ -330,6 +344,8 @@ export const listAssistantConversations = controllers.list;
 export const getAssistantConversation = controllers.get;
 export const getAssistantRecoveryState = controllers.recoveryState;
 export const archiveAssistantConversation = controllers.archive;
+export const restoreAssistantConversation = controllers.restore;
+export const deleteAssistantConversation = controllers.remove;
 export const confirmAssistantFinancialDraft = controllers.confirmDraft;
 export const cancelAssistantFinancialDraft = controllers.cancelDraft;
 export const selectAssistantClarification = controllers.selectClarification;

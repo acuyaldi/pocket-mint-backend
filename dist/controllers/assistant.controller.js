@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cancelAssistantClarification = exports.selectAssistantClarification = exports.cancelAssistantFinancialDraft = exports.confirmAssistantFinancialDraft = exports.archiveAssistantConversation = exports.getAssistantRecoveryState = exports.getAssistantConversation = exports.listAssistantConversations = exports.assistantMessages = exports.assistantExecute = void 0;
+exports.cancelAssistantClarification = exports.selectAssistantClarification = exports.cancelAssistantFinancialDraft = exports.confirmAssistantFinancialDraft = exports.deleteAssistantConversation = exports.restoreAssistantConversation = exports.archiveAssistantConversation = exports.getAssistantRecoveryState = exports.getAssistantConversation = exports.listAssistantConversations = exports.assistantMessages = exports.assistantExecute = void 0;
 exports.createAssistantControllers = createAssistantControllers;
 const authContext_1 = require("../http/authContext");
 const forwardError_1 = require("../http/forwardError");
@@ -242,6 +242,28 @@ function createAssistantControllers(application, conversations, drafts, provider
             (0, forwardError_1.forwardError)(error, res, next);
         }
     }
+    async function restore(req, res, next) {
+        try {
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId)
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            (0, response_1.sendSuccess)(res, await conversations.restoreOwnedConversation(userId, routeId(req.params.conversationId)), 'Conversation restored');
+        }
+        catch (error) {
+            (0, forwardError_1.forwardError)(error, res, next);
+        }
+    }
+    async function remove(req, res, next) {
+        try {
+            const userId = (0, authContext_1.getAuthenticatedUserId)(req);
+            if (!userId)
+                return (0, response_1.sendError)(res, 'Unauthorized', 401);
+            (0, response_1.sendSuccess)(res, await conversations.deleteOwnedConversation(userId, routeId(req.params.conversationId)), 'Conversation deleted');
+        }
+        catch (error) {
+            (0, forwardError_1.forwardError)(error, res, next);
+        }
+    }
     async function confirmDraft(req, res, next) {
         const elapsed = (0, logger_1.startTimer)();
         try {
@@ -344,7 +366,7 @@ function createAssistantControllers(application, conversations, drafts, provider
             (0, forwardError_1.forwardError)(error, res, next);
         }
     }
-    return { execute, messages, list, get, recoveryState, archive, confirmDraft, cancelDraft, selectClarification, cancelClarification };
+    return { execute, messages, list, get, recoveryState, archive, restore, remove, confirmDraft, cancelDraft, selectClarification, cancelClarification };
 }
 const controllers = createAssistantControllers(bootstrap_1.assistantApplicationService, bootstrap_1.assistantConversationService, bootstrap_1.assistantFinancialDraftService, bootstrap_1.assistantProviderRuntime);
 exports.assistantExecute = controllers.execute;
@@ -353,6 +375,8 @@ exports.listAssistantConversations = controllers.list;
 exports.getAssistantConversation = controllers.get;
 exports.getAssistantRecoveryState = controllers.recoveryState;
 exports.archiveAssistantConversation = controllers.archive;
+exports.restoreAssistantConversation = controllers.restore;
+exports.deleteAssistantConversation = controllers.remove;
 exports.confirmAssistantFinancialDraft = controllers.confirmDraft;
 exports.cancelAssistantFinancialDraft = controllers.cancelDraft;
 exports.selectAssistantClarification = controllers.selectClarification;

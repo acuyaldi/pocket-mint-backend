@@ -59,6 +59,48 @@ describe.skipIf(!url)('Assistant conversation service (disposable PostgreSQL)', 
     await expect(service().beginTurn({ userId: owner, conversationId: turn.conversationId, correlationId: `next-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' })).rejects.toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_CONTINUABLE' });
   });
 
+  it('restores idempotently and allows continuation again', async () => {
+    const owner = await user('restore');
+    const turn = await service().beginTurn({ userId: owner, correlationId: `corr-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' });
+    await service().archiveOwnedConversation(owner, turn.conversationId);
+    const first = await service().restoreOwnedConversation(owner, turn.conversationId);
+    const second = await service().restoreOwnedConversation(owner, turn.conversationId);
+    expect(first.status).toBe('ACTIVE'); expect(first.archivedAt).toBeNull(); expect(second.status).toBe('ACTIVE');
+    await expect(service().beginTurn({ userId: owner, conversationId: turn.conversationId, correlationId: `next-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' })).resolves.toBeDefined();
+  });
+
+  it('titles a conversation from its first USER message, not the latest message of any role', async () => {
+    const owner = await user('title');
+    const first = await service().beginTurn({ userId: owner, correlationId: `corr-1-${Date.now()}`, intent: 'transaction.create', locale: 'id-ID', content: 'bayar internet 350rb dari bca', source: 'USER_PROVIDED' });
+    await service().finalizeWithoutTool({ ...first, turnStatus: 'CLARIFICATION_REQUIRED', assistantContent: 'Wallet yang dimaksud belum jelas...', assistantSource: 'PROVIDER_CLARIFICATION' });
+    const second = await service().beginTurn({ userId: owner, conversationId: first.conversationId, correlationId: `corr-2-${Date.now()}`, intent: 'transaction.create', locale: 'id-ID', content: 'Pilih opsi klarifikasi.', source: 'USER_PROVIDED' });
+    await service().finalizeWithoutTool({ ...second, turnStatus: 'SUCCEEDED', assistantContent: 'Konfirmasi draft transaksi cmsk3ft4d000cfj12609ngx5.', assistantSource: 'DETERMINISTIC_RENDERER' });
+
+    const list = await service().listOwnedConversations(owner);
+    expect(list.items).toHaveLength(1);
+    expect(list.items[0].title).toBe('bayar internet 350rb dari bca');
+    expect(list.items[0].lastMessage).toBe('Konfirmasi draft transaksi cmsk3ft4d000cfj12609ngx5.');
+  });
+
+  it('permanently deletes an owned conversation and its history', async () => {
+    const owner = await user('delete');
+    const turn = await service().beginTurn({ userId: owner, correlationId: `corr-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' });
+    await service().deleteOwnedConversation(owner, turn.conversationId);
+    await expect(service().getOwnedConversation(owner, turn.conversationId)).rejects.toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_FOUND' });
+    expect((await service().listOwnedConversations(owner)).items).toHaveLength(0);
+    expect(await db().assistantMessage.count({ where: { conversationId: turn.conversationId } })).toBe(0);
+    expect(await db().assistantTurn.count({ where: { conversationId: turn.conversationId } })).toBe(0);
+  });
+
+  it('makes deleting an unknown or cross-user conversation indistinguishable from not-found and leaves it intact on failure', async () => {
+    const owner = await user('delete-owner'); const other = await user('delete-other');
+    const turn = await service().beginTurn({ userId: owner, correlationId: `corr-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' });
+    for (const id of [turn.conversationId, 'missing']) {
+      await expect(service().deleteOwnedConversation(other, id)).rejects.toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_FOUND' });
+    }
+    expect(await db().assistantConversation.findUnique({ where: { id: turn.conversationId } })).not.toBeNull();
+  });
+
   it('caps pagination at 100 and exposes a RUNNING turn as incomplete without retrying it', async () => {
     const owner = await user('running');
     const turn = await service().beginTurn({ userId: owner, correlationId: `corr-running-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' });
