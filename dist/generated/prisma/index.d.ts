@@ -29528,6 +29528,9 @@ export namespace Prisma {
     completedAt: Date | null
     assistantTurnId: string | null
     errorCategory: string | null
+    reviewedAt: Date | null
+    reviewedBy: string | null
+    reviewNote: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -29552,6 +29555,9 @@ export namespace Prisma {
     completedAt: Date | null
     assistantTurnId: string | null
     errorCategory: string | null
+    reviewedAt: Date | null
+    reviewedBy: string | null
+    reviewNote: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -29576,6 +29582,9 @@ export namespace Prisma {
     completedAt: number
     assistantTurnId: number
     errorCategory: number
+    reviewedAt: number
+    reviewedBy: number
+    reviewNote: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -29610,6 +29619,9 @@ export namespace Prisma {
     completedAt?: true
     assistantTurnId?: true
     errorCategory?: true
+    reviewedAt?: true
+    reviewedBy?: true
+    reviewNote?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -29634,6 +29646,9 @@ export namespace Prisma {
     completedAt?: true
     assistantTurnId?: true
     errorCategory?: true
+    reviewedAt?: true
+    reviewedBy?: true
+    reviewNote?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -29658,6 +29673,9 @@ export namespace Prisma {
     completedAt?: true
     assistantTurnId?: true
     errorCategory?: true
+    reviewedAt?: true
+    reviewedBy?: true
+    reviewNote?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -29769,6 +29787,9 @@ export namespace Prisma {
     completedAt: Date | null
     assistantTurnId: string | null
     errorCategory: string | null
+    reviewedAt: Date | null
+    reviewedBy: string | null
+    reviewNote: string | null
     createdAt: Date
     updatedAt: Date
     _count: ChannelInboundJobCountAggregateOutputType | null
@@ -29812,6 +29833,9 @@ export namespace Prisma {
     completedAt?: boolean
     assistantTurnId?: boolean
     errorCategory?: boolean
+    reviewedAt?: boolean
+    reviewedBy?: boolean
+    reviewNote?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     connection?: boolean | ChannelInboundJob$connectionArgs<ExtArgs>
@@ -29839,6 +29863,9 @@ export namespace Prisma {
     completedAt?: boolean
     assistantTurnId?: boolean
     errorCategory?: boolean
+    reviewedAt?: boolean
+    reviewedBy?: boolean
+    reviewNote?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     connection?: boolean | ChannelInboundJob$connectionArgs<ExtArgs>
@@ -29864,6 +29891,9 @@ export namespace Prisma {
     completedAt?: boolean
     assistantTurnId?: boolean
     errorCategory?: boolean
+    reviewedAt?: boolean
+    reviewedBy?: boolean
+    reviewNote?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     connection?: boolean | ChannelInboundJob$connectionArgs<ExtArgs>
@@ -29889,11 +29919,14 @@ export namespace Prisma {
     completedAt?: boolean
     assistantTurnId?: boolean
     errorCategory?: boolean
+    reviewedAt?: boolean
+    reviewedBy?: boolean
+    reviewNote?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ChannelInboundJobOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "provider" | "externalUpdateId" | "channelConnectionId" | "externalSenderId" | "externalChatId" | "text" | "kind" | "callbackQueryId" | "callbackMessageId" | "status" | "attempt" | "availableAt" | "leaseOwner" | "leaseExpiresAt" | "processingStartedAt" | "completedAt" | "assistantTurnId" | "errorCategory" | "createdAt" | "updatedAt", ExtArgs["result"]["channelInboundJob"]>
+  export type ChannelInboundJobOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "provider" | "externalUpdateId" | "channelConnectionId" | "externalSenderId" | "externalChatId" | "text" | "kind" | "callbackQueryId" | "callbackMessageId" | "status" | "attempt" | "availableAt" | "leaseOwner" | "leaseExpiresAt" | "processingStartedAt" | "completedAt" | "assistantTurnId" | "errorCategory" | "reviewedAt" | "reviewedBy" | "reviewNote" | "createdAt" | "updatedAt", ExtArgs["result"]["channelInboundJob"]>
   export type ChannelInboundJobInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     connection?: boolean | ChannelInboundJob$connectionArgs<ExtArgs>
     deliveries?: boolean | ChannelInboundJob$deliveriesArgs<ExtArgs>
@@ -29932,6 +29965,9 @@ export namespace Prisma {
       completedAt: Date | null
       assistantTurnId: string | null
       errorCategory: string | null
+      reviewedAt: Date | null
+      reviewedBy: string | null
+      reviewNote: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["channelInboundJob"]>
@@ -30378,6 +30414,9 @@ export namespace Prisma {
     readonly completedAt: FieldRef<"ChannelInboundJob", 'DateTime'>
     readonly assistantTurnId: FieldRef<"ChannelInboundJob", 'String'>
     readonly errorCategory: FieldRef<"ChannelInboundJob", 'String'>
+    readonly reviewedAt: FieldRef<"ChannelInboundJob", 'DateTime'>
+    readonly reviewedBy: FieldRef<"ChannelInboundJob", 'String'>
+    readonly reviewNote: FieldRef<"ChannelInboundJob", 'String'>
     readonly createdAt: FieldRef<"ChannelInboundJob", 'DateTime'>
     readonly updatedAt: FieldRef<"ChannelInboundJob", 'DateTime'>
   }
@@ -35991,6 +36030,9 @@ export namespace Prisma {
     completedAt: 'completedAt',
     assistantTurnId: 'assistantTurnId',
     errorCategory: 'errorCategory',
+    reviewedAt: 'reviewedAt',
+    reviewedBy: 'reviewedBy',
+    reviewNote: 'reviewNote',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -38689,6 +38731,9 @@ export namespace Prisma {
     completedAt?: DateTimeNullableFilter<"ChannelInboundJob"> | Date | string | null
     assistantTurnId?: StringNullableFilter<"ChannelInboundJob"> | string | null
     errorCategory?: StringNullableFilter<"ChannelInboundJob"> | string | null
+    reviewedAt?: DateTimeNullableFilter<"ChannelInboundJob"> | Date | string | null
+    reviewedBy?: StringNullableFilter<"ChannelInboundJob"> | string | null
+    reviewNote?: StringNullableFilter<"ChannelInboundJob"> | string | null
     createdAt?: DateTimeFilter<"ChannelInboundJob"> | Date | string
     updatedAt?: DateTimeFilter<"ChannelInboundJob"> | Date | string
     connection?: XOR<ChannelConnectionNullableScalarRelationFilter, ChannelConnectionWhereInput> | null
@@ -38715,6 +38760,9 @@ export namespace Prisma {
     completedAt?: SortOrderInput | SortOrder
     assistantTurnId?: SortOrderInput | SortOrder
     errorCategory?: SortOrderInput | SortOrder
+    reviewedAt?: SortOrderInput | SortOrder
+    reviewedBy?: SortOrderInput | SortOrder
+    reviewNote?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     connection?: ChannelConnectionOrderByWithRelationInput
@@ -38745,6 +38793,9 @@ export namespace Prisma {
     processingStartedAt?: DateTimeNullableFilter<"ChannelInboundJob"> | Date | string | null
     completedAt?: DateTimeNullableFilter<"ChannelInboundJob"> | Date | string | null
     errorCategory?: StringNullableFilter<"ChannelInboundJob"> | string | null
+    reviewedAt?: DateTimeNullableFilter<"ChannelInboundJob"> | Date | string | null
+    reviewedBy?: StringNullableFilter<"ChannelInboundJob"> | string | null
+    reviewNote?: StringNullableFilter<"ChannelInboundJob"> | string | null
     createdAt?: DateTimeFilter<"ChannelInboundJob"> | Date | string
     updatedAt?: DateTimeFilter<"ChannelInboundJob"> | Date | string
     connection?: XOR<ChannelConnectionNullableScalarRelationFilter, ChannelConnectionWhereInput> | null
@@ -38771,6 +38822,9 @@ export namespace Prisma {
     completedAt?: SortOrderInput | SortOrder
     assistantTurnId?: SortOrderInput | SortOrder
     errorCategory?: SortOrderInput | SortOrder
+    reviewedAt?: SortOrderInput | SortOrder
+    reviewedBy?: SortOrderInput | SortOrder
+    reviewNote?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ChannelInboundJobCountOrderByAggregateInput
@@ -38803,6 +38857,9 @@ export namespace Prisma {
     completedAt?: DateTimeNullableWithAggregatesFilter<"ChannelInboundJob"> | Date | string | null
     assistantTurnId?: StringNullableWithAggregatesFilter<"ChannelInboundJob"> | string | null
     errorCategory?: StringNullableWithAggregatesFilter<"ChannelInboundJob"> | string | null
+    reviewedAt?: DateTimeNullableWithAggregatesFilter<"ChannelInboundJob"> | Date | string | null
+    reviewedBy?: StringNullableWithAggregatesFilter<"ChannelInboundJob"> | string | null
+    reviewNote?: StringNullableWithAggregatesFilter<"ChannelInboundJob"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"ChannelInboundJob"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ChannelInboundJob"> | Date | string
   }
@@ -41487,6 +41544,9 @@ export namespace Prisma {
     completedAt?: Date | string | null
     assistantTurnId?: string | null
     errorCategory?: string | null
+    reviewedAt?: Date | string | null
+    reviewedBy?: string | null
+    reviewNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     connection?: ChannelConnectionCreateNestedOneWithoutInboundJobsInput
@@ -41513,6 +41573,9 @@ export namespace Prisma {
     completedAt?: Date | string | null
     assistantTurnId?: string | null
     errorCategory?: string | null
+    reviewedAt?: Date | string | null
+    reviewedBy?: string | null
+    reviewNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deliveries?: ChannelOutboundDeliveryUncheckedCreateNestedManyWithoutInboundJobInput
@@ -41537,6 +41600,9 @@ export namespace Prisma {
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     assistantTurnId?: NullableStringFieldUpdateOperationsInput | string | null
     errorCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     connection?: ChannelConnectionUpdateOneWithoutInboundJobsNestedInput
@@ -41563,6 +41629,9 @@ export namespace Prisma {
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     assistantTurnId?: NullableStringFieldUpdateOperationsInput | string | null
     errorCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deliveries?: ChannelOutboundDeliveryUncheckedUpdateManyWithoutInboundJobNestedInput
@@ -41588,6 +41657,9 @@ export namespace Prisma {
     completedAt?: Date | string | null
     assistantTurnId?: string | null
     errorCategory?: string | null
+    reviewedAt?: Date | string | null
+    reviewedBy?: string | null
+    reviewNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -41611,6 +41683,9 @@ export namespace Prisma {
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     assistantTurnId?: NullableStringFieldUpdateOperationsInput | string | null
     errorCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -41635,6 +41710,9 @@ export namespace Prisma {
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     assistantTurnId?: NullableStringFieldUpdateOperationsInput | string | null
     errorCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -44185,6 +44263,9 @@ export namespace Prisma {
     completedAt?: SortOrder
     assistantTurnId?: SortOrder
     errorCategory?: SortOrder
+    reviewedAt?: SortOrder
+    reviewedBy?: SortOrder
+    reviewNote?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -44213,6 +44294,9 @@ export namespace Prisma {
     completedAt?: SortOrder
     assistantTurnId?: SortOrder
     errorCategory?: SortOrder
+    reviewedAt?: SortOrder
+    reviewedBy?: SortOrder
+    reviewNote?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -44237,6 +44321,9 @@ export namespace Prisma {
     completedAt?: SortOrder
     assistantTurnId?: SortOrder
     errorCategory?: SortOrder
+    reviewedAt?: SortOrder
+    reviewedBy?: SortOrder
+    reviewNote?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -55740,6 +55827,9 @@ export namespace Prisma {
     completedAt?: Date | string | null
     assistantTurnId?: string | null
     errorCategory?: string | null
+    reviewedAt?: Date | string | null
+    reviewedBy?: string | null
+    reviewNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deliveries?: ChannelOutboundDeliveryCreateNestedManyWithoutInboundJobInput
@@ -55764,6 +55854,9 @@ export namespace Prisma {
     completedAt?: Date | string | null
     assistantTurnId?: string | null
     errorCategory?: string | null
+    reviewedAt?: Date | string | null
+    reviewedBy?: string | null
+    reviewNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deliveries?: ChannelOutboundDeliveryUncheckedCreateNestedManyWithoutInboundJobInput
@@ -55966,6 +56059,9 @@ export namespace Prisma {
     completedAt?: DateTimeNullableFilter<"ChannelInboundJob"> | Date | string | null
     assistantTurnId?: StringNullableFilter<"ChannelInboundJob"> | string | null
     errorCategory?: StringNullableFilter<"ChannelInboundJob"> | string | null
+    reviewedAt?: DateTimeNullableFilter<"ChannelInboundJob"> | Date | string | null
+    reviewedBy?: StringNullableFilter<"ChannelInboundJob"> | string | null
+    reviewNote?: StringNullableFilter<"ChannelInboundJob"> | string | null
     createdAt?: DateTimeFilter<"ChannelInboundJob"> | Date | string
     updatedAt?: DateTimeFilter<"ChannelInboundJob"> | Date | string
   }
@@ -56188,6 +56284,9 @@ export namespace Prisma {
     completedAt?: Date | string | null
     assistantTurnId?: string | null
     errorCategory?: string | null
+    reviewedAt?: Date | string | null
+    reviewedBy?: string | null
+    reviewNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     connection?: ChannelConnectionCreateNestedOneWithoutInboundJobsInput
@@ -56213,6 +56312,9 @@ export namespace Prisma {
     completedAt?: Date | string | null
     assistantTurnId?: string | null
     errorCategory?: string | null
+    reviewedAt?: Date | string | null
+    reviewedBy?: string | null
+    reviewNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -56252,6 +56354,9 @@ export namespace Prisma {
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     assistantTurnId?: NullableStringFieldUpdateOperationsInput | string | null
     errorCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     connection?: ChannelConnectionUpdateOneWithoutInboundJobsNestedInput
@@ -56277,6 +56382,9 @@ export namespace Prisma {
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     assistantTurnId?: NullableStringFieldUpdateOperationsInput | string | null
     errorCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -59475,6 +59583,9 @@ export namespace Prisma {
     completedAt?: Date | string | null
     assistantTurnId?: string | null
     errorCategory?: string | null
+    reviewedAt?: Date | string | null
+    reviewedBy?: string | null
+    reviewNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -59515,6 +59626,9 @@ export namespace Prisma {
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     assistantTurnId?: NullableStringFieldUpdateOperationsInput | string | null
     errorCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deliveries?: ChannelOutboundDeliveryUpdateManyWithoutInboundJobNestedInput
@@ -59539,6 +59653,9 @@ export namespace Prisma {
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     assistantTurnId?: NullableStringFieldUpdateOperationsInput | string | null
     errorCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deliveries?: ChannelOutboundDeliveryUncheckedUpdateManyWithoutInboundJobNestedInput
@@ -59563,6 +59680,9 @@ export namespace Prisma {
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     assistantTurnId?: NullableStringFieldUpdateOperationsInput | string | null
     errorCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    reviewedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    reviewNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

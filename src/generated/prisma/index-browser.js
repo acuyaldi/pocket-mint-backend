@@ -445,6 +445,9 @@ exports.Prisma.ChannelInboundJobScalarFieldEnum = {
   completedAt: 'completedAt',
   assistantTurnId: 'assistantTurnId',
   errorCategory: 'errorCategory',
+  reviewedAt: 'reviewedAt',
+  reviewedBy: 'reviewedBy',
+  reviewNote: 'reviewNote',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

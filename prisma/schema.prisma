@@ -798,6 +798,11 @@ model ChannelInboundJob {
   completedAt         DateTime?         @map("completed_at")
   assistantTurnId     String?           @unique @map("assistant_turn_id")
   errorCategory       String?           @map("error_category")
+  // Phase 29 operator bookkeeping only — set exclusively by src/scripts/opsRemediate.ts's
+  // `mark-reviewed` action, never read by worker/processing logic. Never flips `status`.
+  reviewedAt          DateTime?         @map("reviewed_at")
+  reviewedBy          String?           @map("reviewed_by")
+  reviewNote          String?           @map("review_note")
   createdAt           DateTime          @default(now()) @map("created_at")
   updatedAt           DateTime          @updatedAt @map("updated_at")
 
