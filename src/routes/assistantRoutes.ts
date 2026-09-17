@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { archiveAssistantConversation, assistantExecute, assistantMessages, cancelAssistantClarification, cancelAssistantFinancialDraft, confirmAssistantFinancialDraft, getAssistantConversation, getAssistantRecoveryState, listAssistantConversations, selectAssistantClarification } from '../controllers/assistant.controller';
+import { archiveAssistantConversation, assistantExecute, assistantMessages, cancelAssistantClarification, cancelAssistantFinancialDraft, confirmAssistantFinancialDraft, deleteAssistantConversation, getAssistantConversation, getAssistantRecoveryState, listAssistantConversations, restoreAssistantConversation, selectAssistantClarification } from '../controllers/assistant.controller';
 import { requireUser } from '../middleware/apiKeyAuth';
 import { mutationLimiter } from '../middleware/rateLimit';
 
@@ -13,6 +13,8 @@ assistantRouter.get('/conversations', requireUser, listAssistantConversations);
 assistantRouter.get('/conversations/:conversationId', requireUser, getAssistantConversation);
 assistantRouter.get('/conversations/:conversationId/recovery-state', requireUser, getAssistantRecoveryState);
 assistantRouter.post('/conversations/:conversationId/archive', requireUser, mutationLimiter, archiveAssistantConversation);
+assistantRouter.post('/conversations/:conversationId/restore', requireUser, mutationLimiter, restoreAssistantConversation);
+assistantRouter.delete('/conversations/:conversationId', requireUser, mutationLimiter, deleteAssistantConversation);
 assistantRouter.post('/drafts/:draftId/confirm', requireUser, mutationLimiter, confirmAssistantFinancialDraft);
 assistantRouter.post('/drafts/:draftId/cancel', requireUser, mutationLimiter, cancelAssistantFinancialDraft);
 assistantRouter.post('/conversations/:conversationId/clarifications/:clarificationId/select', requireUser, mutationLimiter, selectAssistantClarification);

@@ -90,6 +90,14 @@ export declare function createAssistantConversationService(db: PrismaClient): {
         status: import("@/generated/prisma").$Enums.AssistantConversationStatus;
         archivedAt: Date | null;
     }>;
+    restoreOwnedConversation: (userId: string, id: string) => Promise<{
+        id: string;
+        status: import("@/generated/prisma").$Enums.AssistantConversationStatus;
+        archivedAt: Date | null;
+    }>;
+    deleteOwnedConversation: (userId: string, id: string) => Promise<{
+        id: string;
+    }>;
     claimIdempotencyKey: (userId: string, keyValue: string, operation: string) => Promise<IdempotencyClaim>;
     resolveIdempotencyKey: (userId: string, keyValue: string, result: {
         httpStatus: number;

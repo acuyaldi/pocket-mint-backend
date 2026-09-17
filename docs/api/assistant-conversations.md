@@ -62,7 +62,7 @@ A claimed key that fails synchronously — a business-level error raised before 
 - `GET /conversations?page=1&limit=20`
 - `GET /conversations/:conversationId?page=1&limit=20`
 
-Pagination defaults to 20 and caps at 100. Lists contain owned summaries only. History returns stable chronological canonical messages with plain-text `content` and `source`, allowing clients to distinguish original input, canonical fallback, safe request summary, deterministic output, and safe errors. Owner IDs, audit JSON, provider payloads, stack traces, and database internals are omitted.
+Pagination defaults to 20 and caps at 100. Lists contain owned summaries only. Each summary includes a `title` — the conversation's first USER message, truncated to 160 characters, used for display — distinct from `lastMessage`, the latest message of any role, used for preview text. History returns stable chronological canonical messages with plain-text `content` and `source`, allowing clients to distinguish original input, canonical fallback, safe request summary, deterministic output, and safe errors. Owner IDs, audit JSON, provider payloads, stack traces, and database internals are omitted.
 
 Unsupported intents and malformed arguments establish a durable rejected turn with constant safe USER and ASSISTANT messages, but never create a tool-execution row or invoke a finance-domain handler. Raw unvalidated arguments are not persisted.
 
@@ -74,7 +74,7 @@ A `RUNNING` turn is durable execution state, not evidence that a process is stil
 
 `POST /conversations/:conversationId/restore` is ownership-scoped and idempotent — it reverses `archive`, setting the conversation back to `ACTIVE` and clearing `archivedAt` so it can be continued again. An `EXPIRED` conversation cannot be restored, mirroring `archive`'s own continuation check.
 
-`DELETE /conversations/:conversationId` is ownership-scoped and permanently removes the conversation and its own Assistant rows (messages, turns, tool executions, financial drafts, provider executions, clarification requests) via schema-declared cascades. `ChannelConnection.conversationId` and `Transaction.conversationId` are `onDelete: SetNull`, so channel links and authoritative finance rows are never cascaded away — deleting Assistant history never deletes a transaction. There is no automatic expiration job; deletion is always explicit and user-initiated.
+`DELETE /conversations/:conversationId` is ownership-scoped and permanently removes the conversation and its own Assistant rows (messages, turns, tool executions, financial drafts, provider executions, idempotency records, clarification requests) via schema-declared cascades. `ChannelConnection.conversationId` is `onDelete: SetNull`, so a channel link survives pointing at nothing. `Transaction` has no relation to `AssistantConversation` at all — it is only referenced from `AssistantFinancialDraft`/`AssistantIdempotencyRecord` (`onDelete: Restrict`, which guards the Transaction against deletion while referenced, not the reverse), so deleting a conversation's drafts and idempotency records never touches the transactions they reference. There is no automatic expiration job; deletion is always explicit and user-initiated.
 
 Assistant records are historical snapshots of what was presented. Finance-domain tables remain authoritative current truth.
 

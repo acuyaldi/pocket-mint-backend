@@ -19,6 +19,8 @@ export interface ConversationSummaryDto {
   createdAt: Date;
   updatedAt: Date;
   lastActivityAt: Date;
+  /** First USER-authored message — the original request that started the conversation. Used as the display title. */
+  title?: string;
   lastMessage?: string;
 }
 
