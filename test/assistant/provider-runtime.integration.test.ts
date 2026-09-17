@@ -167,7 +167,13 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
       totalTokens: 28,
       cachedInputTokens: 3,
     });
-    expect(JSON.stringify(audits)).not.toMatch(/provider-private-secret|systemInstruction|currentRequest|raw/i);
+    // Excludes the free-form id/correlationId fields before matching: cuid()/uuid()
+    // values are random and can coincidentally contain a substring like "raw"
+    // (e.g. "...xdrawp3j"), which previously made this assertion flaky. Every
+    // remaining field is a bounded enum/status/number/date that can never
+    // legitimately contain leaked raw-payload content.
+    const auditsWithoutIds = audits.map(({ id, userId, conversationId, turnId, correlationId, ...rest }) => rest);
+    expect(JSON.stringify(auditsWithoutIds)).not.toMatch(/provider-private-secret|systemInstruction|currentRequest|raw/i);
   });
 
   it('rejects cross-user and archived conversations before context or provider execution', async () => {
