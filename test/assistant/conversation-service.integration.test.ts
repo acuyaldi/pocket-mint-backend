@@ -1,4 +1,5 @@
 import { afterAll, afterEach, describe, expect, it } from 'vitest';
+import { Prisma } from '../../src/generated/prisma/client';
 import { createPrismaResources } from '../../src/lib/prismaFactory';
 import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
 import { createAssistantConversationService } from '../../src/assistant/conversation.service';
@@ -59,14 +60,64 @@ describe.skipIf(!url)('Assistant conversation service (disposable PostgreSQL)', 
     await expect(service().beginTurn({ userId: owner, conversationId: turn.conversationId, correlationId: `next-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' })).rejects.toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_CONTINUABLE' });
   });
 
-  it('restores idempotently and allows continuation again', async () => {
+  it('restores idempotently, preserves title/sourceChannels, and allows continuation again', async () => {
     const owner = await user('restore');
-    const turn = await service().beginTurn({ userId: owner, correlationId: `corr-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' });
+    const turn = await service().beginTurn({ userId: owner, correlationId: `corr-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'jajan kopi 20rb', source: 'USER_PROVIDED' });
+    await db().assistantTurn.update({ where: { id: turn.turnId }, data: { channel: 'TELEGRAM' } });
     await service().archiveOwnedConversation(owner, turn.conversationId);
     const first = await service().restoreOwnedConversation(owner, turn.conversationId);
     const second = await service().restoreOwnedConversation(owner, turn.conversationId);
     expect(first.status).toBe('ACTIVE'); expect(first.archivedAt).toBeNull(); expect(second.status).toBe('ACTIVE');
+    const list = await service().listOwnedConversations(owner);
+    expect(list.items[0]).toMatchObject({ title: 'jajan kopi 20rb', sourceChannels: ['TELEGRAM'] });
     await expect(service().beginTurn({ userId: owner, conversationId: turn.conversationId, correlationId: `next-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' })).resolves.toBeDefined();
+  });
+
+  it('archive preserves messages, tool history, and channel/delivery metadata (Phase 33)', async () => {
+    const owner = await user('archive-preserve');
+    const webTurn = await service().beginTurn({ userId: owner, correlationId: `corr-web-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'halo', source: 'USER_PROVIDED' });
+    await service().finalizeWithoutTool({ ...webTurn, turnStatus: 'SUCCEEDED', assistantContent: 'balas', assistantSource: 'DETERMINISTIC_RENDERER' });
+    const telegramTurn = await service().beginTurn({ userId: owner, conversationId: webTurn.conversationId, correlationId: `corr-tg-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'lanjut', source: 'USER_PROVIDED' });
+    await db().assistantTurn.update({ where: { id: telegramTurn.turnId }, data: { channel: 'TELEGRAM' } });
+    const job = await db().channelInboundJob.create({ data: {
+      provider: 'TELEGRAM', externalUpdateId: `upd-${telegramTurn.turnId}`, externalSenderId: 'sender', externalChatId: 'chat',
+      text: 'lanjut', status: 'SUCCEEDED', assistantTurnId: telegramTurn.turnId,
+    } });
+    await db().channelOutboundDelivery.create({ data: {
+      inboundJobId: job.id, provider: 'TELEGRAM', kind: 'SEND_MESSAGE', destinationChatId: 'chat', renderedText: 'reply', status: 'SENT',
+    } });
+
+    await service().archiveOwnedConversation(owner, webTurn.conversationId);
+
+    const detail = await service().getOwnedConversation(owner, webTurn.conversationId);
+    expect(detail.conversation.status).toBe('ARCHIVED');
+    expect(detail.messages.items.map((m) => [m.role, m.content])).toEqual([['USER', 'halo'], ['ASSISTANT', 'balas'], ['USER', 'lanjut']]);
+    expect(detail.conversation.sourceChannels).toEqual(['WEB', 'TELEGRAM']);
+    expect(detail.turns.find((t) => t.id === telegramTurn.turnId)).toMatchObject({ deliveryStatus: 'DELIVERED' });
+    const list = await service().listOwnedConversations(owner);
+    expect(list.items[0]).toMatchObject({ status: 'ARCHIVED', sourceChannels: ['WEB', 'TELEGRAM'] });
+  });
+
+  it('does not block finalizing an in-flight RUNNING turn after its conversation is archived mid-request (Phase 33)', async () => {
+    const owner = await user('archive-running');
+    const turn = await service().beginTurn({ userId: owner, correlationId: `corr-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'USER_PROVIDED' });
+    await service().markTurnRunning(turn.turnId);
+    await service().archiveOwnedConversation(owner, turn.conversationId);
+
+    await expect(service().finalizeWithoutTool({ ...turn, turnStatus: 'SUCCEEDED', assistantContent: 'done', assistantSource: 'DETERMINISTIC_RENDERER' })).resolves.toBeUndefined();
+    const persisted = await db().assistantTurn.findUniqueOrThrow({ where: { id: turn.turnId } });
+    expect(persisted.status).toBe('SUCCEEDED');
+  });
+
+  it('makes archiving and restoring an unknown or cross-user conversation indistinguishable from not-found (Phase 33)', async () => {
+    const owner = await user('lifecycle-owner'); const other = await user('lifecycle-other');
+    const turn = await service().beginTurn({ userId: owner, correlationId: `corr-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' });
+    for (const id of [turn.conversationId, 'missing']) {
+      await expect(service().archiveOwnedConversation(other, id)).rejects.toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_FOUND' });
+      await expect(service().restoreOwnedConversation(other, id)).rejects.toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_FOUND' });
+    }
+    const untouched = await db().assistantConversation.findUniqueOrThrow({ where: { id: turn.conversationId } });
+    expect(untouched.status).toBe('ACTIVE');
   });
 
   it('titles a conversation from its first USER message, not the latest message of any role', async () => {
@@ -99,6 +150,99 @@ describe.skipIf(!url)('Assistant conversation service (disposable PostgreSQL)', 
       await expect(service().deleteOwnedConversation(other, id)).rejects.toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_FOUND' });
     }
     expect(await db().assistantConversation.findUnique({ where: { id: turn.conversationId } })).not.toBeNull();
+  });
+
+  it('deletes a conversation with a pending financial draft and a pending clarification without error (Phase 33)', async () => {
+    const owner = await user('delete-pending');
+    const wallet = await db().wallet.create({ data: { userId: owner, name: 'Cash', type: 'CASH' } });
+    const category = await db().category.create({ data: { userId: owner, name: 'Food', type: 'EXPENSE' } });
+    const turn = await service().beginTurn({ userId: owner, correlationId: `corr-${Date.now()}`, intent: 'transaction.create', locale: 'id-ID', content: 'beli kopi 20rb', source: 'USER_PROVIDED' });
+    const execution = await db().assistantToolExecution.create({ data: {
+      conversationId: turn.conversationId, turnId: turn.turnId, toolId: 'transaction.create', capability: 'transaction.create',
+      riskLevel: 'HIGH', policyDecision: 'DRAFT_AND_CONFIRM', status: 'SUCCEEDED', correlationId: `exec-${turn.turnId}`,
+    } });
+    const draft = await db().assistantFinancialDraft.create({ data: {
+      userId: owner, conversationId: turn.conversationId, originatingTurnId: turn.turnId, originatingExecutionId: execution.id,
+      operation: 'transaction.create', transactionType: 'EXPENSE', amount: new Prisma.Decimal('20000'),
+      walletId: wallet.id, categoryId: category.id, transactionDate: new Date(), expiresAt: new Date(Date.now() + 15 * 60_000),
+    } });
+    const clarification = await db().clarificationRequest.create({ data: {
+      userId: owner, conversationId: turn.conversationId, originatingTurnId: turn.turnId, executionId: `clar-exec-${turn.turnId}`,
+      entityType: 'wallet', trustedContext: {}, prompt: 'Wallet mana?', expiresAt: new Date(Date.now() + 15 * 60_000),
+    } });
+
+    await service().deleteOwnedConversation(owner, turn.conversationId);
+
+    expect(await db().assistantFinancialDraft.findUnique({ where: { id: draft.id } })).toBeNull();
+    expect(await db().clarificationRequest.findUnique({ where: { id: clarification.id } })).toBeNull();
+    expect(await db().assistantConversation.findUnique({ where: { id: turn.conversationId } })).toBeNull();
+  });
+
+  it('SetNulls ChannelConnection.conversationId instead of blocking delete, leaving the link intact but pointing at nothing (Phase 33)', async () => {
+    const owner = await user('delete-channel-linked');
+    const turn = await service().beginTurn({ userId: owner, correlationId: `corr-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'USER_PROVIDED' });
+    const connection = await db().channelConnection.create({ data: {
+      userId: owner, provider: 'TELEGRAM', externalUserId: `ext-${owner}`, externalChatId: `chat-${owner}`, conversationId: turn.conversationId,
+    } });
+
+    await service().deleteOwnedConversation(owner, turn.conversationId);
+
+    const survivor = await db().channelConnection.findUniqueOrThrow({ where: { id: connection.id } });
+    expect(survivor.conversationId).toBeNull();
+    expect(survivor.status).toBe('ACTIVE');
+  });
+
+  it('leaves unenforced ChannelInboundJob.assistantTurnId and ChannelAssistantOperation.turnId pointing at a deleted turn — plain columns, not foreign keys (Phase 33)', async () => {
+    const owner = await user('delete-channel-operational');
+    const turn = await service().beginTurn({ userId: owner, correlationId: `corr-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'USER_PROVIDED' });
+    await db().assistantTurn.update({ where: { id: turn.turnId }, data: { channel: 'TELEGRAM' } });
+    const job = await db().channelInboundJob.create({ data: {
+      provider: 'TELEGRAM', externalUpdateId: `upd-${turn.turnId}`, externalSenderId: 'sender', externalChatId: 'chat',
+      text: 'safe', status: 'SUCCEEDED', assistantTurnId: turn.turnId,
+    } });
+    const operation = await db().channelAssistantOperation.create({ data: {
+      id: `channel:telegram:${job.id}`, userId: owner, turnId: turn.turnId, renderedText: 'reply',
+    } });
+
+    await service().deleteOwnedConversation(owner, turn.conversationId);
+
+    // No @relation on either field (verified against prisma/schema.prisma) — deleting the
+    // turn these point at neither cascades, restricts, nor SetNulls them. Both rows are
+    // separately retention-managed (src/channels/retention.ts), not cleaned up by conversation delete.
+    const survivingJob = await db().channelInboundJob.findUniqueOrThrow({ where: { id: job.id } });
+    expect(survivingJob.assistantTurnId).toBe(turn.turnId);
+    const survivingOperation = await db().channelAssistantOperation.findUniqueOrThrow({ where: { id: operation.id } });
+    expect(survivingOperation.turnId).toBe(turn.turnId);
+  });
+
+  it('never deletes the referenced Transaction when cascading away a conversation\'s draft/idempotency rows (Phase 33)', async () => {
+    const owner = await user('delete-financial-safety');
+    const wallet = await db().wallet.create({ data: { userId: owner, name: 'Cash', type: 'CASH' } });
+    const category = await db().category.create({ data: { userId: owner, name: 'Food', type: 'EXPENSE' } });
+    const turn = await service().beginTurn({ userId: owner, correlationId: `corr-${Date.now()}`, intent: 'transaction.create', locale: 'id-ID', content: 'beli kopi 20rb', source: 'USER_PROVIDED' });
+    const execution = await db().assistantToolExecution.create({ data: {
+      conversationId: turn.conversationId, turnId: turn.turnId, toolId: 'transaction.create', capability: 'transaction.create',
+      riskLevel: 'HIGH', policyDecision: 'DRAFT_AND_CONFIRM', status: 'SUCCEEDED', correlationId: `exec-${turn.turnId}`,
+    } });
+    const transaction = await db().transaction.create({ data: {
+      userId: owner, walletId: wallet.id, categoryId: category.id, type: 'EXPENSE', amount: new Prisma.Decimal('20000'), date: new Date(),
+    } });
+    const draft = await db().assistantFinancialDraft.create({ data: {
+      userId: owner, conversationId: turn.conversationId, originatingTurnId: turn.turnId, originatingExecutionId: execution.id,
+      operation: 'transaction.create', transactionType: 'EXPENSE', amount: new Prisma.Decimal('20000'),
+      walletId: wallet.id, categoryId: category.id, transactionDate: new Date(), expiresAt: new Date(Date.now() + 15 * 60_000),
+      status: 'COMMITTED', committedAt: new Date(), transactionId: transaction.id,
+    } });
+    await db().assistantIdempotencyRecord.create({ data: {
+      userId: owner, turnId: turn.turnId, operation: 'transaction.create', key: `key-${turn.turnId}`, status: 'COMPLETED', transactionId: transaction.id,
+    } });
+
+    await service().deleteOwnedConversation(owner, turn.conversationId);
+
+    expect(await db().assistantFinancialDraft.findUnique({ where: { id: draft.id } })).toBeNull();
+    expect(await db().assistantIdempotencyRecord.findMany({ where: { turnId: turn.turnId } })).toHaveLength(0);
+    const survivingTransaction = await db().transaction.findUniqueOrThrow({ where: { id: transaction.id } });
+    expect(survivingTransaction.id).toBe(transaction.id);
   });
 
   it('caps pagination at 100 and exposes a RUNNING turn as incomplete without retrying it', async () => {
