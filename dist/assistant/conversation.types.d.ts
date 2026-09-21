@@ -41,12 +41,16 @@ export interface ConversationMessageDto {
  * Phase 31 — safe outbound delivery state for a turn's channel-originated
  * Assistant reply, aggregated only from `ChannelOutboundDelivery` rows.
  * Never a provider message id, external chat id, raw provider response, or
- * reply markup. `NOT_APPLICABLE` for a WEB turn. Absent (not returned) for a
- * TELEGRAM turn whose delivery row is no longer available (retention-purged,
- * same bounded gap as Phase 30 channel backfill) — treat as unknown, never
- * assume success or failure.
+ * reply markup. `NOT_APPLICABLE` for a WEB turn.
+ *
+ * Phase 32 — the field is now always present on a current backend response
+ * (never omitted): `UNKNOWN` is the explicit value for a TELEGRAM turn whose
+ * delivery row is no longer retained (retention-purged, or the rare
+ * pre-delivery-row race) — distinct from a pre-Phase-31 backend, where the
+ * field is absent from the response entirely. Never assume success or
+ * failure for `UNKNOWN`.
  */
-export type AssistantDeliveryStatus = 'NOT_APPLICABLE' | 'PENDING' | 'PROCESSING' | 'DELIVERED' | 'FAILED';
+export type AssistantDeliveryStatus = 'NOT_APPLICABLE' | 'PENDING' | 'PROCESSING' | 'DELIVERED' | 'FAILED' | 'UNKNOWN';
 export interface Page<T> {
     items: T[];
     page: number;

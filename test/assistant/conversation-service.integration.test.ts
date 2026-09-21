@@ -149,7 +149,7 @@ describe.skipIf(!url)('Assistant conversation service (disposable PostgreSQL)', 
     expect(list.items[0]?.sourceChannels).toEqual(['WEB', 'TELEGRAM']);
   });
 
-  it('aggregates channel delivery status from ChannelOutboundDelivery rows without exposing provider identifiers (Phase 31)', async () => {
+  it('aggregates channel delivery status from ChannelOutboundDelivery rows without exposing provider identifiers (Phase 31/32)', async () => {
     const owner = await user('delivery-status');
     const webTurn = await service().beginTurn({ userId: owner, correlationId: `corr-web-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'USER_PROVIDED' });
 
@@ -184,10 +184,35 @@ describe.skipIf(!url)('Assistant conversation service (disposable PostgreSQL)', 
     expect(byId.get(sentTurnId)).toMatchObject({ deliveryStatus: 'DELIVERED' });
     expect(byId.get(retryableTurnId)).toMatchObject({ deliveryStatus: 'PROCESSING' });
     expect(byId.get(terminalTurnId)).toMatchObject({ deliveryStatus: 'FAILED' });
-    // No delivery row yet (or purged) — absent, never a guessed value.
-    expect(byId.get(noDeliveryTurnId)?.deliveryStatus).toBeUndefined();
+    // No delivery row yet (or purged) — explicit UNKNOWN (Phase 32), never a guessed value.
+    expect(byId.get(noDeliveryTurnId)).toMatchObject({ deliveryStatus: 'UNKNOWN' });
 
     const body = JSON.stringify(detail);
     expect(body).not.toMatch(/chat-secret-id|reply text that must never leak|externalChatId|externalSenderId|callbackQueryId/);
+  });
+
+  it('flips a TELEGRAM turn from DELIVERED to UNKNOWN once its delivery row is retention-purged (Phase 32)', async () => {
+    const owner = await user('delivery-retention');
+    const turn = await service().beginTurn({ userId: owner, correlationId: `corr-tg-retained-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'USER_PROVIDED' });
+    await db().assistantTurn.update({ where: { id: turn.turnId }, data: { channel: 'TELEGRAM' } });
+    const job = await db().channelInboundJob.create({ data: {
+      provider: 'TELEGRAM', externalUpdateId: `upd-retained-${turn.turnId}`, externalSenderId: 'sender', externalChatId: 'chat',
+      text: 'safe', status: 'SUCCEEDED', assistantTurnId: turn.turnId,
+    } });
+    await db().channelOutboundDelivery.create({ data: {
+      inboundJobId: job.id, provider: 'TELEGRAM', kind: 'SEND_MESSAGE', destinationChatId: 'chat', renderedText: 'reply', status: 'SENT',
+    } });
+
+    const whileRetained = await service().getOwnedConversation(owner, turn.conversationId);
+    expect(whileRetained.turns[0]).toMatchObject({ deliveryStatus: 'DELIVERED' });
+
+    // Simulates src/channels/retention.ts's cleanupChannelRecords deleting the
+    // now-old SENT delivery and its SUCCEEDED job — retention policy itself
+    // is not exercised or changed here, only its downstream read-path effect.
+    await db().channelOutboundDelivery.deleteMany({ where: { inboundJobId: job.id } });
+    await db().channelInboundJob.delete({ where: { id: job.id } });
+
+    const afterPurge = await service().getOwnedConversation(owner, turn.conversationId);
+    expect(afterPurge.turns[0]).toMatchObject({ deliveryStatus: 'UNKNOWN', channel: 'TELEGRAM' });
   });
 });
