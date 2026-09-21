@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DELIVERY_STATUS_MAP = void 0;
+exports.resolveDeliveryStatus = resolveDeliveryStatus;
 exports.createAssistantConversationService = createAssistantConversationService;
 const errors_1 = require("./errors");
 const persistence_1 = require("./persistence");
@@ -16,6 +17,21 @@ exports.DELIVERY_STATUS_MAP = {
     FAILED_RETRYABLE: 'PROCESSING',
     FAILED_TERMINAL: 'FAILED',
 };
+/**
+ * Phase 32 — turn-level delivery status. `NOT_APPLICABLE` for a WEB turn (no
+ * channel delivery to report); the mapped status for a TELEGRAM turn whose
+ * `ChannelOutboundDelivery` row is still retained; `UNKNOWN` for a TELEGRAM
+ * turn whose row is no longer retained (retention-purged, or the rare
+ * pre-delivery-row race) — an explicit historical-unknown value, distinct
+ * from a pre-Phase-31 backend where the field is absent entirely. Never
+ * guesses success or failure for data that no longer exists. Exported for
+ * direct unit testing.
+ */
+function resolveDeliveryStatus(channel, mappedStatus) {
+    if (channel !== 'TELEGRAM')
+        return 'NOT_APPLICABLE';
+    return mappedStatus ?? 'UNKNOWN';
+}
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 const pageArgs = (page, limit) => {
@@ -212,9 +228,7 @@ function createAssistantConversationService(db) {
             messages: { items: messages, page: p.page, limit: p.limit, total, hasMore: p.skip + messages.length < total },
             turns: turns.map((turn) => ({
                 ...turn,
-                // Absent (not NOT_APPLICABLE) for a TELEGRAM turn whose delivery row
-                // is no longer available — see AssistantDeliveryStatus.
-                deliveryStatus: turn.channel === 'TELEGRAM' ? deliveryStatusByTurnId.get(turn.id) : 'NOT_APPLICABLE',
+                deliveryStatus: resolveDeliveryStatus(turn.channel, deliveryStatusByTurnId.get(turn.id)),
             })),
         };
     }

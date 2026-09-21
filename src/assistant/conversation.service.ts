@@ -18,6 +18,24 @@ export const DELIVERY_STATUS_MAP: Record<ChannelDeliveryStatus, AssistantDeliver
   FAILED_TERMINAL: 'FAILED',
 };
 
+/**
+ * Phase 32 — turn-level delivery status. `NOT_APPLICABLE` for a WEB turn (no
+ * channel delivery to report); the mapped status for a TELEGRAM turn whose
+ * `ChannelOutboundDelivery` row is still retained; `UNKNOWN` for a TELEGRAM
+ * turn whose row is no longer retained (retention-purged, or the rare
+ * pre-delivery-row race) — an explicit historical-unknown value, distinct
+ * from a pre-Phase-31 backend where the field is absent entirely. Never
+ * guesses success or failure for data that no longer exists. Exported for
+ * direct unit testing.
+ */
+export function resolveDeliveryStatus(
+  channel: AssistantChannel,
+  mappedStatus: AssistantDeliveryStatus | undefined,
+): AssistantDeliveryStatus {
+  if (channel !== 'TELEGRAM') return 'NOT_APPLICABLE';
+  return mappedStatus ?? 'UNKNOWN';
+}
+
 /** Outcome of claiming a request-level Idempotency-Key for /assistant/messages or /assistant/execute. */
 export type IdempotencyClaim =
   | { outcome: 'new' }
@@ -226,9 +244,7 @@ export function createAssistantConversationService(db: PrismaClient) {
       messages: { items: messages as ConversationMessageDto[], page: p.page, limit: p.limit, total, hasMore: p.skip + messages.length < total },
       turns: turns.map((turn) => ({
         ...turn,
-        // Absent (not NOT_APPLICABLE) for a TELEGRAM turn whose delivery row
-        // is no longer available — see AssistantDeliveryStatus.
-        deliveryStatus: turn.channel === 'TELEGRAM' ? deliveryStatusByTurnId.get(turn.id) : 'NOT_APPLICABLE',
+        deliveryStatus: resolveDeliveryStatus(turn.channel, deliveryStatusByTurnId.get(turn.id)),
       })),
     };
   }

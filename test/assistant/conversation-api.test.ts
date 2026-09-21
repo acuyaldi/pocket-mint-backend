@@ -50,7 +50,7 @@ describe('Assistant conversation HTTP boundary', () => {
     expect(body).not.toMatch(/externalChatId|externalSenderId|externalUserId|callbackQueryId|callbackToken|chat_id|sender_id/i);
   });
 
-  it('passes through Phase 31 channel delivery status without leaking provider identifiers or raw payloads', async () => {
+  it('passes through Phase 31/32 channel delivery status without leaking provider identifiers or raw payloads', async () => {
     const payload = {
       conversation: { id: 'c1', status: 'ACTIVE', sourceChannels: ['WEB', 'TELEGRAM'] },
       messages: { items: [], page: 1, limit: 20, total: 0, hasMore: false },
@@ -59,15 +59,15 @@ describe('Assistant conversation HTTP boundary', () => {
         { id: 't2', correlationId: 'corr-2', status: 'RUNNING', intent: 'x', safeErrorCode: null, startedAt: new Date(), finishedAt: null, channel: 'TELEGRAM', toolExecutions: [], deliveryStatus: 'PROCESSING' },
         { id: 't3', correlationId: 'corr-3', status: 'FAILED', intent: 'x', safeErrorCode: null, startedAt: new Date(), finishedAt: new Date(), channel: 'TELEGRAM', toolExecutions: [], deliveryStatus: 'FAILED' },
         { id: 't4', correlationId: 'corr-4', status: 'SUCCEEDED', intent: 'x', safeErrorCode: null, startedAt: new Date(), finishedAt: new Date(), channel: 'WEB', toolExecutions: [], deliveryStatus: 'NOT_APPLICABLE' },
-        // A TELEGRAM turn whose delivery row is no longer available (retention-purged) — the field is simply absent, never a guessed value.
-        { id: 't5', correlationId: 'corr-5', status: 'SUCCEEDED', intent: 'x', safeErrorCode: null, startedAt: new Date(), finishedAt: new Date(), channel: 'TELEGRAM', toolExecutions: [] },
+        // A TELEGRAM turn whose delivery row is no longer retained (retention-purged) — an explicit UNKNOWN (Phase 32), never omitted and never a guessed value.
+        { id: 't5', correlationId: 'corr-5', status: 'SUCCEEDED', intent: 'x', safeErrorCode: null, startedAt: new Date(), finishedAt: new Date(), channel: 'TELEGRAM', toolExecutions: [], deliveryStatus: 'UNKNOWN' },
       ],
     };
     const conversations = { getOwnedConversation: vi.fn().mockResolvedValue(payload) };
     const res = await request(appFor(conversations)).get('/conversations/c1');
     const body = JSON.stringify(res.body);
     expect(res.body.data.turns.map((t: { deliveryStatus?: string }) => t.deliveryStatus)).toEqual([
-      'DELIVERED', 'PROCESSING', 'FAILED', 'NOT_APPLICABLE', undefined,
+      'DELIVERED', 'PROCESSING', 'FAILED', 'NOT_APPLICABLE', 'UNKNOWN',
     ]);
     // Only the closed, safe status label ever crosses the HTTP boundary — never a
     // provider message id, destination chat id, rendered outbound text, or reply markup.
