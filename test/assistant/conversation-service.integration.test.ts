@@ -122,4 +122,30 @@ describe.skipIf(!url)('Assistant conversation service (disposable PostgreSQL)', 
     expect(await db().assistantMessage.count()).toBe(0);
     expect(await db().assistantToolExecution.count()).toBe(0);
   });
+
+  it('defaults a new turn to WEB channel attribution (Phase 30)', async () => {
+    const owner = await user('channel-default');
+    const turn = await service().beginTurn({ userId: owner, correlationId: `corr-web-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'USER_PROVIDED' });
+    const detail = await service().getOwnedConversation(owner, turn.conversationId);
+    expect(detail.turns[0]).toMatchObject({ channel: 'WEB' });
+    expect(detail.conversation.sourceChannels).toEqual(['WEB']);
+    const list = await service().listOwnedConversations(owner);
+    expect(list.items[0]?.sourceChannels).toEqual(['WEB']);
+  });
+
+  it('surfaces a Telegram-attributed turn without exposing any provider identifier (Phase 30)', async () => {
+    const owner = await user('channel-telegram');
+    const webTurn = await service().beginTurn({ userId: owner, correlationId: `corr-web-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'USER_PROVIDED' });
+    const telegramTurn = await service().beginTurn({ userId: owner, conversationId: webTurn.conversationId, correlationId: `corr-tg-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'USER_PROVIDED' });
+    // Simulates the channel inbound worker's post-hoc stamp (src/channels/workers/inbound.worker.ts `stampTelegramChannel`) — never threaded through beginTurn itself.
+    await db().assistantTurn.update({ where: { id: telegramTurn.turnId }, data: { channel: 'TELEGRAM' } });
+
+    const detail = await service().getOwnedConversation(owner, webTurn.conversationId);
+    expect(detail.turns.map((t) => t.channel)).toEqual(['WEB', 'TELEGRAM']);
+    expect(detail.conversation.sourceChannels).toEqual(['WEB', 'TELEGRAM']);
+    expect(JSON.stringify(detail)).not.toMatch(/externalChatId|externalSenderId|externalUserId|callbackQueryId/i);
+
+    const list = await service().listOwnedConversations(owner);
+    expect(list.items[0]?.sourceChannels).toEqual(['WEB', 'TELEGRAM']);
+  });
 });

@@ -80,6 +80,9 @@ function fakeDb() {
     channelConnection: {
       findUnique: vi.fn(async ({ where }: { where: { id: string } }) => connections.get(where.id) ?? null),
     },
+    assistantTurn: {
+      update: vi.fn(async ({ data }: { data: Record<string, unknown> }) => data),
+    },
   } as never;
 }
 
@@ -147,6 +150,22 @@ describe('processJob — plain text', () => {
     const db = deps.db as ReturnType<typeof fakeDb>;
     expect(firstDelivery(db, 'job-1')?.renderedText).toBe('You spent 50000.');
     expect(db.jobUpdates).toContainEqual(expect.objectContaining({ assistantTurnId: 'turn-1' }));
+    expect(db.jobUpdates.at(-1)).toMatchObject({ status: 'SUCCEEDED' });
+    // Phase 30: the turn this Telegram message produced is stamped TELEGRAM after the fact.
+    expect(db.assistantTurn.update).toHaveBeenCalledWith({ where: { id: 'turn-1' }, data: { channel: 'TELEGRAM' } });
+  });
+
+  it('Phase 30 channel attribution is best-effort: a failing stamp never blocks reply delivery or job success', async () => {
+    const db = fakeDb();
+    (db.assistantTurn.update as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('db unavailable'));
+    const runtime = { sendMessage: vi.fn().mockResolvedValue({ httpStatus: 200, response: { status: 'success', renderedText: 'You spent 50000.', conversationId: 'conv-1', turnId: 'turn-1' } }) };
+    const deps = buildDeps({
+      db: db as never,
+      connections: { getActiveConnection: vi.fn().mockResolvedValue(linkedConnection), getByUser: vi.fn(), revoke: vi.fn(), setCurrentConversation: vi.fn() } as never,
+      assistantProviderRuntime: runtime as never,
+    });
+    await processJob(deps, job(), 'corr-1');
+    expect(firstDelivery(db, 'job-1')?.renderedText).toBe('You spent 50000.');
     expect(db.jobUpdates.at(-1)).toMatchObject({ status: 'SUCCEEDED' });
   });
 
@@ -269,6 +288,26 @@ describe('processJob — callbacks', () => {
     expect(processCallback).not.toHaveBeenCalled();
     expect(db.jobUpdates.at(-1)).toMatchObject({ status: 'FAILED_TERMINAL', errorCategory: 'ambiguous_callback_execution' });
     expect(db.deliveries.has('job-1')).toBe(false);
+  });
+
+  it('stamps the turn a clarification callback produced as TELEGRAM (Phase 30)', async () => {
+    vi.mocked(findCallbackTokenByRaw).mockResolvedValue({ id: 'token-1', connectionId: 'conn-1' } as never);
+    vi.mocked(processCallback).mockResolvedValue({ terminalStatus: 'clarification_advanced', replyText: 'Pilih salah satu.', clearOriginalKeyboard: true, turnId: 'turn-cb-1' });
+    const db = fakeDb();
+    db.connections.set('conn-1', { id: 'conn-1', userId: 'user-1' });
+    const deps = buildDeps({ db: db as never, assistantProviderRuntime: { sendMessage: vi.fn() } as never });
+    await processJob(deps, callbackJob(), 'corr-1');
+    expect(db.assistantTurn.update).toHaveBeenCalledWith({ where: { id: 'turn-cb-1' }, data: { channel: 'TELEGRAM' } });
+  });
+
+  it('never stamps a turn for a callback outcome that never reached the application service (e.g. an expired token)', async () => {
+    vi.mocked(findCallbackTokenByRaw).mockResolvedValue({ id: 'token-1', connectionId: 'conn-1' } as never);
+    vi.mocked(processCallback).mockResolvedValue({ terminalStatus: 'expired', replyText: 'Gone.', clearOriginalKeyboard: true });
+    const db = fakeDb();
+    db.connections.set('conn-1', { id: 'conn-1', userId: 'user-1' });
+    const deps = buildDeps({ db: db as never, assistantProviderRuntime: { sendMessage: vi.fn() } as never });
+    await processJob(deps, callbackJob(), 'corr-1');
+    expect(db.assistantTurn.update).not.toHaveBeenCalled();
   });
 
   it('replies unavailable and never touches interaction.service when no Assistant provider runtime is configured', async () => {

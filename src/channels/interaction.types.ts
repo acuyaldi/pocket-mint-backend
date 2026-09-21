@@ -25,4 +25,6 @@ export interface CallbackActionResult {
   readonly keyboard?: InteractionKeyboard;
   /** True when the underlying action succeeded/terminalized and the original message's keyboard should be cleared. */
   readonly clearOriginalKeyboard: boolean;
+  /** The turn this action produced, when one was — absent for a terminal outcome that never reached the application service (token not found/consumed/expired/stale/...). Used only to stamp Phase 30 channel attribution, never rendered. */
+  readonly turnId?: string;
 }

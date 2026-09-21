@@ -69,6 +69,17 @@ enum AssistantMessageRole {
   SYSTEM
 }
 
+// Phase 30: which surface produced a turn. Defaults to WEB at creation time
+// (the HTTP path never sets it); the channel inbound worker
+// (src/channels/workers/inbound.worker.ts) stamps a turn TELEGRAM after the
+// fact, once it knows the turn id, for both message- and callback-originated
+// turns. Never threaded through application.service.ts / provider-runtime.ts
+// — keeps financial/clarification logic untouched by this attribution.
+enum AssistantChannel {
+  WEB
+  TELEGRAM
+}
+
 enum AssistantMessageSource {
   USER_PROVIDED
   CANONICAL_FALLBACK
@@ -144,6 +155,7 @@ model AssistantTurn {
   safeErrorCode  String?             @map("safe_error_code")
   startedAt      DateTime            @default(now()) @map("started_at")
   finishedAt     DateTime?           @map("finished_at")
+  channel        AssistantChannel    @default(WEB)
   createdAt      DateTime            @default(now()) @map("created_at")
   updatedAt      DateTime            @updatedAt @map("updated_at")
 

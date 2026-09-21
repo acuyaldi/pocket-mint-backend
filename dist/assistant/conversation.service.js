@@ -4,6 +4,9 @@ exports.createAssistantConversationService = createAssistantConversationService;
 const errors_1 = require("./errors");
 const persistence_1 = require("./persistence");
 const financial_draft_1 = require("./financial-draft");
+/** Fixed, deterministic display order — also dedupes since each channel appears at most once. */
+const CHANNEL_ORDER = ['WEB', 'TELEGRAM'];
+const sourceChannelsOf = (channels) => CHANNEL_ORDER.filter((channel) => channels.includes(channel));
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 const pageArgs = (page, limit) => {
@@ -144,11 +147,19 @@ function createAssistantConversationService(db) {
             })
             : [];
         const titleByConversationId = new Map(titleRows.map((row) => [row.conversationId, row.content]));
+        const channelRows = rows.length
+            ? await db.assistantTurn.groupBy({ by: ['conversationId', 'channel'], where: { conversationId: { in: rows.map((row) => row.id) } } })
+            : [];
+        const channelsByConversationId = new Map();
+        for (const row of channelRows) {
+            channelsByConversationId.set(row.conversationId, [...(channelsByConversationId.get(row.conversationId) ?? []), row.channel]);
+        }
         return { items: rows.map((row) => ({
                 id: row.id, status: row.status, locale: row.locale, createdAt: row.createdAt,
                 updatedAt: row.updatedAt, lastActivityAt: row.lastActivityAt,
                 title: titleByConversationId.get(row.id)?.slice(0, 160),
                 lastMessage: row.messages[0]?.content.slice(0, 160),
+                sourceChannels: sourceChannelsOf(channelsByConversationId.get(row.id) ?? []),
             })), page: p.page, limit: p.limit, total, hasMore: p.skip + rows.length < total };
     }
     async function getOwnedConversation(userId, id, page, limit) {
@@ -159,14 +170,22 @@ function createAssistantConversationService(db) {
             db.assistantMessage.findMany({ where, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], skip: p.skip, take: p.limit }),
             db.assistantMessage.count({ where }),
             db.assistantTurn.findMany({ where: { conversationId: id }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], select: {
-                    id: true, correlationId: true, status: true, intent: true, safeErrorCode: true, startedAt: true, finishedAt: true,
+                    id: true, correlationId: true, status: true, intent: true, safeErrorCode: true, startedAt: true, finishedAt: true, channel: true,
                     toolExecutions: { orderBy: [{ startedAt: 'asc' }, { id: 'asc' }], select: {
                             id: true, toolId: true, capability: true, riskLevel: true, policyDecision: true, status: true,
                             correlationId: true, startedAt: true, completedAt: true, durationMs: true, safeErrorCode: true,
                         } },
                 } }),
         ]);
-        return { conversation: { id: conversation.id, status: conversation.status, locale: conversation.locale, createdAt: conversation.createdAt, updatedAt: conversation.updatedAt, lastActivityAt: conversation.lastActivityAt }, messages: { items: messages, page: p.page, limit: p.limit, total, hasMore: p.skip + messages.length < total }, turns };
+        return {
+            conversation: {
+                id: conversation.id, status: conversation.status, locale: conversation.locale, createdAt: conversation.createdAt,
+                updatedAt: conversation.updatedAt, lastActivityAt: conversation.lastActivityAt,
+                sourceChannels: sourceChannelsOf(turns.map((turn) => turn.channel)),
+            },
+            messages: { items: messages, page: p.page, limit: p.limit, total, hasMore: p.skip + messages.length < total },
+            turns,
+        };
     }
     async function archiveOwnedConversation(userId, id) {
         const conversation = await owned(userId, id);

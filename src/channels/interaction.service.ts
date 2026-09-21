@@ -128,6 +128,7 @@ export async function renderApplicationResult(
     status: string;
     message?: string;
     renderedText?: string;
+    turnId?: string;
     data?: {
       kind?: string;
       clarification?: { clarificationId: string; prompt?: string; options?: readonly { token: string; label: string; discriminator?: string }[] };
@@ -146,6 +147,7 @@ export async function renderApplicationResult(
       replyText: response.data.clarification.prompt ?? response.message ?? 'Please choose one option.',
       keyboard: { rows: buttons.map((b) => [b]) },
       clearOriginalKeyboard: true,
+      turnId: response.turnId,
     };
   }
 
@@ -154,6 +156,7 @@ export async function renderApplicationResult(
       terminalStatus: 'guided_fields_handoff',
       replyText: response.message ?? 'Please continue in the Pocket Mint web app to complete this clarification.',
       clearOriginalKeyboard: true,
+      turnId: response.turnId,
     };
   }
 
@@ -164,14 +167,15 @@ export async function renderApplicationResult(
       replyText: response.renderedText ?? 'A transaction draft is ready for confirmation.',
       keyboard: { rows: [buttons] },
       clearOriginalKeyboard: true,
+      turnId: response.turnId,
     };
   }
 
   if (response.status === 'success') {
-    return { terminalStatus: 'success', replyText: response.message ?? response.renderedText ?? 'Done.', clearOriginalKeyboard: true };
+    return { terminalStatus: 'success', replyText: response.message ?? response.renderedText ?? 'Done.', clearOriginalKeyboard: true, turnId: response.turnId };
   }
 
-  return { terminalStatus: 'failed', replyText: response.message ?? 'This action could not be completed.', clearOriginalKeyboard: true };
+  return { terminalStatus: 'failed', replyText: response.message ?? 'This action could not be completed.', clearOriginalKeyboard: true, turnId: response.turnId };
 }
 
 /**
