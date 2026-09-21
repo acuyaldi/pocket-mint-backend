@@ -7,6 +7,14 @@ const financial_draft_1 = require("./financial-draft");
 /** Fixed, deterministic display order — also dedupes since each channel appears at most once. */
 const CHANNEL_ORDER = ['WEB', 'TELEGRAM'];
 const sourceChannelsOf = (channels) => CHANNEL_ORDER.filter((channel) => channels.includes(channel));
+/** Phase 31 — maps the internal delivery lifecycle to the safe, user-facing status. A retry still in backoff reads as still-in-progress, not failed, since it may yet succeed. */
+const DELIVERY_STATUS_MAP = {
+    PENDING: 'PENDING',
+    SENDING: 'PROCESSING',
+    SENT: 'DELIVERED',
+    FAILED_RETRYABLE: 'PROCESSING',
+    FAILED_TERMINAL: 'FAILED',
+};
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 const pageArgs = (page, limit) => {
@@ -177,6 +185,23 @@ function createAssistantConversationService(db) {
                         } },
                 } }),
         ]);
+        // Phase 31 — one additional bounded query (by turn id, same cost profile as
+        // the toolExecutions select above), aggregating only already-existing
+        // ChannelOutboundDelivery rows. Never selects renderedText, replyMarkup,
+        // providerMessageId, or destinationChatId.
+        const telegramTurnIds = turns.filter((turn) => turn.channel === 'TELEGRAM').map((turn) => turn.id);
+        const deliveryStatusByTurnId = new Map();
+        if (telegramTurnIds.length) {
+            const jobs = await db.channelInboundJob.findMany({
+                where: { assistantTurnId: { in: telegramTurnIds } },
+                select: { assistantTurnId: true, deliveries: { where: { kind: 'SEND_MESSAGE' }, select: { status: true } } },
+            });
+            for (const job of jobs) {
+                const status = job.deliveries[0]?.status;
+                if (job.assistantTurnId && status)
+                    deliveryStatusByTurnId.set(job.assistantTurnId, DELIVERY_STATUS_MAP[status]);
+            }
+        }
         return {
             conversation: {
                 id: conversation.id, status: conversation.status, locale: conversation.locale, createdAt: conversation.createdAt,
@@ -184,7 +209,12 @@ function createAssistantConversationService(db) {
                 sourceChannels: sourceChannelsOf(turns.map((turn) => turn.channel)),
             },
             messages: { items: messages, page: p.page, limit: p.limit, total, hasMore: p.skip + messages.length < total },
-            turns,
+            turns: turns.map((turn) => ({
+                ...turn,
+                // Absent (not NOT_APPLICABLE) for a TELEGRAM turn whose delivery row
+                // is no longer available — see AssistantDeliveryStatus.
+                deliveryStatus: turn.channel === 'TELEGRAM' ? deliveryStatusByTurnId.get(turn.id) : 'NOT_APPLICABLE',
+            })),
         };
     }
     async function archiveOwnedConversation(userId, id) {

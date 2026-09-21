@@ -60,6 +60,7 @@ export declare const assistantConversationService: {
             hasMore: boolean;
         };
         turns: {
+            deliveryStatus: import("./conversation.types").AssistantDeliveryStatus | undefined;
             id: string;
             status: import("@/generated/prisma").$Enums.AssistantTurnStatus;
             correlationId: string;
