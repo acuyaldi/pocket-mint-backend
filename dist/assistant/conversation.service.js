@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DELIVERY_STATUS_MAP = void 0;
 exports.createAssistantConversationService = createAssistantConversationService;
 const errors_1 = require("./errors");
 const persistence_1 = require("./persistence");
@@ -7,8 +8,8 @@ const financial_draft_1 = require("./financial-draft");
 /** Fixed, deterministic display order — also dedupes since each channel appears at most once. */
 const CHANNEL_ORDER = ['WEB', 'TELEGRAM'];
 const sourceChannelsOf = (channels) => CHANNEL_ORDER.filter((channel) => channels.includes(channel));
-/** Phase 31 — maps the internal delivery lifecycle to the safe, user-facing status. A retry still in backoff reads as still-in-progress, not failed, since it may yet succeed. */
-const DELIVERY_STATUS_MAP = {
+/** Phase 31 — maps the internal delivery lifecycle to the safe, user-facing status. A retry still in backoff reads as still-in-progress, not failed, since it may yet succeed. Exported for direct unit testing of the mapping. */
+exports.DELIVERY_STATUS_MAP = {
     PENDING: 'PENDING',
     SENDING: 'PROCESSING',
     SENT: 'DELIVERED',
@@ -199,7 +200,7 @@ function createAssistantConversationService(db) {
             for (const job of jobs) {
                 const status = job.deliveries[0]?.status;
                 if (job.assistantTurnId && status)
-                    deliveryStatusByTurnId.set(job.assistantTurnId, DELIVERY_STATUS_MAP[status]);
+                    deliveryStatusByTurnId.set(job.assistantTurnId, exports.DELIVERY_STATUS_MAP[status]);
             }
         }
         return {
