@@ -37,6 +37,16 @@ export interface ConversationMessageDto {
     content: string;
     createdAt: Date;
 }
+/**
+ * Phase 31 — safe outbound delivery state for a turn's channel-originated
+ * Assistant reply, aggregated only from `ChannelOutboundDelivery` rows.
+ * Never a provider message id, external chat id, raw provider response, or
+ * reply markup. `NOT_APPLICABLE` for a WEB turn. Absent (not returned) for a
+ * TELEGRAM turn whose delivery row is no longer available (retention-purged,
+ * same bounded gap as Phase 30 channel backfill) — treat as unknown, never
+ * assume success or failure.
+ */
+export type AssistantDeliveryStatus = 'NOT_APPLICABLE' | 'PENDING' | 'PROCESSING' | 'DELIVERED' | 'FAILED';
 export interface Page<T> {
     items: T[];
     page: number;

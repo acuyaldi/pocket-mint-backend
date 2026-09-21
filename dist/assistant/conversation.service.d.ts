@@ -1,5 +1,7 @@
-import type { PrismaClient, Prisma } from '../generated/prisma/client';
-import type { BeginTurnInput, BeginTurnResult, ConversationMessageDto, ConversationSummaryDto, FinalizeToolInput, FinalizeWithoutToolInput, Page } from './conversation.types';
+import type { ChannelDeliveryStatus, PrismaClient, Prisma } from '../generated/prisma/client';
+import type { AssistantDeliveryStatus, BeginTurnInput, BeginTurnResult, ConversationMessageDto, ConversationSummaryDto, FinalizeToolInput, FinalizeWithoutToolInput, Page } from './conversation.types';
+/** Phase 31 — maps the internal delivery lifecycle to the safe, user-facing status. A retry still in backoff reads as still-in-progress, not failed, since it may yet succeed. Exported for direct unit testing of the mapping. */
+export declare const DELIVERY_STATUS_MAP: Record<ChannelDeliveryStatus, AssistantDeliveryStatus>;
 /** Outcome of claiming a request-level Idempotency-Key for /assistant/messages or /assistant/execute. */
 export type IdempotencyClaim = {
     outcome: 'new';
@@ -64,6 +66,7 @@ export declare function createAssistantConversationService(db: PrismaClient): {
             hasMore: boolean;
         };
         turns: {
+            deliveryStatus: AssistantDeliveryStatus | undefined;
             id: string;
             status: import("@/generated/prisma").$Enums.AssistantTurnStatus;
             correlationId: string;

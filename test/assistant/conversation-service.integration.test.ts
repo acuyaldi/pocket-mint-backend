@@ -148,4 +148,46 @@ describe.skipIf(!url)('Assistant conversation service (disposable PostgreSQL)', 
     const list = await service().listOwnedConversations(owner);
     expect(list.items[0]?.sourceChannels).toEqual(['WEB', 'TELEGRAM']);
   });
+
+  it('aggregates channel delivery status from ChannelOutboundDelivery rows without exposing provider identifiers (Phase 31)', async () => {
+    const owner = await user('delivery-status');
+    const webTurn = await service().beginTurn({ userId: owner, correlationId: `corr-web-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'USER_PROVIDED' });
+
+    async function telegramTurnWithDelivery(status: 'PENDING' | 'SENDING' | 'SENT' | 'FAILED_RETRYABLE' | 'FAILED_TERMINAL' | null) {
+      const turn = await service().beginTurn({ userId: owner, conversationId: webTurn.conversationId, correlationId: `corr-tg-${status}-${Date.now()}-${Math.random()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'USER_PROVIDED' });
+      await db().assistantTurn.update({ where: { id: turn.turnId }, data: { channel: 'TELEGRAM' } });
+      const job = await db().channelInboundJob.create({ data: {
+        provider: 'TELEGRAM', externalUpdateId: `upd-${turn.turnId}`, externalSenderId: 'sender', externalChatId: 'chat',
+        text: 'safe', status: 'SUCCEEDED', assistantTurnId: turn.turnId,
+      } });
+      if (status) {
+        await db().channelOutboundDelivery.create({ data: {
+          inboundJobId: job.id, provider: 'TELEGRAM', kind: 'SEND_MESSAGE', destinationChatId: 'chat-secret-id',
+          renderedText: 'reply text that must never leak', status,
+        } });
+      }
+      return turn.turnId;
+    }
+
+    const pendingTurnId = await telegramTurnWithDelivery('PENDING');
+    const sendingTurnId = await telegramTurnWithDelivery('SENDING');
+    const sentTurnId = await telegramTurnWithDelivery('SENT');
+    const retryableTurnId = await telegramTurnWithDelivery('FAILED_RETRYABLE');
+    const terminalTurnId = await telegramTurnWithDelivery('FAILED_TERMINAL');
+    const noDeliveryTurnId = await telegramTurnWithDelivery(null);
+
+    const detail = await service().getOwnedConversation(owner, webTurn.conversationId, 1, 20);
+    const byId = new Map(detail.turns.map((t) => [t.id, t]));
+    expect(byId.get(webTurn.turnId)).toMatchObject({ deliveryStatus: 'NOT_APPLICABLE' });
+    expect(byId.get(pendingTurnId)).toMatchObject({ deliveryStatus: 'PENDING' });
+    expect(byId.get(sendingTurnId)).toMatchObject({ deliveryStatus: 'PROCESSING' });
+    expect(byId.get(sentTurnId)).toMatchObject({ deliveryStatus: 'DELIVERED' });
+    expect(byId.get(retryableTurnId)).toMatchObject({ deliveryStatus: 'PROCESSING' });
+    expect(byId.get(terminalTurnId)).toMatchObject({ deliveryStatus: 'FAILED' });
+    // No delivery row yet (or purged) — absent, never a guessed value.
+    expect(byId.get(noDeliveryTurnId)?.deliveryStatus).toBeUndefined();
+
+    const body = JSON.stringify(detail);
+    expect(body).not.toMatch(/chat-secret-id|reply text that must never leak|externalChatId|externalSenderId|callbackQueryId/);
+  });
 });

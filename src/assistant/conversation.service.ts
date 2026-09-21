@@ -1,13 +1,22 @@
-import type { AssistantChannel, PrismaClient, Prisma } from '../generated/prisma/client';
+import type { AssistantChannel, ChannelDeliveryStatus, PrismaClient, Prisma } from '../generated/prisma/client';
 import { AssistantError } from './errors';
 import { assertAssistantMessageLength } from './persistence';
 import { validateIdempotencyKey } from './financial-draft';
-import type { BeginTurnInput, BeginTurnResult, ConversationMessageDto, ConversationSummaryDto, FinalizeToolInput, FinalizeWithoutToolInput, Page } from './conversation.types';
+import type { AssistantDeliveryStatus, BeginTurnInput, BeginTurnResult, ConversationMessageDto, ConversationSummaryDto, FinalizeToolInput, FinalizeWithoutToolInput, Page } from './conversation.types';
 
 /** Fixed, deterministic display order — also dedupes since each channel appears at most once. */
 const CHANNEL_ORDER: AssistantChannel[] = ['WEB', 'TELEGRAM'];
 const sourceChannelsOf = (channels: readonly AssistantChannel[]): AssistantChannel[] =>
   CHANNEL_ORDER.filter((channel) => channels.includes(channel));
+
+/** Phase 31 — maps the internal delivery lifecycle to the safe, user-facing status. A retry still in backoff reads as still-in-progress, not failed, since it may yet succeed. Exported for direct unit testing of the mapping. */
+export const DELIVERY_STATUS_MAP: Record<ChannelDeliveryStatus, AssistantDeliveryStatus> = {
+  PENDING: 'PENDING',
+  SENDING: 'PROCESSING',
+  SENT: 'DELIVERED',
+  FAILED_RETRYABLE: 'PROCESSING',
+  FAILED_TERMINAL: 'FAILED',
+};
 
 /** Outcome of claiming a request-level Idempotency-Key for /assistant/messages or /assistant/execute. */
 export type IdempotencyClaim =
@@ -190,6 +199,24 @@ export function createAssistantConversationService(db: PrismaClient) {
         } },
       } }),
     ]);
+
+    // Phase 31 — one additional bounded query (by turn id, same cost profile as
+    // the toolExecutions select above), aggregating only already-existing
+    // ChannelOutboundDelivery rows. Never selects renderedText, replyMarkup,
+    // providerMessageId, or destinationChatId.
+    const telegramTurnIds = turns.filter((turn) => turn.channel === 'TELEGRAM').map((turn) => turn.id);
+    const deliveryStatusByTurnId = new Map<string, AssistantDeliveryStatus>();
+    if (telegramTurnIds.length) {
+      const jobs = await db.channelInboundJob.findMany({
+        where: { assistantTurnId: { in: telegramTurnIds } },
+        select: { assistantTurnId: true, deliveries: { where: { kind: 'SEND_MESSAGE' }, select: { status: true } } },
+      });
+      for (const job of jobs) {
+        const status = job.deliveries[0]?.status;
+        if (job.assistantTurnId && status) deliveryStatusByTurnId.set(job.assistantTurnId, DELIVERY_STATUS_MAP[status]);
+      }
+    }
+
     return {
       conversation: {
         id: conversation.id, status: conversation.status, locale: conversation.locale, createdAt: conversation.createdAt,
@@ -197,7 +224,12 @@ export function createAssistantConversationService(db: PrismaClient) {
         sourceChannels: sourceChannelsOf(turns.map((turn) => turn.channel)),
       },
       messages: { items: messages as ConversationMessageDto[], page: p.page, limit: p.limit, total, hasMore: p.skip + messages.length < total },
-      turns,
+      turns: turns.map((turn) => ({
+        ...turn,
+        // Absent (not NOT_APPLICABLE) for a TELEGRAM turn whose delivery row
+        // is no longer available — see AssistantDeliveryStatus.
+        deliveryStatus: turn.channel === 'TELEGRAM' ? deliveryStatusByTurnId.get(turn.id) : 'NOT_APPLICABLE',
+      })),
     };
   }
 
