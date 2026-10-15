@@ -42,13 +42,37 @@ function run(command, args, env) {
   }
 }
 
+const integrationTests = [
+  'test/prismaAdapter.integration.test.ts',
+  'test/notificationRefreshE2E.integration.test.ts',
+  'test/analytics.integration.test.ts',
+  'test/assistant/monthly-summary.integration.test.ts',
+  'test/assistant/conversation-service.integration.test.ts',
+  'test/assistant/conversation-http.integration.test.ts',
+  'test/assistant/financial-draft.integration.test.ts',
+  'test/assistant/context-service.integration.test.ts',
+  'test/assistant/provider-runtime.integration.test.ts',
+  'test/assistant/clarification-sequential.integration.test.ts',
+  'test/assistant/clarification-http.integration.test.ts',
+  'test/assistant/recovery-state-http.integration.test.ts',
+  'test/assistant/clarification-expiry.integration.test.ts',
+  'test/assistant/entity-resolution-transaction.integration.test.ts',
+  'test/assistant/message-idempotency.integration.test.ts',
+  'test/assistant/category-resolver.integration.test.ts',
+  'test/assistant/merchant-resolver.integration.test.ts',
+  'test/channels/telegram-channel.integration.test.ts',
+  'test/opsRemediation.integration.test.ts',
+  'test/channels/telegram-callback.integration.test.ts',
+  'test/channels/durableProcessing.integration.test.ts',
+];
+
 async function main() {
   const existing = process.env.TEST_DATABASE_URL;
   if (existing) {
     assertTestDatabaseUrl(existing);
     console.log('Using existing TEST_DATABASE_URL.');
     run('npx', ['prisma', 'migrate', 'deploy'], { DATABASE_URL: existing });
-    run('npx', ['vitest', 'run', 'test/prismaAdapter.integration.test.ts', 'test/notificationRefreshE2E.integration.test.ts'], { TEST_DATABASE_URL: existing });
+    run('npx', ['vitest', 'run', ...integrationTests], { TEST_DATABASE_URL: existing, DATABASE_URL: existing });
     return;
   }
 
@@ -73,7 +97,7 @@ async function main() {
 
   try {
     run('npx', ['prisma', 'migrate', 'deploy'], { DATABASE_URL: testDatabaseUrl });
-    run('npx', ['vitest', 'run', 'test/prismaAdapter.integration.test.ts', 'test/notificationRefreshE2E.integration.test.ts'], { TEST_DATABASE_URL: testDatabaseUrl });
+    run('npx', ['vitest', 'run', ...integrationTests], { TEST_DATABASE_URL: testDatabaseUrl, DATABASE_URL: testDatabaseUrl });
   } finally {
     console.log('Stopping disposable Postgres...');
     await pg.stop();

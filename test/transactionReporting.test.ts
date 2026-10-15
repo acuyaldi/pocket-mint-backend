@@ -21,8 +21,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   h.prisma.transaction.findMany.mockResolvedValue([]);
   h.prisma.transaction.groupBy.mockResolvedValue([
-    { type: 'INCOME', _sum: { amount: new Prisma.Decimal('10.20') } },
-    { type: 'EXPENSE', _sum: { amount: new Prisma.Decimal('0.10') } },
+    { type: 'INCOME', _sum: { amount: new Prisma.Decimal('10.20') }, _count: { _all: 1 } },
+    { type: 'EXPENSE', _sum: { amount: new Prisma.Decimal('0.10') }, _count: { _all: 2 } },
   ]);
 });
 

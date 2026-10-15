@@ -129,6 +129,151 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.AssistantConversationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  status: 'status',
+  locale: 'locale',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  lastActivityAt: 'lastActivityAt',
+  archivedAt: 'archivedAt'
+};
+
+exports.Prisma.AssistantTurnScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  correlationId: 'correlationId',
+  status: 'status',
+  intent: 'intent',
+  locale: 'locale',
+  safeErrorCode: 'safeErrorCode',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  channel: 'channel',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AssistantMessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  turnId: 'turnId',
+  role: 'role',
+  source: 'source',
+  content: 'content',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AssistantFinancialDraftScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  conversationId: 'conversationId',
+  originatingTurnId: 'originatingTurnId',
+  originatingExecutionId: 'originatingExecutionId',
+  status: 'status',
+  operation: 'operation',
+  transactionType: 'transactionType',
+  amount: 'amount',
+  walletId: 'walletId',
+  categoryId: 'categoryId',
+  transactionDate: 'transactionDate',
+  description: 'description',
+  expiresAt: 'expiresAt',
+  committedAt: 'committedAt',
+  cancelledAt: 'cancelledAt',
+  failedAt: 'failedAt',
+  transactionId: 'transactionId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AssistantIdempotencyRecordScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  draftId: 'draftId',
+  turnId: 'turnId',
+  operation: 'operation',
+  key: 'key',
+  status: 'status',
+  responseStatus: 'responseStatus',
+  responseBody: 'responseBody',
+  transactionId: 'transactionId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AssistantToolExecutionScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  turnId: 'turnId',
+  toolId: 'toolId',
+  capability: 'capability',
+  riskLevel: 'riskLevel',
+  policyDecision: 'policyDecision',
+  status: 'status',
+  correlationId: 'correlationId',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  durationMs: 'durationMs',
+  safeErrorCode: 'safeErrorCode',
+  redactedInput: 'redactedInput',
+  outputSummary: 'outputSummary',
+  idempotencyKey: 'idempotencyKey'
+};
+
+exports.Prisma.AssistantProviderExecutionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  conversationId: 'conversationId',
+  turnId: 'turnId',
+  correlationId: 'correlationId',
+  provider: 'provider',
+  model: 'model',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  durationMs: 'durationMs',
+  inputBytes: 'inputBytes',
+  outputBytes: 'outputBytes',
+  finishClassification: 'finishClassification',
+  safeErrorCode: 'safeErrorCode',
+  inputTokens: 'inputTokens',
+  outputTokens: 'outputTokens',
+  totalTokens: 'totalTokens',
+  cachedInputTokens: 'cachedInputTokens'
+};
+
+exports.Prisma.ClarificationRequestScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  conversationId: 'conversationId',
+  originatingTurnId: 'originatingTurnId',
+  executionId: 'executionId',
+  parentId: 'parentId',
+  entityType: 'entityType',
+  status: 'status',
+  trustedContext: 'trustedContext',
+  prompt: 'prompt',
+  terminalCode: 'terminalCode',
+  restartRequired: 'restartRequired',
+  expiresAt: 'expiresAt',
+  consumedAt: 'consumedAt',
+  cancelledAt: 'cancelledAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ClarificationOptionScalarFieldEnum = {
+  id: 'id',
+  requestId: 'requestId',
+  tokenDigest: 'tokenDigest',
+  displayLabel: 'displayLabel',
+  discriminator: 'discriminator',
+  candidateId: 'candidateId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.WalletScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -156,6 +301,16 @@ exports.Prisma.CategoryScalarFieldEnum = {
   type: 'type',
   icon: 'icon',
   color: 'color',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MerchantMappingScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  merchantName: 'merchantName',
+  normalizedMerchant: 'normalizedMerchant',
+  categoryId: 'categoryId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -248,6 +403,107 @@ exports.Prisma.SavingGoalScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ChannelLinkTokenScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  provider: 'provider',
+  tokenDigest: 'tokenDigest',
+  expiresAt: 'expiresAt',
+  consumedAt: 'consumedAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ChannelConnectionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  provider: 'provider',
+  externalUserId: 'externalUserId',
+  externalChatId: 'externalChatId',
+  conversationId: 'conversationId',
+  status: 'status',
+  linkedAt: 'linkedAt',
+  revokedAt: 'revokedAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ChannelInboundJobScalarFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  externalUpdateId: 'externalUpdateId',
+  channelConnectionId: 'channelConnectionId',
+  externalSenderId: 'externalSenderId',
+  externalChatId: 'externalChatId',
+  text: 'text',
+  kind: 'kind',
+  callbackQueryId: 'callbackQueryId',
+  callbackMessageId: 'callbackMessageId',
+  status: 'status',
+  attempt: 'attempt',
+  availableAt: 'availableAt',
+  leaseOwner: 'leaseOwner',
+  leaseExpiresAt: 'leaseExpiresAt',
+  processingStartedAt: 'processingStartedAt',
+  completedAt: 'completedAt',
+  assistantTurnId: 'assistantTurnId',
+  errorCategory: 'errorCategory',
+  reviewedAt: 'reviewedAt',
+  reviewedBy: 'reviewedBy',
+  reviewNote: 'reviewNote',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ChannelOutboundDeliveryScalarFieldEnum = {
+  id: 'id',
+  inboundJobId: 'inboundJobId',
+  provider: 'provider',
+  kind: 'kind',
+  destinationChatId: 'destinationChatId',
+  renderedText: 'renderedText',
+  replyMarkup: 'replyMarkup',
+  targetMessageId: 'targetMessageId',
+  status: 'status',
+  attempt: 'attempt',
+  availableAt: 'availableAt',
+  leaseOwner: 'leaseOwner',
+  leaseExpiresAt: 'leaseExpiresAt',
+  providerMessageId: 'providerMessageId',
+  sentAt: 'sentAt',
+  errorCategory: 'errorCategory',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ChannelAssistantOperationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  kind: 'kind',
+  turnId: 'turnId',
+  renderedText: 'renderedText',
+  callbackTokenId: 'callbackTokenId',
+  terminalStatus: 'terminalStatus',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ChannelCallbackTokenScalarFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  tokenDigest: 'tokenDigest',
+  connectionId: 'connectionId',
+  conversationId: 'conversationId',
+  interactionType: 'interactionType',
+  clarificationRequestId: 'clarificationRequestId',
+  clarificationOptionId: 'clarificationOptionId',
+  financialDraftId: 'financialDraftId',
+  actionSecret: 'actionSecret',
+  status: 'status',
+  expiresAt: 'expiresAt',
+  consumedAt: 'consumedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.BudgetScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -263,6 +519,15 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -272,6 +537,90 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+exports.AssistantConversationStatus = exports.$Enums.AssistantConversationStatus = {
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED',
+  EXPIRED: 'EXPIRED'
+};
+
+exports.AssistantTurnStatus = exports.$Enums.AssistantTurnStatus = {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  REJECTED: 'REJECTED',
+  CLARIFICATION_REQUIRED: 'CLARIFICATION_REQUIRED'
+};
+
+exports.AssistantChannel = exports.$Enums.AssistantChannel = {
+  WEB: 'WEB',
+  TELEGRAM: 'TELEGRAM'
+};
+
+exports.AssistantMessageRole = exports.$Enums.AssistantMessageRole = {
+  USER: 'USER',
+  ASSISTANT: 'ASSISTANT',
+  SYSTEM: 'SYSTEM'
+};
+
+exports.AssistantMessageSource = exports.$Enums.AssistantMessageSource = {
+  USER_PROVIDED: 'USER_PROVIDED',
+  CANONICAL_FALLBACK: 'CANONICAL_FALLBACK',
+  SAFE_REQUEST_SUMMARY: 'SAFE_REQUEST_SUMMARY',
+  DETERMINISTIC_RENDERER: 'DETERMINISTIC_RENDERER',
+  SAFE_ERROR: 'SAFE_ERROR',
+  PROVIDER_CLARIFICATION: 'PROVIDER_CLARIFICATION'
+};
+
+exports.AssistantFinancialDraftStatus = exports.$Enums.AssistantFinancialDraftStatus = {
+  PENDING_CONFIRMATION: 'PENDING_CONFIRMATION',
+  COMMITTED: 'COMMITTED',
+  CANCELLED: 'CANCELLED',
+  EXPIRED: 'EXPIRED',
+  FAILED: 'FAILED'
+};
+
+exports.TransactionType = exports.$Enums.TransactionType = {
+  INCOME: 'INCOME',
+  EXPENSE: 'EXPENSE',
+  TRANSFER: 'TRANSFER'
+};
+
+exports.AssistantIdempotencyStatus = exports.$Enums.AssistantIdempotencyStatus = {
+  RUNNING: 'RUNNING',
+  COMPLETED: 'COMPLETED'
+};
+
+exports.AssistantToolExecutionStatus = exports.$Enums.AssistantToolExecutionStatus = {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  TIMED_OUT: 'TIMED_OUT',
+  DENIED: 'DENIED'
+};
+
+exports.AssistantProviderExecutionStatus = exports.$Enums.AssistantProviderExecutionStatus = {
+  STARTED: 'STARTED',
+  PLAN_ACCEPTED: 'PLAN_ACCEPTED',
+  CLARIFICATION: 'CLARIFICATION',
+  UNSUPPORTED: 'UNSUPPORTED',
+  FAILED: 'FAILED'
+};
+
+exports.AssistantClarificationStatus = exports.$Enums.AssistantClarificationStatus = {
+  PENDING: 'PENDING',
+  CONSUMED: 'CONSUMED',
+  CANCELLED: 'CANCELLED',
+  STALE: 'STALE'
+};
+
 exports.WalletType = exports.$Enums.WalletType = {
   CASH: 'CASH',
   BANK: 'BANK',
@@ -289,12 +638,6 @@ exports.AdminFeeType = exports.$Enums.AdminFeeType = {
 exports.CategoryType = exports.$Enums.CategoryType = {
   INCOME: 'INCOME',
   EXPENSE: 'EXPENSE'
-};
-
-exports.TransactionType = exports.$Enums.TransactionType = {
-  INCOME: 'INCOME',
-  EXPENSE: 'EXPENSE',
-  TRANSFER: 'TRANSFER'
 };
 
 exports.BillKind = exports.$Enums.BillKind = {
@@ -326,15 +669,86 @@ exports.SavingGoalStatus = exports.$Enums.SavingGoalStatus = {
   ARCHIVED: 'ARCHIVED'
 };
 
+exports.ChannelProvider = exports.$Enums.ChannelProvider = {
+  TELEGRAM: 'TELEGRAM'
+};
+
+exports.ChannelConnectionStatus = exports.$Enums.ChannelConnectionStatus = {
+  ACTIVE: 'ACTIVE',
+  REVOKED: 'REVOKED'
+};
+
+exports.ChannelJobKind = exports.$Enums.ChannelJobKind = {
+  MESSAGE: 'MESSAGE',
+  CALLBACK: 'CALLBACK'
+};
+
+exports.ChannelJobStatus = exports.$Enums.ChannelJobStatus = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED_RETRYABLE: 'FAILED_RETRYABLE',
+  FAILED_TERMINAL: 'FAILED_TERMINAL'
+};
+
+exports.ChannelDeliveryKind = exports.$Enums.ChannelDeliveryKind = {
+  SEND_MESSAGE: 'SEND_MESSAGE',
+  EDIT_REPLY_MARKUP: 'EDIT_REPLY_MARKUP'
+};
+
+exports.ChannelDeliveryStatus = exports.$Enums.ChannelDeliveryStatus = {
+  PENDING: 'PENDING',
+  SENDING: 'SENDING',
+  SENT: 'SENT',
+  FAILED_RETRYABLE: 'FAILED_RETRYABLE',
+  FAILED_TERMINAL: 'FAILED_TERMINAL'
+};
+
+exports.ChannelOperationKind = exports.$Enums.ChannelOperationKind = {
+  ASSISTANT_TURN: 'ASSISTANT_TURN',
+  CALLBACK_INTERACTION: 'CALLBACK_INTERACTION'
+};
+
+exports.ChannelCallbackInteractionType = exports.$Enums.ChannelCallbackInteractionType = {
+  CLARIFICATION_SELECT: 'CLARIFICATION_SELECT',
+  CLARIFICATION_CANCEL: 'CLARIFICATION_CANCEL',
+  DRAFT_CONFIRM: 'DRAFT_CONFIRM',
+  DRAFT_CANCEL: 'DRAFT_CANCEL'
+};
+
+exports.ChannelCallbackTokenStatus = exports.$Enums.ChannelCallbackTokenStatus = {
+  PENDING: 'PENDING',
+  CONSUMED: 'CONSUMED',
+  EXPIRED: 'EXPIRED',
+  CANCELLED: 'CANCELLED',
+  STALE: 'STALE'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
+  AssistantConversation: 'AssistantConversation',
+  AssistantTurn: 'AssistantTurn',
+  AssistantMessage: 'AssistantMessage',
+  AssistantFinancialDraft: 'AssistantFinancialDraft',
+  AssistantIdempotencyRecord: 'AssistantIdempotencyRecord',
+  AssistantToolExecution: 'AssistantToolExecution',
+  AssistantProviderExecution: 'AssistantProviderExecution',
+  ClarificationRequest: 'ClarificationRequest',
+  ClarificationOption: 'ClarificationOption',
   Wallet: 'Wallet',
   Category: 'Category',
+  MerchantMapping: 'MerchantMapping',
   Transaction: 'Transaction',
   Installment: 'Installment',
   RecurringTransactionTemplate: 'RecurringTransactionTemplate',
   RecurringReminderEvent: 'RecurringReminderEvent',
   SavingGoal: 'SavingGoal',
+  ChannelLinkToken: 'ChannelLinkToken',
+  ChannelConnection: 'ChannelConnection',
+  ChannelInboundJob: 'ChannelInboundJob',
+  ChannelOutboundDelivery: 'ChannelOutboundDelivery',
+  ChannelAssistantOperation: 'ChannelAssistantOperation',
+  ChannelCallbackToken: 'ChannelCallbackToken',
   Budget: 'Budget'
 };
 

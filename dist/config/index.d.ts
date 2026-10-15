@@ -41,6 +41,9 @@ export declare const databaseConfig: {
         readonly connectionTimeoutMs: number;
     };
 };
+export declare const assistantProviderConfig: import("./assistant-provider").AssistantProviderConfig;
+export declare const telegramConfig: import("../telegram/config").TelegramConfig;
+export declare const channelWorkerConfig: import("../channels/workerConfig").ChannelWorkerConfig;
 export declare const trustProxy: number | boolean;
 /**
  * Rate-limiting configuration. NOTE: the default limiter store is in-memory and
@@ -68,4 +71,3 @@ export declare const corsConfig: {
  * work is not blocked. Never prints secret values.
  */
 export declare function validateConfig(): void;
-//# sourceMappingURL=index.d.ts.map

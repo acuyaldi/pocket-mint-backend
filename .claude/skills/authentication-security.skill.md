@@ -52,7 +52,8 @@ description: Use when working on authentication, JWT verification, users/sync, m
 
 - Exact origin allowlist from `CORS_ALLOWED_ORIGINS`; empty in production is a
   fatal startup error. No wildcard, ever.
-- Allowed headers: `Authorization`, `Content-Type` only. Do not re-advertise
+- Allowed headers: `Authorization`, `Content-Type`, `Idempotency-Key` only
+  (the last is required by the draft-confirm endpoint). Do not re-advertise
   retired identity headers.
 - `credentials: false` (Bearer header auth, not cookies).
 
@@ -64,6 +65,18 @@ description: Use when working on authentication, JWT verification, users/sync, m
 - Never expose Prisma/internal error details to clients: unexpected errors go
   through the central handler (`src/middlewares/error.middleware.ts`) which
   returns a generic message + `requestId` in production.
+
+## Assistant & Clarification Ownership
+
+- Assistant requests, clarification requests, clarification options, Pending
+  Financial Drafts, and Assistant continuation/cancellation all belong to the
+  authenticated user (`req.auth` / `getAuthenticatedUserId(req)`) — the same
+  ownership isolation as any other resource. Never resolve, continue, cancel,
+  or confirm one of these on behalf of a different user id.
+- Assistant lifecycle mechanics (clarification tokens, expiry, atomic
+  continuation, draft confirmation) are owned by
+  `assistant-core.skill.md` — this file only owns the identity/ownership
+  gate, not the state machine.
 
 ## Common Mistakes
 

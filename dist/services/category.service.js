@@ -21,6 +21,15 @@ function createCategoryService(db) {
         })));
     }
     async function listCategories(userId) {
+        const categories = await db.category.findMany({
+            where: { userId },
+            orderBy: [{ type: 'asc' }, { name: 'asc' }],
+        });
+        // Signup already seeds defaults (user.controller.ts); this is only a
+        // backstop for accounts created before that existed, so skip the
+        // 12-upsert call on the common (already-seeded) path.
+        if (categories.length > 0)
+            return categories;
         await ensureDefaultCategories(userId);
         return db.category.findMany({
             where: { userId },

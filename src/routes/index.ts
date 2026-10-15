@@ -9,6 +9,11 @@ import { recurringTransactionRouter } from './recurringTransaction.routes';
 import { notificationRouter } from './notification.routes';
 import { savingGoalRouter } from './savingGoal.routes';
 import { budgetRouter } from './budgetRoutes';
+import { analyticsRouter } from './analyticsRoutes';
+import { merchantMappingRouter } from './merchantMappingRoutes';
+import { assistantRouter } from './assistantRoutes';
+import { channelRouter } from './channelRoutes';
+import { telegramRouter } from './telegramRoutes';
 
 const router = Router();
 
@@ -24,5 +29,10 @@ router.use('/v1/recurring-transactions', recurringTransactionRouter);
 router.use('/v1/notifications', notificationRouter);
 router.use('/v1/saving-goals', savingGoalRouter);
 router.use('/v1/budgets', budgetRouter);
+router.use('/v1/analytics', analyticsRouter);
+router.use('/v1/merchant-mappings', merchantMappingRouter);
+router.use('/v1/assistant', assistantRouter);
+router.use('/v1/channels', channelRouter);
+router.use('/v1/telegram', telegramRouter);
 
 export { router };

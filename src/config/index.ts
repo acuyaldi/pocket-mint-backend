@@ -1,5 +1,8 @@
 import 'dotenv/config';
 import { assertValidTimeZone } from '../domain/reportingTime';
+import { loadAssistantProviderConfig } from './assistant-provider';
+import { loadTelegramConfig } from '../telegram/config';
+import { loadChannelWorkerConfig } from '../channels/workerConfig';
 
 /**
  * Centralized, typed configuration.
@@ -112,6 +115,18 @@ export const databaseConfig = {
     connectionTimeoutMs: int(process.env.DB_CONNECTION_TIMEOUT_MS, 10_000),
   },
 } as const;
+
+// ---------------- Assistant provider ----------------
+
+export const assistantProviderConfig = loadAssistantProviderConfig(process.env);
+
+// ---------------- Telegram channel ----------------
+
+export const telegramConfig = loadTelegramConfig(process.env);
+
+// ---------------- Channel durable processing (Phase 26B / PD-015) ----------------
+
+export const channelWorkerConfig = loadChannelWorkerConfig(process.env);
 
 // ---------------- network / rate limiting ----------------
 

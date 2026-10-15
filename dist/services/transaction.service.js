@@ -46,12 +46,14 @@ function createTransactionService(db) {
      * resolve wallet → validate type/amount/transfer → parse date → verify wallet,
      * destination, and category ownership → (installment branch or) atomic write.
      */
-    async function createTransaction(input) {
+    async function createTransaction(input, options = {}) {
+        const client = options.transaction ?? db;
+        const inTransaction = (work) => options.transaction ? work(client) : db.$transaction((tx) => work(tx));
         const { userId, type, toWalletId, categoryId } = input;
         // Resolve walletId: explicit, else the user's first wallet (unchanged default).
         let walletId = input.walletId;
         if (!walletId) {
-            const defaultWallet = await db.wallet.findFirst({ where: { userId } });
+            const defaultWallet = await client.wallet.findFirst({ where: { userId } });
             if (!defaultWallet) {
                 throw new transaction_errors_1.TransactionError('No wallet found for this user. Create a wallet first.', 400, 'BAD_REQUEST');
             }
@@ -79,7 +81,7 @@ function createTransactionService(db) {
             throw new transaction_errors_1.TransactionError(error instanceof Error ? error.message : 'date must be a valid date', 400, 'BAD_REQUEST');
         }
         const numAmount = Number(amount);
-        const wallet = await db.wallet.findFirst({ where: { id: resolvedWalletId, userId } });
+        const wallet = await client.wallet.findFirst({ where: { id: resolvedWalletId, userId } });
         if (!wallet) {
             throw new transaction_errors_1.TransactionError('Wallet tidak ditemukan', 404, 'NOT_FOUND');
         }
@@ -93,7 +95,7 @@ function createTransactionService(db) {
             }
         }
         if (type === 'TRANSFER' && toWalletId) {
-            const toWallet = await db.wallet.findFirst({ where: { id: toWalletId, userId }, select: { id: true } });
+            const toWallet = await client.wallet.findFirst({ where: { id: toWalletId, userId }, select: { id: true } });
             if (!toWallet) {
                 throw new transaction_errors_1.TransactionError('Wallet tujuan tidak ditemukan', 404, 'NOT_FOUND');
             }
@@ -105,7 +107,7 @@ function createTransactionService(db) {
             throw new transaction_errors_1.TransactionError('categoryId wajib diisi untuk pemasukan dan pengeluaran', 400, 'BAD_REQUEST');
         }
         if (categoryId) {
-            const category = await db.category.findFirst({ where: { id: categoryId, userId } });
+            const category = await client.category.findFirst({ where: { id: categoryId, userId } });
             if (!category) {
                 throw new transaction_errors_1.TransactionError('Kategori tidak ditemukan', 404, 'NOT_FOUND');
             }
@@ -176,7 +178,7 @@ function createTransactionService(db) {
                 if (grandTotal.greaterThan(remainingCredit)) {
                     throw new transaction_errors_1.TransactionError('Limit kredit tidak mencukupi', 400, 'INSUFFICIENT_CREDIT');
                 }
-                return await db.$transaction(async (tx) => {
+                return await inTransaction(async (tx) => {
                     const installment = await tx.installment.create({
                         data: {
                             userId,
@@ -220,7 +222,7 @@ function createTransactionService(db) {
             // ─── Regular transaction ──────────────────────────────────────────────
             const amountDecimal = new client_1.Prisma.Decimal(numAmount);
             const destWalletId = type === 'TRANSFER' ? toWalletId : null;
-            return await db.$transaction(async (tx) => {
+            return await inTransaction(async (tx) => {
                 const created = await tx.transaction.create({
                     data: {
                         userId,

@@ -5,6 +5,9 @@ exports.formatReportingDate = formatReportingDate;
 exports.getReportingDayRange = getReportingDayRange;
 exports.getReportingMonthRange = getReportingMonthRange;
 exports.getPreviousReportingMonthRange = getPreviousReportingMonthRange;
+exports.shiftCalendarMonth = shiftCalendarMonth;
+exports.getReportingMonthsRange = getReportingMonthsRange;
+exports.getReportingYearRange = getReportingYearRange;
 exports.getRollingDayRanges = getRollingDayRanges;
 exports.parseBusinessDate = parseBusinessDate;
 exports.parseReportingAnchor = parseReportingAnchor;
@@ -92,6 +95,33 @@ function getReportingMonthRange(value, zone) {
 function getPreviousReportingMonthRange(value, zone) {
     const previous = value.month === 1 ? { year: value.year - 1, month: 12 } : { year: value.year, month: value.month - 1 };
     return getReportingMonthRange(previous, zone);
+}
+/** Shift a calendar month by `delta` months (may be negative), handling year rollover. */
+function shiftCalendarMonth(value, delta) {
+    const total = value.year * 12 + (value.month - 1) + delta;
+    const year = Math.floor(total / 12);
+    return { year, month: total - year * 12 + 1 };
+}
+/**
+ * The half-open reporting range spanning `monthsBack` calendar months ending
+ * at (and including) `anchor` — e.g. `monthsBack: 3` with anchor July 2026
+ * covers May 1 through the end of July 2026. Used by Analytics v2's
+ * last-3-months/last-6-months periods (`src/domain/analyticsPeriod.ts`).
+ */
+function getReportingMonthsRange(anchor, monthsBack, zone) {
+    if (!Number.isInteger(monthsBack) || monthsBack <= 0)
+        throw new Error('monthsBack must be a positive integer');
+    return {
+        startInclusive: getReportingMonthRange(shiftCalendarMonth(anchor, -(monthsBack - 1)), zone).startInclusive,
+        endExclusive: getReportingMonthRange(anchor, zone).endExclusive,
+    };
+}
+/** The half-open reporting range for a full calendar year (Jan 1 – Dec 31 inclusive). */
+function getReportingYearRange(year, zone) {
+    return {
+        startInclusive: getReportingMonthRange({ year, month: 1 }, zone).startInclusive,
+        endExclusive: getReportingMonthRange({ year, month: 12 }, zone).endExclusive,
+    };
 }
 function getRollingDayRanges(now, days, zone) {
     if (!Number.isInteger(days) || days <= 0)

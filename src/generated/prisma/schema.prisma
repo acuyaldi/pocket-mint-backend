@@ -36,8 +36,334 @@ model User {
   recurringTransactionTemplates RecurringTransactionTemplate[]
   savingGoals                   SavingGoal[]
   budgets                       Budget[]
+  merchantMappings              MerchantMapping[]
+  assistantConversations        AssistantConversation[]
+  assistantFinancialDrafts      AssistantFinancialDraft[]
+  assistantIdempotencyRecords   AssistantIdempotencyRecord[]
+  assistantProviderExecutions   AssistantProviderExecution[]
+  clarificationRequests         ClarificationRequest[]
+  channelLinkTokens             ChannelLinkToken[]
+  channelConnections            ChannelConnection[]
 
   @@map("users")
+}
+
+enum AssistantConversationStatus {
+  ACTIVE
+  ARCHIVED
+  EXPIRED
+}
+
+enum AssistantTurnStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+  REJECTED
+  CLARIFICATION_REQUIRED
+}
+
+enum AssistantMessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+// Phase 30: which surface produced a turn. Defaults to WEB at creation time
+// (the HTTP path never sets it); the channel inbound worker
+// (src/channels/workers/inbound.worker.ts) stamps a turn TELEGRAM after the
+// fact, once it knows the turn id, for both message- and callback-originated
+// turns. Never threaded through application.service.ts / provider-runtime.ts
+// — keeps financial/clarification logic untouched by this attribution.
+enum AssistantChannel {
+  WEB
+  TELEGRAM
+}
+
+enum AssistantMessageSource {
+  USER_PROVIDED
+  CANONICAL_FALLBACK
+  SAFE_REQUEST_SUMMARY
+  DETERMINISTIC_RENDERER
+  SAFE_ERROR
+  PROVIDER_CLARIFICATION
+}
+
+enum AssistantToolExecutionStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+  TIMED_OUT
+  DENIED
+}
+
+enum AssistantProviderExecutionStatus {
+  STARTED
+  PLAN_ACCEPTED
+  CLARIFICATION
+  UNSUPPORTED
+  FAILED
+}
+
+enum AssistantFinancialDraftStatus {
+  PENDING_CONFIRMATION
+  COMMITTED
+  CANCELLED
+  EXPIRED
+  FAILED
+}
+
+enum AssistantClarificationStatus {
+  PENDING
+  CONSUMED
+  CANCELLED
+  STALE
+}
+
+model AssistantConversation {
+  id             String                      @id @default(cuid())
+  userId         String                      @map("user_id")
+  status         AssistantConversationStatus @default(ACTIVE)
+  locale         String                      @default("id-ID")
+  createdAt      DateTime                    @default(now()) @map("created_at")
+  updatedAt      DateTime                    @updatedAt @map("updated_at")
+  lastActivityAt DateTime                    @default(now()) @map("last_activity_at")
+  archivedAt     DateTime?                   @map("archived_at")
+
+  user                  User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  turns                 AssistantTurn[]
+  messages              AssistantMessage[]
+  toolExecutions        AssistantToolExecution[]
+  financialDrafts       AssistantFinancialDraft[]
+  providerExecutions    AssistantProviderExecution[]
+  clarificationRequests ClarificationRequest[]
+  channelConnections    ChannelConnection[]
+
+  @@index([userId, lastActivityAt, id])
+  @@index([userId, status, lastActivityAt])
+  @@map("assistant_conversations")
+}
+
+model AssistantTurn {
+  id             String              @id @default(cuid())
+  conversationId String              @map("conversation_id")
+  correlationId  String              @unique @map("correlation_id")
+  status         AssistantTurnStatus @default(PENDING)
+  intent         String
+  locale         String
+  safeErrorCode  String?             @map("safe_error_code")
+  startedAt      DateTime            @default(now()) @map("started_at")
+  finishedAt     DateTime?           @map("finished_at")
+  channel        AssistantChannel    @default(WEB)
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  conversation          AssistantConversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  messages              AssistantMessage[]
+  toolExecutions        AssistantToolExecution[]
+  financialDrafts       AssistantFinancialDraft[]
+  providerExecutions    AssistantProviderExecution[]
+  clarificationRequests ClarificationRequest[]
+  idempotencyRecords    AssistantIdempotencyRecord[]
+
+  @@index([conversationId, createdAt, id])
+  @@index([status, startedAt])
+  @@map("assistant_turns")
+}
+
+model AssistantMessage {
+  id             String                 @id @default(cuid())
+  conversationId String                 @map("conversation_id")
+  turnId         String                 @map("turn_id")
+  role           AssistantMessageRole
+  source         AssistantMessageSource
+  content        String
+  createdAt      DateTime               @default(now()) @map("created_at")
+
+  conversation AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  turn         AssistantTurn         @relation(fields: [turnId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt, id])
+  @@index([turnId])
+  @@map("assistant_messages")
+}
+
+model AssistantFinancialDraft {
+  id                     String                        @id @default(cuid())
+  userId                 String                        @map("user_id")
+  conversationId         String                        @map("conversation_id")
+  originatingTurnId      String                        @map("originating_turn_id")
+  originatingExecutionId String                        @unique @map("originating_execution_id")
+  status                 AssistantFinancialDraftStatus @default(PENDING_CONFIRMATION)
+  operation              String
+  transactionType        TransactionType               @map("transaction_type")
+  amount                 Decimal                       @db.Decimal(15, 2)
+  walletId               String                        @map("wallet_id")
+  categoryId             String                        @map("category_id")
+  transactionDate        DateTime                      @map("transaction_date")
+  description            String?
+  expiresAt              DateTime                      @map("expires_at")
+  committedAt            DateTime?                     @map("committed_at")
+  cancelledAt            DateTime?                     @map("cancelled_at")
+  failedAt               DateTime?                     @map("failed_at")
+  transactionId          String?                       @unique @map("transaction_id")
+  createdAt              DateTime                      @default(now()) @map("created_at")
+  updatedAt              DateTime                      @updatedAt @map("updated_at")
+
+  user                 User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation         AssistantConversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  originatingTurn      AssistantTurn                @relation(fields: [originatingTurnId], references: [id], onDelete: Cascade)
+  originatingExecution AssistantToolExecution       @relation(fields: [originatingExecutionId], references: [id], onDelete: Cascade)
+  transaction          Transaction?                 @relation(fields: [transactionId], references: [id], onDelete: Restrict)
+  idempotencyRecords   AssistantIdempotencyRecord[]
+
+  @@index([userId, status, expiresAt])
+  @@index([conversationId, createdAt])
+  @@map("assistant_financial_drafts")
+}
+
+enum AssistantIdempotencyStatus {
+  RUNNING
+  COMPLETED
+}
+
+model AssistantIdempotencyRecord {
+  id             String                     @id @default(cuid())
+  userId         String                     @map("user_id")
+  // Draft-confirm idempotency (Phase 21.4) is draft-scoped; request-level
+  // idempotency for /messages and /execute (Phase 27) is turn-scoped. A row
+  // populates at most one of the two, never both.
+  draftId        String?                    @map("draft_id")
+  turnId         String?                    @map("turn_id")
+  operation      String
+  key            String
+  status         AssistantIdempotencyStatus @default(COMPLETED) @map("status")
+  responseStatus Int?                       @map("response_status")
+  responseBody   Json?                      @map("response_body")
+  transactionId  String?                    @map("transaction_id")
+  createdAt      DateTime                   @default(now()) @map("created_at")
+  updatedAt      DateTime                   @updatedAt @map("updated_at")
+
+  user        User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  draft       AssistantFinancialDraft? @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  turn        AssistantTurn?           @relation(fields: [turnId], references: [id], onDelete: Cascade)
+  transaction Transaction?             @relation(fields: [transactionId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, key])
+  @@index([draftId])
+  @@index([turnId])
+  @@map("assistant_idempotency_records")
+}
+
+model AssistantToolExecution {
+  id             String                       @id @default(cuid())
+  conversationId String                       @map("conversation_id")
+  turnId         String                       @map("turn_id")
+  toolId         String                       @map("tool_id")
+  capability     String
+  riskLevel      String                       @map("risk_level")
+  policyDecision String                       @map("policy_decision")
+  status         AssistantToolExecutionStatus @default(PENDING)
+  correlationId  String                       @map("correlation_id")
+  startedAt      DateTime                     @default(now()) @map("started_at")
+  completedAt    DateTime?                    @map("completed_at")
+  durationMs     Int?                         @map("duration_ms")
+  safeErrorCode  String?                      @map("safe_error_code")
+  redactedInput  Json?                        @map("redacted_input")
+  outputSummary  Json?                        @map("output_summary")
+  idempotencyKey String?                      @map("idempotency_key")
+
+  conversation   AssistantConversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  turn           AssistantTurn            @relation(fields: [turnId], references: [id], onDelete: Cascade)
+  financialDraft AssistantFinancialDraft?
+
+  @@index([turnId, startedAt])
+  @@index([conversationId, startedAt])
+  @@index([correlationId])
+  @@map("assistant_tool_executions")
+}
+
+model AssistantProviderExecution {
+  id                   String                           @id @default(cuid())
+  userId               String                           @map("user_id")
+  conversationId       String                           @map("conversation_id")
+  turnId               String?                          @map("turn_id")
+  correlationId        String                           @unique @map("correlation_id")
+  provider             String
+  model                String
+  status               AssistantProviderExecutionStatus @default(STARTED)
+  startedAt            DateTime                         @default(now()) @map("started_at")
+  completedAt          DateTime?                        @map("completed_at")
+  durationMs           Int?                             @map("duration_ms")
+  inputBytes           Int                              @map("input_bytes")
+  outputBytes          Int?                             @map("output_bytes")
+  finishClassification String?                          @map("finish_classification")
+  safeErrorCode        String?                          @map("safe_error_code")
+  inputTokens          Int?                             @map("input_tokens")
+  outputTokens         Int?                             @map("output_tokens")
+  totalTokens          Int?                             @map("total_tokens")
+  cachedInputTokens    Int?                             @map("cached_input_tokens")
+
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  turn         AssistantTurn?        @relation(fields: [turnId], references: [id], onDelete: SetNull)
+
+  @@index([userId, startedAt])
+  @@index([conversationId, startedAt])
+  @@index([turnId, startedAt])
+  @@map("assistant_provider_executions")
+}
+
+// ─────────────────────────────────────────────
+// CLARIFICATION ENGINE  (Phase 22.5)
+// ─────────────────────────────────────────────
+model ClarificationRequest {
+  id                String                       @id @default(cuid())
+  userId            String                       @map("user_id")
+  conversationId    String                       @map("conversation_id")
+  originatingTurnId String                       @map("originating_turn_id")
+  executionId       String                       @unique @map("execution_id")
+  parentId          String?                      @map("parent_id")
+  entityType        String                       @map("entity_type")
+  status            AssistantClarificationStatus @default(PENDING)
+  trustedContext    Json                         @map("trusted_context")
+  prompt            String
+  terminalCode      String?                      @map("terminal_code")
+  restartRequired   Boolean                      @default(false) @map("restart_required")
+  expiresAt         DateTime                     @map("expires_at")
+  consumedAt        DateTime?                    @map("consumed_at")
+  cancelledAt       DateTime?                    @map("cancelled_at")
+  createdAt         DateTime                     @default(now()) @map("created_at")
+  updatedAt         DateTime                     @updatedAt @map("updated_at")
+
+  user            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation    AssistantConversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  originatingTurn AssistantTurn          @relation(fields: [originatingTurnId], references: [id], onDelete: Cascade)
+  parent          ClarificationRequest?  @relation("ClarificationChain", fields: [parentId], references: [id], onDelete: SetNull)
+  children        ClarificationRequest[] @relation("ClarificationChain")
+  options         ClarificationOption[]
+
+  @@index([userId, status])
+  @@index([conversationId, createdAt])
+  @@index([parentId])
+  @@map("clarification_requests")
+}
+
+model ClarificationOption {
+  id            String   @id @default(cuid())
+  requestId     String   @map("request_id")
+  tokenDigest   String   @map("token_digest")
+  displayLabel  String   @map("display_label")
+  discriminator String?
+  candidateId   String   @map("candidate_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  request ClarificationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, tokenDigest])
+  @@index([requestId])
+  @@map("clarification_options")
 }
 
 // ─────────────────────────────────────────────
@@ -112,10 +438,32 @@ model Category {
   transactions                  Transaction[]
   recurringTransactionTemplates RecurringTransactionTemplate[]
   budgets                       Budget[]
+  merchantMappings              MerchantMapping[]
 
   @@unique([userId, name, type])
   @@index([userId, type])
   @@map("categories")
+}
+
+// ─────────────────────────────────────────────
+// MERCHANT MAPPING  (Phase 19 — per-user merchant → category alias)
+// ─────────────────────────────────────────────
+model MerchantMapping {
+  id                 String   @id @default(cuid())
+  userId             String   @map("user_id")
+  merchantName       String   @map("merchant_name")
+  normalizedMerchant String   @map("normalized_merchant")
+  categoryId         String   @map("category_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, normalizedMerchant])
+  @@index([userId])
+  @@map("merchant_mappings")
 }
 
 // ─────────────────────────────────────────────
@@ -146,12 +494,14 @@ model Transaction {
   updatedAt     DateTime        @updatedAt @map("updated_at")
 
   // Relations
-  user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wallet        Wallet                  @relation("WalletTransactions", fields: [walletId], references: [id], onDelete: Cascade)
-  toWallet      Wallet?                 @relation("WalletToTransactions", fields: [toWalletId], references: [id], onDelete: SetNull)
-  category      Category?               @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  installment   Installment?            @relation(fields: [installmentId], references: [id], onDelete: SetNull)
-  reminderEvent RecurringReminderEvent?
+  user                        User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet                      Wallet                       @relation("WalletTransactions", fields: [walletId], references: [id], onDelete: Cascade)
+  toWallet                    Wallet?                      @relation("WalletToTransactions", fields: [toWalletId], references: [id], onDelete: SetNull)
+  category                    Category?                    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  installment                 Installment?                 @relation(fields: [installmentId], references: [id], onDelete: SetNull)
+  reminderEvent               RecurringReminderEvent?
+  assistantFinancialDraft     AssistantFinancialDraft?
+  assistantIdempotencyRecords AssistantIdempotencyRecord[]
 
   @@index([userId, date])
   @@index([userId, type])
@@ -335,6 +685,271 @@ model SavingGoal {
 
   @@index([userId, status])
   @@map("saving_goals")
+}
+
+// ─────────────────────────────────────────────
+// CHANNELS  (Phase 25 — Telegram channel foundation)
+// ─────────────────────────────────────────────
+// Provider-agnostic boundary for external-channel identity linking. Deliberately
+// separate from the Assistant models: this is a transport/identity concern, not
+// an Assistant domain concern. Never stores bot tokens, webhook secrets, raw
+// provider payloads, or message content — see docs/product/decisions/013.
+enum ChannelProvider {
+  TELEGRAM
+}
+
+enum ChannelConnectionStatus {
+  ACTIVE
+  REVOKED
+}
+
+// One-time linking code, digest-only. Raw token is returned to the
+// authenticated user exactly once at creation and never persisted.
+model ChannelLinkToken {
+  id          String          @id @default(cuid())
+  userId      String          @map("user_id")
+  provider    ChannelProvider
+  tokenDigest String          @map("token_digest")
+  expiresAt   DateTime        @map("expires_at")
+  consumedAt  DateTime?       @map("consumed_at")
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, tokenDigest])
+  @@index([userId, provider])
+  @@map("channel_link_tokens")
+}
+
+// Ownership-scoped mapping from an external channel identity to a Pocket Mint
+// user. One active Telegram identity maps to exactly one user (conservative
+// default) and a user has at most one active connection per provider.
+model ChannelConnection {
+  id             String                  @id @default(cuid())
+  userId         String                  @map("user_id")
+  provider       ChannelProvider
+  externalUserId String                  @map("external_user_id")
+  externalChatId String                  @map("external_chat_id")
+  conversationId String?                 @map("conversation_id")
+  status         ChannelConnectionStatus @default(ACTIVE)
+  linkedAt       DateTime                @default(now()) @map("linked_at")
+  revokedAt      DateTime?               @map("revoked_at")
+  updatedAt      DateTime                @updatedAt @map("updated_at")
+
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation   AssistantConversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  inboundJobs    ChannelInboundJob[]
+  callbackTokens ChannelCallbackToken[]
+
+  @@unique([provider, externalUserId])
+  @@unique([userId, provider])
+  @@map("channel_connections")
+}
+
+// ─────────────────────────────────────────────
+// CHANNEL DURABLE PROCESSING  (Phase 26B — PD-015)
+// ─────────────────────────────────────────────
+// Postgres-backed inbox/outbox. ChannelInboundJob evolved in place from the
+// Phase 25 ChannelUpdateDedup table: the (provider, externalUpdateId) unique
+// constraint IS the dedup guarantee, now carrying full job lifecycle state
+// too, instead of a second parallel table. `text` is the bounded extracted
+// message body only — never the raw provider Update payload.
+enum ChannelJobStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED_RETRYABLE
+  FAILED_TERMINAL
+}
+
+enum ChannelDeliveryStatus {
+  PENDING
+  SENDING
+  SENT
+  FAILED_RETRYABLE
+  FAILED_TERMINAL
+}
+
+// Phase 26A: distinguishes a natural-language text update from an inline
+// keyboard button press. CALLBACK jobs never reach the Assistant NL path.
+enum ChannelJobKind {
+  MESSAGE
+  CALLBACK
+}
+
+// Phase 26A: what a queued outbound row actually asks Telegram to do. Kept as
+// a closed enum (not an arbitrary method name) so nothing but these three
+// bounded actions can ever be persisted.
+enum ChannelDeliveryKind {
+  SEND_MESSAGE
+  EDIT_REPLY_MARKUP
+}
+
+model ChannelInboundJob {
+  id                  String           @id @default(cuid())
+  provider            ChannelProvider
+  externalUpdateId    String           @map("external_update_id")
+  channelConnectionId String?          @map("channel_connection_id")
+  externalSenderId    String           @map("external_sender_id")
+  externalChatId      String           @map("external_chat_id")
+  text                String
+  kind                ChannelJobKind   @default(MESSAGE)
+  // Telegram callback_query.id, kept only for answerCallbackQuery diagnostics
+  // — never used as an authorization credential.
+  callbackQueryId     String?          @map("callback_query_id")
+  // The message the inline keyboard is attached to, taken directly from
+  // callback_query.message.message_id — lets keyboard cleanup target the
+  // right message without a separate provider-message lookup.
+  callbackMessageId   String?          @map("callback_message_id")
+  status              ChannelJobStatus @default(PENDING)
+  attempt             Int              @default(0)
+  availableAt         DateTime         @default(now()) @map("available_at")
+  leaseOwner          String?          @map("lease_owner")
+  leaseExpiresAt      DateTime?        @map("lease_expires_at")
+  processingStartedAt DateTime?        @map("processing_started_at")
+  completedAt         DateTime?        @map("completed_at")
+  assistantTurnId     String?          @unique @map("assistant_turn_id")
+  errorCategory       String?          @map("error_category")
+  // Phase 29 operator bookkeeping only — set exclusively by src/scripts/opsRemediate.ts's
+  // `mark-reviewed` action, never read by worker/processing logic. Never flips `status`.
+  reviewedAt          DateTime?        @map("reviewed_at")
+  reviewedBy          String?          @map("reviewed_by")
+  reviewNote          String?          @map("review_note")
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+
+  connection ChannelConnection?        @relation(fields: [channelConnectionId], references: [id], onDelete: SetNull)
+  deliveries ChannelOutboundDelivery[]
+
+  @@unique([provider, externalUpdateId])
+  @@index([status, availableAt])
+  @@index([status, leaseExpiresAt])
+  @@map("channel_inbound_jobs")
+}
+
+// Outbound Telegram actions for a job. A MESSAGE job still produces exactly
+// one SEND_MESSAGE delivery; a CALLBACK job may produce a result-text
+// delivery plus a keyboard-cleanup (EDIT_REPLY_MARKUP) delivery, so this is
+// no longer 1:1 with the inbound job (see ChannelDeliveryKind).
+model ChannelOutboundDelivery {
+  id                String                @id @default(cuid())
+  inboundJobId      String                @map("inbound_job_id")
+  provider          ChannelProvider
+  kind              ChannelDeliveryKind   @default(SEND_MESSAGE)
+  destinationChatId String                @map("destination_chat_id")
+  renderedText      String                @map("rendered_text")
+  // Inline keyboard for SEND_MESSAGE, or the (empty/inert) markup to apply
+  // for EDIT_REPLY_MARKUP. Never carries real domain identifiers — only
+  // opaque callback handles rendered by the interaction service.
+  replyMarkup       Json?                 @map("reply_markup")
+  // For EDIT_REPLY_MARKUP: which previously-sent message to edit.
+  targetMessageId   String?               @map("target_message_id")
+  status            ChannelDeliveryStatus @default(PENDING)
+  attempt           Int                   @default(0)
+  availableAt       DateTime              @default(now()) @map("available_at")
+  leaseOwner        String?               @map("lease_owner")
+  leaseExpiresAt    DateTime?             @map("lease_expires_at")
+  providerMessageId String?               @map("provider_message_id")
+  sentAt            DateTime?             @map("sent_at")
+  errorCategory     String?               @map("error_category")
+  createdAt         DateTime              @default(now()) @map("created_at")
+  updatedAt         DateTime              @updatedAt @map("updated_at")
+
+  inboundJob ChannelInboundJob @relation(fields: [inboundJobId], references: [id], onDelete: Cascade)
+
+  // One delivery per (job, kind): preserves the original "create once, P2002
+  // on reclaim" idempotency per action, while allowing a CALLBACK job to
+  // produce both a result-text delivery and a keyboard-cleanup delivery.
+  @@unique([inboundJobId, kind])
+  @@index([status, availableAt])
+  @@index([status, leaseExpiresAt])
+  @@map("channel_outbound_deliveries")
+}
+
+// Phase 26A: which kind of durable operation this row represents. A CALLBACK
+// operation is never an Assistant turn — it is the result of re-derived
+// ownership + an authoritative clarification/draft service call.
+enum ChannelOperationKind {
+  ASSISTANT_TURN
+  CALLBACK_INTERACTION
+}
+
+// Operation-identity guard binding one inbound job to at most one Assistant
+// turn OR one callback interaction. `id` is the operation key itself
+// (`channel:<provider>:<jobId>`), so uniqueness is free via the primary key —
+// this is what makes a reclaimed job discover an already-completed result
+// instead of re-invoking the Assistant or re-running the callback action.
+model ChannelAssistantOperation {
+  id              String               @id
+  userId          String               @map("user_id")
+  kind            ChannelOperationKind @default(ASSISTANT_TURN)
+  turnId          String?              @map("turn_id")
+  // The already-rendered reply, captured at bind time so a reclaimed job can
+  // reconstruct the outbound delivery without reaching into Assistant
+  // persistence internals (turns/drafts/clarifications) to re-derive it.
+  renderedText    String?              @map("rendered_text")
+  // CALLBACK_INTERACTION only: which callback token this operation resolved,
+  // and the terminal domain status of the underlying action (e.g.
+  // "selected", "already_consumed", "expired", "committed", "cancelled").
+  callbackTokenId String?              @map("callback_token_id")
+  terminalStatus  String?              @map("terminal_status")
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+
+  callbackToken ChannelCallbackToken? @relation(fields: [callbackTokenId], references: [id], onDelete: SetNull)
+
+  @@map("channel_assistant_operations")
+}
+
+enum ChannelCallbackInteractionType {
+  CLARIFICATION_SELECT
+  CLARIFICATION_CANCEL
+  DRAFT_CONFIRM
+  DRAFT_CANCEL
+}
+
+enum ChannelCallbackTokenStatus {
+  PENDING
+  CONSUMED
+  EXPIRED
+  CANCELLED
+  STALE
+}
+
+// Opaque inline-keyboard button handle. Telegram callback_data carries only
+// this token's plaintext once (never persisted); everything the button
+// "means" — action, clarification/draft identity — is resolved server-side
+// by digest lookup, never trusted from the callback payload. Mirrors the
+// ClarificationOption.tokenDigest pattern (Phase 24) rather than inventing a
+// new safety model.
+model ChannelCallbackToken {
+  id                     String                         @id @default(cuid())
+  provider               ChannelProvider
+  tokenDigest            String                         @map("token_digest")
+  connectionId           String                         @map("connection_id")
+  conversationId         String                         @map("conversation_id")
+  interactionType        ChannelCallbackInteractionType @map("interaction_type")
+  clarificationRequestId String?                        @map("clarification_request_id")
+  clarificationOptionId  String?                        @map("clarification_option_id")
+  financialDraftId       String?                        @map("financial_draft_id")
+  // Server-side-only material needed to invoke the authoritative service
+  // (currently: the raw ClarificationOption token for CLARIFICATION_SELECT).
+  // Never returned to Telegram — callback_data carries only this token's own
+  // id/digest. Cleared to null once consumed.
+  actionSecret           String?                        @map("action_secret")
+  status                 ChannelCallbackTokenStatus     @default(PENDING)
+  expiresAt              DateTime                       @map("expires_at")
+  consumedAt             DateTime?                      @map("consumed_at")
+  createdAt              DateTime                       @default(now()) @map("created_at")
+  updatedAt              DateTime                       @updatedAt @map("updated_at")
+
+  connection ChannelConnection           @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  operations ChannelAssistantOperation[]
+
+  @@unique([provider, tokenDigest])
+  @@index([connectionId, status])
+  @@index([status, expiresAt])
+  @@map("channel_callback_tokens")
 }
 
 // ─────────────────────────────────────────────
