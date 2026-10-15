@@ -299,6 +299,36 @@ transition was judged not to add operational value (see
 `docs/observability-runbook.md` in this repo, and ADR 013 in
 `pocket-mint-docs`, for the full rationale).
 
+**Capture-quality signals (Phase 35, PD-025)** — a separate, additive event
+family answering a different question than the ops events above ("did this
+message produce a usable draft on the first pass, and if not, why" rather
+than "did the request succeed and how long did it take"). Fired at the same
+`assistant.controller.ts` boundary, through the same `logEvent`/
+`AssistantLogEvent` type, extended with three new bounded fields
+(`captureSource`, `clarificationKind`, `overridesUsed`) — never widened to
+free-form content:
+
+- `assistant.capture.draft_created` — `captureSource: 'direct' |
+  'clarification_resolved'`.
+- `assistant.capture.clarification_required` — `clarificationKind`
+  (`'wallet'|'merchant'|'category'|'transaction_fields'|'provider_text'`).
+- `assistant.capture.clarification_cancelled` — `clarificationKind`, same
+  enum; sourced from `clarification.service.ts#cancel()`'s additive
+  `{ entityType }` return value (previously `void`).
+- `assistant.capture.draft_confirmed` — `overridesUsed: boolean` (whether
+  confirm carried one or more override fields, never which ones); fires only
+  on an actual new confirm, not an idempotent replay.
+- `assistant.capture.draft_cancelled` — fires only for a genuine fresh
+  cancellation, not a repeated cancel-of-already-cancelled.
+- `assistant.capture.draft_expired` — fires only when the existing lazy
+  expiry check already inside `confirm()`/`cancel()` actually detects and
+  terminalizes an expired draft; no new expiry worker or polling was added.
+
+None of these replace, rename, or widen an existing event, and none of them
+ever carry message text, amounts, wallet/category/merchant identifiers,
+descriptions, clarification option labels/tokens, or any other sensitive
+content — the same closed-type guarantee the ops events already rely on.
+
 Do not log `conversationId`, `turnId`, or any user identifier in a new
 observability event — only `requestId` (the correlation ID). No safe
 pseudonymous-identifier policy exists yet for those; inventing one is out of

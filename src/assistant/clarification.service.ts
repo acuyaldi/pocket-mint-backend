@@ -85,6 +85,11 @@ interface TokenPair {
 
 const KNOWN_ENTITY_TYPES = new Set(['wallet', 'merchant', 'category', 'transaction_fields']);
 
+/** Validates a raw (plain-`String`-column) entityType before it is cast and surfaced to a caller — never trust the column value outright. */
+function safeEntityType(value: string): EntityType | undefined {
+  return KNOWN_ENTITY_TYPES.has(value) ? (value as EntityType) : undefined;
+}
+
 /**
  * Structural validity of a persisted trustedContext blob. Guards against a
  * corrupted/malformed JSON payload before it's trusted for continuation.
@@ -370,7 +375,7 @@ export function createClarificationService(db: PrismaClient) {
 
   // ---- Cancel ----------------------------------------------------------------
 
-  async function cancel(input: CancelClarificationInput, options: TransactionOption = {}): Promise<void> {
+  async function cancel(input: CancelClarificationInput, options: TransactionOption = {}): Promise<{ entityType?: EntityType }> {
     // Plain (unlocked) read, same rationale as select(): a non-PENDING match
     // must produce its specific terminal outcome, not be folded into the
     // claim transaction below.
@@ -386,7 +391,7 @@ export function createClarificationService(db: PrismaClient) {
     }
     // Repeated cancellation is idempotent and safe — already-cancelled is a
     // no-op success, not an error.
-    if (request.status === 'CANCELLED') return;
+    if (request.status === 'CANCELLED') return { entityType: safeEntityType(request.entityType) };
     if (request.status !== 'PENDING') {
       throw terminalStatusError(request.status, request.terminalCode);
     }
@@ -413,9 +418,10 @@ export function createClarificationService(db: PrismaClient) {
     });
     if (claimed.count !== 1) {
       const current = await client.clarificationRequest.findUniqueOrThrow({ where: { id: request.id } });
-      if (current.status === 'CANCELLED') return;
+      if (current.status === 'CANCELLED') return { entityType: safeEntityType(current.entityType) };
       throw terminalStatusError(current.status, current.terminalCode);
     }
+    return { entityType: safeEntityType(request.entityType) };
   }
 
   // ---- State projection ------------------------------------------------------

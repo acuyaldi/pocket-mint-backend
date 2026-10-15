@@ -114,7 +114,7 @@ function setup() {
       },
     }),
     createGuidedFields: vi.fn(),
-    cancel: vi.fn().mockResolvedValue(undefined),
+    cancel: vi.fn().mockResolvedValue({ entityType: 'wallet' }),
     getAssistantState: vi.fn().mockResolvedValue({}),
     runInTransaction: vi.fn((work: (tx: unknown) => unknown) => work(TX_STUB)),
   };
@@ -1166,6 +1166,7 @@ describe('Assistant application lifecycle', () => {
       userId: 'u1', clarificationId: 'clar-1', conversationId: 'c1', reason: 'user_cancelled',
     });
     expect(result.response.status).toBe('success');
+    expect((result.response as { data?: { entityType?: string } }).data?.entityType).toBe('wallet');
   });
 
   // ---- getAssistantState ----

@@ -616,7 +616,7 @@ function createAssistantApplicationService(deps) {
         });
         await deps.conversations.markTurnRunning(turn.turnId);
         try {
-            await deps.clarification.cancel({ userId, clarificationId, conversationId, reason: 'user_cancelled' });
+            const { entityType } = await deps.clarification.cancel({ userId, clarificationId, conversationId, reason: 'user_cancelled' });
             const message = 'Klarifikasi dibatalkan. Silakan mulai ulang pembuatan transaksi.';
             await deps.conversations.finalizeWithoutTool({
                 ...turn,
@@ -624,7 +624,7 @@ function createAssistantApplicationService(deps) {
                 assistantContent: message,
                 assistantSource: 'DETERMINISTIC_RENDERER',
             });
-            return { httpStatus: 200, response: { status: 'success', renderedText: message, data: { clarificationId, status: 'CANCELLED' }, correlationId, ...turn } };
+            return { httpStatus: 200, response: { status: 'success', renderedText: message, data: { clarificationId, status: 'CANCELLED', entityType }, correlationId, ...turn } };
         }
         catch (error) {
             const operational = error instanceof errors_1.AssistantError ? error : { message: 'Clarification cancellation failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };

@@ -17,6 +17,12 @@ describe('recoverSingleExplicitIndonesianAmount', () => {
     ['1 juta', '1000000'],
     ['1,5jt', '1500000'],
     ['1.5 juta', '1500000'],
+    ['25k', '25000'],
+    ['450k', '450000'],
+    ['25K', '25000'],
+    ['1.5k', '1500'],
+    ['1,5k', '1500'],
+    ['Rp25k', '25000'],
   ])('returns the canonical amount for one explicit amount: %s', (message, amount) => {
     expect(recoverSingleExplicitIndonesianAmount(`bayar internet ${message} dari bca`)).toBe(amount);
   });
@@ -27,6 +33,8 @@ describe('recoverSingleExplicitIndonesianAmount', () => {
     'transfer 1jt lalu bayar admin 10rb',
     'cicilan 12 bulan 350rb',
     'beli 2 barang 350rb dan 200rb',
+    'bayar listrik 300k lalu internet 500k',
+    'antara 25k atau 50k',
   ])('declines ambiguous or multi-number recovery: %s', (message) => {
     expect(recoverSingleExplicitIndonesianAmount(message)).toBeNull();
   });
@@ -38,7 +46,9 @@ describe('recoverSingleExplicitIndonesianAmount', () => {
     'transfer ke rekening 123456789',
     'bayar internet 0rb',
     'bayar internet -350rb',
-    'bayar internet 350k',
+    'bayar internet 0k',
+    'bayar internet -350k',
+    'bayar internet 350km',
     'bayar internet 350r',
     'bayar internet setengah juta',
     'bayar internet 99999999999999',
