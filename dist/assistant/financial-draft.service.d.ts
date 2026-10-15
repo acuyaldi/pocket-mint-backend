@@ -48,7 +48,9 @@ export declare function createAssistantFinancialDraftService(db: PrismaClient, t
         preview: {
             description?: string | undefined;
             date: string;
+            transactionDate: string;
             merchant?: string | undefined;
+            categoryId: string;
             category: string;
             walletId: string;
             type: "INCOME" | "EXPENSE";
@@ -56,7 +58,9 @@ export declare function createAssistantFinancialDraftService(db: PrismaClient, t
         } | {
             description?: string | undefined;
             date: string;
+            transactionDate: string;
             merchant?: string | undefined;
+            categoryId: string;
             category: string;
             wallet: string;
             type: "INCOME" | "EXPENSE";

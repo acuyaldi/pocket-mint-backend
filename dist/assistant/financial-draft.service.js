@@ -16,11 +16,16 @@ function preview(input, categoryName) {
         ...(input.walletDisplayLabel === undefined
             ? { walletId: input.walletId }
             : { wallet: input.walletDisplayLabel }),
+        categoryId: input.categoryId,
         category: categoryName,
         ...(input.merchantDisplayLabel === undefined
             ? {}
             : { merchant: input.merchantDisplayLabel }),
         date: input.date,
+        // Raw ISO (YYYY-MM-DD) business date, additive alongside `date` — only the
+        // authenticated draft owner ever sees this preview, so it is safe to expose
+        // for faithful edit-mode prefill without a second lookup.
+        transactionDate: input.date,
         ...(input.description === undefined ? {} : { description: input.description }),
     };
 }

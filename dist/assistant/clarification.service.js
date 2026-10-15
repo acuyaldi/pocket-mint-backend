@@ -11,6 +11,8 @@ exports.CLARIFICATION_TTL_MS = void 0;
 exports.createClarificationService = createClarificationService;
 const node_crypto_1 = require("node:crypto");
 const client_1 = require("../generated/prisma/client");
+const config_1 = require("../config");
+const reportingTime_1 = require("../domain/reportingTime");
 const errors_1 = require("./errors");
 const TOKEN_BYTES = 32;
 const TOKEN_PREFIX = 'clarify_';
@@ -401,6 +403,11 @@ function createClarificationService(db) {
                 walletId: pendingDraft.walletId,
                 categoryId: pendingDraft.categoryId,
                 date: pendingDraft.transactionDate.toISOString().slice(0, 10),
+                // Reporting-timezone business date, additive alongside `date` (which is
+                // a naive UTC slice and can be off by one day from the reporting
+                // calendar date — see financial-draft.service.ts `prepare()`). Owner-only
+                // projection, same boundary as `categoryId` above.
+                transactionDate: (0, reportingTime_1.formatReportingDate)(pendingDraft.transactionDate, config_1.reportingConfig.timezone),
                 ...(pendingDraft.description ? { description: pendingDraft.description } : {}),
                 expiresAt: pendingDraft.expiresAt.toISOString(),
             },

@@ -6,12 +6,22 @@ import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
 import { createAssistantConversationService } from '../../src/assistant/conversation.service';
 import { createAssistantApplicationService } from '../../src/assistant/application.service';
 import { createAssistantFinancialDraftService } from '../../src/assistant/financial-draft.service';
+import { createClarificationService } from '../../src/assistant/clarification.service';
+import {
+  EntityResolverRegistry,
+  createCategoryResolver,
+  createEntityResolutionService,
+  createMerchantResolver,
+  createWalletResolver,
+} from '../../src/assistant/entity-resolution';
 import { createTransactionService } from '../../src/services/transaction.service';
 import { ToolRegistry } from '../../src/assistant/registry';
 import { monthlySpendingSummary, transactionCreate } from '../../src/assistant/tools';
 import { createAssistantControllers } from '../../src/controllers/assistant.controller';
 import { correlationMiddleware } from '../../src/http/correlation';
 import { errorHandler } from '../../src/middlewares/error.middleware';
+import { reportingConfig } from '../../src/config';
+import { formatReportingDate } from '../../src/domain/reportingTime';
 
 const url = process.env.TEST_DATABASE_URL;
 if (url) assertTestDatabaseUrl(url);
@@ -35,14 +45,27 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
   }
   function app(clock?: () => Date) {
     const conversations = createAssistantConversationService(resources!.prisma);
-    const drafts = createAssistantFinancialDraftService(resources!.prisma, createTransactionService(resources!.prisma), undefined, clock);
+    const clarification = createClarificationService(resources!.prisma);
+    const entityResolverRegistry = new EntityResolverRegistry();
+    entityResolverRegistry.register(createWalletResolver(resources!.prisma));
+    entityResolverRegistry.register(createMerchantResolver(resources!.prisma));
+    entityResolverRegistry.register(createCategoryResolver(resources!.prisma));
+    entityResolverRegistry.finalize();
+    const entityResolution = createEntityResolutionService(entityResolverRegistry);
+    // Lazy wiring mirrors src/assistant/bootstrap.ts: `financialDrafts` needs
+    // `application.inferCategoryId` (for description-triggered re-inference on
+    // confirm) but `application` also needs `financialDrafts` — break the
+    // circular dependency with a deferred getter.
+    let application: ReturnType<typeof createAssistantApplicationService>;
+    const drafts = createAssistantFinancialDraftService(resources!.prisma, createTransactionService(resources!.prisma), () => ({ inferCategoryId: application.inferCategoryId }), clock);
     const registry = new ToolRegistry(); registry.register(monthlySpendingSummary); registry.register(transactionCreate);
-    const application = createAssistantApplicationService({ conversations, toolRegistry: registry, handlerRegistry: new Map(), financialDrafts: drafts });
+    application = createAssistantApplicationService({ conversations, toolRegistry: registry, handlerRegistry: new Map(), financialDrafts: drafts, clarification, entityResolution });
     const controllers = createAssistantControllers(application, conversations, drafts);
     const server = express(); server.use(express.json()); server.use(correlationMiddleware);
     server.use((req, _res, next) => { (req as any).auth = { userId: req.header('x-test-user') }; next(); });
     server.post('/execute', controllers.execute); server.post('/drafts/:draftId/confirm', controllers.confirmDraft);
     server.post('/drafts/:draftId/cancel', controllers.cancelDraft); server.get('/conversations/:conversationId', controllers.get);
+    server.get('/conversations/:conversationId/recovery-state', controllers.recoveryState);
     server.use(errorHandler); return server;
   }
   const draftBody = (walletId: string, categoryId: string) => ({ intent: 'transaction.create', arguments: { type: 'EXPENSE', amount: '12500.50', walletId, categoryId, date: '2026-07-22', description: 'Lunch' } });
@@ -51,8 +74,7 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
     const { user, wallet, category } = await fixture('flow'); const server = app();
     const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
     expect(prepared.status).toBe(200); expect(prepared.body.data.data).toMatchObject({ status: 'PENDING_CONFIRMATION', confirmationRequired: true });
-    expect(prepared.body.data.data.preview).toMatchObject({ category: 'Food' });
-    expect(prepared.body.data.data.preview).not.toHaveProperty('categoryId');
+    expect(prepared.body.data.data.preview).toMatchObject({ category: 'Food', categoryId: category.id, transactionDate: '2026-07-22' });
     expect(prepared.body.data.data.renderedText).toContain('kategori Food');
     expect(prepared.body.data.data.renderedText).not.toContain(category.id);
     expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(0);
@@ -292,5 +314,155 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
     } finally {
       warnSpy.mockRestore();
     }
+  });
+
+  // ---- Confirm-time overrides (Phase 34) -------------------------------------
+
+  it.each([
+    ['amount', (w: string, c: string) => ({ amount: 999.25 }), (t: { amount: { toString(): string } }) => expect(t.amount.toString()).toBe('999.25')],
+    ['date', (w: string, c: string) => ({ date: '2026-08-01' }), (t: { date: Date }) => expect(formatReportingDate(t.date, reportingConfig.timezone)).toBe('2026-08-01')],
+    ['description', (w: string, c: string) => ({ description: 'Overridden note' }), (t: { description: string | null }) => expect(t.description).toBe('Overridden note')],
+  ] as const)('applies a confirm-time %s override independently of the draft', async (_label, buildOverride, assertTransaction) => {
+    const { user, wallet, category } = await fixture(`override-${_label}`);
+    const server = app();
+    const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+    const draftId = prepared.body.data.data.draftId;
+    const response = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', `override-${_label}-key`).send(buildOverride(wallet.id, category.id));
+    expect(response.status).toBe(200);
+    const transaction = await resources!.prisma.transaction.findUniqueOrThrow({ where: { id: response.body.data.transactionId } });
+    assertTransaction(transaction as never);
+  });
+
+  it('applies a confirm-time walletId override and debits the overridden wallet, not the draft wallet', async () => {
+    const { user, wallet, category } = await fixture('override-wallet');
+    const otherWallet = await resources!.prisma.wallet.create({ data: { userId: user.id, name: 'Bank', type: 'BANK', balance: 50000 } });
+    const server = app();
+    const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+    const draftId = prepared.body.data.data.draftId;
+    const response = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'override-wallet-key').send({ walletId: otherWallet.id });
+    expect(response.status).toBe(200);
+    expect((await resources!.prisma.wallet.findUniqueOrThrow({ where: { id: wallet.id } })).balance.toString()).toBe('100000');
+    expect((await resources!.prisma.wallet.findUniqueOrThrow({ where: { id: otherWallet.id } })).balance.toString()).toBe('37499.5');
+  });
+
+  it('applies a confirm-time categoryId override without triggering re-inference', async () => {
+    const { user, wallet, category } = await fixture('override-category');
+    const otherCategory = await categoryFor(user.id, 'Transport', 'EXPENSE');
+    const server = app();
+    const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+    const draftId = prepared.body.data.data.draftId;
+    const response = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'override-category-key').send({ categoryId: otherCategory.id });
+    expect(response.status).toBe(200);
+    expect((await resources!.prisma.transaction.findUniqueOrThrow({ where: { id: response.body.data.transactionId } })).categoryId).toBe(otherCategory.id);
+  });
+
+  it('applies a combination of overrides atomically in one confirm call', async () => {
+    const { user, wallet, category } = await fixture('override-combo');
+    const otherWallet = await resources!.prisma.wallet.create({ data: { userId: user.id, name: 'Bank', type: 'BANK', balance: 50000 } });
+    const otherCategory = await categoryFor(user.id, 'Transport', 'EXPENSE');
+    const server = app();
+    const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+    const draftId = prepared.body.data.data.draftId;
+    const response = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'override-combo-key').send({
+      amount: 42.5, walletId: otherWallet.id, categoryId: otherCategory.id, date: '2026-09-09', description: 'Combo',
+    });
+    expect(response.status).toBe(200);
+    const transaction = await resources!.prisma.transaction.findUniqueOrThrow({ where: { id: response.body.data.transactionId } });
+    expect(transaction.amount.toString()).toBe('42.5');
+    expect(transaction.walletId).toBe(otherWallet.id);
+    expect(transaction.categoryId).toBe(otherCategory.id);
+    expect(formatReportingDate(transaction.date, reportingConfig.timezone)).toBe('2026-09-09');
+    expect(transaction.description).toBe('Combo');
+    expect((await resources!.prisma.wallet.findUniqueOrThrow({ where: { id: wallet.id } })).balance.toString()).toBe('100000');
+    expect((await resources!.prisma.wallet.findUniqueOrThrow({ where: { id: otherWallet.id } })).balance.toString()).toBe('49957.5');
+  });
+
+  it.each([
+    ['walletId', async (user: { id: string }) => { const foreign = await fixture('override-foreign-wallet-owner'); return { walletId: foreign.wallet.id }; }],
+    ['categoryId', async (user: { id: string }) => { const foreign = await fixture('override-foreign-category-owner'); return { categoryId: foreign.category.id }; }],
+  ] as const)('rejects a foreign %s override without mutating the wallet or creating a transaction', async (_label, buildOverride) => {
+    const { user, wallet, category } = await fixture(`override-foreign-${_label}`);
+    const server = app();
+    const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+    const draftId = prepared.body.data.data.draftId;
+    const override = await buildOverride(user);
+    const response = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', `override-foreign-${_label}-key`).send(override);
+    expect(response.status).toBe(404);
+    expect(response.body.error.code).toBe('ASSISTANT_DRAFT_NOT_FOUND');
+    expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(0);
+    expect((await resources!.prisma.wallet.findUniqueOrThrow({ where: { id: wallet.id } })).balance.toString()).toBe('100000');
+    expect((await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status).toBe('PENDING_CONFIRMATION');
+  });
+
+  it('re-infers the category when description changes and categoryId is not overridden', async () => {
+    const { user, wallet, category } = await fixture('override-reinfer');
+    const catchAll = await categoryFor(user.id, 'Lainnya', 'EXPENSE');
+    const server = app();
+    const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+    const draftId = prepared.body.data.data.draftId;
+    const response = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'override-reinfer-key').send({ description: 'Something entirely different' });
+    expect(response.status).toBe(200);
+    const transaction = await resources!.prisma.transaction.findUniqueOrThrow({ where: { id: response.body.data.transactionId } });
+    expect(transaction.categoryId).toBe(catchAll.id);
+    expect(transaction.categoryId).not.toBe(category.id);
+  });
+
+  it('serializes concurrent confirmations carrying different override payloads to exactly one commit', async () => {
+    const { user, wallet, category } = await fixture('override-concurrent');
+    const server = app();
+    const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+    const draftId = prepared.body.data.data.draftId;
+    const responses = await Promise.all(Array.from({ length: 5 }, (_, index) => request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', `override-concurrent-${index}`).send({ amount: 100 + index })));
+    expect(responses.every((response) => response.status === 200)).toBe(true);
+    expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(1);
+    expect(new Set(responses.map((response) => response.body.data.transactionId)).size).toBe(1);
+    const transaction = await resources!.prisma.transaction.findFirstOrThrow({ where: { userId: user.id } });
+    expect([100, 101, 102, 103, 104]).toContain(Number(transaction.amount.toString()));
+  });
+
+  it('ignores overrides against an expired draft — expiry remains authoritative', async () => {
+    const { user, wallet, category } = await fixture('override-expired');
+    const prepared = await request(app()).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+    const draftId = prepared.body.data.data.draftId;
+    const draft = await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } });
+    const server = app(() => new Date(draft.expiresAt.getTime() + 1));
+    const response = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'override-expired-key').send({ amount: 1 });
+    expect(response.status).toBe(409);
+    expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(0);
+  });
+
+  it('ignores overrides against a cancelled draft — cancellation remains authoritative', async () => {
+    const { user, wallet, category } = await fixture('override-cancelled');
+    const server = app();
+    const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+    const draftId = prepared.body.data.data.draftId;
+    await request(server).post(`/drafts/${draftId}/cancel`).set('x-test-user', user.id);
+    const response = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'override-cancelled-key').send({ amount: 1 });
+    expect(response.status).toBe(409);
+    expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(0);
+  });
+
+  it('ignores overrides replayed against an already-committed draft — the original commit remains authoritative', async () => {
+    const { user, wallet, category } = await fixture('override-committed');
+    const server = app();
+    const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+    const draftId = prepared.body.data.data.draftId;
+    const first = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'override-committed-key');
+    const replay = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'override-committed-replay-key').send({ amount: 1 });
+    expect(replay.status).toBe(200);
+    expect(replay.body.data.transactionId).toBe(first.body.data.transactionId);
+    expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(1);
+    expect((await resources!.prisma.transaction.findUniqueOrThrow({ where: { id: first.body.data.transactionId } })).amount.toString()).toBe('12500.5');
+  });
+
+  it('exposes categoryId and an unambiguous ISO transactionDate in the draft preview and recovery projection', async () => {
+    const { user, wallet, category } = await fixture('preview-raw-fields');
+    const server = app();
+    const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+    expect(prepared.body.data.data.preview).toMatchObject({ categoryId: category.id, transactionDate: '2026-07-22', category: 'Food', date: '2026-07-22' });
+
+    const recovery = await request(server).get(`/conversations/${prepared.body.data.conversationId}/recovery-state`).set('x-test-user', user.id);
+    expect(recovery.status).toBe(200);
+    expect(recovery.body.data.pendingDraft.preview).toMatchObject({ categoryId: category.id, transactionDate: '2026-07-22' });
   });
 });

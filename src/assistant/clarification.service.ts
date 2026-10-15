@@ -8,6 +8,8 @@
 
 import { createHash, randomBytes } from 'node:crypto';
 import { Prisma, type PrismaClient } from '../generated/prisma/client';
+import { reportingConfig } from '../config';
+import { formatReportingDate } from '../domain/reportingTime';
 import { AssistantError } from './errors';
 import type {
   AssistantStateProjection,
@@ -483,6 +485,11 @@ export function createClarificationService(db: PrismaClient) {
         walletId: pendingDraft.walletId,
         categoryId: pendingDraft.categoryId,
         date: pendingDraft.transactionDate.toISOString().slice(0, 10),
+        // Reporting-timezone business date, additive alongside `date` (which is
+        // a naive UTC slice and can be off by one day from the reporting
+        // calendar date — see financial-draft.service.ts `prepare()`). Owner-only
+        // projection, same boundary as `categoryId` above.
+        transactionDate: formatReportingDate(pendingDraft.transactionDate, reportingConfig.timezone),
         ...(pendingDraft.description ? { description: pendingDraft.description } : {}),
         expiresAt: pendingDraft.expiresAt.toISOString(),
       },
