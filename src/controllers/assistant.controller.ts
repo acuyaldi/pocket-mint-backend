@@ -48,12 +48,17 @@ function draftWasCreated(response: unknown): boolean {
   return value.status === 'success' && value.data?.confirmationRequired === true;
 }
 
+/** Closed allowlist for the bounded clarification-kind log label — never widened to an arbitrary string from a response payload. */
+const CLARIFICATION_KINDS = new Set(['wallet', 'merchant', 'category', 'transaction_fields', 'provider_text']);
+
 /** Bounded clarification-kind label only ('wallet'/'merchant'/'category'/'transaction_fields'/'provider_text') — never the prompt text or options. */
 function clarificationKindOf(response: unknown): string | undefined {
   if (typeof response !== 'object' || response === null) return undefined;
   const value = response as { status?: unknown; data?: { kind?: unknown; entityType?: unknown } };
   if (value.status !== 'clarification_required') return undefined;
-  if (value.data?.kind === 'entity_selection' && typeof value.data.entityType === 'string') return value.data.entityType;
+  if (value.data?.kind === 'entity_selection' && typeof value.data.entityType === 'string' && CLARIFICATION_KINDS.has(value.data.entityType)) {
+    return value.data.entityType;
+  }
   return 'provider_text';
 }
 
@@ -371,10 +376,11 @@ export function createAssistantControllers(
       });
       if (result.response.status === 'success') {
         const value = result.response.data as { entityType?: unknown } | undefined;
+        const clarificationKind = typeof value?.entityType === 'string' && CLARIFICATION_KINDS.has(value.entityType) ? value.entityType : undefined;
         logEvent('info', {
           event: 'assistant.capture.clarification_cancelled',
           requestId: req.correlationId,
-          clarificationKind: typeof value?.entityType === 'string' ? value.entityType : undefined,
+          clarificationKind,
         });
       }
       if (result.response.status === 'error' || result.response.status === 'rejected') {

@@ -51,6 +51,10 @@ function tokenToDigest(raw) {
     return digestToken(raw);
 }
 const KNOWN_ENTITY_TYPES = new Set(['wallet', 'merchant', 'category', 'transaction_fields']);
+/** Validates a raw (plain-`String`-column) entityType before it is cast and surfaced to a caller — never trust the column value outright. */
+function safeEntityType(value) {
+    return KNOWN_ENTITY_TYPES.has(value) ? value : undefined;
+}
 /**
  * Structural validity of a persisted trustedContext blob. Guards against a
  * corrupted/malformed JSON payload before it's trusted for continuation.
@@ -312,7 +316,7 @@ function createClarificationService(db) {
         // Repeated cancellation is idempotent and safe — already-cancelled is a
         // no-op success, not an error.
         if (request.status === 'CANCELLED')
-            return { entityType: request.entityType };
+            return { entityType: safeEntityType(request.entityType) };
         if (request.status !== 'PENDING') {
             throw terminalStatusError(request.status, request.terminalCode);
         }
@@ -338,10 +342,10 @@ function createClarificationService(db) {
         if (claimed.count !== 1) {
             const current = await client.clarificationRequest.findUniqueOrThrow({ where: { id: request.id } });
             if (current.status === 'CANCELLED')
-                return { entityType: current.entityType };
+                return { entityType: safeEntityType(current.entityType) };
             throw terminalStatusError(current.status, current.terminalCode);
         }
-        return { entityType: request.entityType };
+        return { entityType: safeEntityType(request.entityType) };
     }
     // ---- State projection ------------------------------------------------------
     async function getAssistantState(userId, conversationId) {

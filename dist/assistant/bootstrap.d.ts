@@ -185,7 +185,7 @@ export declare const clarificationService: {
     select: (input: import("./clarification.types").SelectClarificationInput, options?: import("./clarification.service").TransactionOption) => Promise<import("./clarification.types").SelectClarificationResult>;
     consumeGuidedFields: (input: import("./clarification.types").ConsumeGuidedFieldsInput, options?: import("./clarification.service").TransactionOption) => Promise<import("./clarification.types").ConsumeGuidedFieldsResult>;
     cancel: (input: import("./clarification.types").CancelClarificationInput, options?: import("./clarification.service").TransactionOption) => Promise<{
-        entityType: import("./entity-resolution").EntityType;
+        entityType?: import("./entity-resolution").EntityType;
     }>;
     getAssistantState: (userId: string, conversationId: string) => Promise<import("./clarification.types").AssistantStateProjection>;
     buildConsumedResult: (consumedClarificationId: string) => Pick<import("./clarification.types").ClarificationAdvanceResult, "consumedClarificationId">;

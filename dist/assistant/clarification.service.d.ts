@@ -14,7 +14,7 @@ export declare function createClarificationService(db: PrismaClient): {
     select: (input: SelectClarificationInput, options?: TransactionOption) => Promise<SelectClarificationResult>;
     consumeGuidedFields: (input: ConsumeGuidedFieldsInput, options?: TransactionOption) => Promise<ConsumeGuidedFieldsResult>;
     cancel: (input: CancelClarificationInput, options?: TransactionOption) => Promise<{
-        entityType: EntityType;
+        entityType?: EntityType;
     }>;
     getAssistantState: (userId: string, conversationId: string) => Promise<AssistantStateProjection>;
     buildConsumedResult: (consumedClarificationId: string) => Pick<ClarificationAdvanceResult, "consumedClarificationId">;
