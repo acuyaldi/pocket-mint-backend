@@ -120,9 +120,10 @@ function createMerchantMappingService(db) {
         await db.merchantMapping.delete({ where: { id: mappingId } });
     }
     /**
-     * Exact-match lookup used by the categorization pipeline (highest
-     * priority, before keyword matching). Never falls back to another
-     * user's mappings — scoped strictly by `userId`.
+     * Exact-match lookup by normalized merchant name, scoped strictly by
+     * `userId`. Not currently called by the categorization pipeline, which
+     * needs a type-scoped variant with the category included and runs its
+     * own equivalent query in categorization.service.ts.
      */
     async function findByNormalizedMerchant(userId, normalizedMerchant) {
         if (normalizedMerchant.length === 0)

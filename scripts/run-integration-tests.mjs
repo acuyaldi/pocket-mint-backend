@@ -58,8 +58,12 @@ const integrationTests = [
   'test/assistant/clarification-expiry.integration.test.ts',
   'test/assistant/entity-resolution-transaction.integration.test.ts',
   'test/assistant/message-idempotency.integration.test.ts',
+  'test/assistant/category-resolver.integration.test.ts',
+  'test/assistant/merchant-resolver.integration.test.ts',
   'test/channels/telegram-channel.integration.test.ts',
   'test/opsRemediation.integration.test.ts',
+  'test/channels/telegram-callback.integration.test.ts',
+  'test/channels/durableProcessing.integration.test.ts',
 ];
 
 async function main() {

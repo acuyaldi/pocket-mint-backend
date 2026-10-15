@@ -135,9 +135,10 @@ export function createMerchantMappingService(db: MerchantMappingPrismaClient) {
   }
 
   /**
-   * Exact-match lookup used by the categorization pipeline (highest
-   * priority, before keyword matching). Never falls back to another
-   * user's mappings — scoped strictly by `userId`.
+   * Exact-match lookup by normalized merchant name, scoped strictly by
+   * `userId`. Not currently called by the categorization pipeline, which
+   * needs a type-scoped variant with the category included and runs its
+   * own equivalent query in categorization.service.ts.
    */
   async function findByNormalizedMerchant(userId: string, normalizedMerchant: string): Promise<MerchantMappingRecord | null> {
     if (normalizedMerchant.length === 0) return null;
