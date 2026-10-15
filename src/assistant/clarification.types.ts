@@ -17,11 +17,16 @@ export type ClarificationLifecycleStatus = 'PENDING' | 'CONSUMED' | 'CANCELLED' 
 export interface CanonicalContext {
   readonly version: 1;
   readonly operation: 'transaction.create';
-  readonly type: 'INCOME' | 'EXPENSE';
+  readonly type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
   readonly amount: string;
   readonly date?: string;
   readonly description?: string;
   readonly wallet?: {
+    readonly internalId: string;
+    readonly displayLabel: string;
+  };
+  /** Destination wallet — TRANSFER only. Never present for INCOME/EXPENSE. */
+  readonly toWallet?: {
     readonly internalId: string;
     readonly displayLabel: string;
   };
@@ -34,10 +39,18 @@ export interface CanonicalContext {
     readonly displayLabel: string;
     readonly categoryType: string;
   };
+  /**
+   * Additive role discriminator for an open `entityType: 'wallet'`
+   * clarification on a TRANSFER draft — which slot the answer fills.
+   * Undefined (or 'wallet') for INCOME/EXPENSE and for the TRANSFER source;
+   * 'toWallet' for the TRANSFER destination. Never overwrites the other slot.
+   */
+  readonly pendingWalletRole?: 'wallet' | 'toWallet';
   readonly resumeAt: string;
   /** Optional reference fields preserved through the chain. */
   readonly merchantReference?: string;
   readonly categoryReference?: string;
+  readonly toWalletReference?: string;
 }
 
 export interface ClarificationOptionToken {

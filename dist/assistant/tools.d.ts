@@ -1,16 +1,20 @@
 import type { ToolContract } from './types';
 export interface TransactionCreateInput {
-    type: 'INCOME' | 'EXPENSE';
+    type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
     amount: string;
     walletId: string;
+    /** Destination wallet for TRANSFER. Never present for INCOME/EXPENSE. */
+    toWalletId?: string;
     categoryId?: string;
     date?: string;
     description?: string;
 }
 export interface TransactionCreateReferenceInput {
-    type: 'INCOME' | 'EXPENSE';
+    type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
     amount: string;
     walletReference: string;
+    /** Destination wallet text reference for TRANSFER — resolved like walletReference, never a trusted id. */
+    toWalletReference?: string;
     categoryId?: string;
     date?: string;
     description?: string;

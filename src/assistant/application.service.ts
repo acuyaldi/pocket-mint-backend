@@ -76,9 +76,11 @@ export function createAssistantApplicationService(deps: {
     wallet?: { internalId: string; displayLabel: string },
     merchant?: { internalId: string; displayLabel: string },
     category?: { internalId: string; displayLabel: string; categoryType: string },
+    toWallet?: { internalId: string; displayLabel: string },
+    pendingWalletRole?: 'wallet' | 'toWallet',
   ): CanonicalContext {
     const categoryId = 'categoryId' in input ? (input as { categoryId: string }).categoryId : undefined;
-    const refInput = input as { merchantReference?: string; categoryReference?: string };
+    const refInput = input as { merchantReference?: string; categoryReference?: string; toWalletReference?: string };
     return {
       version: 1,
       operation: 'transaction.create',
@@ -87,10 +89,13 @@ export function createAssistantApplicationService(deps: {
       ...(input.date ? { date: input.date } : {}),
       ...(input.description !== undefined ? { description: input.description } : {}),
       ...(wallet ? { wallet } : {}),
+      ...(toWallet ? { toWallet } : {}),
       ...(merchant ? { merchant } : {}),
       ...(category ? { category } : categoryId ? { category: { internalId: categoryId, displayLabel: '', categoryType: input.type } } : {}),
+      ...(pendingWalletRole ? { pendingWalletRole } : {}),
       ...(refInput.merchantReference ? { merchantReference: refInput.merchantReference } : {}),
       ...(refInput.categoryReference ? { categoryReference: refInput.categoryReference } : {}),
+      ...(refInput.toWalletReference ? { toWalletReference: refInput.toWalletReference } : {}),
       resumeAt: new Date().toISOString(),
     };
   }
@@ -145,10 +150,12 @@ export function createAssistantApplicationService(deps: {
     resolution: Extract<EntityResolutionResult, { kind: 'ambiguous' }>;
     parentClarificationId?: string;
     transaction?: TxClient;
+    /** Overrides the generic entity-type label in the rendered prompt (e.g. "Wallet sumber transfer"). */
+    promptLabel?: string;
   }) {
     if (!deps.clarification) throw new Error('Clarification service is not configured');
 
-    const prompt = renderEntityClarificationPrompt(params.entityType, params.resolution);
+    const prompt = renderEntityClarificationPrompt(params.entityType, params.resolution, params.promptLabel);
     return deps.clarification.create({
       userId: params.userId,
       conversationId: params.conversationId,
@@ -286,6 +293,10 @@ export function createAssistantApplicationService(deps: {
     transactionInput: TransactionCreateToolInput,
   ): Promise<AssistantApplicationResult> {
     if (!deps.financialDrafts) throw new Error('Financial draft service is not configured');
+
+    if (transactionInput.type === 'TRANSFER') {
+      return executeTransferCreate(userId, correlationId, turn, executionId, startedAt, transactionInput);
+    }
 
     // Step 1: Resolve wallet
     const hasWalletRef = 'walletReference' in transactionInput;
@@ -432,6 +443,244 @@ export function createAssistantApplicationService(deps: {
     return finalizeTransactionDraft(userId, correlationId, turn, executionId, startedAt, transactionInput, walletData, merchantData, categoryData);
   }
 
+  // ---- TRANSFER: independent two-wallet resolution with sequential clarification ----
+  // Source resolves first; destination clarifies as a child of the source
+  // clarification when both references are ambiguous. Neither selection ever
+  // overwrites the other slot — each clarification carries the already-resolved
+  // side (if any) forward in its own trustedContext (`wallet` / `toWallet`).
+
+  type WalletResolutionOutcome =
+    | { kind: 'resolved'; data: ResolvedWallet }
+    | { kind: 'ambiguous'; resolution: Extract<EntityResolutionResult, { kind: 'ambiguous' }> }
+    | { kind: 'not_found' }
+    | { kind: 'invalid' };
+
+  async function resolveTransferWallet(userId: string, reference: string, transaction?: TxClient): Promise<WalletResolutionOutcome> {
+    const result = await resolveEntity(userId, 'wallet', reference, undefined, transaction);
+    if (result.kind === 'resolved') return { kind: 'resolved', data: { internalId: result.entity.internalId, displayLabel: result.displayLabel } };
+    if (result.kind === 'ambiguous') return { kind: 'ambiguous', resolution: result as Extract<EntityResolutionResult, { kind: 'ambiguous' }> };
+    if (result.kind === 'not_found') return { kind: 'not_found' };
+    return { kind: 'invalid' };
+  }
+
+  function buildTransferTransactionInput(ctx: CanonicalContext): TransactionCreateToolInput {
+    return {
+      type: 'TRANSFER',
+      amount: ctx.amount,
+      walletReference: '',
+      toWalletReference: ctx.toWalletReference ?? '',
+      ...(ctx.date ? { date: ctx.date } : {}),
+      ...(ctx.description !== undefined ? { description: ctx.description } : {}),
+    } as TransactionCreateToolInput;
+  }
+
+  async function rejectTransferWalletNotFound(
+    turn: { conversationId: string; turnId: string },
+    executionId: string,
+    correlationId: string,
+    startedAt: number,
+    role: 'source' | 'destination',
+    transaction?: TxClient,
+  ): Promise<AssistantApplicationResult> {
+    const message = role === 'source'
+      ? 'Wallet sumber transfer tidak ditemukan atau tidak dapat digunakan. Sebutkan nama wallet aktif yang lain.'
+      : 'Wallet tujuan transfer tidak ditemukan atau tidak dapat digunakan. Sebutkan nama wallet aktif yang lain.';
+    await deps.conversations.finalize({
+      executionId, ...turn, status: 'SUCCEEDED', turnStatus: 'CLARIFICATION_REQUIRED',
+      assistantContent: message, assistantSource: 'DETERMINISTIC_RENDERER',
+      durationMs: Date.now() - startedAt,
+      outputSummary: { operation: 'transaction.create', transferWalletResolution: `${role}_not_found` },
+    }, { transaction });
+    return { httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' as const }, correlationId, ...turn } };
+  }
+
+  async function executeTransferCreate(
+    userId: string,
+    correlationId: string,
+    turn: { conversationId: string; turnId: string },
+    executionId: string,
+    startedAt: number,
+    transactionInput: TransactionCreateToolInput,
+  ): Promise<AssistantApplicationResult> {
+    // Source accepts either a reference (the model's only path — resolved like
+    // any other wallet reference) or a direct walletId (deterministic callers
+    // only — never the model, since the tool contract never offers that key).
+    // Destination is always a reference: toWalletId is never an accepted
+    // tool-input key (see tools.ts) — the model, and any deterministic caller
+    // reconstructing input, must always go through toWalletReference.
+    const directSourceId = (transactionInput as { walletId?: string }).walletId;
+    const sourceRef = (transactionInput as { walletReference?: string }).walletReference;
+    const destRef = (transactionInput as { toWalletReference?: string }).toWalletReference;
+    if (!destRef) {
+      throw AssistantError.invalidInput('transaction.create', 'toWalletReference is required for TRANSFER');
+    }
+    const sourceOutcome: WalletResolutionOutcome = directSourceId
+      ? { kind: 'resolved', data: { internalId: directSourceId, displayLabel: directSourceId } }
+      : sourceRef
+        ? await resolveTransferWallet(userId, sourceRef)
+        : (() => { throw AssistantError.invalidInput('transaction.create', 'walletId or walletReference is required for TRANSFER'); })();
+    const destOutcome = await resolveTransferWallet(userId, destRef);
+    return settleTransferWallets(userId, correlationId, turn, executionId, startedAt, transactionInput, sourceOutcome, destOutcome);
+  }
+
+  async function settleTransferWallets(
+    userId: string,
+    correlationId: string,
+    turn: { conversationId: string; turnId: string },
+    executionId: string,
+    startedAt: number,
+    transactionInput: TransactionCreateToolInput,
+    sourceOutcome: WalletResolutionOutcome,
+    destOutcome: WalletResolutionOutcome,
+    parentClarificationId?: string,
+    transaction?: TxClient,
+  ): Promise<AssistantApplicationResult> {
+    if (sourceOutcome.kind === 'not_found' || sourceOutcome.kind === 'invalid') {
+      return rejectTransferWalletNotFound(turn, executionId, correlationId, startedAt, 'source', transaction);
+    }
+    if (destOutcome.kind === 'not_found' || destOutcome.kind === 'invalid') {
+      return rejectTransferWalletNotFound(turn, executionId, correlationId, startedAt, 'destination', transaction);
+    }
+
+    // Source resolves first, even when the destination is also ambiguous.
+    if (sourceOutcome.kind === 'ambiguous') {
+      const canonical = buildCanonicalContext(transactionInput, undefined, undefined, undefined, undefined, 'wallet');
+      const projection = await createEntityClarification({
+        userId, conversationId: turn.conversationId, turnId: turn.turnId,
+        executionId, entityType: 'wallet', trustedContext: canonical,
+        resolution: sourceOutcome.resolution, parentClarificationId, transaction,
+        promptLabel: 'Wallet sumber transfer',
+      });
+      await deps.conversations.finalize({
+        executionId, ...turn, status: 'SUCCEEDED', turnStatus: 'CLARIFICATION_REQUIRED',
+        assistantContent: projection.prompt, assistantSource: 'DETERMINISTIC_RENDERER',
+        durationMs: Date.now() - startedAt,
+        outputSummary: { operation: 'transaction.create', transferWalletResolution: 'source_ambiguous', clarificationId: projection.clarificationId },
+      }, { transaction });
+      return clarificationResponse(turn, executionId, correlationId, startedAt, projection, 'wallet');
+    }
+
+    const sourceData = sourceOutcome.data;
+
+    if (destOutcome.kind === 'ambiguous') {
+      const canonical = buildCanonicalContext(transactionInput, sourceData, undefined, undefined, undefined, 'toWallet');
+      const projection = await createEntityClarification({
+        userId, conversationId: turn.conversationId, turnId: turn.turnId,
+        executionId, entityType: 'wallet', trustedContext: canonical,
+        resolution: destOutcome.resolution, parentClarificationId, transaction,
+        promptLabel: 'Wallet tujuan transfer',
+      });
+      await deps.conversations.finalize({
+        executionId, ...turn, status: 'SUCCEEDED', turnStatus: 'CLARIFICATION_REQUIRED',
+        assistantContent: projection.prompt, assistantSource: 'DETERMINISTIC_RENDERER',
+        durationMs: Date.now() - startedAt,
+        outputSummary: { operation: 'transaction.create', transferWalletResolution: 'destination_ambiguous', clarificationId: projection.clarificationId },
+      }, { transaction });
+      return clarificationResponse(turn, executionId, correlationId, startedAt, projection, 'wallet');
+    }
+
+    return finalizeTransferDraft(userId, correlationId, turn, executionId, startedAt, transactionInput, sourceData, destOutcome.data, transaction);
+  }
+
+  async function continueTransferChain(
+    userId: string,
+    correlationId: string,
+    turn: { conversationId: string; turnId: string },
+    executionId: string,
+    startedAt: number,
+    ctx: CanonicalContext,
+    result: { selectedCandidateId: string; selectedDisplayLabel: string; clarificationId: string },
+    transaction: TxClient,
+  ): Promise<AssistantApplicationResult> {
+    const selected: ResolvedWallet = { internalId: result.selectedCandidateId, displayLabel: result.selectedDisplayLabel };
+    const role = ctx.pendingWalletRole ?? 'wallet';
+    const sourceData: ResolvedWallet | undefined = role === 'wallet' ? selected : (ctx.wallet ? { internalId: ctx.wallet.internalId, displayLabel: ctx.wallet.displayLabel } : undefined);
+    const destData: ResolvedWallet | undefined = role === 'toWallet' ? selected : (ctx.toWallet ? { internalId: ctx.toWallet.internalId, displayLabel: ctx.toWallet.displayLabel } : undefined);
+    const txInput = buildTransferTransactionInput(ctx);
+
+    if (!sourceData) {
+      throw AssistantError.invalidInput('transaction.create', 'transfer source wallet is missing');
+    }
+
+    if (!destData) {
+      // Source was the ambiguous side; destination still needs resolving from the
+      // original reference text, carried forward as ctx.toWalletReference.
+      const destRef = ctx.toWalletReference ?? '';
+      const destOutcome = destRef ? await resolveTransferWallet(userId, destRef, transaction) : { kind: 'not_found' as const };
+      return settleTransferWallets(
+        userId, correlationId, turn, executionId, startedAt, txInput,
+        { kind: 'resolved', data: sourceData }, destOutcome, result.clarificationId, transaction,
+      );
+    }
+
+    return finalizeTransferDraft(userId, correlationId, turn, executionId, startedAt, txInput, sourceData, destData, transaction);
+  }
+
+  async function finalizeTransferDraft(
+    userId: string,
+    correlationId: string,
+    turn: { conversationId: string; turnId: string },
+    executionId: string,
+    startedAt: number,
+    transactionInput: TransactionCreateToolInput,
+    sourceData: ResolvedWallet,
+    destData: ResolvedWallet,
+    transaction?: TxClient,
+  ): Promise<AssistantApplicationResult> {
+    if (!deps.financialDrafts) throw new Error('Financial draft service is not configured');
+
+    if (sourceData.internalId === destData.internalId) {
+      const message = 'Wallet asal dan tujuan transfer tidak boleh sama. Sebutkan dua wallet yang berbeda.';
+      await deps.conversations.finalize({
+        executionId, ...turn, status: 'SUCCEEDED', turnStatus: 'CLARIFICATION_REQUIRED',
+        assistantContent: message, assistantSource: 'DETERMINISTIC_RENDERER',
+        durationMs: Date.now() - startedAt,
+        outputSummary: { operation: 'transaction.create', transferWalletResolution: 'same_wallet' },
+      }, { transaction });
+      return { httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' as const }, correlationId, ...turn } };
+    }
+
+    const transactionDate = transactionInput.date || formatReportingDate(new Date(), reportingConfig.timezone);
+
+    try {
+      const draft = await deps.financialDrafts.prepare({
+        type: 'TRANSFER',
+        amount: transactionInput.amount,
+        walletId: sourceData.internalId,
+        toWalletId: destData.internalId,
+        date: transactionDate,
+        ...(transactionInput.description === undefined ? {} : { description: transactionInput.description }),
+        walletDisplayLabel: sourceData.displayLabel,
+        toWalletDisplayLabel: destData.displayLabel,
+        userId,
+        ...turn,
+        executionId,
+        ...(transaction ? { transaction } : {}),
+      });
+      // No ASSISTANT chat bubble for drafts — the Transaction Review workspace replaces it.
+      await deps.conversations.finalize({
+        executionId, ...turn, status: 'SUCCEEDED', turnStatus: 'SUCCEEDED',
+        assistantContent: '', assistantSource: 'DETERMINISTIC_RENDERER',
+        durationMs: Date.now() - startedAt,
+        outputSummary: { draftId: draft.draftId, operation: 'transaction.create', status: 'PENDING_CONFIRMATION' },
+      }, { transaction });
+      return { httpStatus: 200, response: { status: 'success', data: draft, correlationId, ...turn } };
+    } catch (error) {
+      if (transaction) {
+        // Inside the caller's transaction (the select/claim flow): propagate so the
+        // whole transaction — including the clarification claim — rolls back.
+        throw error;
+      }
+      const operational = error instanceof AssistantError ? error : { message: 'Assistant draft preparation failed', statusCode: 500, code: 'ASSISTANT_DRAFT_PREPARATION_FAILED' };
+      await deps.conversations.finalize({
+        executionId, ...turn, status: 'FAILED', turnStatus: 'FAILED',
+        assistantContent: operational.message, assistantSource: 'SAFE_ERROR',
+        durationMs: Date.now() - startedAt, safeErrorCode: operational.code,
+      }).catch(() => undefined);
+      return { httpStatus: operational.statusCode, response: { status: 'error', code: operational.code, message: operational.message, correlationId, ...turn } };
+    }
+  }
+
   // ---- Finalize transaction draft -------------------------------------------
 
   async function finalizeTransactionDraft(
@@ -454,7 +703,7 @@ export function createAssistantApplicationService(deps: {
     const providedCategoryId = categoryData?.internalId || (transactionInput as { categoryId?: string }).categoryId;
     const categoryId = providedCategoryId || await inferCategoryId(
       userId,
-      transactionInput.type,
+      transactionInput.type as 'INCOME' | 'EXPENSE',
       (transactionInput as { categoryReference?: string }).categoryReference ?? transactionInput.description,
       transaction,
     );
@@ -564,6 +813,11 @@ export function createAssistantApplicationService(deps: {
         }, { transaction: tx });
 
         const ctx = result.trustedContext;
+
+        if (ctx.type === 'TRANSFER') {
+          return continueTransferChain(userId, correlationId, turn, executionId, startedAt, ctx, result, tx);
+        }
+
         const walletData: ResolvedWallet | undefined = result.entityType === 'wallet'
           ? { internalId: result.selectedCandidateId, displayLabel: result.selectedDisplayLabel }
           : (ctx.wallet ? { internalId: ctx.wallet.internalId, displayLabel: ctx.wallet.displayLabel } : undefined);
@@ -725,7 +979,7 @@ export function createAssistantApplicationService(deps: {
     // Otherwise, use the direct categoryId from the input context.
     const categoryRef = (txInput as { categoryReference?: string }).categoryReference;
     if (categoryRef) {
-      const cr = await resolveEntity(userId, 'category', categoryRef, txInput.type, transaction);
+      const cr = await resolveEntity(userId, 'category', categoryRef, txInput.type as 'INCOME' | 'EXPENSE', transaction);
       if (cr.kind === 'ambiguous') {
         const projection = await createEntityClarification({
           userId, conversationId: turn.conversationId, turnId: turn.turnId,
@@ -869,8 +1123,9 @@ export type AssistantApplicationService = ReturnType<typeof createAssistantAppli
 function renderEntityClarificationPrompt(
   entityType: 'wallet' | 'merchant' | 'category',
   resolution: Extract<EntityResolutionResult, { kind: 'ambiguous' }>,
+  labelOverride?: string,
 ): string {
-  const label = entityType === 'wallet' ? 'Wallet' : entityType === 'merchant' ? 'Pedagang' : 'Kategori';
+  const label = labelOverride ?? (entityType === 'wallet' ? 'Wallet' : entityType === 'merchant' ? 'Pedagang' : 'Kategori');
   const options = resolution.options
     .map((opt) =>
       opt.discriminator

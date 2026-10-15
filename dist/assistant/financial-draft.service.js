@@ -5,6 +5,7 @@ const client_1 = require("../generated/prisma/client");
 const config_1 = require("../config");
 const reportingTime_1 = require("../domain/reportingTime");
 const transaction_errors_1 = require("../services/transaction.errors");
+const transaction_service_1 = require("../services/transaction.service");
 const errors_1 = require("./errors");
 const financial_draft_1 = require("./financial-draft");
 const CONFIRM_INTENT = 'transaction.create.confirm';
@@ -16,8 +17,13 @@ function preview(input, categoryName) {
         ...(input.walletDisplayLabel === undefined
             ? { walletId: input.walletId }
             : { wallet: input.walletDisplayLabel }),
-        categoryId: input.categoryId,
-        category: categoryName,
+        // TRANSFER never carries a category — only INCOME/EXPENSE do.
+        ...(input.type === 'TRANSFER' ? {} : { categoryId: input.categoryId, category: categoryName }),
+        ...(input.type === 'TRANSFER'
+            ? (input.toWalletDisplayLabel === undefined
+                ? { toWalletId: input.toWalletId }
+                : { toWallet: input.toWalletDisplayLabel })
+            : {}),
         ...(input.merchantDisplayLabel === undefined
             ? {}
             : { merchant: input.merchantDisplayLabel }),
@@ -32,18 +38,43 @@ function preview(input, categoryName) {
 function createAssistantFinancialDraftService(db, transactions, deps, clock = () => new Date()) {
     async function prepare(input) {
         const client = input.transaction ?? db;
-        const wallet = await client.wallet.findFirst({ where: { id: input.walletId, userId: input.userId }, select: { id: true } });
-        const category = await client.category.findFirst({
-            where: { id: input.categoryId, userId: input.userId, type: input.type },
-            select: { id: true, name: true },
-        });
-        if (!wallet || !category)
+        const isTransfer = input.type === 'TRANSFER';
+        const wallet = await client.wallet.findFirst({ where: { id: input.walletId, userId: input.userId }, select: { id: true, type: true } });
+        if (!wallet)
             throw errors_1.AssistantError.draftNotFound();
+        let category = null;
+        let toWallet = null;
+        if (isTransfer) {
+            if (input.categoryId)
+                throw errors_1.AssistantError.invalidInput('transaction.create', 'TRANSFER does not accept a category');
+            if (!input.toWalletId)
+                throw errors_1.AssistantError.draftNotFound();
+            if (input.toWalletId === input.walletId)
+                throw errors_1.AssistantError.invalidInput('transaction.create', 'Wallet asal dan tujuan tidak boleh sama');
+            if (!transaction_service_1.TRANSFER_SOURCE_TYPES.includes(wallet.type)) {
+                throw errors_1.AssistantError.invalidInput('transaction.create', 'Sumber transfer harus Kas, Bank, atau E-Wallet');
+            }
+            toWallet = await client.wallet.findFirst({ where: { id: input.toWalletId, userId: input.userId }, select: { id: true } });
+            if (!toWallet)
+                throw errors_1.AssistantError.draftNotFound();
+        }
+        else {
+            if (!input.categoryId)
+                throw errors_1.AssistantError.draftNotFound();
+            category = await client.category.findFirst({
+                where: { id: input.categoryId, userId: input.userId, type: input.type },
+                select: { id: true, name: true },
+            });
+            if (!category)
+                throw errors_1.AssistantError.draftNotFound();
+        }
         const now = input.now ?? new Date();
         const row = await client.assistantFinancialDraft.create({ data: {
                 userId: input.userId, conversationId: input.conversationId, originatingTurnId: input.turnId,
                 originatingExecutionId: input.executionId, operation: 'transaction.create', transactionType: input.type,
-                amount: new client_1.Prisma.Decimal(input.amount), walletId: input.walletId, categoryId: input.categoryId,
+                amount: new client_1.Prisma.Decimal(input.amount), walletId: input.walletId,
+                toWalletId: isTransfer ? input.toWalletId : null,
+                categoryId: isTransfer ? null : input.categoryId,
                 transactionDate: (0, reportingTime_1.parseBusinessDate)(input.date, config_1.reportingConfig.timezone), description: input.description ?? null,
                 expiresAt: new Date(now.getTime() + financial_draft_1.ASSISTANT_FINANCIAL_DRAFT_TTL_MS),
             } });
@@ -51,9 +82,9 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
             draftId: row.id,
             status: row.status,
             expiresAt: row.expiresAt,
-            preview: preview(input, category.name),
+            preview: preview(input, category?.name),
             confirmationRequired: true,
-            renderedText: (0, financial_draft_1.renderTransactionDraftPreview)(input, input.walletDisplayLabel, category.name, input.merchantDisplayLabel),
+            renderedText: (0, financial_draft_1.renderTransactionDraftPreview)(input, input.walletDisplayLabel, category?.name, input.merchantDisplayLabel, input.toWalletDisplayLabel),
         };
     }
     async function confirm(userId, draftId, keyValue, correlationId, overrides) {
@@ -80,12 +111,22 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                 if (draft.status !== 'PENDING_CONFIRMATION')
                     throw errors_1.AssistantError.draftConflict(draft.status);
                 // ---- Merge overrides with immutable draft values (override wins, draft is fallback) ----
+                // Type itself is never overridable — DraftConfirmOverride has no `type`
+                // field, so a confirmed transaction's type always equals the draft's.
                 const effectiveType = draft.transactionType;
+                const isTransfer = effectiveType === 'TRANSFER';
                 const effectiveAmount = overrides?.amount !== undefined ? new client_1.Prisma.Decimal(overrides.amount) : draft.amount;
                 const effectiveWalletId = overrides?.walletId ?? draft.walletId;
+                const effectiveToWalletId = overrides?.toWalletId ?? draft.toWalletId ?? undefined;
                 const effectiveDate = overrides?.date ?? (0, reportingTime_1.formatReportingDate)(draft.transactionDate, config_1.reportingConfig.timezone);
                 const descriptionChanged = overrides?.description !== undefined && overrides.description !== (draft.description ?? undefined);
                 const effectiveDescription = overrides?.description !== undefined ? overrides.description : (draft.description ?? undefined);
+                if (overrides?.toWalletId !== undefined && !isTransfer) {
+                    throw errors_1.AssistantError.invalidInput('transaction.create.confirm', 'toWalletId override is only valid for a TRANSFER draft');
+                }
+                if (overrides?.categoryId !== undefined && isTransfer) {
+                    throw errors_1.AssistantError.invalidInput('transaction.create.confirm', 'categoryId override is not valid for a TRANSFER draft');
+                }
                 // ---- Re-run deterministic validation only for caller-supplied overrides ----
                 // The draft's own walletId/categoryId were already validated at prepare()
                 // time; re-checking them here would intercept a since-changed domain state
@@ -93,15 +134,31 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                 // FAILED-lifecycle recording that transactions.createTransaction() below
                 // already produces for that case. Only an explicit override — untrusted
                 // input like prepare()'s — needs this ownership/type gate up front.
-                // 1. Validate wallet ownership (only when overridden)
+                // 1. Validate source wallet ownership (and, for TRANSFER, source type) only when overridden
                 if (overrides?.walletId !== undefined) {
-                    const wallet = await tx.wallet.findFirst({ where: { id: effectiveWalletId, userId }, select: { id: true } });
+                    const wallet = await tx.wallet.findFirst({ where: { id: effectiveWalletId, userId }, select: { id: true, type: true } });
                     if (!wallet)
                         throw errors_1.AssistantError.draftNotFound();
+                    if (isTransfer && !transaction_service_1.TRANSFER_SOURCE_TYPES.includes(wallet.type)) {
+                        throw errors_1.AssistantError.invalidInput('transaction.create.confirm', 'Sumber transfer harus Kas, Bank, atau E-Wallet');
+                    }
                 }
-                // 2. Determine effective category (rule priority: explicit user choice > backend inference > draft proposal)
+                // 1b. Validate destination wallet ownership only when overridden
+                if (isTransfer && overrides?.toWalletId !== undefined) {
+                    const toWallet = await tx.wallet.findFirst({ where: { id: effectiveToWalletId, userId }, select: { id: true } });
+                    if (!toWallet)
+                        throw errors_1.AssistantError.draftNotFound();
+                }
+                // 1c. Same-wallet rejection — re-checked whenever either side changed via override
+                if (isTransfer && (overrides?.walletId !== undefined || overrides?.toWalletId !== undefined) && effectiveWalletId === effectiveToWalletId) {
+                    throw errors_1.AssistantError.invalidInput('transaction.create.confirm', 'Wallet asal dan tujuan tidak boleh sama');
+                }
+                // 2. Determine effective category (rule priority: explicit user choice > backend inference > draft proposal). TRANSFER never has one.
                 let effectiveCategoryId;
-                if (overrides?.categoryId !== undefined) {
+                if (isTransfer) {
+                    effectiveCategoryId = undefined;
+                }
+                else if (overrides?.categoryId !== undefined) {
                     const category = await tx.category.findFirst({
                         where: { id: overrides.categoryId, userId, type: effectiveType },
                         select: { id: true },
@@ -112,10 +169,10 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                 }
                 else if (descriptionChanged && resolvedDeps?.inferCategoryId) {
                     const inferred = await resolvedDeps.inferCategoryId(userId, effectiveType, effectiveDescription, tx);
-                    effectiveCategoryId = inferred ?? draft.categoryId;
+                    effectiveCategoryId = inferred ?? draft.categoryId ?? undefined;
                 }
                 else {
-                    effectiveCategoryId = draft.categoryId;
+                    effectiveCategoryId = draft.categoryId ?? undefined;
                 }
                 // 3. Parse and validate date
                 const parsedDate = (0, reportingTime_1.parseBusinessDate)(effectiveDate, config_1.reportingConfig.timezone);
@@ -130,7 +187,7 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                     type: effectiveType,
                     amount: effectiveAmount,
                     walletId: effectiveWalletId,
-                    categoryId: effectiveCategoryId,
+                    ...(isTransfer ? { toWalletId: effectiveToWalletId } : { categoryId: effectiveCategoryId }),
                     date: parsedDate.toISOString(),
                     description: effectiveDescription,
                 }, { transaction: tx });

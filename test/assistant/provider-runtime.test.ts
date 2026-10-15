@@ -69,7 +69,7 @@ describe('provider-safe capability catalogue and prompt', () => {
     expect(catalog[1]).toMatchObject({
       category: 'transaction.create',
       requiredArguments: ['amount', 'type', 'walletReference'],
-      optionalArguments: ['categoryReference', 'date', 'description'],
+      optionalArguments: ['categoryReference', 'date', 'description', 'toWalletReference'],
       confirmationMayBeRequired: true,
     });
     expect(JSON.stringify(catalog)).not.toMatch(/handler|riskLevel|policyDecision|source file|userId/i);

@@ -10,7 +10,6 @@ const EXPENSE_SIGNALS = [
     /\blangganan\b/iu,
     /\btop\s?up\b/iu,
     /\bisi\s+bensin\b/iu,
-    /\btransfer\s+untuk\s+membayar\b/iu,
     /\bpotong\s+saldo\b/iu,
     /\bdebit\b/iu,
 ];

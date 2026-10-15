@@ -13,18 +13,22 @@ import type { ToolContract } from './types';
 import { AssistantError } from './errors';
 
 export interface TransactionCreateInput {
-  type: 'INCOME' | 'EXPENSE';
+  type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
   amount: string;
   walletId: string;
+  /** Destination wallet for TRANSFER. Never present for INCOME/EXPENSE. */
+  toWalletId?: string;
   categoryId?: string;
   date?: string;
   description?: string;
 }
 
 export interface TransactionCreateReferenceInput {
-  type: 'INCOME' | 'EXPENSE';
+  type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
   amount: string;
   walletReference: string;
+  /** Destination wallet text reference for TRANSFER — resolved like walletReference, never a trusted id. */
+  toWalletReference?: string;
   categoryId?: string;
   date?: string;
   description?: string;
@@ -43,6 +47,7 @@ const TRANSACTION_KEYS = new Set([
   'amount',
   'walletId',
   'walletReference',
+  'toWalletReference',
   'categoryId',
   'categoryReference',
   'merchantReference',
@@ -67,9 +72,10 @@ function validateTransactionCreateInput(input: unknown): TransactionCreateToolIn
   if (Object.keys(value).some((key) => !TRANSACTION_KEYS.has(key))) {
     throw AssistantError.invalidInput('transaction.create', 'Input contains unsupported properties');
   }
-  if (value.type !== 'INCOME' && value.type !== 'EXPENSE') {
-    throw AssistantError.invalidInput('transaction.create', 'type must be INCOME or EXPENSE');
+  if (value.type !== 'INCOME' && value.type !== 'EXPENSE' && value.type !== 'TRANSFER') {
+    throw AssistantError.invalidInput('transaction.create', 'type must be INCOME, EXPENSE, or TRANSFER');
   }
+  const isTransfer = value.type === 'TRANSFER';
   const amount = value.amount;
   if (typeof amount !== 'string' || !MONEY_RE.test(amount) || amount === '0' || /^0(?:\.0{1,2})?$/.test(amount)) {
     throw AssistantError.invalidInput('transaction.create', 'amount must be a positive decimal with at most two fraction digits');
@@ -107,6 +113,17 @@ function validateTransactionCreateInput(input: unknown): TransactionCreateToolIn
   const hasCategoryRef = typeof value.categoryReference === 'string' && value.categoryReference.trim().length > 0;
   const catId = value.categoryId;
   const hasCategoryId = typeof catId === 'string' && catId.trim().length > 0 && catId.length <= 191;
+  if (isTransfer && (hasCategoryRef || hasCategoryId)) {
+    throw AssistantError.invalidInput('transaction.create', 'TRANSFER does not accept a category');
+  }
+  const toWalletReference = value.toWalletReference;
+  if (isTransfer) {
+    if (typeof toWalletReference !== 'string' || !toWalletReference.trim() || toWalletReference.length > 256) {
+      throw AssistantError.invalidInput('transaction.create', 'toWalletReference is required and must be a non-empty bounded string for TRANSFER');
+    }
+  } else if (toWalletReference !== undefined) {
+    throw AssistantError.invalidInput('transaction.create', 'toWalletReference is only valid for TRANSFER');
+  }
   if (value.date !== undefined && (typeof value.date !== 'string' || !isCalendarDay(value.date))) {
     throw AssistantError.invalidInput('transaction.create', 'date must be a valid YYYY-MM-DD day');
   }
@@ -123,12 +140,15 @@ function validateTransactionCreateInput(input: unknown): TransactionCreateToolIn
       throw AssistantError.invalidInput('transaction.create', 'categoryReference must be a non-empty string');
     }
   }
-  const ext: Partial<Pick<TransactionCreateReferenceInput, 'merchantReference' | 'categoryReference'>> = {};
+  const ext: Partial<Pick<TransactionCreateReferenceInput, 'merchantReference' | 'categoryReference' | 'toWalletReference'>> = {};
   if (value.merchantReference !== undefined) {
     ext.merchantReference = (value.merchantReference as string).trim();
   }
   if (value.categoryReference !== undefined) {
     ext.categoryReference = (value.categoryReference as string).trim();
+  }
+  if (isTransfer) {
+    ext.toWalletReference = (toWalletReference as string).trim();
   }
 
   const common: Omit<TransactionCreateInput, 'walletId'> = {
@@ -274,7 +294,7 @@ export const transactionCreate: ToolContract<
   TransactionCreateToolInput
 > = {
   id: 'transaction.create',
-  description: 'Prepare a regular income or expense transaction draft. A separate explicit confirmation is required before creation. Preserve explicit transaction type and amount from the current user message; do not return null for type or amount when those values are explicit. Expense signals include bayar, beli, belanja, keluar, transfer untuk membayar, potong saldo, and debit. Examples: "bayar internet 350rb dari bca" -> type EXPENSE; "beli makan 50rb pakai bca" -> type EXPENSE; "belanja bulanan 1jt" -> type EXPENSE. Income signals include terima, dapat, masuk, gaji masuk, dibayar oleh, and refund masuk. Examples: "gaji masuk 5 juta ke bca" -> type INCOME; "terima pembayaran 750rb" -> type INCOME. Do not infer income from neutral transfer language without sufficient evidence.',
+  description: 'Prepare a regular income, expense, or internal transfer transaction draft. A separate explicit confirmation is required before creation. Preserve explicit transaction type and amount from the current user message; do not return null for type or amount when those values are explicit. Expense signals include bayar, beli, belanja, keluar, potong saldo, and debit — but NOT transfer language. Examples: "bayar internet 350rb dari bca" -> type EXPENSE; "beli makan 50rb pakai bca" -> type EXPENSE; "belanja bulanan 1jt" -> type EXPENSE. Income signals include terima, dapat, masuk, gaji masuk, dibayar oleh, and refund masuk. Examples: "gaji masuk 5 juta ke bca" -> type INCOME; "terima pembayaran 750rb" -> type INCOME. Do not infer income from neutral transfer language without sufficient evidence. Transfer signals are explicit movement between the user\'s own two wallets: transfer, pindahkan, kirim ke rekening/wallet sendiri. Examples: "transfer 500rb dari bca ke gopay" -> type TRANSFER with walletReference "bca" and toWalletReference "gopay"; "pindahkan 1jt ke tabungan" -> type TRANSFER. Never return EXPENSE or INCOME for an internal transfer between the user\'s own wallets — return TRANSFER with both walletReference and toWalletReference, and never a categoryReference.',
   capability: 'transaction.create',
   riskLevel: 'HIGH',
   confirmationPolicy: 'EXPLICIT',
@@ -283,17 +303,18 @@ export const transactionCreate: ToolContract<
   enabled: true,
   providerArguments: {
     required: ['amount', 'type', 'walletReference'],
-    optional: ['categoryReference', 'date', 'description'],
+    optional: ['categoryReference', 'date', 'description', 'toWalletReference'],
     properties: {
       amount: { type: 'string', description: 'Positive rupiah decimal amount with at most two fraction digits. Indonesian rupiah shorthand is an amount: return canonical decimal digits, never locale-formatted text or null, when explicit. Examples: 350rb -> 350000; 350 ribu -> 350000; Rp350.000 -> 350000; 1jt -> 1000000; 1 juta -> 1000000; 1,5jt -> 1500000.' },
-      categoryReference: { type: 'string', description: 'Textual category name from the user; never supply or invent a category identifier.' },
+      categoryReference: { type: 'string', description: 'Textual category name from the user; never supply or invent a category identifier. Never supplied for TRANSFER.' },
       date: { type: 'string', format: 'YYYY-MM-DD', description: 'Transaction calendar date.' },
       description: { type: 'string', description: 'Optional short transaction description.' },
-      type: { type: 'string', enum: ['INCOME', 'EXPENSE'], description: 'Regular transaction type. Return EXPENSE for explicit payment/purchase/spending language such as bayar, beli, belanja, keluar, transfer untuk membayar, potong saldo, or debit. Return INCOME for explicit receipt/inflow language such as terima, dapat, masuk, gaji masuk, dibayar oleh, or refund masuk. Do not return null when the current user message has one explicit type signal.' },
-      walletReference: { type: 'string', description: 'Textual wallet name or alias from the user; never supply a wallet identifier.' },
+      type: { type: 'string', enum: ['INCOME', 'EXPENSE', 'TRANSFER'], description: 'Regular transaction type. Return EXPENSE for explicit payment/purchase/spending language such as bayar, beli, belanja, keluar, potong saldo, or debit. Return INCOME for explicit receipt/inflow language such as terima, dapat, masuk, gaji masuk, dibayar oleh, or refund masuk. Return TRANSFER for movement between the user\'s own two wallets (transfer, pindahkan, kirim ke wallet sendiri) — never EXPENSE or INCOME for this case. Do not return null when the current user message has one explicit type signal.' },
+      walletReference: { type: 'string', description: 'Textual wallet name or alias from the user; never supply a wallet identifier. For TRANSFER, this is the source wallet.' },
+      toWalletReference: { type: 'string', description: 'Textual destination wallet name or alias from the user; never supply a wallet identifier. Required when type is TRANSFER, otherwise omitted.' },
     },
   },
   validateInput: validateTransactionCreateInput,
   validateOutput: validateTransactionCreateInput,
-  auditRedact: ['amount', 'description', 'walletId', 'walletReference', 'categoryId', 'date'],
+  auditRedact: ['amount', 'description', 'walletId', 'walletReference', 'toWalletReference', 'categoryId', 'date'],
 };

@@ -48,7 +48,7 @@ describe('assistant provider response schema', () => {
 
   it('carries the enum constraint for transaction type into the decode schema', () => {
     const type = (argumentsSchema().properties as Record<string, { enum?: string[] }>).type;
-    expect(type.enum).toEqual(['INCOME', 'EXPENSE']);
+    expect(type.enum).toEqual(['INCOME', 'EXPENSE', 'TRANSFER']);
   });
 
   it('assembles the request with the registry-derived schema', () => {

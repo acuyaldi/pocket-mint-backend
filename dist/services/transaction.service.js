@@ -16,7 +16,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.transactionService = void 0;
+exports.transactionService = exports.TRANSFER_SOURCE_TYPES = void 0;
 exports.createTransactionService = createTransactionService;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const client_1 = require("../generated/prisma/client");
@@ -30,7 +30,7 @@ const transaction_errors_1 = require("./transaction.errors");
 const transaction_types_1 = require("./transaction.types");
 const VALID_TYPES = ['INCOME', 'EXPENSE', 'TRANSFER'];
 const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'PAYLATER'];
-const TRANSFER_SOURCE_TYPES = ['CASH', 'BANK', 'E_WALLET'];
+exports.TRANSFER_SOURCE_TYPES = ['CASH', 'BANK', 'E_WALLET'];
 /** Map a Prisma FK violation to the same 400 the controller used to return. */
 function rethrowCreate(err) {
     if (err instanceof transaction_errors_1.TransactionError)
@@ -86,7 +86,7 @@ function createTransactionService(db) {
             throw new transaction_errors_1.TransactionError('Wallet tidak ditemukan', 404, 'NOT_FOUND');
         }
         if (type === 'TRANSFER') {
-            if (!TRANSFER_SOURCE_TYPES.includes(wallet.type)) {
+            if (!exports.TRANSFER_SOURCE_TYPES.includes(wallet.type)) {
                 throw new transaction_errors_1.TransactionError('Sumber transfer harus Kas, Bank, atau E-Wallet', 400, 'INVALID_TRANSFER');
             }
             const sourceBalance = new client_1.Prisma.Decimal(wallet.balance ?? 0);
@@ -319,7 +319,7 @@ function createTransactionService(db) {
             if (!sourceWallet) {
                 throw new transaction_errors_1.TransactionError('Wallet tidak ditemukan', 404, 'WALLET_NOT_FOUND');
             }
-            if (!TRANSFER_SOURCE_TYPES.includes(sourceWallet.type)) {
+            if (!exports.TRANSFER_SOURCE_TYPES.includes(sourceWallet.type)) {
                 throw new transaction_errors_1.TransactionError('Sumber transfer harus Kas, Bank, atau E-Wallet', 400, 'INVALID_TRANSFER');
             }
             if (sourceWallet.balance.lessThan(newAmount)) {
