@@ -312,7 +312,7 @@ function createClarificationService(db) {
         // Repeated cancellation is idempotent and safe — already-cancelled is a
         // no-op success, not an error.
         if (request.status === 'CANCELLED')
-            return;
+            return { entityType: request.entityType };
         if (request.status !== 'PENDING') {
             throw terminalStatusError(request.status, request.terminalCode);
         }
@@ -338,9 +338,10 @@ function createClarificationService(db) {
         if (claimed.count !== 1) {
             const current = await client.clarificationRequest.findUniqueOrThrow({ where: { id: request.id } });
             if (current.status === 'CANCELLED')
-                return;
+                return { entityType: current.entityType };
             throw terminalStatusError(current.status, current.terminalCode);
         }
+        return { entityType: request.entityType };
     }
     // ---- State projection ------------------------------------------------------
     async function getAssistantState(userId, conversationId) {

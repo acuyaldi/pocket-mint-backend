@@ -1,8 +1,8 @@
 import { transactionCreate } from './tools';
 
-const AMOUNT_TOKEN_RE = /(?:\bRp\s*)?\d[\d.,]*(?:\s*(?:rb|ribu|jt|juta)\b)?/giu;
+const AMOUNT_TOKEN_RE = /(?:\bRp\s*)?\d[\d.,]*(?:\s*(?:rb|ribu|jt|juta|k)\b)?/giu;
 const NUMERIC_TOKEN_RE = /\d[\d.,]*/gu;
-const SUFFIX_RE = /^(?:Rp\s*)?([1-9]\d*(?:[,.]\d{1,2})?)\s*(rb|ribu|jt|juta)$/iu;
+const SUFFIX_RE = /^(?:Rp\s*)?([1-9]\d*(?:[,.]\d{1,2})?)\s*(rb|ribu|jt|juta|k)$/iu;
 const PLAIN_INTEGER_RE = /^(?:Rp\s*)?([1-9]\d{4,7})$/iu;
 const GROUPED_RUPIAH_RE = /^(?:Rp\s*)?([1-9]\d{0,2}(?:\.\d{3})+)$/iu;
 

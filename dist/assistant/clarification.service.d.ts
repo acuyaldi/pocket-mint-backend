@@ -1,5 +1,6 @@
 import { Prisma, type PrismaClient } from '../generated/prisma/client';
 import type { AssistantStateProjection, CancelClarificationInput, ClarificationAdvanceResult, ClarificationCreationProjection, ConsumeGuidedFieldsInput, ConsumeGuidedFieldsResult, CreateGuidedFieldsClarificationInput, CreateClarificationInput, GuidedClarificationProjection, SelectClarificationInput, SelectClarificationResult } from './clarification.types';
+import type { EntityType } from './entity-resolution';
 export declare const CLARIFICATION_TTL_MS: number;
 export type TransactionClient = Prisma.TransactionClient;
 export interface TransactionOption {
@@ -12,7 +13,9 @@ export declare function createClarificationService(db: PrismaClient): {
     createGuidedFields: (input: CreateGuidedFieldsClarificationInput, options?: TransactionOption) => Promise<GuidedClarificationProjection>;
     select: (input: SelectClarificationInput, options?: TransactionOption) => Promise<SelectClarificationResult>;
     consumeGuidedFields: (input: ConsumeGuidedFieldsInput, options?: TransactionOption) => Promise<ConsumeGuidedFieldsResult>;
-    cancel: (input: CancelClarificationInput, options?: TransactionOption) => Promise<void>;
+    cancel: (input: CancelClarificationInput, options?: TransactionOption) => Promise<{
+        entityType: EntityType;
+    }>;
     getAssistantState: (userId: string, conversationId: string) => Promise<AssistantStateProjection>;
     buildConsumedResult: (consumedClarificationId: string) => Pick<ClarificationAdvanceResult, "consumedClarificationId">;
     runInTransaction: <T>(work: (tx: TransactionClient) => Promise<T>, existing?: TransactionClient) => Promise<T>;

@@ -370,7 +370,7 @@ export function createClarificationService(db: PrismaClient) {
 
   // ---- Cancel ----------------------------------------------------------------
 
-  async function cancel(input: CancelClarificationInput, options: TransactionOption = {}): Promise<void> {
+  async function cancel(input: CancelClarificationInput, options: TransactionOption = {}): Promise<{ entityType: EntityType }> {
     // Plain (unlocked) read, same rationale as select(): a non-PENDING match
     // must produce its specific terminal outcome, not be folded into the
     // claim transaction below.
@@ -386,7 +386,7 @@ export function createClarificationService(db: PrismaClient) {
     }
     // Repeated cancellation is idempotent and safe — already-cancelled is a
     // no-op success, not an error.
-    if (request.status === 'CANCELLED') return;
+    if (request.status === 'CANCELLED') return { entityType: request.entityType as EntityType };
     if (request.status !== 'PENDING') {
       throw terminalStatusError(request.status, request.terminalCode);
     }
@@ -413,9 +413,10 @@ export function createClarificationService(db: PrismaClient) {
     });
     if (claimed.count !== 1) {
       const current = await client.clarificationRequest.findUniqueOrThrow({ where: { id: request.id } });
-      if (current.status === 'CANCELLED') return;
+      if (current.status === 'CANCELLED') return { entityType: current.entityType as EntityType };
       throw terminalStatusError(current.status, current.terminalCode);
     }
+    return { entityType: request.entityType as EntityType };
   }
 
   // ---- State projection ------------------------------------------------------

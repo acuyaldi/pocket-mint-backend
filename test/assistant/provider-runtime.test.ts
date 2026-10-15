@@ -88,6 +88,29 @@ describe('provider-safe capability catalogue and prompt', () => {
     expect(first).not.toMatch(/Prisma|assistant_turns|userId/);
   });
 
+  it('anchors the current reporting-timezone date for relative-date grounding, deterministically under a frozen clock', () => {
+    const catalog = buildProviderCapabilityCatalog(registry());
+    const frozen = new Date('2026-07-23T23:30:00.000Z'); // late UTC evening -> next day in Asia/Jakarta (UTC+7)
+
+    const instruction = buildAssistantSystemInstruction(catalog, 'id-ID', frozen);
+
+    expect(instruction).toContain('Today\'s reporting date is 2026-07-24 (Asia/Jakarta)');
+    expect(instruction).toContain('relative-date grounding');
+    expect(instruction).toMatch(/never use it for financial advice, budgeting/i);
+    expect(buildAssistantSystemInstruction(catalog, 'id-ID', frozen)).toBe(instruction);
+  });
+
+  it('keeps the rest of the system instruction intact alongside the date anchor', () => {
+    const catalog = buildProviderCapabilityCatalog(registry());
+    const frozen = new Date('2026-07-23T01:00:00.000Z');
+    const instruction = buildAssistantSystemInstruction(catalog, 'id-ID', frozen);
+
+    expect(instruction).toContain('structured JSON');
+    expect(instruction).toContain('Never invent');
+    expect(instruction).toContain('ALLOWED CAPABILITY CATALOG');
+    expect(instruction).toContain('Write every user-facing text field you return');
+  });
+
   it('directs provider user-facing text to the conversation locale', () => {
     const catalog = buildProviderCapabilityCatalog(registry());
 
@@ -116,6 +139,7 @@ describe('provider-safe capability catalogue and prompt', () => {
     expect(request.messages[0].content.match(/Ringkas pengeluaran Juli 2026/g)).toHaveLength(1);
     expect(request.systemInstruction).toContain('in Bahasa Indonesia');
     expect(request.systemInstruction).not.toContain('Ignore previous instructions');
+    expect(request.systemInstruction).toMatch(/Today's reporting date is \d{4}-\d{2}-\d{2} \(Asia\/Jakarta\)/);
     expect(request.responseSchema).toMatchObject({ type: 'object', additionalProperties: false });
   });
 });

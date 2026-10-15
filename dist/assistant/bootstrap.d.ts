@@ -184,7 +184,9 @@ export declare const clarificationService: {
     createGuidedFields: (input: import("./clarification.types").CreateGuidedFieldsClarificationInput, options?: import("./clarification.service").TransactionOption) => Promise<import("./clarification.types").GuidedClarificationProjection>;
     select: (input: import("./clarification.types").SelectClarificationInput, options?: import("./clarification.service").TransactionOption) => Promise<import("./clarification.types").SelectClarificationResult>;
     consumeGuidedFields: (input: import("./clarification.types").ConsumeGuidedFieldsInput, options?: import("./clarification.service").TransactionOption) => Promise<import("./clarification.types").ConsumeGuidedFieldsResult>;
-    cancel: (input: import("./clarification.types").CancelClarificationInput, options?: import("./clarification.service").TransactionOption) => Promise<void>;
+    cancel: (input: import("./clarification.types").CancelClarificationInput, options?: import("./clarification.service").TransactionOption) => Promise<{
+        entityType: import("./entity-resolution").EntityType;
+    }>;
     getAssistantState: (userId: string, conversationId: string) => Promise<import("./clarification.types").AssistantStateProjection>;
     buildConsumedResult: (consumedClarificationId: string) => Pick<import("./clarification.types").ClarificationAdvanceResult, "consumedClarificationId">;
     runInTransaction: <T>(work: (tx: import("./clarification.service").TransactionClient) => Promise<T>, existing?: import("./clarification.service").TransactionClient) => Promise<T>;
