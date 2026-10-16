@@ -176,6 +176,7 @@ exports.Prisma.AssistantFinancialDraftScalarFieldEnum = {
   transactionType: 'transactionType',
   amount: 'amount',
   walletId: 'walletId',
+  toWalletId: 'toWalletId',
   categoryId: 'categoryId',
   transactionDate: 'transactionDate',
   description: 'description',

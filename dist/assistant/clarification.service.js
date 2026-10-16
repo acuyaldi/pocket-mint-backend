@@ -65,7 +65,7 @@ function isValidTrustedContext(value) {
     const ctx = value;
     return ctx.version === 1 &&
         ctx.operation === 'transaction.create' &&
-        (ctx.type === 'INCOME' || ctx.type === 'EXPENSE') &&
+        (ctx.type === 'INCOME' || ctx.type === 'EXPENSE' || ctx.type === 'TRANSFER') &&
         typeof ctx.amount === 'string' &&
         (ctx.date === undefined || typeof ctx.date === 'string');
 }
@@ -365,6 +365,7 @@ function createClarificationService(db) {
                     transactionType: true,
                     amount: true,
                     walletId: true,
+                    toWalletId: true,
                     categoryId: true,
                     transactionDate: true,
                     description: true,
@@ -406,7 +407,8 @@ function createClarificationService(db) {
                 type: pendingDraft.transactionType,
                 amount: pendingDraft.amount.toString(),
                 walletId: pendingDraft.walletId,
-                categoryId: pendingDraft.categoryId,
+                ...(pendingDraft.toWalletId ? { toWalletId: pendingDraft.toWalletId } : {}),
+                ...(pendingDraft.categoryId ? { categoryId: pendingDraft.categoryId } : {}),
                 date: pendingDraft.transactionDate.toISOString().slice(0, 10),
                 // Reporting-timezone business date, additive alongside `date` (which is
                 // a naive UTC slice and can be off by one day from the reporting

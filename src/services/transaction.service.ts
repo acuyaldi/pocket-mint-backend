@@ -39,7 +39,7 @@ import {
 
 const VALID_TYPES = ['INCOME', 'EXPENSE', 'TRANSFER'];
 const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'PAYLATER'];
-const TRANSFER_SOURCE_TYPES = ['CASH', 'BANK', 'E_WALLET'];
+export const TRANSFER_SOURCE_TYPES = ['CASH', 'BANK', 'E_WALLET'];
 
 /** Map a Prisma FK violation to the same 400 the controller used to return. */
 function rethrowCreate(err: unknown): never {

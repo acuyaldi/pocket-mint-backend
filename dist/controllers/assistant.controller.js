@@ -99,7 +99,7 @@ function readDraftConfirmOverride(body) {
     if (typeof body !== 'object' || body === null || Array.isArray(body))
         return null;
     const value = body;
-    const allowed = new Set(['amount', 'walletId', 'categoryId', 'description', 'date']);
+    const allowed = new Set(['amount', 'walletId', 'toWalletId', 'categoryId', 'description', 'date']);
     const keys = Object.keys(value);
     if (keys.some((k) => !allowed.has(k)))
         return null;
@@ -113,6 +113,11 @@ function readDraftConfirmOverride(body) {
         if (typeof value.walletId !== 'string' || !value.walletId.trim())
             return null;
         overrides.walletId = value.walletId;
+    }
+    if ('toWalletId' in value) {
+        if (typeof value.toWalletId !== 'string' || !value.toWalletId.trim())
+            return null;
+        overrides.toWalletId = value.toWalletId;
     }
     if ('categoryId' in value) {
         if (typeof value.categoryId !== 'string' || !value.categoryId.trim())
@@ -308,7 +313,7 @@ function createAssistantControllers(application, conversations, drafts, provider
                 return (0, response_1.sendError)(res, 'Assistant financial drafts unavailable', 503);
             const overrides = readDraftConfirmOverride(req.body);
             if (overrides === null)
-                return (0, response_1.sendError)(res, 'Request body must be a JSON object with optional fields: amount, walletId, categoryId, description, date', 400, 'BAD_REQUEST');
+                return (0, response_1.sendError)(res, 'Request body must be a JSON object with optional fields: amount, walletId, toWalletId, categoryId, description, date', 400, 'BAD_REQUEST');
             const { idempotencyOutcome, ...result } = await drafts.confirm(userId, routeId(req.params.draftId), req.header('Idempotency-Key'), req.correlationId, overrides);
             (0, logger_1.logEvent)('info', {
                 event: 'assistant.draft.confirmed',

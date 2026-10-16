@@ -200,7 +200,10 @@ model AssistantFinancialDraft {
   transactionType        TransactionType               @map("transaction_type")
   amount                 Decimal                       @db.Decimal(15, 2)
   walletId               String                        @map("wallet_id")
-  categoryId             String                        @map("category_id")
+  // Destination wallet for a TRANSFER draft. Null for INCOME/EXPENSE drafts.
+  toWalletId             String?                       @map("to_wallet_id")
+  // Null for a TRANSFER draft (transfers never carry a category).
+  categoryId             String?                       @map("category_id")
   transactionDate        DateTime                      @map("transaction_date")
   description            String?
   expiresAt              DateTime                      @map("expires_at")

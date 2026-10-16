@@ -1,15 +1,17 @@
 import { Prisma, type PrismaClient } from '../generated/prisma/client';
-import type { TransactionService } from '../services/transaction.service';
+import { type TransactionService } from '../services/transaction.service';
 import type { TransactionCreateInput } from './tools';
 type DraftReadyTransactionInput = TransactionCreateInput & {
     walletId: string;
-    categoryId: string;
+    categoryId?: string;
     date: string;
 };
 /** Fields the user may override when confirming a draft. All optional — missing fields use the draft's original values. */
 export interface DraftConfirmOverride {
     amount?: number;
     walletId?: string;
+    /** Destination wallet override — TRANSFER drafts only. */
+    toWalletId?: string;
     categoryId?: string;
     description?: string;
     /** YYYY-MM-DD in the user's reporting timezone. */
@@ -23,7 +25,8 @@ export interface DraftRowForValidation {
     transactionType: string;
     amount: Prisma.Decimal;
     walletId: string;
-    categoryId: string;
+    toWalletId: string | null;
+    categoryId: string | null;
     transactionDate: Date;
     description: string | null;
 }
@@ -34,6 +37,7 @@ export declare function createAssistantFinancialDraftService(db: PrismaClient, t
 }, clock?: () => Date): {
     prepare: (input: DraftReadyTransactionInput & {
         walletDisplayLabel?: string;
+        toWalletDisplayLabel?: string;
         merchantDisplayLabel?: string;
         userId: string;
         conversationId: string;
@@ -50,20 +54,64 @@ export declare function createAssistantFinancialDraftService(db: PrismaClient, t
             date: string;
             transactionDate: string;
             merchant?: string | undefined;
-            categoryId: string;
-            category: string;
+            toWalletId: string | undefined;
+            categoryId?: string | undefined;
+            category?: string | undefined;
             walletId: string;
-            type: "INCOME" | "EXPENSE";
+            type: "INCOME" | "EXPENSE" | "TRANSFER";
             amount: string;
         } | {
             description?: string | undefined;
             date: string;
             transactionDate: string;
             merchant?: string | undefined;
-            categoryId: string;
-            category: string;
+            toWallet: string;
+            categoryId?: string | undefined;
+            category?: string | undefined;
+            walletId: string;
+            type: "INCOME" | "EXPENSE" | "TRANSFER";
+            amount: string;
+        } | {
+            description?: string | undefined;
+            date: string;
+            transactionDate: string;
+            merchant?: string | undefined;
+            categoryId?: string | undefined;
+            category?: string | undefined;
+            walletId: string;
+            type: "INCOME" | "EXPENSE" | "TRANSFER";
+            amount: string;
+        } | {
+            description?: string | undefined;
+            date: string;
+            transactionDate: string;
+            merchant?: string | undefined;
+            toWalletId: string | undefined;
+            categoryId?: string | undefined;
+            category?: string | undefined;
             wallet: string;
-            type: "INCOME" | "EXPENSE";
+            type: "INCOME" | "EXPENSE" | "TRANSFER";
+            amount: string;
+        } | {
+            description?: string | undefined;
+            date: string;
+            transactionDate: string;
+            merchant?: string | undefined;
+            toWallet: string;
+            categoryId?: string | undefined;
+            category?: string | undefined;
+            wallet: string;
+            type: "INCOME" | "EXPENSE" | "TRANSFER";
+            amount: string;
+        } | {
+            description?: string | undefined;
+            date: string;
+            transactionDate: string;
+            merchant?: string | undefined;
+            categoryId?: string | undefined;
+            category?: string | undefined;
+            wallet: string;
+            type: "INCOME" | "EXPENSE" | "TRANSFER";
             amount: string;
         };
         confirmationRequired: boolean;

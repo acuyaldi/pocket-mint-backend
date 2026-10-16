@@ -1,4 +1,5 @@
 import { type CreateTransactionInput, type UpdateTransactionInput, type DeleteTransactionInput, type DeleteTransactionResult, type TransactionPrismaClient, type CreateTransactionOptions, type TransactionWithRelations } from './transaction.types';
+export declare const TRANSFER_SOURCE_TYPES: string[];
 export declare function createTransactionService(db: TransactionPrismaClient): {
     createTransaction: (input: CreateTransactionInput, options?: CreateTransactionOptions) => Promise<TransactionWithRelations>;
     updateTransaction: (input: UpdateTransactionInput) => Promise<TransactionWithRelations>;

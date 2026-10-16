@@ -111,10 +111,11 @@ export declare const assistantContextService: {
 export declare const assistantFinancialDraftService: {
     prepare: (input: (import("./tools").TransactionCreateInput & {
         walletId: string;
-        categoryId: string;
+        categoryId?: string;
         date: string;
     }) & {
         walletDisplayLabel?: string;
+        toWalletDisplayLabel?: string;
         merchantDisplayLabel?: string;
         userId: string;
         conversationId: string;
@@ -131,20 +132,64 @@ export declare const assistantFinancialDraftService: {
             date: string;
             transactionDate: string;
             merchant?: string | undefined;
-            categoryId: string;
-            category: string;
+            toWalletId: string | undefined;
+            categoryId?: string | undefined;
+            category?: string | undefined;
             walletId: string;
-            type: "INCOME" | "EXPENSE";
+            type: "INCOME" | "EXPENSE" | "TRANSFER";
             amount: string;
         } | {
             description?: string | undefined;
             date: string;
             transactionDate: string;
             merchant?: string | undefined;
-            categoryId: string;
-            category: string;
+            toWallet: string;
+            categoryId?: string | undefined;
+            category?: string | undefined;
+            walletId: string;
+            type: "INCOME" | "EXPENSE" | "TRANSFER";
+            amount: string;
+        } | {
+            description?: string | undefined;
+            date: string;
+            transactionDate: string;
+            merchant?: string | undefined;
+            categoryId?: string | undefined;
+            category?: string | undefined;
+            walletId: string;
+            type: "INCOME" | "EXPENSE" | "TRANSFER";
+            amount: string;
+        } | {
+            description?: string | undefined;
+            date: string;
+            transactionDate: string;
+            merchant?: string | undefined;
+            toWalletId: string | undefined;
+            categoryId?: string | undefined;
+            category?: string | undefined;
             wallet: string;
-            type: "INCOME" | "EXPENSE";
+            type: "INCOME" | "EXPENSE" | "TRANSFER";
+            amount: string;
+        } | {
+            description?: string | undefined;
+            date: string;
+            transactionDate: string;
+            merchant?: string | undefined;
+            toWallet: string;
+            categoryId?: string | undefined;
+            category?: string | undefined;
+            wallet: string;
+            type: "INCOME" | "EXPENSE" | "TRANSFER";
+            amount: string;
+        } | {
+            description?: string | undefined;
+            date: string;
+            transactionDate: string;
+            merchant?: string | undefined;
+            categoryId?: string | undefined;
+            category?: string | undefined;
+            wallet: string;
+            type: "INCOME" | "EXPENSE" | "TRANSFER";
             amount: string;
         };
         confirmationRequired: boolean;

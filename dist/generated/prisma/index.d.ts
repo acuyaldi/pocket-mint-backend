@@ -9372,6 +9372,7 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType | null
     amount: Decimal | null
     walletId: string | null
+    toWalletId: string | null
     categoryId: string | null
     transactionDate: Date | null
     description: string | null
@@ -9395,6 +9396,7 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType | null
     amount: Decimal | null
     walletId: string | null
+    toWalletId: string | null
     categoryId: string | null
     transactionDate: Date | null
     description: string | null
@@ -9418,6 +9420,7 @@ export namespace Prisma {
     transactionType: number
     amount: number
     walletId: number
+    toWalletId: number
     categoryId: number
     transactionDate: number
     description: number
@@ -9451,6 +9454,7 @@ export namespace Prisma {
     transactionType?: true
     amount?: true
     walletId?: true
+    toWalletId?: true
     categoryId?: true
     transactionDate?: true
     description?: true
@@ -9474,6 +9478,7 @@ export namespace Prisma {
     transactionType?: true
     amount?: true
     walletId?: true
+    toWalletId?: true
     categoryId?: true
     transactionDate?: true
     description?: true
@@ -9497,6 +9502,7 @@ export namespace Prisma {
     transactionType?: true
     amount?: true
     walletId?: true
+    toWalletId?: true
     categoryId?: true
     transactionDate?: true
     description?: true
@@ -9607,7 +9613,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal
     walletId: string
-    categoryId: string
+    toWalletId: string | null
+    categoryId: string | null
     transactionDate: Date
     description: string | null
     expiresAt: Date
@@ -9649,6 +9656,7 @@ export namespace Prisma {
     transactionType?: boolean
     amount?: boolean
     walletId?: boolean
+    toWalletId?: boolean
     categoryId?: boolean
     transactionDate?: boolean
     description?: boolean
@@ -9679,6 +9687,7 @@ export namespace Prisma {
     transactionType?: boolean
     amount?: boolean
     walletId?: boolean
+    toWalletId?: boolean
     categoryId?: boolean
     transactionDate?: boolean
     description?: boolean
@@ -9707,6 +9716,7 @@ export namespace Prisma {
     transactionType?: boolean
     amount?: boolean
     walletId?: boolean
+    toWalletId?: boolean
     categoryId?: boolean
     transactionDate?: boolean
     description?: boolean
@@ -9735,6 +9745,7 @@ export namespace Prisma {
     transactionType?: boolean
     amount?: boolean
     walletId?: boolean
+    toWalletId?: boolean
     categoryId?: boolean
     transactionDate?: boolean
     description?: boolean
@@ -9747,7 +9758,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type AssistantFinancialDraftOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "conversationId" | "originatingTurnId" | "originatingExecutionId" | "status" | "operation" | "transactionType" | "amount" | "walletId" | "categoryId" | "transactionDate" | "description" | "expiresAt" | "committedAt" | "cancelledAt" | "failedAt" | "transactionId" | "createdAt" | "updatedAt", ExtArgs["result"]["assistantFinancialDraft"]>
+  export type AssistantFinancialDraftOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "conversationId" | "originatingTurnId" | "originatingExecutionId" | "status" | "operation" | "transactionType" | "amount" | "walletId" | "toWalletId" | "categoryId" | "transactionDate" | "description" | "expiresAt" | "committedAt" | "cancelledAt" | "failedAt" | "transactionId" | "createdAt" | "updatedAt", ExtArgs["result"]["assistantFinancialDraft"]>
   export type AssistantFinancialDraftInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     conversation?: boolean | AssistantConversationDefaultArgs<ExtArgs>
@@ -9793,7 +9804,8 @@ export namespace Prisma {
       transactionType: $Enums.TransactionType
       amount: Prisma.Decimal
       walletId: string
-      categoryId: string
+      toWalletId: string | null
+      categoryId: string | null
       transactionDate: Date
       description: string | null
       expiresAt: Date
@@ -10242,6 +10254,7 @@ export namespace Prisma {
     readonly transactionType: FieldRef<"AssistantFinancialDraft", 'TransactionType'>
     readonly amount: FieldRef<"AssistantFinancialDraft", 'Decimal'>
     readonly walletId: FieldRef<"AssistantFinancialDraft", 'String'>
+    readonly toWalletId: FieldRef<"AssistantFinancialDraft", 'String'>
     readonly categoryId: FieldRef<"AssistantFinancialDraft", 'String'>
     readonly transactionDate: FieldRef<"AssistantFinancialDraft", 'DateTime'>
     readonly description: FieldRef<"AssistantFinancialDraft", 'String'>
@@ -35738,6 +35751,7 @@ export namespace Prisma {
     transactionType: 'transactionType',
     amount: 'amount',
     walletId: 'walletId',
+    toWalletId: 'toWalletId',
     categoryId: 'categoryId',
     transactionDate: 'transactionDate',
     description: 'description',
@@ -37061,7 +37075,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFilter<"AssistantFinancialDraft"> | $Enums.TransactionType
     amount?: DecimalFilter<"AssistantFinancialDraft"> | Decimal | DecimalJsLike | number | string
     walletId?: StringFilter<"AssistantFinancialDraft"> | string
-    categoryId?: StringFilter<"AssistantFinancialDraft"> | string
+    toWalletId?: StringNullableFilter<"AssistantFinancialDraft"> | string | null
+    categoryId?: StringNullableFilter<"AssistantFinancialDraft"> | string | null
     transactionDate?: DateTimeFilter<"AssistantFinancialDraft"> | Date | string
     description?: StringNullableFilter<"AssistantFinancialDraft"> | string | null
     expiresAt?: DateTimeFilter<"AssistantFinancialDraft"> | Date | string
@@ -37090,7 +37105,8 @@ export namespace Prisma {
     transactionType?: SortOrder
     amount?: SortOrder
     walletId?: SortOrder
-    categoryId?: SortOrder
+    toWalletId?: SortOrderInput | SortOrder
+    categoryId?: SortOrderInput | SortOrder
     transactionDate?: SortOrder
     description?: SortOrderInput | SortOrder
     expiresAt?: SortOrder
@@ -37123,7 +37139,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFilter<"AssistantFinancialDraft"> | $Enums.TransactionType
     amount?: DecimalFilter<"AssistantFinancialDraft"> | Decimal | DecimalJsLike | number | string
     walletId?: StringFilter<"AssistantFinancialDraft"> | string
-    categoryId?: StringFilter<"AssistantFinancialDraft"> | string
+    toWalletId?: StringNullableFilter<"AssistantFinancialDraft"> | string | null
+    categoryId?: StringNullableFilter<"AssistantFinancialDraft"> | string | null
     transactionDate?: DateTimeFilter<"AssistantFinancialDraft"> | Date | string
     description?: StringNullableFilter<"AssistantFinancialDraft"> | string | null
     expiresAt?: DateTimeFilter<"AssistantFinancialDraft"> | Date | string
@@ -37151,7 +37168,8 @@ export namespace Prisma {
     transactionType?: SortOrder
     amount?: SortOrder
     walletId?: SortOrder
-    categoryId?: SortOrder
+    toWalletId?: SortOrderInput | SortOrder
+    categoryId?: SortOrderInput | SortOrder
     transactionDate?: SortOrder
     description?: SortOrderInput | SortOrder
     expiresAt?: SortOrder
@@ -37182,7 +37200,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeWithAggregatesFilter<"AssistantFinancialDraft"> | $Enums.TransactionType
     amount?: DecimalWithAggregatesFilter<"AssistantFinancialDraft"> | Decimal | DecimalJsLike | number | string
     walletId?: StringWithAggregatesFilter<"AssistantFinancialDraft"> | string
-    categoryId?: StringWithAggregatesFilter<"AssistantFinancialDraft"> | string
+    toWalletId?: StringNullableWithAggregatesFilter<"AssistantFinancialDraft"> | string | null
+    categoryId?: StringNullableWithAggregatesFilter<"AssistantFinancialDraft"> | string | null
     transactionDate?: DateTimeWithAggregatesFilter<"AssistantFinancialDraft"> | Date | string
     description?: StringNullableWithAggregatesFilter<"AssistantFinancialDraft"> | string | null
     expiresAt?: DateTimeWithAggregatesFilter<"AssistantFinancialDraft"> | Date | string
@@ -39717,7 +39736,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -39745,7 +39765,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -39765,7 +39786,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39793,7 +39815,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39817,7 +39840,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -39836,7 +39860,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39858,7 +39883,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -42777,6 +42803,7 @@ export namespace Prisma {
     transactionType?: SortOrder
     amount?: SortOrder
     walletId?: SortOrder
+    toWalletId?: SortOrder
     categoryId?: SortOrder
     transactionDate?: SortOrder
     description?: SortOrder
@@ -42804,6 +42831,7 @@ export namespace Prisma {
     transactionType?: SortOrder
     amount?: SortOrder
     walletId?: SortOrder
+    toWalletId?: SortOrder
     categoryId?: SortOrder
     transactionDate?: SortOrder
     description?: SortOrder
@@ -42827,6 +42855,7 @@ export namespace Prisma {
     transactionType?: SortOrder
     amount?: SortOrder
     walletId?: SortOrder
+    toWalletId?: SortOrder
     categoryId?: SortOrder
     transactionDate?: SortOrder
     description?: SortOrder
@@ -48882,7 +48911,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -48908,7 +48938,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -49476,7 +49507,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFilter<"AssistantFinancialDraft"> | $Enums.TransactionType
     amount?: DecimalFilter<"AssistantFinancialDraft"> | Decimal | DecimalJsLike | number | string
     walletId?: StringFilter<"AssistantFinancialDraft"> | string
-    categoryId?: StringFilter<"AssistantFinancialDraft"> | string
+    toWalletId?: StringNullableFilter<"AssistantFinancialDraft"> | string | null
+    categoryId?: StringNullableFilter<"AssistantFinancialDraft"> | string | null
     transactionDate?: DateTimeFilter<"AssistantFinancialDraft"> | Date | string
     description?: StringNullableFilter<"AssistantFinancialDraft"> | string | null
     expiresAt?: DateTimeFilter<"AssistantFinancialDraft"> | Date | string
@@ -49847,7 +49879,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -49873,7 +49906,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -50382,7 +50416,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -50408,7 +50443,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -51474,7 +51510,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -51501,7 +51538,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -51679,7 +51717,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -51706,7 +51745,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -51907,7 +51947,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -51933,7 +51974,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -52065,7 +52107,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -52091,7 +52134,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -54166,7 +54210,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -54193,7 +54238,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -54576,7 +54622,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -54603,7 +54650,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -57049,7 +57097,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -57566,7 +57615,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -57592,7 +57642,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -57615,7 +57666,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -57911,7 +57963,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -58119,7 +58172,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -58145,7 +58199,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -58168,7 +58223,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -58381,7 +58437,8 @@ export namespace Prisma {
     transactionType: $Enums.TransactionType
     amount: Decimal | DecimalJsLike | number | string
     walletId: string
-    categoryId: string
+    toWalletId?: string | null
+    categoryId?: string | null
     transactionDate: Date | string
     description?: string | null
     expiresAt: Date | string
@@ -58537,7 +58594,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -58563,7 +58621,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -58586,7 +58645,8 @@ export namespace Prisma {
     transactionType?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     walletId?: StringFieldUpdateOperationsInput | string
-    categoryId?: StringFieldUpdateOperationsInput | string
+    toWalletId?: NullableStringFieldUpdateOperationsInput | string | null
+    categoryId?: NullableStringFieldUpdateOperationsInput | string | null
     transactionDate?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string

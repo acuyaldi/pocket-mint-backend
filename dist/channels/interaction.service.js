@@ -112,6 +112,17 @@ async function renderApplicationResult(db, connectionId, conversationId, result)
             turnId: response.turnId,
         };
     }
+    // TRANSFER is excluded from Telegram interactive confirm/cancel (PD-026) —
+    // it always gets the same fixed web-handoff fallback as an unsupported
+    // capability, never an inline keyboard.
+    if (response.status === 'success' && response.data?.draftId && response.data.preview?.type === 'TRANSFER') {
+        return {
+            terminalStatus: 'guided_fields_handoff',
+            replyText: 'Please continue in the Pocket Mint web app to review and confirm this transfer.',
+            clearOriginalKeyboard: true,
+            turnId: response.turnId,
+        };
+    }
     if (response.status === 'success' && response.data?.draftId) {
         const buttons = await buildDraftKeyboard(db, connectionId, conversationId, response.data.draftId);
         return {
