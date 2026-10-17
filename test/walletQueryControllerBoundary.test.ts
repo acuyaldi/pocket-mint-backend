@@ -72,6 +72,20 @@ describe('wallet read controllers — boundary', () => {
     expectPrismaUntouched();
   });
 
+  it('getAllWallets: passes explicit aliases through unchanged (Phase 37)', async () => {
+    h.queryService.listWallets.mockResolvedValue([
+      {
+        id: 'w1', type: 'CASH', balance: D('100.25'), creditLimit: D('0'), initialBalance: D('100.25'),
+        interestRate: D('0'), adminFee: D('0'),
+        aliases: [{ id: 'alias-1', aliasDisplay: 'Dompet Harian' }],
+      },
+    ]);
+
+    const res = await request(buildApp()).get('/wallets');
+
+    expect(res.body.data[0].aliases).toEqual([{ id: 'alias-1', aliasDisplay: 'Dompet Harian' }]);
+  });
+
   it('getAllWallets: computes remaining credit and outstanding for a credit wallet', async () => {
     h.queryService.listWallets.mockResolvedValue([
       { id: 'cc', type: 'CREDIT_CARD', balance: D('-300.50'), creditLimit: D('1000'), initialBalance: D('0'), interestRate: D('2.95'), adminFee: D('0') },

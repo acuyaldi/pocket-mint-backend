@@ -39,12 +39,19 @@ function createWalletQueryService(db) {
      * ownership-scoped so cross-user wallets are impossible. Returns the raw Prisma
      * wallets with Decimal fields intact; the controller serializes them (parseFloat
      * plus the DEBT-only `sisa_limit`/`outstanding_debt` computed fields). Archived
-     * wallets are included exactly as before (no `isArchived` filter).
+     * wallets are included exactly as before (no `isArchived` filter). Each wallet
+     * carries its explicit aliases (Phase 37), oldest first, display text only.
      */
     async function listWallets(input) {
         return db.wallet.findMany({
             where: { userId: input.userId },
             orderBy: { createdAt: 'asc' },
+            include: {
+                aliases: {
+                    select: { id: true, aliasDisplay: true },
+                    orderBy: { createdAt: 'asc' },
+                },
+            },
         });
     }
     /**

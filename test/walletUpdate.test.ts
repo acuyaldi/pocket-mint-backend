@@ -6,9 +6,15 @@ import { Prisma } from '../src/generated/prisma/client';
 const D = (n: number | string) => new Prisma.Decimal(n);
 
 const h = vi.hoisted(() => {
-  const prismaMock = {
+  const prismaMock: any = {
     wallet: { findFirst: vi.fn(), findMany: vi.fn(), update: vi.fn() },
+    // Phase 37: a name-changing update opens a $transaction to check the
+    // alias namespace; run it against this same mock so wallet.update stays
+    // observable the same way as before.
+    walletAlias: { findFirst: vi.fn().mockResolvedValue(null) },
+    $queryRaw: vi.fn().mockResolvedValue(undefined),
   };
+  prismaMock.$transaction = vi.fn((fn: (tx: typeof prismaMock) => unknown) => fn(prismaMock));
   return { prismaMock };
 });
 

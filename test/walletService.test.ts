@@ -13,12 +13,15 @@ import type { WalletPrismaClient } from '../src/services/wallet.types';
 const D = (n: number | string) => new Prisma.Decimal(n);
 
 /**
- * Behavior-focused fake Prisma for the wallet command service. Every mutation is
- * a single write (no $transaction), so the fake just captures arguments and
- * returns deterministic records. `transaction.count` is driven per-test.
+ * Behavior-focused fake Prisma for the wallet command service. Most mutations
+ * are a single write; create and a name-changing update additionally open a
+ * `$transaction` (Phase 37 alias-namespace check) whose fake implementation
+ * below just runs the callback against this same `db` (so `tx.wallet.*` and
+ * `tx.walletAlias.*` resolve to the identical mocks). `transaction.count` and
+ * `walletAlias.findFirst` are driven per-test.
  */
 function makeDb() {
-  const db = {
+  const db: any = {
     wallet: {
       create: vi.fn(async ({ data }: any) => ({ id: 'w-new', ...data })),
       findFirst: vi.fn(async () => null as any),
@@ -26,7 +29,10 @@ function makeDb() {
       delete: vi.fn(async ({ where }: any) => ({ id: where.id, userId: 'u' })),
     },
     transaction: { count: vi.fn(async () => 0) },
+    walletAlias: { findFirst: vi.fn(async () => null as any) },
+    $queryRaw: vi.fn(async () => undefined),
   };
+  db.$transaction = vi.fn(async (fn: (tx: typeof db) => unknown) => fn(db));
   return db;
 }
 

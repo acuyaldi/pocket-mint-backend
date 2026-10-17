@@ -352,4 +352,29 @@ describe.skipIf(!url)('Assistant TRANSFER drafts (disposable PostgreSQL)', () =>
     expect(rendered.keyboard).toBeUndefined();
     expect(rendered.replyText).not.toContain(prepared.body.data.data.draftId);
   });
+
+  // Phase 37 (PD-027): explicit wallet aliases flow through the exact same
+  // resolver the transfer path already calls for both slots — no special
+  // transfer-side wiring was added, so this proves that holds against a real
+  // database rather than a mock.
+  it('resolves both transfer source and destination through stored explicit aliases', async () => {
+    const { user, source, destination } = await fixture('transfer-alias');
+    await resources!.prisma.walletAlias.create({
+      data: { walletId: source.id, userId: user.id, aliasDisplay: 'dompet harian', aliasNormalized: 'dompet harian' },
+    });
+    await resources!.prisma.walletAlias.create({
+      data: { walletId: destination.id, userId: user.id, aliasDisplay: 'rekening utama', aliasNormalized: 'rekening utama' },
+    });
+    const server = app();
+
+    const prepared = await request(server).post('/execute').set('x-test-user', user.id)
+      .send(transferByRef('Dompet Harian', 'Rekening Utama'));
+
+    expect(prepared.status).toBe(200);
+    expect(prepared.body.data.data).toMatchObject({ status: 'PENDING_CONFIRMATION', confirmationRequired: true });
+    expect(prepared.body.data.data.preview).toMatchObject({ type: 'TRANSFER', toWallet: destination.name });
+    const draft = await resources!.prisma.assistantFinancialDraft.findFirst({ where: { userId: user.id } });
+    expect(draft?.walletId).toBe(source.id);
+    expect(draft?.toWalletId).toBe(destination.id);
+  });
 });

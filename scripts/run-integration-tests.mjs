@@ -58,6 +58,7 @@ const integrationTests = [
   'test/assistant/recovery-state-http.integration.test.ts',
   'test/assistant/clarification-expiry.integration.test.ts',
   'test/assistant/entity-resolution-transaction.integration.test.ts',
+  'test/walletAlias/walletAlias.integration.test.ts',
   'test/assistant/message-idempotency.integration.test.ts',
   'test/assistant/category-resolver.integration.test.ts',
   'test/assistant/merchant-resolver.integration.test.ts',

@@ -295,6 +295,15 @@ exports.Prisma.WalletScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.WalletAliasScalarFieldEnum = {
+  id: 'id',
+  walletId: 'walletId',
+  userId: 'userId',
+  aliasDisplay: 'aliasDisplay',
+  aliasNormalized: 'aliasNormalized',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.CategoryScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -737,6 +746,7 @@ exports.Prisma.ModelName = {
   ClarificationRequest: 'ClarificationRequest',
   ClarificationOption: 'ClarificationOption',
   Wallet: 'Wallet',
+  WalletAlias: 'WalletAlias',
   Category: 'Category',
   MerchantMapping: 'MerchantMapping',
   Transaction: 'Transaction',
