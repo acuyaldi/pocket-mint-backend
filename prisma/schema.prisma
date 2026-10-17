@@ -30,6 +30,7 @@ model User {
 
   // Relations
   wallets                       Wallet[]
+  walletAliases                 WalletAlias[]
   categories                    Category[]
   transactions                  Transaction[]
   installments                  Installment[]
@@ -413,9 +414,32 @@ model Wallet {
   toTransactions                Transaction[]                  @relation("WalletToTransactions")
   installments                  Installment[]
   recurringTransactionTemplates RecurringTransactionTemplate[]
+  aliases                       WalletAlias[]
 
   @@index([userId])
   @@map("wallets")
+}
+
+// Explicit, user-created wallet nicknames (Phase 37, PD-027). A per-user
+// exclusive namespace: `(userId, aliasNormalized)` is unique so an alias
+// never collides with another alias OR (checked in the service layer,
+// enforced via the same user-scoped advisory lock) a canonical wallet name
+// belonging to the same user. Deliberately no update endpoint — delete and
+// recreate — and no cross-user uniqueness, no Assistant-owned table.
+model WalletAlias {
+  id              String   @id @default(cuid())
+  walletId        String   @map("wallet_id")
+  userId          String   @map("user_id")
+  aliasDisplay    String   @map("alias_display")
+  aliasNormalized String   @map("alias_normalized")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, aliasNormalized])
+  @@index([walletId])
+  @@map("wallet_aliases")
 }
 
 // ─────────────────────────────────────────────

@@ -14,7 +14,7 @@ import type {
   WalletType,
   AdminFeeType,
 } from '../services/wallet.types';
-import type { Wallet, WalletTotals, WalletSparklinePoint } from '../services/wallet-query.types';
+import type { WalletTotals, WalletSparklinePoint, WalletWithAliases } from '../services/wallet-query.types';
 
 const CREDIT_TYPES = ['CREDIT_CARD', 'PAYLATER'];
 const LIABILITY_TYPES = ['CREDIT_CARD', 'PAYLATER', 'LOAN'];
@@ -124,9 +124,11 @@ async function netWorthSnapshot(userId: string) {
  * Serialize one wallet for the list response: Decimal → number (parseFloat, as
  * before) plus the DEBT-only computed fields. `sisa_limit` and `outstanding_debt`
  * are `null` for asset wallets. This is the single response boundary — the query
- * service returns raw Decimals and never converts.
+ * service returns raw Decimals and never converts. `aliases` (Phase 37) passes
+ * through unchanged via the `...w` spread when the caller populated it
+ * (`getAllWallets`); create/update responses simply don't carry the key.
  */
-function serializeWallet(w: Wallet) {
+function serializeWallet(w: WalletWithAliases) {
   const balance = parseFloat(w.balance.toString());
   const creditLimit = parseFloat(w.creditLimit.toString());
   const isCredit = CREDIT_TYPES.includes(w.type);

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getAllWallets, createWallet, updateWallet, deleteWallet, getWalletSparkline } from '../controllers/account.controller';
+import { WalletAliasController } from '../controllers/walletAlias.controller';
 import { requireUser } from '../middleware/apiKeyAuth';
 import { mutationLimiter } from '../middleware/rateLimit';
 
@@ -20,5 +21,12 @@ walletRouter.put('/:id', requireUser, mutationLimiter, updateWallet);
 
 // DELETE /api/v1/wallets/:id
 walletRouter.delete('/:id', requireUser, mutationLimiter, deleteWallet);
+
+// Explicit wallet aliases (Phase 37) — delete and recreate, no update endpoint.
+// POST /api/v1/wallets/:walletId/aliases
+walletRouter.post('/:walletId/aliases', requireUser, mutationLimiter, WalletAliasController.create);
+
+// DELETE /api/v1/wallets/:walletId/aliases/:aliasId
+walletRouter.delete('/:walletId/aliases/:aliasId', requireUser, mutationLimiter, WalletAliasController.remove);
 
 export { walletRouter };

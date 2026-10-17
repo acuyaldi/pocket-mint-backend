@@ -17,11 +17,14 @@ export type { Wallet, WalletType, AdminFeeType };
 
 /**
  * The slice of the Prisma client the wallet command service needs: the `wallet`
- * model (create/findFirst/update/delete) and `transaction` (`count`, for the
- * pre-delete transfer- and history-reference checks). No `$transaction`: every
- * mutation is a single write, so no multi-write boundary is required.
+ * model (create/findFirst/update/delete), `transaction` (`count`, for the
+ * pre-delete transfer- and history-reference checks), `walletAlias` (Phase 37
+ * — to detect a rename/create colliding with an existing alias), and
+ * `$transaction` (the user-scoped advisory lock boundary opened only when a
+ * canonical name is actually being set/changed; every other mutation remains
+ * the original single write).
  */
-export type WalletPrismaClient = Pick<PrismaClient, 'wallet' | 'transaction'>;
+export type WalletPrismaClient = Pick<PrismaClient, 'wallet' | 'transaction' | 'walletAlias' | '$transaction'>;
 
 /** Monetary value accepted from the controller; normalized to Decimal inside the service. */
 export type DecimalInput = Prisma.Decimal | number | string;

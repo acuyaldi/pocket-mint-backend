@@ -53,6 +53,14 @@ describe('walletQueryService.listWallets', () => {
     expect(firstArg(db.wallet.findMany).where).not.toHaveProperty('isArchived');
   });
 
+  it('requests each wallet\'s explicit aliases, oldest first, display text only (Phase 37)', async () => {
+    const db = makeDb();
+    await svc(db).listWallets({ userId: 'u1' });
+    expect(firstArg(db.wallet.findMany).include).toEqual({
+      aliases: { select: { id: true, aliasDisplay: true }, orderBy: { createdAt: 'asc' } },
+    });
+  });
+
   it('returns rows unchanged with Decimals intact (serialization is the controller boundary)', async () => {
     const db = makeDb({ wallets: [{ id: 'w1', type: 'CASH', balance: D('100.25') }] });
     const result = await svc(db).listWallets({ userId: 'u1' });

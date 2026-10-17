@@ -45,6 +45,32 @@ function aliasesFromTrustedWalletName(name: string): readonly string[] {
   return Object.freeze(aliases);
 }
 
+/**
+ * Merge a wallet's explicit, user-created aliases (Phase 37) with its
+ * name-derived tokens into one bounded candidate alias list. Explicit
+ * aliases are deterministic, user-intentional exact candidates — they are
+ * ordered first and so are never silently dropped by the
+ * `aliasesPerCandidate` (16) cap before a derived token would be; derived
+ * tokens fill whatever room remains, preserving existing behavior exactly
+ * when a wallet has no explicit aliases. No fuzzy matching is introduced:
+ * every entry here still only ever participates in the exact `alias_exact`/
+ * `normalized_exact` tiers in matching.ts.
+ */
+function combineAliasSources(
+  explicitAliases: readonly string[],
+  derivedTokens: readonly string[],
+): readonly string[] {
+  const seen = new Set<string>();
+  const combined: string[] = [];
+  for (const alias of [...explicitAliases, ...derivedTokens]) {
+    if (combined.length === ENTITY_RESOLUTION_LIMITS.aliasesPerCandidate) break;
+    if (seen.has(alias)) continue;
+    seen.add(alias);
+    combined.push(alias);
+  }
+  return Object.freeze(combined);
+}
+
 export function createWalletResolver(
   db: Pick<PrismaClient, 'wallet'>,
 ): EntityResolver {
@@ -63,6 +89,9 @@ export function createWalletResolver(
           name: true,
           type: true,
           isArchived: true,
+          // Phase 37: explicit, user-created aliases — display text only,
+          // re-normalized below exactly like every other candidate alias.
+          aliases: { select: { aliasDisplay: true } },
         },
         take: ENTITY_RESOLUTION_LIMITS.candidates + 1,
       });
@@ -71,7 +100,10 @@ export function createWalletResolver(
         internalId: wallet.id,
         displayLabel: wallet.name,
         canonicalLabel: wallet.name,
-        aliases: aliasesFromTrustedWalletName(wallet.name),
+        aliases: combineAliasSources(
+          (wallet.aliases ?? []).map((alias) => alias.aliasDisplay),
+          aliasesFromTrustedWalletName(wallet.name),
+        ),
         discriminator: wallet.type,
         trustedMetadata: {
           type: wallet.type,

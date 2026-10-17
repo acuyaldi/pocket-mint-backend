@@ -10,7 +10,10 @@
 // the controller.
 //
 // Every mutation is a single write (create / update / delete; cascade is handled
-// by the schema), so no `$transaction` boundary is opened here.
+// by the schema). The one exception (Phase 37): create, and an update that
+// actually changes `name`, open a user-scoped advisory-locked `$transaction`
+// just long enough to check the explicit-alias namespace (walletAlias.service.ts)
+// before writing — see walletNamespace.lock.ts.
 //
 // Dependency injection mirrors the transaction services: a narrow
 // WalletPrismaClient is passed to the factory so tests can inject a fake. The
@@ -19,6 +22,8 @@
 
 import prisma from '../lib/prisma';
 import { Prisma } from '../generated/prisma/client';
+import { normalizeEntityReference } from '../assistant/entity-resolution';
+import { lockWalletNamespace } from './walletNamespace.lock';
 import { WalletError } from './wallet.errors';
 import type {
   CreateWalletInput,
@@ -122,31 +127,55 @@ export function createWalletService(db: WalletPrismaClient) {
       throw new WalletError('principal is only valid for LOAN', 400, 'BAD_REQUEST');
     }
 
-    try {
-      return await db.wallet.create({
-        data: {
-          userId,
-          name,
-          type: resolvedType,
-          balance: openingBalance,
-          initialBalance: openingBalance,
-          creditLimit: isCredit ? Number(creditLimit) : 0,
-          cutoffDay: isCredit ? cutoffDay ?? null : null,
-          paymentDueDay: isCredit ? paymentDueDay ?? null : null,
-          interestRate: interestRate !== undefined ? Number(interestRate) : 0,
-          adminFee: adminFee !== undefined ? Number(adminFee) : 0,
-          ...(adminFeeType !== undefined && { adminFeeType }),
-          icon: icon ?? null,
-          color: color ?? null,
-        },
-      });
-    } catch (err) {
-      if (err instanceof WalletError) throw err;
-      if ((err as { code?: string }).code === 'P2003') {
-        throw new WalletError('Invalid userId (user not found)', 400, 'BAD_REQUEST');
+    const performCreate = async (client: Pick<WalletPrismaClient, 'wallet'>) => {
+      try {
+        return await client.wallet.create({
+          data: {
+            userId,
+            name,
+            type: resolvedType,
+            balance: openingBalance,
+            initialBalance: openingBalance,
+            creditLimit: isCredit ? Number(creditLimit) : 0,
+            cutoffDay: isCredit ? cutoffDay ?? null : null,
+            paymentDueDay: isCredit ? paymentDueDay ?? null : null,
+            interestRate: interestRate !== undefined ? Number(interestRate) : 0,
+            adminFee: adminFee !== undefined ? Number(adminFee) : 0,
+            ...(adminFeeType !== undefined && { adminFeeType }),
+            icon: icon ?? null,
+            color: color ?? null,
+          },
+        });
+      } catch (err) {
+        if (err instanceof WalletError) throw err;
+        if ((err as { code?: string }).code === 'P2003') {
+          throw new WalletError('Invalid userId (user not found)', 400, 'BAD_REQUEST');
+        }
+        throw err;
       }
-      throw err;
+    };
+
+    // Phase 37 namespace guarantee: a new wallet's canonical name must not
+    // collide with an explicit alias already owned by this user. Only opened
+    // when the name actually normalizes to something (a degenerate name that
+    // normalizes to empty can't collide with anything in the alias
+    // namespace, and the existing lenient name validation above is otherwise
+    // unchanged) — the advisory lock serializes this against a concurrent
+    // alias create targeting the same normalized value.
+    const normalizedName = normalizeEntityReference(name);
+    if (!normalizedName.ok) {
+      return performCreate(db);
     }
+    return db.$transaction(async (tx) => {
+      await lockWalletNamespace(tx, userId);
+      const collidingAlias = await tx.walletAlias.findFirst({
+        where: { userId, aliasNormalized: normalizedName.normalized },
+      });
+      if (collidingAlias) {
+        throw new WalletError('This name is already used as a wallet alias', 409, 'CONFLICT');
+      }
+      return performCreate(tx);
+    });
   }
 
   /**
@@ -186,7 +215,7 @@ export function createWalletService(db: WalletPrismaClient) {
     // Ownership check: refuse to touch a wallet that isn't the caller's.
     const owned = await db.wallet.findFirst({
       where: { id: walletId, userId },
-      select: { id: true, type: true, balance: true },
+      select: { id: true, type: true, balance: true, name: true },
     });
     if (!owned) {
       throw new WalletError(`Wallet with id ${walletId} not found`, 404, 'NOT_FOUND');
@@ -222,31 +251,63 @@ export function createWalletService(db: WalletPrismaClient) {
       // Equal to the stored balance → a no-op echo; fall through and never write it.
     }
 
-    try {
-      return await db.wallet.update({
-        where: { id: walletId },
-        data: {
-          ...(name !== undefined && { name }),
-          ...(type !== undefined && { type }),
-          // `balance` intentionally omitted — see the ledger-boundary guard above.
-          ...(creditLimit !== undefined && { creditLimit: Number(creditLimit) }),
-          ...(cutoffDay !== undefined && { cutoffDay }),
-          ...(paymentDueDay !== undefined && { paymentDueDay }),
-          ...(interestRate !== undefined && { interestRate: Number(interestRate) }),
-          ...(adminFee !== undefined && { adminFee: Number(adminFee) }),
-          ...(adminFeeType !== undefined && { adminFeeType }),
-          ...(icon !== undefined && { icon }),
-          ...(color !== undefined && { color }),
-          ...(isArchived !== undefined && { isArchived }),
-        },
-      });
-    } catch (err) {
-      if (err instanceof WalletError) throw err;
-      if ((err as { code?: string }).code === 'P2025') {
-        throw new WalletError(`Wallet with id ${walletId} not found`, 404, 'NOT_FOUND');
+    const performUpdate = async (client: Pick<WalletPrismaClient, 'wallet'>) => {
+      try {
+        return await client.wallet.update({
+          where: { id: walletId },
+          data: {
+            ...(name !== undefined && { name }),
+            ...(type !== undefined && { type }),
+            // `balance` intentionally omitted — see the ledger-boundary guard above.
+            ...(creditLimit !== undefined && { creditLimit: Number(creditLimit) }),
+            ...(cutoffDay !== undefined && { cutoffDay }),
+            ...(paymentDueDay !== undefined && { paymentDueDay }),
+            ...(interestRate !== undefined && { interestRate: Number(interestRate) }),
+            ...(adminFee !== undefined && { adminFee: Number(adminFee) }),
+            ...(adminFeeType !== undefined && { adminFeeType }),
+            ...(icon !== undefined && { icon }),
+            ...(color !== undefined && { color }),
+            ...(isArchived !== undefined && { isArchived }),
+          },
+        });
+      } catch (err) {
+        if (err instanceof WalletError) throw err;
+        if ((err as { code?: string }).code === 'P2025') {
+          throw new WalletError(`Wallet with id ${walletId} not found`, 404, 'NOT_FOUND');
+        }
+        throw err;
       }
-      throw err;
+    };
+
+    // Phase 37 namespace guarantee: a rename must not collide with an
+    // explicit alias already owned by this user. Only opened when `name` is
+    // actually changing to a different normalized value — an unchanged echo
+    // (same as the balance echo-tolerance above) or a name that normalizes
+    // to empty skips the lock/check entirely, so the common no-rename update
+    // path stays the original single write.
+    let renameNormalized: string | undefined;
+    if (name !== undefined) {
+      const candidate = normalizeEntityReference(name);
+      if (candidate.ok) {
+        const current = normalizeEntityReference(owned.name);
+        if (!current.ok || current.normalized !== candidate.normalized) {
+          renameNormalized = candidate.normalized;
+        }
+      }
     }
+    if (renameNormalized === undefined) {
+      return performUpdate(db);
+    }
+    return db.$transaction(async (tx) => {
+      await lockWalletNamespace(tx, userId);
+      const collidingAlias = await tx.walletAlias.findFirst({
+        where: { userId, aliasNormalized: renameNormalized },
+      });
+      if (collidingAlias) {
+        throw new WalletError('This name is already used as a wallet alias', 409, 'CONFLICT');
+      }
+      return performUpdate(tx);
+    });
   }
 
   /**

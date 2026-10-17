@@ -11,6 +11,7 @@ function setup(rows: readonly {
   name: string;
   type: 'CASH' | 'BANK' | 'E_WALLET' | 'CREDIT_CARD' | 'PAYLATER' | 'LOAN';
   isArchived: boolean;
+  aliases?: readonly { aliasDisplay: string }[];
 }[]) {
   const findMany = vi.fn().mockResolvedValue(rows);
   const registry = new EntityResolverRegistry();
@@ -48,6 +49,7 @@ describe('production WalletResolver', () => {
         name: true,
         type: true,
         isArchived: true,
+        aliases: { select: { aliasDisplay: true } },
       },
       take: 101,
     });
@@ -131,5 +133,82 @@ describe('production WalletResolver', () => {
       trustedConstraints: { eligibleFor: 'archived-wallets' },
     })).rejects.toMatchObject({ code: 'ENTITY_RESOLUTION_CONFIGURATION_ERROR' });
     expect(findMany).not.toHaveBeenCalled();
+  });
+
+  // ────────────────────────────── Phase 37: explicit aliases ──────────────────────────────
+
+  it('resolves exactly through a stored explicit alias (no fuzzy matching)', async () => {
+    const { service } = setup([
+      { id: 'wallet-a', name: 'BCA Debit', type: 'BANK', isArchived: false, aliases: [{ aliasDisplay: 'rekening utama' }] },
+    ]);
+
+    const result = await service.resolve({
+      authenticatedUserId: 'owner-a',
+      reference: { entityType: 'wallet', referenceText: 'Rekening Utama' },
+      trustedConstraints: WALLET_TRANSACTION_CREATE_CONSTRAINTS,
+    });
+
+    expect(result).toMatchObject({
+      kind: 'resolved',
+      entity: { internalId: 'wallet-a' },
+      confidence: { score: 950, band: 'strong' },
+    });
+    if (result.kind === 'resolved') {
+      expect(result.evidence.some((e) => e.kind === 'alias_exact')).toBe(true);
+    }
+
+    // A near-miss (substring/partial) of the explicit alias still does not match —
+    // explicit aliases add exact candidates only, never fuzzy ones.
+    await expect(service.resolve({
+      authenticatedUserId: 'owner-a',
+      reference: { entityType: 'wallet', referenceText: 'rekening' },
+      trustedConstraints: WALLET_TRANSACTION_CREATE_CONSTRAINTS,
+    })).resolves.toMatchObject({ kind: 'not_found' });
+  });
+
+  it('keeps existing derived-token behavior available alongside explicit aliases', async () => {
+    const { service } = setup([
+      { id: 'wallet-a', name: 'BCA Debit', type: 'BANK', isArchived: false, aliases: [{ aliasDisplay: 'rekening utama' }] },
+    ]);
+
+    // The name-derived token "debit" still resolves, unaffected by the explicit alias.
+    await expect(service.resolve({
+      authenticatedUserId: 'owner-a',
+      reference: { entityType: 'wallet', referenceText: 'debit' },
+      trustedConstraints: WALLET_TRANSACTION_CREATE_CONSTRAINTS,
+    })).resolves.toMatchObject({ kind: 'resolved', entity: { internalId: 'wallet-a' } });
+  });
+
+  it('never silently selects on ambiguity even when an explicit alias is involved', async () => {
+    const { service } = setup([
+      { id: 'wallet-payroll', name: 'BCA Payroll', type: 'BANK', isArchived: false },
+      { id: 'wallet-debit', name: 'BCA Debit', type: 'BANK', isArchived: false, aliases: [{ aliasDisplay: 'BCA' }] },
+    ]);
+
+    // "BCA" is both wallet-payroll's canonical-derived alias token AND
+    // wallet-debit's explicit alias — still surfaces as ambiguous, never a
+    // silent pick, exactly like the existing derived-token ambiguity case.
+    const result = await service.resolve({
+      authenticatedUserId: 'owner-a',
+      reference: { entityType: 'wallet', referenceText: 'BCA' },
+      trustedConstraints: WALLET_TRANSACTION_CREATE_CONSTRAINTS,
+    });
+    expect(result.kind).toBe('ambiguous');
+  });
+
+  it("isolates a wallet's explicit aliases to resolution scoped by that owner", async () => {
+    const { findMany, service } = setup([
+      { id: 'wallet-a', name: 'Cash', type: 'CASH', isArchived: false, aliases: [{ aliasDisplay: 'dompet kecil' }] },
+    ]);
+
+    await service.resolve({
+      authenticatedUserId: 'owner-a',
+      reference: { entityType: 'wallet', referenceText: 'dompet kecil' },
+      trustedConstraints: WALLET_TRANSACTION_CREATE_CONSTRAINTS,
+    });
+
+    // The owner scope is enforced entirely at the query boundary (userId in `where`);
+    // there is no separate alias query to leak across owners.
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'owner-a', isArchived: false } }));
   });
 });

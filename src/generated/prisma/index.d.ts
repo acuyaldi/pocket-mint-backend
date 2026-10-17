@@ -69,6 +69,11 @@ export type ClarificationOption = $Result.DefaultSelection<Prisma.$Clarification
  */
 export type Wallet = $Result.DefaultSelection<Prisma.$WalletPayload>
 /**
+ * Model WalletAlias
+ *
+ */
+export type WalletAlias = $Result.DefaultSelection<Prisma.$WalletAliasPayload>
+/**
  * Model Category
  *
  */
@@ -753,6 +758,16 @@ export class PrismaClient<
   get wallet(): Prisma.WalletDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.walletAlias`: Exposes CRUD operations for the **WalletAlias** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more WalletAliases
+    * const walletAliases = await prisma.walletAlias.findMany()
+    * ```
+    */
+  get walletAlias(): Prisma.WalletAliasDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.category`: Exposes CRUD operations for the **Category** model.
     * Example usage:
     * ```ts
@@ -1336,6 +1351,7 @@ export namespace Prisma {
     ClarificationRequest: 'ClarificationRequest',
     ClarificationOption: 'ClarificationOption',
     Wallet: 'Wallet',
+    WalletAlias: 'WalletAlias',
     Category: 'Category',
     MerchantMapping: 'MerchantMapping',
     Transaction: 'Transaction',
@@ -1365,7 +1381,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "assistantConversation" | "assistantTurn" | "assistantMessage" | "assistantFinancialDraft" | "assistantIdempotencyRecord" | "assistantToolExecution" | "assistantProviderExecution" | "clarificationRequest" | "clarificationOption" | "wallet" | "category" | "merchantMapping" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent" | "savingGoal" | "channelLinkToken" | "channelConnection" | "channelInboundJob" | "channelOutboundDelivery" | "channelAssistantOperation" | "channelCallbackToken" | "budget"
+      modelProps: "user" | "assistantConversation" | "assistantTurn" | "assistantMessage" | "assistantFinancialDraft" | "assistantIdempotencyRecord" | "assistantToolExecution" | "assistantProviderExecution" | "clarificationRequest" | "clarificationOption" | "wallet" | "walletAlias" | "category" | "merchantMapping" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent" | "savingGoal" | "channelLinkToken" | "channelConnection" | "channelInboundJob" | "channelOutboundDelivery" | "channelAssistantOperation" | "channelCallbackToken" | "budget"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2180,6 +2196,80 @@ export namespace Prisma {
           count: {
             args: Prisma.WalletCountArgs<ExtArgs>
             result: $Utils.Optional<WalletCountAggregateOutputType> | number
+          }
+        }
+      }
+      WalletAlias: {
+        payload: Prisma.$WalletAliasPayload<ExtArgs>
+        fields: Prisma.WalletAliasFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WalletAliasFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletAliasPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WalletAliasFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletAliasPayload>
+          }
+          findFirst: {
+            args: Prisma.WalletAliasFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletAliasPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WalletAliasFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletAliasPayload>
+          }
+          findMany: {
+            args: Prisma.WalletAliasFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletAliasPayload>[]
+          }
+          create: {
+            args: Prisma.WalletAliasCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletAliasPayload>
+          }
+          createMany: {
+            args: Prisma.WalletAliasCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WalletAliasCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletAliasPayload>[]
+          }
+          delete: {
+            args: Prisma.WalletAliasDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletAliasPayload>
+          }
+          update: {
+            args: Prisma.WalletAliasUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletAliasPayload>
+          }
+          deleteMany: {
+            args: Prisma.WalletAliasDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WalletAliasUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.WalletAliasUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletAliasPayload>[]
+          }
+          upsert: {
+            args: Prisma.WalletAliasUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WalletAliasPayload>
+          }
+          aggregate: {
+            args: Prisma.WalletAliasAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWalletAlias>
+          }
+          groupBy: {
+            args: Prisma.WalletAliasGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WalletAliasGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WalletAliasCountArgs<ExtArgs>
+            result: $Utils.Optional<WalletAliasCountAggregateOutputType> | number
           }
         }
       }
@@ -3338,6 +3428,7 @@ export namespace Prisma {
     clarificationRequest?: ClarificationRequestOmit
     clarificationOption?: ClarificationOptionOmit
     wallet?: WalletOmit
+    walletAlias?: WalletAliasOmit
     category?: CategoryOmit
     merchantMapping?: MerchantMappingOmit
     transaction?: TransactionOmit
@@ -3433,6 +3524,7 @@ export namespace Prisma {
 
   export type UserCountOutputType = {
     wallets: number
+    walletAliases: number
     categories: number
     transactions: number
     installments: number
@@ -3451,6 +3543,7 @@ export namespace Prisma {
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     wallets?: boolean | UserCountOutputTypeCountWalletsArgs
+    walletAliases?: boolean | UserCountOutputTypeCountWalletAliasesArgs
     categories?: boolean | UserCountOutputTypeCountCategoriesArgs
     transactions?: boolean | UserCountOutputTypeCountTransactionsArgs
     installments?: boolean | UserCountOutputTypeCountInstallmentsArgs
@@ -3483,6 +3576,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountWalletsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: WalletWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountWalletAliasesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WalletAliasWhereInput
   }
 
   /**
@@ -3825,6 +3925,7 @@ export namespace Prisma {
     toTransactions: number
     installments: number
     recurringTransactionTemplates: number
+    aliases: number
   }
 
   export type WalletCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3832,6 +3933,7 @@ export namespace Prisma {
     toTransactions?: boolean | WalletCountOutputTypeCountToTransactionsArgs
     installments?: boolean | WalletCountOutputTypeCountInstallmentsArgs
     recurringTransactionTemplates?: boolean | WalletCountOutputTypeCountRecurringTransactionTemplatesArgs
+    aliases?: boolean | WalletCountOutputTypeCountAliasesArgs
   }
 
   // Custom InputTypes
@@ -3871,6 +3973,13 @@ export namespace Prisma {
    */
   export type WalletCountOutputTypeCountRecurringTransactionTemplatesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: RecurringTransactionTemplateWhereInput
+  }
+
+  /**
+   * WalletCountOutputType without action
+   */
+  export type WalletCountOutputTypeCountAliasesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WalletAliasWhereInput
   }
 
 
@@ -4313,6 +4422,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     wallets?: boolean | User$walletsArgs<ExtArgs>
+    walletAliases?: boolean | User$walletAliasesArgs<ExtArgs>
     categories?: boolean | User$categoriesArgs<ExtArgs>
     transactions?: boolean | User$transactionsArgs<ExtArgs>
     installments?: boolean | User$installmentsArgs<ExtArgs>
@@ -4360,6 +4470,7 @@ export namespace Prisma {
   export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "name" | "avatarUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     wallets?: boolean | User$walletsArgs<ExtArgs>
+    walletAliases?: boolean | User$walletAliasesArgs<ExtArgs>
     categories?: boolean | User$categoriesArgs<ExtArgs>
     transactions?: boolean | User$transactionsArgs<ExtArgs>
     installments?: boolean | User$installmentsArgs<ExtArgs>
@@ -4383,6 +4494,7 @@ export namespace Prisma {
     name: "User"
     objects: {
       wallets: Prisma.$WalletPayload<ExtArgs>[]
+      walletAliases: Prisma.$WalletAliasPayload<ExtArgs>[]
       categories: Prisma.$CategoryPayload<ExtArgs>[]
       transactions: Prisma.$TransactionPayload<ExtArgs>[]
       installments: Prisma.$InstallmentPayload<ExtArgs>[]
@@ -4800,6 +4912,7 @@ export namespace Prisma {
   export interface Prisma__UserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     wallets<T extends User$walletsArgs<ExtArgs> = {}>(args?: Subset<T, User$walletsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    walletAliases<T extends User$walletAliasesArgs<ExtArgs> = {}>(args?: Subset<T, User$walletAliasesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletAliasPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     categories<T extends User$categoriesArgs<ExtArgs> = {}>(args?: Subset<T, User$categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     transactions<T extends User$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     installments<T extends User$installmentsArgs<ExtArgs> = {}>(args?: Subset<T, User$installmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -5263,6 +5376,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: WalletScalarFieldEnum | WalletScalarFieldEnum[]
+  }
+
+  /**
+   * User.walletAliases
+   */
+  export type User$walletAliasesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletAlias
+     */
+    select?: WalletAliasSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WalletAlias
+     */
+    omit?: WalletAliasOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletAliasInclude<ExtArgs> | null
+    where?: WalletAliasWhereInput
+    orderBy?: WalletAliasOrderByWithRelationInput | WalletAliasOrderByWithRelationInput[]
+    cursor?: WalletAliasWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WalletAliasScalarFieldEnum | WalletAliasScalarFieldEnum[]
   }
 
   /**
@@ -17321,6 +17458,7 @@ export namespace Prisma {
     toTransactions?: boolean | Wallet$toTransactionsArgs<ExtArgs>
     installments?: boolean | Wallet$installmentsArgs<ExtArgs>
     recurringTransactionTemplates?: boolean | Wallet$recurringTransactionTemplatesArgs<ExtArgs>
+    aliases?: boolean | Wallet$aliasesArgs<ExtArgs>
     _count?: boolean | WalletCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["wallet"]>
 
@@ -17393,6 +17531,7 @@ export namespace Prisma {
     toTransactions?: boolean | Wallet$toTransactionsArgs<ExtArgs>
     installments?: boolean | Wallet$installmentsArgs<ExtArgs>
     recurringTransactionTemplates?: boolean | Wallet$recurringTransactionTemplatesArgs<ExtArgs>
+    aliases?: boolean | Wallet$aliasesArgs<ExtArgs>
     _count?: boolean | WalletCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type WalletIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -17410,6 +17549,7 @@ export namespace Prisma {
       toTransactions: Prisma.$TransactionPayload<ExtArgs>[]
       installments: Prisma.$InstallmentPayload<ExtArgs>[]
       recurringTransactionTemplates: Prisma.$RecurringTransactionTemplatePayload<ExtArgs>[]
+      aliases: Prisma.$WalletAliasPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -17828,6 +17968,7 @@ export namespace Prisma {
     toTransactions<T extends Wallet$toTransactionsArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$toTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     installments<T extends Wallet$installmentsArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$installmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     recurringTransactionTemplates<T extends Wallet$recurringTransactionTemplatesArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$recurringTransactionTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecurringTransactionTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    aliases<T extends Wallet$aliasesArgs<ExtArgs> = {}>(args?: Subset<T, Wallet$aliasesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletAliasPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -18371,6 +18512,30 @@ export namespace Prisma {
   }
 
   /**
+   * Wallet.aliases
+   */
+  export type Wallet$aliasesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletAlias
+     */
+    select?: WalletAliasSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WalletAlias
+     */
+    omit?: WalletAliasOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletAliasInclude<ExtArgs> | null
+    where?: WalletAliasWhereInput
+    orderBy?: WalletAliasOrderByWithRelationInput | WalletAliasOrderByWithRelationInput[]
+    cursor?: WalletAliasWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WalletAliasScalarFieldEnum | WalletAliasScalarFieldEnum[]
+  }
+
+  /**
    * Wallet without action
    */
   export type WalletDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -18386,6 +18551,1090 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: WalletInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model WalletAlias
+   */
+
+  export type AggregateWalletAlias = {
+    _count: WalletAliasCountAggregateOutputType | null
+    _min: WalletAliasMinAggregateOutputType | null
+    _max: WalletAliasMaxAggregateOutputType | null
+  }
+
+  export type WalletAliasMinAggregateOutputType = {
+    id: string | null
+    walletId: string | null
+    userId: string | null
+    aliasDisplay: string | null
+    aliasNormalized: string | null
+    createdAt: Date | null
+  }
+
+  export type WalletAliasMaxAggregateOutputType = {
+    id: string | null
+    walletId: string | null
+    userId: string | null
+    aliasDisplay: string | null
+    aliasNormalized: string | null
+    createdAt: Date | null
+  }
+
+  export type WalletAliasCountAggregateOutputType = {
+    id: number
+    walletId: number
+    userId: number
+    aliasDisplay: number
+    aliasNormalized: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type WalletAliasMinAggregateInputType = {
+    id?: true
+    walletId?: true
+    userId?: true
+    aliasDisplay?: true
+    aliasNormalized?: true
+    createdAt?: true
+  }
+
+  export type WalletAliasMaxAggregateInputType = {
+    id?: true
+    walletId?: true
+    userId?: true
+    aliasDisplay?: true
+    aliasNormalized?: true
+    createdAt?: true
+  }
+
+  export type WalletAliasCountAggregateInputType = {
+    id?: true
+    walletId?: true
+    userId?: true
+    aliasDisplay?: true
+    aliasNormalized?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type WalletAliasAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WalletAlias to aggregate.
+     */
+    where?: WalletAliasWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of WalletAliases to fetch.
+     */
+    orderBy?: WalletAliasOrderByWithRelationInput | WalletAliasOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: WalletAliasWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` WalletAliases from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` WalletAliases.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned WalletAliases
+    **/
+    _count?: true | WalletAliasCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+    **/
+    _min?: WalletAliasMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+    **/
+    _max?: WalletAliasMaxAggregateInputType
+  }
+
+  export type GetWalletAliasAggregateType<T extends WalletAliasAggregateArgs> = {
+        [P in keyof T & keyof AggregateWalletAlias]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWalletAlias[P]>
+      : GetScalarType<T[P], AggregateWalletAlias[P]>
+  }
+
+
+
+
+  export type WalletAliasGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WalletAliasWhereInput
+    orderBy?: WalletAliasOrderByWithAggregationInput | WalletAliasOrderByWithAggregationInput[]
+    by: WalletAliasScalarFieldEnum[] | WalletAliasScalarFieldEnum
+    having?: WalletAliasScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WalletAliasCountAggregateInputType | true
+    _min?: WalletAliasMinAggregateInputType
+    _max?: WalletAliasMaxAggregateInputType
+  }
+
+  export type WalletAliasGroupByOutputType = {
+    id: string
+    walletId: string
+    userId: string
+    aliasDisplay: string
+    aliasNormalized: string
+    createdAt: Date
+    _count: WalletAliasCountAggregateOutputType | null
+    _min: WalletAliasMinAggregateOutputType | null
+    _max: WalletAliasMaxAggregateOutputType | null
+  }
+
+  type GetWalletAliasGroupByPayload<T extends WalletAliasGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WalletAliasGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WalletAliasGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WalletAliasGroupByOutputType[P]>
+            : GetScalarType<T[P], WalletAliasGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WalletAliasSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    walletId?: boolean
+    userId?: boolean
+    aliasDisplay?: boolean
+    aliasNormalized?: boolean
+    createdAt?: boolean
+    wallet?: boolean | WalletDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["walletAlias"]>
+
+  export type WalletAliasSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    walletId?: boolean
+    userId?: boolean
+    aliasDisplay?: boolean
+    aliasNormalized?: boolean
+    createdAt?: boolean
+    wallet?: boolean | WalletDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["walletAlias"]>
+
+  export type WalletAliasSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    walletId?: boolean
+    userId?: boolean
+    aliasDisplay?: boolean
+    aliasNormalized?: boolean
+    createdAt?: boolean
+    wallet?: boolean | WalletDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["walletAlias"]>
+
+  export type WalletAliasSelectScalar = {
+    id?: boolean
+    walletId?: boolean
+    userId?: boolean
+    aliasDisplay?: boolean
+    aliasNormalized?: boolean
+    createdAt?: boolean
+  }
+
+  export type WalletAliasOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "walletId" | "userId" | "aliasDisplay" | "aliasNormalized" | "createdAt", ExtArgs["result"]["walletAlias"]>
+  export type WalletAliasInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    wallet?: boolean | WalletDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type WalletAliasIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    wallet?: boolean | WalletDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type WalletAliasIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    wallet?: boolean | WalletDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $WalletAliasPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "WalletAlias"
+    objects: {
+      wallet: Prisma.$WalletPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      walletId: string
+      userId: string
+      aliasDisplay: string
+      aliasNormalized: string
+      createdAt: Date
+    }, ExtArgs["result"]["walletAlias"]>
+    composites: {}
+  }
+
+  type WalletAliasGetPayload<S extends boolean | null | undefined | WalletAliasDefaultArgs> = $Result.GetResult<Prisma.$WalletAliasPayload, S>
+
+  type WalletAliasCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<WalletAliasFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: WalletAliasCountAggregateInputType | true
+    }
+
+  export interface WalletAliasDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['WalletAlias'], meta: { name: 'WalletAlias' } }
+    /**
+     * Find zero or one WalletAlias that matches the filter.
+     * @param {WalletAliasFindUniqueArgs} args - Arguments to find a WalletAlias
+     * @example
+     * // Get one WalletAlias
+     * const walletAlias = await prisma.walletAlias.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WalletAliasFindUniqueArgs>(args: SelectSubset<T, WalletAliasFindUniqueArgs<ExtArgs>>): Prisma__WalletAliasClient<$Result.GetResult<Prisma.$WalletAliasPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one WalletAlias that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {WalletAliasFindUniqueOrThrowArgs} args - Arguments to find a WalletAlias
+     * @example
+     * // Get one WalletAlias
+     * const walletAlias = await prisma.walletAlias.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WalletAliasFindUniqueOrThrowArgs>(args: SelectSubset<T, WalletAliasFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WalletAliasClient<$Result.GetResult<Prisma.$WalletAliasPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WalletAlias that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletAliasFindFirstArgs} args - Arguments to find a WalletAlias
+     * @example
+     * // Get one WalletAlias
+     * const walletAlias = await prisma.walletAlias.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WalletAliasFindFirstArgs>(args?: SelectSubset<T, WalletAliasFindFirstArgs<ExtArgs>>): Prisma__WalletAliasClient<$Result.GetResult<Prisma.$WalletAliasPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WalletAlias that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletAliasFindFirstOrThrowArgs} args - Arguments to find a WalletAlias
+     * @example
+     * // Get one WalletAlias
+     * const walletAlias = await prisma.walletAlias.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WalletAliasFindFirstOrThrowArgs>(args?: SelectSubset<T, WalletAliasFindFirstOrThrowArgs<ExtArgs>>): Prisma__WalletAliasClient<$Result.GetResult<Prisma.$WalletAliasPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more WalletAliases that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletAliasFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all WalletAliases
+     * const walletAliases = await prisma.walletAlias.findMany()
+     *
+     * // Get first 10 WalletAliases
+     * const walletAliases = await prisma.walletAlias.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const walletAliasWithIdOnly = await prisma.walletAlias.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends WalletAliasFindManyArgs>(args?: SelectSubset<T, WalletAliasFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletAliasPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a WalletAlias.
+     * @param {WalletAliasCreateArgs} args - Arguments to create a WalletAlias.
+     * @example
+     * // Create one WalletAlias
+     * const WalletAlias = await prisma.walletAlias.create({
+     *   data: {
+     *     // ... data to create a WalletAlias
+     *   }
+     * })
+     *
+     */
+    create<T extends WalletAliasCreateArgs>(args: SelectSubset<T, WalletAliasCreateArgs<ExtArgs>>): Prisma__WalletAliasClient<$Result.GetResult<Prisma.$WalletAliasPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many WalletAliases.
+     * @param {WalletAliasCreateManyArgs} args - Arguments to create many WalletAliases.
+     * @example
+     * // Create many WalletAliases
+     * const walletAlias = await prisma.walletAlias.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends WalletAliasCreateManyArgs>(args?: SelectSubset<T, WalletAliasCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many WalletAliases and returns the data saved in the database.
+     * @param {WalletAliasCreateManyAndReturnArgs} args - Arguments to create many WalletAliases.
+     * @example
+     * // Create many WalletAliases
+     * const walletAlias = await prisma.walletAlias.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many WalletAliases and only return the `id`
+     * const walletAliasWithIdOnly = await prisma.walletAlias.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends WalletAliasCreateManyAndReturnArgs>(args?: SelectSubset<T, WalletAliasCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletAliasPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a WalletAlias.
+     * @param {WalletAliasDeleteArgs} args - Arguments to delete one WalletAlias.
+     * @example
+     * // Delete one WalletAlias
+     * const WalletAlias = await prisma.walletAlias.delete({
+     *   where: {
+     *     // ... filter to delete one WalletAlias
+     *   }
+     * })
+     *
+     */
+    delete<T extends WalletAliasDeleteArgs>(args: SelectSubset<T, WalletAliasDeleteArgs<ExtArgs>>): Prisma__WalletAliasClient<$Result.GetResult<Prisma.$WalletAliasPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one WalletAlias.
+     * @param {WalletAliasUpdateArgs} args - Arguments to update one WalletAlias.
+     * @example
+     * // Update one WalletAlias
+     * const walletAlias = await prisma.walletAlias.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends WalletAliasUpdateArgs>(args: SelectSubset<T, WalletAliasUpdateArgs<ExtArgs>>): Prisma__WalletAliasClient<$Result.GetResult<Prisma.$WalletAliasPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more WalletAliases.
+     * @param {WalletAliasDeleteManyArgs} args - Arguments to filter WalletAliases to delete.
+     * @example
+     * // Delete a few WalletAliases
+     * const { count } = await prisma.walletAlias.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends WalletAliasDeleteManyArgs>(args?: SelectSubset<T, WalletAliasDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WalletAliases.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletAliasUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many WalletAliases
+     * const walletAlias = await prisma.walletAlias.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends WalletAliasUpdateManyArgs>(args: SelectSubset<T, WalletAliasUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WalletAliases and returns the data updated in the database.
+     * @param {WalletAliasUpdateManyAndReturnArgs} args - Arguments to update many WalletAliases.
+     * @example
+     * // Update many WalletAliases
+     * const walletAlias = await prisma.walletAlias.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more WalletAliases and only return the `id`
+     * const walletAliasWithIdOnly = await prisma.walletAlias.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends WalletAliasUpdateManyAndReturnArgs>(args: SelectSubset<T, WalletAliasUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WalletAliasPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one WalletAlias.
+     * @param {WalletAliasUpsertArgs} args - Arguments to update or create a WalletAlias.
+     * @example
+     * // Update or create a WalletAlias
+     * const walletAlias = await prisma.walletAlias.upsert({
+     *   create: {
+     *     // ... data to create a WalletAlias
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the WalletAlias we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WalletAliasUpsertArgs>(args: SelectSubset<T, WalletAliasUpsertArgs<ExtArgs>>): Prisma__WalletAliasClient<$Result.GetResult<Prisma.$WalletAliasPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of WalletAliases.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletAliasCountArgs} args - Arguments to filter WalletAliases to count.
+     * @example
+     * // Count the number of WalletAliases
+     * const count = await prisma.walletAlias.count({
+     *   where: {
+     *     // ... the filter for the WalletAliases we want to count
+     *   }
+     * })
+    **/
+    count<T extends WalletAliasCountArgs>(
+      args?: Subset<T, WalletAliasCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WalletAliasCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a WalletAlias.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletAliasAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WalletAliasAggregateArgs>(args: Subset<T, WalletAliasAggregateArgs>): Prisma.PrismaPromise<GetWalletAliasAggregateType<T>>
+
+    /**
+     * Group by WalletAlias.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WalletAliasGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+    **/
+    groupBy<
+      T extends WalletAliasGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WalletAliasGroupByArgs['orderBy'] }
+        : { orderBy?: WalletAliasGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WalletAliasGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWalletAliasGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the WalletAlias model
+   */
+  readonly fields: WalletAliasFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for WalletAlias.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WalletAliasClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    wallet<T extends WalletDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WalletDefaultArgs<ExtArgs>>): Prisma__WalletClient<$Result.GetResult<Prisma.$WalletPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the WalletAlias model
+   */
+  interface WalletAliasFieldRefs {
+    readonly id: FieldRef<"WalletAlias", 'String'>
+    readonly walletId: FieldRef<"WalletAlias", 'String'>
+    readonly userId: FieldRef<"WalletAlias", 'String'>
+    readonly aliasDisplay: FieldRef<"WalletAlias", 'String'>
+    readonly aliasNormalized: FieldRef<"WalletAlias", 'String'>
+    readonly createdAt: FieldRef<"WalletAlias", 'DateTime'>
+  }
+
+
+  // Custom InputTypes
+  /**
+   * WalletAlias findUnique
+   */
+  export type WalletAliasFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletAlias
+     */
+    select?: WalletAliasSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WalletAlias
+     */
+    omit?: WalletAliasOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletAliasInclude<ExtArgs> | null
+    /**
+     * Filter, which WalletAlias to fetch.
+     */
+    where: WalletAliasWhereUniqueInput
+  }
+
+  /**
+   * WalletAlias findUniqueOrThrow
+   */
+  export type WalletAliasFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletAlias
+     */
+    select?: WalletAliasSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WalletAlias
+     */
+    omit?: WalletAliasOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletAliasInclude<ExtArgs> | null
+    /**
+     * Filter, which WalletAlias to fetch.
+     */
+    where: WalletAliasWhereUniqueInput
+  }
+
+  /**
+   * WalletAlias findFirst
+   */
+  export type WalletAliasFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletAlias
+     */
+    select?: WalletAliasSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WalletAlias
+     */
+    omit?: WalletAliasOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletAliasInclude<ExtArgs> | null
+    /**
+     * Filter, which WalletAlias to fetch.
+     */
+    where?: WalletAliasWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of WalletAliases to fetch.
+     */
+    orderBy?: WalletAliasOrderByWithRelationInput | WalletAliasOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for WalletAliases.
+     */
+    cursor?: WalletAliasWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` WalletAliases from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` WalletAliases.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of WalletAliases.
+     */
+    distinct?: WalletAliasScalarFieldEnum | WalletAliasScalarFieldEnum[]
+  }
+
+  /**
+   * WalletAlias findFirstOrThrow
+   */
+  export type WalletAliasFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletAlias
+     */
+    select?: WalletAliasSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WalletAlias
+     */
+    omit?: WalletAliasOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletAliasInclude<ExtArgs> | null
+    /**
+     * Filter, which WalletAlias to fetch.
+     */
+    where?: WalletAliasWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of WalletAliases to fetch.
+     */
+    orderBy?: WalletAliasOrderByWithRelationInput | WalletAliasOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for WalletAliases.
+     */
+    cursor?: WalletAliasWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` WalletAliases from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` WalletAliases.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of WalletAliases.
+     */
+    distinct?: WalletAliasScalarFieldEnum | WalletAliasScalarFieldEnum[]
+  }
+
+  /**
+   * WalletAlias findMany
+   */
+  export type WalletAliasFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletAlias
+     */
+    select?: WalletAliasSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WalletAlias
+     */
+    omit?: WalletAliasOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletAliasInclude<ExtArgs> | null
+    /**
+     * Filter, which WalletAliases to fetch.
+     */
+    where?: WalletAliasWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of WalletAliases to fetch.
+     */
+    orderBy?: WalletAliasOrderByWithRelationInput | WalletAliasOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing WalletAliases.
+     */
+    cursor?: WalletAliasWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` WalletAliases from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` WalletAliases.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of WalletAliases.
+     */
+    distinct?: WalletAliasScalarFieldEnum | WalletAliasScalarFieldEnum[]
+  }
+
+  /**
+   * WalletAlias create
+   */
+  export type WalletAliasCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletAlias
+     */
+    select?: WalletAliasSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WalletAlias
+     */
+    omit?: WalletAliasOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletAliasInclude<ExtArgs> | null
+    /**
+     * The data needed to create a WalletAlias.
+     */
+    data: XOR<WalletAliasCreateInput, WalletAliasUncheckedCreateInput>
+  }
+
+  /**
+   * WalletAlias createMany
+   */
+  export type WalletAliasCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many WalletAliases.
+     */
+    data: WalletAliasCreateManyInput | WalletAliasCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WalletAlias createManyAndReturn
+   */
+  export type WalletAliasCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletAlias
+     */
+    select?: WalletAliasSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WalletAlias
+     */
+    omit?: WalletAliasOmit<ExtArgs> | null
+    /**
+     * The data used to create many WalletAliases.
+     */
+    data: WalletAliasCreateManyInput | WalletAliasCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletAliasIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WalletAlias update
+   */
+  export type WalletAliasUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletAlias
+     */
+    select?: WalletAliasSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WalletAlias
+     */
+    omit?: WalletAliasOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletAliasInclude<ExtArgs> | null
+    /**
+     * The data needed to update a WalletAlias.
+     */
+    data: XOR<WalletAliasUpdateInput, WalletAliasUncheckedUpdateInput>
+    /**
+     * Choose, which WalletAlias to update.
+     */
+    where: WalletAliasWhereUniqueInput
+  }
+
+  /**
+   * WalletAlias updateMany
+   */
+  export type WalletAliasUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update WalletAliases.
+     */
+    data: XOR<WalletAliasUpdateManyMutationInput, WalletAliasUncheckedUpdateManyInput>
+    /**
+     * Filter which WalletAliases to update
+     */
+    where?: WalletAliasWhereInput
+    /**
+     * Limit how many WalletAliases to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * WalletAlias updateManyAndReturn
+   */
+  export type WalletAliasUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletAlias
+     */
+    select?: WalletAliasSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WalletAlias
+     */
+    omit?: WalletAliasOmit<ExtArgs> | null
+    /**
+     * The data used to update WalletAliases.
+     */
+    data: XOR<WalletAliasUpdateManyMutationInput, WalletAliasUncheckedUpdateManyInput>
+    /**
+     * Filter which WalletAliases to update
+     */
+    where?: WalletAliasWhereInput
+    /**
+     * Limit how many WalletAliases to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletAliasIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WalletAlias upsert
+   */
+  export type WalletAliasUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletAlias
+     */
+    select?: WalletAliasSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WalletAlias
+     */
+    omit?: WalletAliasOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletAliasInclude<ExtArgs> | null
+    /**
+     * The filter to search for the WalletAlias to update in case it exists.
+     */
+    where: WalletAliasWhereUniqueInput
+    /**
+     * In case the WalletAlias found by the `where` argument doesn't exist, create a new WalletAlias with this data.
+     */
+    create: XOR<WalletAliasCreateInput, WalletAliasUncheckedCreateInput>
+    /**
+     * In case the WalletAlias was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WalletAliasUpdateInput, WalletAliasUncheckedUpdateInput>
+  }
+
+  /**
+   * WalletAlias delete
+   */
+  export type WalletAliasDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletAlias
+     */
+    select?: WalletAliasSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WalletAlias
+     */
+    omit?: WalletAliasOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletAliasInclude<ExtArgs> | null
+    /**
+     * Filter which WalletAlias to delete.
+     */
+    where: WalletAliasWhereUniqueInput
+  }
+
+  /**
+   * WalletAlias deleteMany
+   */
+  export type WalletAliasDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WalletAliases to delete
+     */
+    where?: WalletAliasWhereInput
+    /**
+     * Limit how many WalletAliases to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * WalletAlias without action
+   */
+  export type WalletAliasDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WalletAlias
+     */
+    select?: WalletAliasSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WalletAlias
+     */
+    omit?: WalletAliasOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WalletAliasInclude<ExtArgs> | null
   }
 
 
@@ -35891,6 +37140,18 @@ export namespace Prisma {
   export type WalletScalarFieldEnum = (typeof WalletScalarFieldEnum)[keyof typeof WalletScalarFieldEnum]
 
 
+  export const WalletAliasScalarFieldEnum: {
+    id: 'id',
+    walletId: 'walletId',
+    userId: 'userId',
+    aliasDisplay: 'aliasDisplay',
+    aliasNormalized: 'aliasNormalized',
+    createdAt: 'createdAt'
+  };
+
+  export type WalletAliasScalarFieldEnum = (typeof WalletAliasScalarFieldEnum)[keyof typeof WalletAliasScalarFieldEnum]
+
+
   export const CategoryScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
@@ -36703,6 +37964,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     wallets?: WalletListRelationFilter
+    walletAliases?: WalletAliasListRelationFilter
     categories?: CategoryListRelationFilter
     transactions?: TransactionListRelationFilter
     installments?: InstallmentListRelationFilter
@@ -36727,6 +37989,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     wallets?: WalletOrderByRelationAggregateInput
+    walletAliases?: WalletAliasOrderByRelationAggregateInput
     categories?: CategoryOrderByRelationAggregateInput
     transactions?: TransactionOrderByRelationAggregateInput
     installments?: InstallmentOrderByRelationAggregateInput
@@ -36754,6 +38017,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     wallets?: WalletListRelationFilter
+    walletAliases?: WalletAliasListRelationFilter
     categories?: CategoryListRelationFilter
     transactions?: TransactionListRelationFilter
     installments?: InstallmentListRelationFilter
@@ -37788,6 +39052,7 @@ export namespace Prisma {
     toTransactions?: TransactionListRelationFilter
     installments?: InstallmentListRelationFilter
     recurringTransactionTemplates?: RecurringTransactionTemplateListRelationFilter
+    aliases?: WalletAliasListRelationFilter
   }
 
   export type WalletOrderByWithRelationInput = {
@@ -37813,6 +39078,7 @@ export namespace Prisma {
     toTransactions?: TransactionOrderByRelationAggregateInput
     installments?: InstallmentOrderByRelationAggregateInput
     recurringTransactionTemplates?: RecurringTransactionTemplateOrderByRelationAggregateInput
+    aliases?: WalletAliasOrderByRelationAggregateInput
   }
 
   export type WalletWhereUniqueInput = Prisma.AtLeast<{
@@ -37841,6 +39107,7 @@ export namespace Prisma {
     toTransactions?: TransactionListRelationFilter
     installments?: InstallmentListRelationFilter
     recurringTransactionTemplates?: RecurringTransactionTemplateListRelationFilter
+    aliases?: WalletAliasListRelationFilter
   }, "id">
 
   export type WalletOrderByWithAggregationInput = {
@@ -37889,6 +39156,70 @@ export namespace Prisma {
     paymentDueDay?: IntNullableWithAggregatesFilter<"Wallet"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"Wallet"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Wallet"> | Date | string
+  }
+
+  export type WalletAliasWhereInput = {
+    AND?: WalletAliasWhereInput | WalletAliasWhereInput[]
+    OR?: WalletAliasWhereInput[]
+    NOT?: WalletAliasWhereInput | WalletAliasWhereInput[]
+    id?: StringFilter<"WalletAlias"> | string
+    walletId?: StringFilter<"WalletAlias"> | string
+    userId?: StringFilter<"WalletAlias"> | string
+    aliasDisplay?: StringFilter<"WalletAlias"> | string
+    aliasNormalized?: StringFilter<"WalletAlias"> | string
+    createdAt?: DateTimeFilter<"WalletAlias"> | Date | string
+    wallet?: XOR<WalletScalarRelationFilter, WalletWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type WalletAliasOrderByWithRelationInput = {
+    id?: SortOrder
+    walletId?: SortOrder
+    userId?: SortOrder
+    aliasDisplay?: SortOrder
+    aliasNormalized?: SortOrder
+    createdAt?: SortOrder
+    wallet?: WalletOrderByWithRelationInput
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type WalletAliasWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId_aliasNormalized?: WalletAliasUserIdAliasNormalizedCompoundUniqueInput
+    AND?: WalletAliasWhereInput | WalletAliasWhereInput[]
+    OR?: WalletAliasWhereInput[]
+    NOT?: WalletAliasWhereInput | WalletAliasWhereInput[]
+    walletId?: StringFilter<"WalletAlias"> | string
+    userId?: StringFilter<"WalletAlias"> | string
+    aliasDisplay?: StringFilter<"WalletAlias"> | string
+    aliasNormalized?: StringFilter<"WalletAlias"> | string
+    createdAt?: DateTimeFilter<"WalletAlias"> | Date | string
+    wallet?: XOR<WalletScalarRelationFilter, WalletWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "userId_aliasNormalized">
+
+  export type WalletAliasOrderByWithAggregationInput = {
+    id?: SortOrder
+    walletId?: SortOrder
+    userId?: SortOrder
+    aliasDisplay?: SortOrder
+    aliasNormalized?: SortOrder
+    createdAt?: SortOrder
+    _count?: WalletAliasCountOrderByAggregateInput
+    _max?: WalletAliasMaxOrderByAggregateInput
+    _min?: WalletAliasMinOrderByAggregateInput
+  }
+
+  export type WalletAliasScalarWhereWithAggregatesInput = {
+    AND?: WalletAliasScalarWhereWithAggregatesInput | WalletAliasScalarWhereWithAggregatesInput[]
+    OR?: WalletAliasScalarWhereWithAggregatesInput[]
+    NOT?: WalletAliasScalarWhereWithAggregatesInput | WalletAliasScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"WalletAlias"> | string
+    walletId?: StringWithAggregatesFilter<"WalletAlias"> | string
+    userId?: StringWithAggregatesFilter<"WalletAlias"> | string
+    aliasDisplay?: StringWithAggregatesFilter<"WalletAlias"> | string
+    aliasNormalized?: StringWithAggregatesFilter<"WalletAlias"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"WalletAlias"> | Date | string
   }
 
   export type CategoryWhereInput = {
@@ -39314,6 +40645,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
@@ -39338,6 +40670,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
@@ -39362,6 +40695,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
@@ -39386,6 +40720,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
@@ -40518,6 +41853,7 @@ export namespace Prisma {
     toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
     installments?: InstallmentCreateNestedManyWithoutWalletInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutWalletInput
+    aliases?: WalletAliasCreateNestedManyWithoutWalletInput
   }
 
   export type WalletUncheckedCreateInput = {
@@ -40542,6 +41878,7 @@ export namespace Prisma {
     toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutWalletInput
+    aliases?: WalletAliasUncheckedCreateNestedManyWithoutWalletInput
   }
 
   export type WalletUpdateInput = {
@@ -40566,6 +41903,7 @@ export namespace Prisma {
     toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUpdateManyWithoutWalletNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutWalletNestedInput
+    aliases?: WalletAliasUpdateManyWithoutWalletNestedInput
   }
 
   export type WalletUncheckedUpdateInput = {
@@ -40590,6 +41928,7 @@ export namespace Prisma {
     toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutWalletNestedInput
+    aliases?: WalletAliasUncheckedUpdateManyWithoutWalletNestedInput
   }
 
   export type WalletCreateManyInput = {
@@ -40649,6 +41988,67 @@ export namespace Prisma {
     paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletAliasCreateInput = {
+    id?: string
+    aliasDisplay: string
+    aliasNormalized: string
+    createdAt?: Date | string
+    wallet: WalletCreateNestedOneWithoutAliasesInput
+    user: UserCreateNestedOneWithoutWalletAliasesInput
+  }
+
+  export type WalletAliasUncheckedCreateInput = {
+    id?: string
+    walletId: string
+    userId: string
+    aliasDisplay: string
+    aliasNormalized: string
+    createdAt?: Date | string
+  }
+
+  export type WalletAliasUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    aliasDisplay?: StringFieldUpdateOperationsInput | string
+    aliasNormalized?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallet?: WalletUpdateOneRequiredWithoutAliasesNestedInput
+    user?: UserUpdateOneRequiredWithoutWalletAliasesNestedInput
+  }
+
+  export type WalletAliasUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    walletId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    aliasDisplay?: StringFieldUpdateOperationsInput | string
+    aliasNormalized?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletAliasCreateManyInput = {
+    id?: string
+    walletId: string
+    userId: string
+    aliasDisplay: string
+    aliasNormalized: string
+    createdAt?: Date | string
+  }
+
+  export type WalletAliasUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    aliasDisplay?: StringFieldUpdateOperationsInput | string
+    aliasNormalized?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletAliasUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    walletId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    aliasDisplay?: StringFieldUpdateOperationsInput | string
+    aliasNormalized?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CategoryCreateInput = {
@@ -42268,6 +43668,12 @@ export namespace Prisma {
     none?: WalletWhereInput
   }
 
+  export type WalletAliasListRelationFilter = {
+    every?: WalletAliasWhereInput
+    some?: WalletAliasWhereInput
+    none?: WalletAliasWhereInput
+  }
+
   export type CategoryListRelationFilter = {
     every?: CategoryWhereInput
     some?: CategoryWhereInput
@@ -42358,6 +43764,10 @@ export namespace Prisma {
   }
 
   export type WalletOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type WalletAliasOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -43581,6 +44991,43 @@ export namespace Prisma {
     _max?: NestedEnumAdminFeeTypeFilter<$PrismaModel>
   }
 
+  export type WalletScalarRelationFilter = {
+    is?: WalletWhereInput
+    isNot?: WalletWhereInput
+  }
+
+  export type WalletAliasUserIdAliasNormalizedCompoundUniqueInput = {
+    userId: string
+    aliasNormalized: string
+  }
+
+  export type WalletAliasCountOrderByAggregateInput = {
+    id?: SortOrder
+    walletId?: SortOrder
+    userId?: SortOrder
+    aliasDisplay?: SortOrder
+    aliasNormalized?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WalletAliasMaxOrderByAggregateInput = {
+    id?: SortOrder
+    walletId?: SortOrder
+    userId?: SortOrder
+    aliasDisplay?: SortOrder
+    aliasNormalized?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type WalletAliasMinOrderByAggregateInput = {
+    id?: SortOrder
+    walletId?: SortOrder
+    userId?: SortOrder
+    aliasDisplay?: SortOrder
+    aliasNormalized?: SortOrder
+    createdAt?: SortOrder
+  }
+
   export type EnumCategoryTypeFilter<$PrismaModel = never> = {
     equals?: $Enums.CategoryType | EnumCategoryTypeFieldRefInput<$PrismaModel>
     in?: $Enums.CategoryType[] | ListEnumCategoryTypeFieldRefInput<$PrismaModel>
@@ -43675,11 +45122,6 @@ export namespace Prisma {
     categoryId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-
-  export type WalletScalarRelationFilter = {
-    is?: WalletWhereInput
-    isNot?: WalletWhereInput
   }
 
   export type WalletNullableScalarRelationFilter = {
@@ -44782,6 +46224,13 @@ export namespace Prisma {
     connect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
   }
 
+  export type WalletAliasCreateNestedManyWithoutUserInput = {
+    create?: XOR<WalletAliasCreateWithoutUserInput, WalletAliasUncheckedCreateWithoutUserInput> | WalletAliasCreateWithoutUserInput[] | WalletAliasUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: WalletAliasCreateOrConnectWithoutUserInput | WalletAliasCreateOrConnectWithoutUserInput[]
+    createMany?: WalletAliasCreateManyUserInputEnvelope
+    connect?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+  }
+
   export type CategoryCreateNestedManyWithoutUserInput = {
     create?: XOR<CategoryCreateWithoutUserInput, CategoryUncheckedCreateWithoutUserInput> | CategoryCreateWithoutUserInput[] | CategoryUncheckedCreateWithoutUserInput[]
     connectOrCreate?: CategoryCreateOrConnectWithoutUserInput | CategoryCreateOrConnectWithoutUserInput[]
@@ -44885,6 +46334,13 @@ export namespace Prisma {
     connectOrCreate?: WalletCreateOrConnectWithoutUserInput | WalletCreateOrConnectWithoutUserInput[]
     createMany?: WalletCreateManyUserInputEnvelope
     connect?: WalletWhereUniqueInput | WalletWhereUniqueInput[]
+  }
+
+  export type WalletAliasUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<WalletAliasCreateWithoutUserInput, WalletAliasUncheckedCreateWithoutUserInput> | WalletAliasCreateWithoutUserInput[] | WalletAliasUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: WalletAliasCreateOrConnectWithoutUserInput | WalletAliasCreateOrConnectWithoutUserInput[]
+    createMany?: WalletAliasCreateManyUserInputEnvelope
+    connect?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
   }
 
   export type CategoryUncheckedCreateNestedManyWithoutUserInput = {
@@ -45009,6 +46465,20 @@ export namespace Prisma {
     update?: WalletUpdateWithWhereUniqueWithoutUserInput | WalletUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: WalletUpdateManyWithWhereWithoutUserInput | WalletUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: WalletScalarWhereInput | WalletScalarWhereInput[]
+  }
+
+  export type WalletAliasUpdateManyWithoutUserNestedInput = {
+    create?: XOR<WalletAliasCreateWithoutUserInput, WalletAliasUncheckedCreateWithoutUserInput> | WalletAliasCreateWithoutUserInput[] | WalletAliasUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: WalletAliasCreateOrConnectWithoutUserInput | WalletAliasCreateOrConnectWithoutUserInput[]
+    upsert?: WalletAliasUpsertWithWhereUniqueWithoutUserInput | WalletAliasUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: WalletAliasCreateManyUserInputEnvelope
+    set?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    disconnect?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    delete?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    connect?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    update?: WalletAliasUpdateWithWhereUniqueWithoutUserInput | WalletAliasUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: WalletAliasUpdateManyWithWhereWithoutUserInput | WalletAliasUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: WalletAliasScalarWhereInput | WalletAliasScalarWhereInput[]
   }
 
   export type CategoryUpdateManyWithoutUserNestedInput = {
@@ -45219,6 +46689,20 @@ export namespace Prisma {
     update?: WalletUpdateWithWhereUniqueWithoutUserInput | WalletUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: WalletUpdateManyWithWhereWithoutUserInput | WalletUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: WalletScalarWhereInput | WalletScalarWhereInput[]
+  }
+
+  export type WalletAliasUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<WalletAliasCreateWithoutUserInput, WalletAliasUncheckedCreateWithoutUserInput> | WalletAliasCreateWithoutUserInput[] | WalletAliasUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: WalletAliasCreateOrConnectWithoutUserInput | WalletAliasCreateOrConnectWithoutUserInput[]
+    upsert?: WalletAliasUpsertWithWhereUniqueWithoutUserInput | WalletAliasUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: WalletAliasCreateManyUserInputEnvelope
+    set?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    disconnect?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    delete?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    connect?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    update?: WalletAliasUpdateWithWhereUniqueWithoutUserInput | WalletAliasUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: WalletAliasUpdateManyWithWhereWithoutUserInput | WalletAliasUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: WalletAliasScalarWhereInput | WalletAliasScalarWhereInput[]
   }
 
   export type CategoryUncheckedUpdateManyWithoutUserNestedInput = {
@@ -46565,6 +48049,13 @@ export namespace Prisma {
     connect?: RecurringTransactionTemplateWhereUniqueInput | RecurringTransactionTemplateWhereUniqueInput[]
   }
 
+  export type WalletAliasCreateNestedManyWithoutWalletInput = {
+    create?: XOR<WalletAliasCreateWithoutWalletInput, WalletAliasUncheckedCreateWithoutWalletInput> | WalletAliasCreateWithoutWalletInput[] | WalletAliasUncheckedCreateWithoutWalletInput[]
+    connectOrCreate?: WalletAliasCreateOrConnectWithoutWalletInput | WalletAliasCreateOrConnectWithoutWalletInput[]
+    createMany?: WalletAliasCreateManyWalletInputEnvelope
+    connect?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+  }
+
   export type TransactionUncheckedCreateNestedManyWithoutWalletInput = {
     create?: XOR<TransactionCreateWithoutWalletInput, TransactionUncheckedCreateWithoutWalletInput> | TransactionCreateWithoutWalletInput[] | TransactionUncheckedCreateWithoutWalletInput[]
     connectOrCreate?: TransactionCreateOrConnectWithoutWalletInput | TransactionCreateOrConnectWithoutWalletInput[]
@@ -46591,6 +48082,13 @@ export namespace Prisma {
     connectOrCreate?: RecurringTransactionTemplateCreateOrConnectWithoutWalletInput | RecurringTransactionTemplateCreateOrConnectWithoutWalletInput[]
     createMany?: RecurringTransactionTemplateCreateManyWalletInputEnvelope
     connect?: RecurringTransactionTemplateWhereUniqueInput | RecurringTransactionTemplateWhereUniqueInput[]
+  }
+
+  export type WalletAliasUncheckedCreateNestedManyWithoutWalletInput = {
+    create?: XOR<WalletAliasCreateWithoutWalletInput, WalletAliasUncheckedCreateWithoutWalletInput> | WalletAliasCreateWithoutWalletInput[] | WalletAliasUncheckedCreateWithoutWalletInput[]
+    connectOrCreate?: WalletAliasCreateOrConnectWithoutWalletInput | WalletAliasCreateOrConnectWithoutWalletInput[]
+    createMany?: WalletAliasCreateManyWalletInputEnvelope
+    connect?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
   }
 
   export type EnumWalletTypeFieldUpdateOperationsInput = {
@@ -46665,6 +48163,20 @@ export namespace Prisma {
     deleteMany?: RecurringTransactionTemplateScalarWhereInput | RecurringTransactionTemplateScalarWhereInput[]
   }
 
+  export type WalletAliasUpdateManyWithoutWalletNestedInput = {
+    create?: XOR<WalletAliasCreateWithoutWalletInput, WalletAliasUncheckedCreateWithoutWalletInput> | WalletAliasCreateWithoutWalletInput[] | WalletAliasUncheckedCreateWithoutWalletInput[]
+    connectOrCreate?: WalletAliasCreateOrConnectWithoutWalletInput | WalletAliasCreateOrConnectWithoutWalletInput[]
+    upsert?: WalletAliasUpsertWithWhereUniqueWithoutWalletInput | WalletAliasUpsertWithWhereUniqueWithoutWalletInput[]
+    createMany?: WalletAliasCreateManyWalletInputEnvelope
+    set?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    disconnect?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    delete?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    connect?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    update?: WalletAliasUpdateWithWhereUniqueWithoutWalletInput | WalletAliasUpdateWithWhereUniqueWithoutWalletInput[]
+    updateMany?: WalletAliasUpdateManyWithWhereWithoutWalletInput | WalletAliasUpdateManyWithWhereWithoutWalletInput[]
+    deleteMany?: WalletAliasScalarWhereInput | WalletAliasScalarWhereInput[]
+  }
+
   export type TransactionUncheckedUpdateManyWithoutWalletNestedInput = {
     create?: XOR<TransactionCreateWithoutWalletInput, TransactionUncheckedCreateWithoutWalletInput> | TransactionCreateWithoutWalletInput[] | TransactionUncheckedCreateWithoutWalletInput[]
     connectOrCreate?: TransactionCreateOrConnectWithoutWalletInput | TransactionCreateOrConnectWithoutWalletInput[]
@@ -46719,6 +48231,48 @@ export namespace Prisma {
     update?: RecurringTransactionTemplateUpdateWithWhereUniqueWithoutWalletInput | RecurringTransactionTemplateUpdateWithWhereUniqueWithoutWalletInput[]
     updateMany?: RecurringTransactionTemplateUpdateManyWithWhereWithoutWalletInput | RecurringTransactionTemplateUpdateManyWithWhereWithoutWalletInput[]
     deleteMany?: RecurringTransactionTemplateScalarWhereInput | RecurringTransactionTemplateScalarWhereInput[]
+  }
+
+  export type WalletAliasUncheckedUpdateManyWithoutWalletNestedInput = {
+    create?: XOR<WalletAliasCreateWithoutWalletInput, WalletAliasUncheckedCreateWithoutWalletInput> | WalletAliasCreateWithoutWalletInput[] | WalletAliasUncheckedCreateWithoutWalletInput[]
+    connectOrCreate?: WalletAliasCreateOrConnectWithoutWalletInput | WalletAliasCreateOrConnectWithoutWalletInput[]
+    upsert?: WalletAliasUpsertWithWhereUniqueWithoutWalletInput | WalletAliasUpsertWithWhereUniqueWithoutWalletInput[]
+    createMany?: WalletAliasCreateManyWalletInputEnvelope
+    set?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    disconnect?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    delete?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    connect?: WalletAliasWhereUniqueInput | WalletAliasWhereUniqueInput[]
+    update?: WalletAliasUpdateWithWhereUniqueWithoutWalletInput | WalletAliasUpdateWithWhereUniqueWithoutWalletInput[]
+    updateMany?: WalletAliasUpdateManyWithWhereWithoutWalletInput | WalletAliasUpdateManyWithWhereWithoutWalletInput[]
+    deleteMany?: WalletAliasScalarWhereInput | WalletAliasScalarWhereInput[]
+  }
+
+  export type WalletCreateNestedOneWithoutAliasesInput = {
+    create?: XOR<WalletCreateWithoutAliasesInput, WalletUncheckedCreateWithoutAliasesInput>
+    connectOrCreate?: WalletCreateOrConnectWithoutAliasesInput
+    connect?: WalletWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutWalletAliasesInput = {
+    create?: XOR<UserCreateWithoutWalletAliasesInput, UserUncheckedCreateWithoutWalletAliasesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutWalletAliasesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type WalletUpdateOneRequiredWithoutAliasesNestedInput = {
+    create?: XOR<WalletCreateWithoutAliasesInput, WalletUncheckedCreateWithoutAliasesInput>
+    connectOrCreate?: WalletCreateOrConnectWithoutAliasesInput
+    upsert?: WalletUpsertWithoutAliasesInput
+    connect?: WalletWhereUniqueInput
+    update?: XOR<XOR<WalletUpdateToOneWithWhereWithoutAliasesInput, WalletUpdateWithoutAliasesInput>, WalletUncheckedUpdateWithoutAliasesInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutWalletAliasesNestedInput = {
+    create?: XOR<UserCreateWithoutWalletAliasesInput, UserUncheckedCreateWithoutWalletAliasesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutWalletAliasesInput
+    upsert?: UserUpsertWithoutWalletAliasesInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutWalletAliasesInput, UserUpdateWithoutWalletAliasesInput>, UserUncheckedUpdateWithoutWalletAliasesInput>
   }
 
   export type UserCreateNestedOneWithoutCategoriesInput = {
@@ -48539,6 +50093,7 @@ export namespace Prisma {
     toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
     installments?: InstallmentCreateNestedManyWithoutWalletInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutWalletInput
+    aliases?: WalletAliasCreateNestedManyWithoutWalletInput
   }
 
   export type WalletUncheckedCreateWithoutUserInput = {
@@ -48562,6 +50117,7 @@ export namespace Prisma {
     toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutWalletInput
+    aliases?: WalletAliasUncheckedCreateNestedManyWithoutWalletInput
   }
 
   export type WalletCreateOrConnectWithoutUserInput = {
@@ -48571,6 +50127,32 @@ export namespace Prisma {
 
   export type WalletCreateManyUserInputEnvelope = {
     data: WalletCreateManyUserInput | WalletCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type WalletAliasCreateWithoutUserInput = {
+    id?: string
+    aliasDisplay: string
+    aliasNormalized: string
+    createdAt?: Date | string
+    wallet: WalletCreateNestedOneWithoutAliasesInput
+  }
+
+  export type WalletAliasUncheckedCreateWithoutUserInput = {
+    id?: string
+    walletId: string
+    aliasDisplay: string
+    aliasNormalized: string
+    createdAt?: Date | string
+  }
+
+  export type WalletAliasCreateOrConnectWithoutUserInput = {
+    where: WalletAliasWhereUniqueInput
+    create: XOR<WalletAliasCreateWithoutUserInput, WalletAliasUncheckedCreateWithoutUserInput>
+  }
+
+  export type WalletAliasCreateManyUserInputEnvelope = {
+    data: WalletAliasCreateManyUserInput | WalletAliasCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -49209,6 +50791,34 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Wallet"> | Date | string
   }
 
+  export type WalletAliasUpsertWithWhereUniqueWithoutUserInput = {
+    where: WalletAliasWhereUniqueInput
+    update: XOR<WalletAliasUpdateWithoutUserInput, WalletAliasUncheckedUpdateWithoutUserInput>
+    create: XOR<WalletAliasCreateWithoutUserInput, WalletAliasUncheckedCreateWithoutUserInput>
+  }
+
+  export type WalletAliasUpdateWithWhereUniqueWithoutUserInput = {
+    where: WalletAliasWhereUniqueInput
+    data: XOR<WalletAliasUpdateWithoutUserInput, WalletAliasUncheckedUpdateWithoutUserInput>
+  }
+
+  export type WalletAliasUpdateManyWithWhereWithoutUserInput = {
+    where: WalletAliasScalarWhereInput
+    data: XOR<WalletAliasUpdateManyMutationInput, WalletAliasUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type WalletAliasScalarWhereInput = {
+    AND?: WalletAliasScalarWhereInput | WalletAliasScalarWhereInput[]
+    OR?: WalletAliasScalarWhereInput[]
+    NOT?: WalletAliasScalarWhereInput | WalletAliasScalarWhereInput[]
+    id?: StringFilter<"WalletAlias"> | string
+    walletId?: StringFilter<"WalletAlias"> | string
+    userId?: StringFilter<"WalletAlias"> | string
+    aliasDisplay?: StringFilter<"WalletAlias"> | string
+    aliasNormalized?: StringFilter<"WalletAlias"> | string
+    createdAt?: DateTimeFilter<"WalletAlias"> | Date | string
+  }
+
   export type CategoryUpsertWithWhereUniqueWithoutUserInput = {
     where: CategoryWhereUniqueInput
     update: XOR<CategoryUpdateWithoutUserInput, CategoryUncheckedUpdateWithoutUserInput>
@@ -49703,6 +51313,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
@@ -49726,6 +51337,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
@@ -50091,6 +51703,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
@@ -50114,6 +51727,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
@@ -50938,6 +52552,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
@@ -50961,6 +52576,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
@@ -51206,6 +52822,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
@@ -51229,6 +52846,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
@@ -51460,6 +53078,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
@@ -51483,6 +53102,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
@@ -51661,6 +53281,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
@@ -51684,6 +53305,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
@@ -52156,6 +53778,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
@@ -52179,6 +53802,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
@@ -52302,6 +53926,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
@@ -52325,6 +53950,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
@@ -52444,6 +54070,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
@@ -52467,6 +54094,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
@@ -52717,6 +54345,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
@@ -52740,6 +54369,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
@@ -53056,6 +54686,7 @@ export namespace Prisma {
     avatarUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
@@ -53079,6 +54710,7 @@ export namespace Prisma {
     avatarUrl?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
@@ -53304,6 +54936,32 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type WalletAliasCreateWithoutWalletInput = {
+    id?: string
+    aliasDisplay: string
+    aliasNormalized: string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutWalletAliasesInput
+  }
+
+  export type WalletAliasUncheckedCreateWithoutWalletInput = {
+    id?: string
+    userId: string
+    aliasDisplay: string
+    aliasNormalized: string
+    createdAt?: Date | string
+  }
+
+  export type WalletAliasCreateOrConnectWithoutWalletInput = {
+    where: WalletAliasWhereUniqueInput
+    create: XOR<WalletAliasCreateWithoutWalletInput, WalletAliasUncheckedCreateWithoutWalletInput>
+  }
+
+  export type WalletAliasCreateManyWalletInputEnvelope = {
+    data: WalletAliasCreateManyWalletInput | WalletAliasCreateManyWalletInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutWalletsInput = {
     update: XOR<UserUpdateWithoutWalletsInput, UserUncheckedUpdateWithoutWalletsInput>
     create: XOR<UserCreateWithoutWalletsInput, UserUncheckedCreateWithoutWalletsInput>
@@ -53322,6 +54980,7 @@ export namespace Prisma {
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
@@ -53345,6 +55004,7 @@ export namespace Prisma {
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
@@ -53425,6 +55085,246 @@ export namespace Prisma {
     data: XOR<RecurringTransactionTemplateUpdateManyMutationInput, RecurringTransactionTemplateUncheckedUpdateManyWithoutWalletInput>
   }
 
+  export type WalletAliasUpsertWithWhereUniqueWithoutWalletInput = {
+    where: WalletAliasWhereUniqueInput
+    update: XOR<WalletAliasUpdateWithoutWalletInput, WalletAliasUncheckedUpdateWithoutWalletInput>
+    create: XOR<WalletAliasCreateWithoutWalletInput, WalletAliasUncheckedCreateWithoutWalletInput>
+  }
+
+  export type WalletAliasUpdateWithWhereUniqueWithoutWalletInput = {
+    where: WalletAliasWhereUniqueInput
+    data: XOR<WalletAliasUpdateWithoutWalletInput, WalletAliasUncheckedUpdateWithoutWalletInput>
+  }
+
+  export type WalletAliasUpdateManyWithWhereWithoutWalletInput = {
+    where: WalletAliasScalarWhereInput
+    data: XOR<WalletAliasUpdateManyMutationInput, WalletAliasUncheckedUpdateManyWithoutWalletInput>
+  }
+
+  export type WalletCreateWithoutAliasesInput = {
+    id?: string
+    name: string
+    type?: $Enums.WalletType
+    balance?: Decimal | DecimalJsLike | number | string
+    creditLimit?: Decimal | DecimalJsLike | number | string
+    initialBalance?: Decimal | DecimalJsLike | number | string
+    icon?: string | null
+    color?: string | null
+    interestRate?: Decimal | DecimalJsLike | number | string
+    isArchived?: boolean
+    adminFee?: Decimal | DecimalJsLike | number | string
+    adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutWalletsInput
+    transactions?: TransactionCreateNestedManyWithoutWalletInput
+    toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
+    installments?: InstallmentCreateNestedManyWithoutWalletInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutWalletInput
+  }
+
+  export type WalletUncheckedCreateWithoutAliasesInput = {
+    id?: string
+    userId: string
+    name: string
+    type?: $Enums.WalletType
+    balance?: Decimal | DecimalJsLike | number | string
+    creditLimit?: Decimal | DecimalJsLike | number | string
+    initialBalance?: Decimal | DecimalJsLike | number | string
+    icon?: string | null
+    color?: string | null
+    interestRate?: Decimal | DecimalJsLike | number | string
+    isArchived?: boolean
+    adminFee?: Decimal | DecimalJsLike | number | string
+    adminFeeType?: $Enums.AdminFeeType
+    cutoffDay?: number | null
+    paymentDueDay?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
+    toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
+    installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutWalletInput
+  }
+
+  export type WalletCreateOrConnectWithoutAliasesInput = {
+    where: WalletWhereUniqueInput
+    create: XOR<WalletCreateWithoutAliasesInput, WalletUncheckedCreateWithoutAliasesInput>
+  }
+
+  export type UserCreateWithoutWalletAliasesInput = {
+    id?: string
+    email: string
+    name: string
+    avatarUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    wallets?: WalletCreateNestedManyWithoutUserInput
+    categories?: CategoryCreateNestedManyWithoutUserInput
+    transactions?: TransactionCreateNestedManyWithoutUserInput
+    installments?: InstallmentCreateNestedManyWithoutUserInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalCreateNestedManyWithoutUserInput
+    budgets?: BudgetCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationCreateNestedManyWithoutUserInput
+    assistantFinancialDrafts?: AssistantFinancialDraftCreateNestedManyWithoutUserInput
+    assistantIdempotencyRecords?: AssistantIdempotencyRecordCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionCreateNestedManyWithoutUserInput
+    clarificationRequests?: ClarificationRequestCreateNestedManyWithoutUserInput
+    channelLinkTokens?: ChannelLinkTokenCreateNestedManyWithoutUserInput
+    channelConnections?: ChannelConnectionCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutWalletAliasesInput = {
+    id?: string
+    email: string
+    name: string
+    avatarUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
+    transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
+    savingGoals?: SavingGoalUncheckedCreateNestedManyWithoutUserInput
+    budgets?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    merchantMappings?: MerchantMappingUncheckedCreateNestedManyWithoutUserInput
+    assistantConversations?: AssistantConversationUncheckedCreateNestedManyWithoutUserInput
+    assistantFinancialDrafts?: AssistantFinancialDraftUncheckedCreateNestedManyWithoutUserInput
+    assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedCreateNestedManyWithoutUserInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedCreateNestedManyWithoutUserInput
+    clarificationRequests?: ClarificationRequestUncheckedCreateNestedManyWithoutUserInput
+    channelLinkTokens?: ChannelLinkTokenUncheckedCreateNestedManyWithoutUserInput
+    channelConnections?: ChannelConnectionUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutWalletAliasesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutWalletAliasesInput, UserUncheckedCreateWithoutWalletAliasesInput>
+  }
+
+  export type WalletUpsertWithoutAliasesInput = {
+    update: XOR<WalletUpdateWithoutAliasesInput, WalletUncheckedUpdateWithoutAliasesInput>
+    create: XOR<WalletCreateWithoutAliasesInput, WalletUncheckedCreateWithoutAliasesInput>
+    where?: WalletWhereInput
+  }
+
+  export type WalletUpdateToOneWithWhereWithoutAliasesInput = {
+    where?: WalletWhereInput
+    data: XOR<WalletUpdateWithoutAliasesInput, WalletUncheckedUpdateWithoutAliasesInput>
+  }
+
+  export type WalletUpdateWithoutAliasesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumWalletTypeFieldUpdateOperationsInput | $Enums.WalletType
+    balance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    creditLimit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    initialBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    interestRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isArchived?: BoolFieldUpdateOperationsInput | boolean
+    adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutWalletsNestedInput
+    transactions?: TransactionUpdateManyWithoutWalletNestedInput
+    toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
+    installments?: InstallmentUpdateManyWithoutWalletNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutWalletNestedInput
+  }
+
+  export type WalletUncheckedUpdateWithoutAliasesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: EnumWalletTypeFieldUpdateOperationsInput | $Enums.WalletType
+    balance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    creditLimit?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    initialBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    icon?: NullableStringFieldUpdateOperationsInput | string | null
+    color?: NullableStringFieldUpdateOperationsInput | string | null
+    interestRate?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    isArchived?: BoolFieldUpdateOperationsInput | boolean
+    adminFee?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    adminFeeType?: EnumAdminFeeTypeFieldUpdateOperationsInput | $Enums.AdminFeeType
+    cutoffDay?: NullableIntFieldUpdateOperationsInput | number | null
+    paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
+    toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
+    installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutWalletNestedInput
+  }
+
+  export type UserUpsertWithoutWalletAliasesInput = {
+    update: XOR<UserUpdateWithoutWalletAliasesInput, UserUncheckedUpdateWithoutWalletAliasesInput>
+    create: XOR<UserCreateWithoutWalletAliasesInput, UserUncheckedCreateWithoutWalletAliasesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutWalletAliasesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutWalletAliasesInput, UserUncheckedUpdateWithoutWalletAliasesInput>
+  }
+
+  export type UserUpdateWithoutWalletAliasesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallets?: WalletUpdateManyWithoutUserNestedInput
+    categories?: CategoryUpdateManyWithoutUserNestedInput
+    transactions?: TransactionUpdateManyWithoutUserNestedInput
+    installments?: InstallmentUpdateManyWithoutUserNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUpdateManyWithoutUserNestedInput
+    budgets?: BudgetUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUpdateManyWithoutUserNestedInput
+    assistantFinancialDrafts?: AssistantFinancialDraftUpdateManyWithoutUserNestedInput
+    assistantIdempotencyRecords?: AssistantIdempotencyRecordUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUpdateManyWithoutUserNestedInput
+    clarificationRequests?: ClarificationRequestUpdateManyWithoutUserNestedInput
+    channelLinkTokens?: ChannelLinkTokenUpdateManyWithoutUserNestedInput
+    channelConnections?: ChannelConnectionUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutWalletAliasesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
+    transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
+    recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
+    savingGoals?: SavingGoalUncheckedUpdateManyWithoutUserNestedInput
+    budgets?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    merchantMappings?: MerchantMappingUncheckedUpdateManyWithoutUserNestedInput
+    assistantConversations?: AssistantConversationUncheckedUpdateManyWithoutUserNestedInput
+    assistantFinancialDrafts?: AssistantFinancialDraftUncheckedUpdateManyWithoutUserNestedInput
+    assistantIdempotencyRecords?: AssistantIdempotencyRecordUncheckedUpdateManyWithoutUserNestedInput
+    assistantProviderExecutions?: AssistantProviderExecutionUncheckedUpdateManyWithoutUserNestedInput
+    clarificationRequests?: ClarificationRequestUncheckedUpdateManyWithoutUserNestedInput
+    channelLinkTokens?: ChannelLinkTokenUncheckedUpdateManyWithoutUserNestedInput
+    channelConnections?: ChannelConnectionUncheckedUpdateManyWithoutUserNestedInput
+  }
+
   export type UserCreateWithoutCategoriesInput = {
     id?: string
     email: string
@@ -53433,6 +55333,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
@@ -53456,6 +55357,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
@@ -53647,6 +55549,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
@@ -53670,6 +55573,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
@@ -53757,6 +55661,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
@@ -53780,6 +55685,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
@@ -53852,6 +55758,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
@@ -53875,6 +55782,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
@@ -53937,6 +55845,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
@@ -53960,6 +55869,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
@@ -54001,6 +55911,7 @@ export namespace Prisma {
     toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
     installments?: InstallmentCreateNestedManyWithoutWalletInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutWalletInput
+    aliases?: WalletAliasCreateNestedManyWithoutWalletInput
   }
 
   export type WalletUncheckedCreateWithoutTransactionsInput = {
@@ -54024,6 +55935,7 @@ export namespace Prisma {
     toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutWalletInput
+    aliases?: WalletAliasUncheckedCreateNestedManyWithoutWalletInput
   }
 
   export type WalletCreateOrConnectWithoutTransactionsInput = {
@@ -54052,6 +55964,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutWalletInput
     installments?: InstallmentCreateNestedManyWithoutWalletInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutWalletInput
+    aliases?: WalletAliasCreateNestedManyWithoutWalletInput
   }
 
   export type WalletUncheckedCreateWithoutToTransactionsInput = {
@@ -54075,6 +55988,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutWalletInput
+    aliases?: WalletAliasUncheckedCreateNestedManyWithoutWalletInput
   }
 
   export type WalletCreateOrConnectWithoutToTransactionsInput = {
@@ -54313,6 +56227,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
@@ -54336,6 +56251,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
@@ -54383,6 +56299,7 @@ export namespace Prisma {
     toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUpdateManyWithoutWalletNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutWalletNestedInput
+    aliases?: WalletAliasUpdateManyWithoutWalletNestedInput
   }
 
   export type WalletUncheckedUpdateWithoutTransactionsInput = {
@@ -54406,6 +56323,7 @@ export namespace Prisma {
     toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutWalletNestedInput
+    aliases?: WalletAliasUncheckedUpdateManyWithoutWalletNestedInput
   }
 
   export type WalletUpsertWithoutToTransactionsInput = {
@@ -54440,6 +56358,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutWalletNestedInput
     installments?: InstallmentUpdateManyWithoutWalletNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutWalletNestedInput
+    aliases?: WalletAliasUpdateManyWithoutWalletNestedInput
   }
 
   export type WalletUncheckedUpdateWithoutToTransactionsInput = {
@@ -54463,6 +56382,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutWalletNestedInput
+    aliases?: WalletAliasUncheckedUpdateManyWithoutWalletNestedInput
   }
 
   export type CategoryUpsertWithoutTransactionsInput = {
@@ -54687,6 +56607,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutUserInput
@@ -54710,6 +56631,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutUserInput
@@ -54751,6 +56673,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutWalletInput
     toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
     recurringTransactionTemplates?: RecurringTransactionTemplateCreateNestedManyWithoutWalletInput
+    aliases?: WalletAliasCreateNestedManyWithoutWalletInput
   }
 
   export type WalletUncheckedCreateWithoutInstallmentsInput = {
@@ -54774,6 +56697,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
     toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedCreateNestedManyWithoutWalletInput
+    aliases?: WalletAliasUncheckedCreateNestedManyWithoutWalletInput
   }
 
   export type WalletCreateOrConnectWithoutInstallmentsInput = {
@@ -54882,6 +56806,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutUserNestedInput
@@ -54905,6 +56830,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutUserNestedInput
@@ -54952,6 +56878,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutWalletNestedInput
     toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutWalletNestedInput
+    aliases?: WalletAliasUpdateManyWithoutWalletNestedInput
   }
 
   export type WalletUncheckedUpdateWithoutInstallmentsInput = {
@@ -54975,6 +56902,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
     toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutWalletNestedInput
+    aliases?: WalletAliasUncheckedUpdateManyWithoutWalletNestedInput
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutInstallmentInput = {
@@ -55034,6 +56962,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
@@ -55057,6 +56986,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
@@ -55098,6 +57028,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutWalletInput
     toTransactions?: TransactionCreateNestedManyWithoutToWalletInput
     installments?: InstallmentCreateNestedManyWithoutWalletInput
+    aliases?: WalletAliasCreateNestedManyWithoutWalletInput
   }
 
   export type WalletUncheckedCreateWithoutRecurringTransactionTemplatesInput = {
@@ -55121,6 +57052,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutWalletInput
     toTransactions?: TransactionUncheckedCreateNestedManyWithoutToWalletInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutWalletInput
+    aliases?: WalletAliasUncheckedCreateNestedManyWithoutWalletInput
   }
 
   export type WalletCreateOrConnectWithoutRecurringTransactionTemplatesInput = {
@@ -55216,6 +57148,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
@@ -55239,6 +57172,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
@@ -55286,6 +57220,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutWalletNestedInput
     toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUpdateManyWithoutWalletNestedInput
+    aliases?: WalletAliasUpdateManyWithoutWalletNestedInput
   }
 
   export type WalletUncheckedUpdateWithoutRecurringTransactionTemplatesInput = {
@@ -55309,6 +57244,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutWalletNestedInput
     toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
+    aliases?: WalletAliasUncheckedUpdateManyWithoutWalletNestedInput
   }
 
   export type CategoryUpsertWithoutRecurringTransactionTemplatesInput = {
@@ -55678,6 +57614,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
@@ -55701,6 +57638,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
@@ -55740,6 +57678,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
@@ -55763,6 +57702,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
@@ -55786,6 +57726,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
@@ -55809,6 +57750,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
@@ -55848,6 +57790,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
@@ -55871,6 +57814,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
@@ -55894,6 +57838,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
@@ -55917,6 +57862,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
@@ -56105,6 +58051,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
@@ -56128,6 +58075,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
@@ -56788,6 +58736,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasCreateNestedManyWithoutUserInput
     categories?: CategoryCreateNestedManyWithoutUserInput
     transactions?: TransactionCreateNestedManyWithoutUserInput
     installments?: InstallmentCreateNestedManyWithoutUserInput
@@ -56811,6 +58760,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     wallets?: WalletUncheckedCreateNestedManyWithoutUserInput
+    walletAliases?: WalletAliasUncheckedCreateNestedManyWithoutUserInput
     categories?: CategoryUncheckedCreateNestedManyWithoutUserInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     installments?: InstallmentUncheckedCreateNestedManyWithoutUserInput
@@ -56883,6 +58833,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUpdateManyWithoutUserNestedInput
     categories?: CategoryUpdateManyWithoutUserNestedInput
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     installments?: InstallmentUpdateManyWithoutUserNestedInput
@@ -56906,6 +58857,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     wallets?: WalletUncheckedUpdateManyWithoutUserNestedInput
+    walletAliases?: WalletAliasUncheckedUpdateManyWithoutUserNestedInput
     categories?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutUserNestedInput
@@ -56977,6 +58929,14 @@ export namespace Prisma {
     paymentDueDay?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type WalletAliasCreateManyUserInput = {
+    id?: string
+    walletId: string
+    aliasDisplay: string
+    aliasNormalized: string
+    createdAt?: Date | string
   }
 
   export type CategoryCreateManyUserInput = {
@@ -57206,6 +59166,7 @@ export namespace Prisma {
     toTransactions?: TransactionUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUpdateManyWithoutWalletNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUpdateManyWithoutWalletNestedInput
+    aliases?: WalletAliasUpdateManyWithoutWalletNestedInput
   }
 
   export type WalletUncheckedUpdateWithoutUserInput = {
@@ -57229,6 +59190,7 @@ export namespace Prisma {
     toTransactions?: TransactionUncheckedUpdateManyWithoutToWalletNestedInput
     installments?: InstallmentUncheckedUpdateManyWithoutWalletNestedInput
     recurringTransactionTemplates?: RecurringTransactionTemplateUncheckedUpdateManyWithoutWalletNestedInput
+    aliases?: WalletAliasUncheckedUpdateManyWithoutWalletNestedInput
   }
 
   export type WalletUncheckedUpdateManyWithoutUserInput = {
@@ -57248,6 +59210,30 @@ export namespace Prisma {
     paymentDueDay?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletAliasUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    aliasDisplay?: StringFieldUpdateOperationsInput | string
+    aliasNormalized?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    wallet?: WalletUpdateOneRequiredWithoutAliasesNestedInput
+  }
+
+  export type WalletAliasUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    walletId?: StringFieldUpdateOperationsInput | string
+    aliasDisplay?: StringFieldUpdateOperationsInput | string
+    aliasNormalized?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletAliasUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    walletId?: StringFieldUpdateOperationsInput | string
+    aliasDisplay?: StringFieldUpdateOperationsInput | string
+    aliasNormalized?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CategoryUpdateWithoutUserInput = {
@@ -59069,6 +61055,14 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type WalletAliasCreateManyWalletInput = {
+    id?: string
+    userId: string
+    aliasDisplay: string
+    aliasNormalized: string
+    createdAt?: Date | string
+  }
+
   export type TransactionUpdateWithoutWalletInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
@@ -59304,6 +61298,30 @@ export namespace Prisma {
     reminderOffsetDays?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletAliasUpdateWithoutWalletInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    aliasDisplay?: StringFieldUpdateOperationsInput | string
+    aliasNormalized?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutWalletAliasesNestedInput
+  }
+
+  export type WalletAliasUncheckedUpdateWithoutWalletInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    aliasDisplay?: StringFieldUpdateOperationsInput | string
+    aliasNormalized?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WalletAliasUncheckedUpdateManyWithoutWalletInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    aliasDisplay?: StringFieldUpdateOperationsInput | string
+    aliasNormalized?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TransactionCreateManyCategoryInput = {

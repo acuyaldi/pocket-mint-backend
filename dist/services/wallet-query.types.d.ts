@@ -1,5 +1,19 @@
 import type { PrismaClient, Prisma, Wallet } from '../generated/prisma/client';
 export type { Wallet };
+/** One alias as surfaced on a wallet read DTO (Phase 37) — display text only, no normalized form. */
+export interface WalletAliasSummary {
+    id: string;
+    aliasDisplay: string;
+}
+/**
+ * A wallet with its explicit aliases attached, oldest first. `aliases` is
+ * optional (not strict `[]`) so the command-service return types (plain
+ * `Wallet`, no `include`) remain assignable here without a wasted refetch —
+ * only `listWallets` below actually populates it.
+ */
+export interface WalletWithAliases extends Wallet {
+    aliases?: WalletAliasSummary[];
+}
 /**
  * The slice of the Prisma client the query service needs: read access to the
  * `wallet` model (`findMany` for listing/net-worth, `findFirst` for the
