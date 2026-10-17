@@ -51,6 +51,15 @@ function rethrowCreate(err: unknown): never {
       'BAD_REQUEST'
     );
   }
+  // Phase 37.2: a concurrent wallet delete between the ownership check
+  // earlier in createTransaction and applyBalanceDeltas's wallet.update
+  // inside the same $transaction throws P2025 — the whole transaction
+  // already rolls back on any throw, this only translates the resulting raw
+  // Prisma error into a typed 404 instead of an unhandled 500 (same TOCTOU
+  // bug class as the Phase 37.1 wallet-alias fix).
+  if ((err as { code?: string }).code === 'P2025') {
+    throw new TransactionError('Wallet tidak ditemukan', 404, 'NOT_FOUND');
+  }
   throw err;
 }
 

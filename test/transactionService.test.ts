@@ -579,3 +579,42 @@ describe('transactionService.deleteTransaction', () => {
     expect(err.code).toBe('TRANSACTION_NOT_FOUND');
   });
 });
+
+// Phase 37.2 — same TOCTOU bug class as the Phase 37.1 wallet-alias-delete
+// race: a concurrent deleteWallet can race applyBalanceDeltas's wallet.update
+// inside createTransaction's own $transaction.
+describe('transactionService.createTransaction — Phase 37.2 concurrent-delete race', () => {
+  it('a concurrent wallet delete racing the balance update never surfaces as a raw error', async () => {
+    let calls = 0;
+    const walletUpdate = vi.fn(async () => {
+      calls += 1;
+      if (calls === 1) return undefined;
+      const err: Error & { code?: string } = new Error('Record to update not found.');
+      err.code = 'P2025';
+      throw err;
+    });
+    const db = {
+      wallet: { findFirst: vi.fn(async ({ where }: any) => ({ id: where.id, userId: where.userId, type: 'BANK' })) },
+      category: { findFirst: vi.fn(async ({ where }: any) => ({ id: where.id, userId: where.userId, type: 'EXPENSE' })) },
+      transaction: { findFirst: vi.fn() },
+      installment: {},
+      $transaction: vi.fn(async (cb: (tx: any) => Promise<unknown>) =>
+        cb({
+          transaction: { create: vi.fn(async ({ data }: any) => ({ id: 'tx-new', ...data })) },
+          wallet: { update: walletUpdate },
+        }),
+      ),
+    };
+
+    const create = () => createTransactionService(db as unknown as TransactionPrismaClient).createTransaction({
+      userId: 'u', type: 'EXPENSE', amount: 100, walletId: 'w1', categoryId: 'cat-1',
+    });
+    const results = await Promise.allSettled([create(), create()]);
+
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0].reason).toBeInstanceOf(TransactionError);
+    expect(rejected[0].reason).toMatchObject({ statusCode: 404, code: 'NOT_FOUND', isOperational: true });
+  });
+});
