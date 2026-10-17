@@ -8,6 +8,7 @@ import {
   applyBalanceDeltas,
   computeBalanceEffect,
 } from '../domain/transactionBalance';
+import { withPrismaErrorTranslation } from '../utils/prismaErrors';
 import { InstallmentError } from './installment.errors';
 import type {
   InstallmentPaymentPrismaClient,
@@ -94,44 +95,55 @@ export function createInstallmentPaymentService(db: InstallmentPaymentPrismaClie
           reportingConfig.timezone,
         );
 
-    return db.$transaction(async (tx) => {
-      const transaction = await tx.transaction.create({
-        data: {
-          userId: input.userId,
-          walletId: input.sourceWalletId,
-          toWalletId: installment.walletId,
-          type: 'TRANSFER',
-          amount,
-          description: `Pembayaran tagihan — ${installment.description || installment.wallet.name}`,
-          date: parsedDate,
-          isInstallment: false,
-        },
-        include: INSTALLMENT_PAYMENT_INCLUDE,
-      });
+    // Phase 37.2: a concurrent deleteTransaction on this installment's
+    // transaction history deletes the Installment row too (transaction.service.ts
+    // deleteTransaction's isInstallment branch) — if that races this payment
+    // between the findFirst above and tx.installment.update below, the whole
+    // $transaction rolls back (so the transfer created in the same block is
+    // never left half-committed) and Prisma throws a raw P2025. Translate it
+    // into the existing InstallmentError 404 instead of an unhandled 500 —
+    // same TOCTOU bug class as the Phase 37.1 wallet-alias fix.
+    return withPrismaErrorTranslation(
+      () => db.$transaction(async (tx) => {
+        const transaction = await tx.transaction.create({
+          data: {
+            userId: input.userId,
+            walletId: input.sourceWalletId,
+            toWalletId: installment.walletId,
+            type: 'TRANSFER',
+            amount,
+            description: `Pembayaran tagihan — ${installment.description || installment.wallet.name}`,
+            date: parsedDate,
+            isInstallment: false,
+          },
+          include: INSTALLMENT_PAYMENT_INCLUDE,
+        });
 
-      await applyBalanceDeltas(
-        tx,
-        computeBalanceEffect({
-          type: 'TRANSFER',
-          amount,
-          walletId: input.sourceWalletId,
-          toWalletId: installment.walletId,
-        }),
-      );
+        await applyBalanceDeltas(
+          tx,
+          computeBalanceEffect({
+            type: 'TRANSFER',
+            amount,
+            walletId: input.sourceWalletId,
+            toWalletId: installment.walletId,
+          }),
+        );
 
-      const updated = await tx.installment.update({
-        where: { id: installment.id },
-        data: {
-          currentTerm: nextTerm,
-          paidTerms: nextPaidTerms,
-          nextDueDate,
-          status: nextStatus,
-        },
-        include: PAID_INSTALLMENT_INCLUDE,
-      });
+        const updated = await tx.installment.update({
+          where: { id: installment.id },
+          data: {
+            currentTerm: nextTerm,
+            paidTerms: nextPaidTerms,
+            nextDueDate,
+            status: nextStatus,
+          },
+          include: PAID_INSTALLMENT_INCLUDE,
+        });
 
-      return { transaction, installment: updated };
-    });
+        return { transaction, installment: updated };
+      }),
+      { P2025: () => new InstallmentError('Cicilan tidak ditemukan', 404, 'NOT_FOUND') },
+    );
   }
 
   return { payInstallment, payBill: payInstallment };
