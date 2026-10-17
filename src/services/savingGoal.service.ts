@@ -13,6 +13,7 @@ import prisma from '../lib/prisma';
 import { Prisma } from '../generated/prisma/client';
 import { parseBusinessDate } from '../domain/reportingTime';
 import { reportingConfig } from '../config';
+import { withPrismaErrorTranslation } from '../utils/prismaErrors';
 import { SavingGoalError } from './savingGoal.errors';
 import {
   type ArchiveSavingGoalInput,
@@ -68,11 +69,13 @@ function resolveStatus(currentAmount: Prisma.Decimal, targetAmount: Prisma.Decim
 }
 
 export function createSavingGoalService(db: SavingGoalPrismaClient) {
+  function notFound(): SavingGoalError {
+    return new SavingGoalError('Target tabungan tidak ditemukan', 404, 'NOT_FOUND');
+  }
+
   async function findOwned(userId: string, id: string): Promise<SavingGoalRecord> {
     const goal = await db.savingGoal.findFirst({ where: { id, userId } });
-    if (!goal) {
-      throw new SavingGoalError('Target tabungan tidak ditemukan', 404, 'NOT_FOUND');
-    }
+    if (!goal) throw notFound();
     return goal;
   }
 
@@ -122,16 +125,24 @@ export function createSavingGoalService(db: SavingGoalPrismaClient) {
     const targetDate =
       input.targetDate === undefined ? existing.targetDate : input.targetDate === null ? null : parseTargetDate(input.targetDate, 'targetDate');
 
-    return db.savingGoal.update({
-      where: { id },
-      data: {
-        name: input.name?.trim(),
-        targetAmount: input.targetAmount !== undefined ? targetAmount : undefined,
-        targetDate,
-        notes: input.notes === undefined ? undefined : input.notes,
-        status: resolveStatus(existing.currentAmount, targetAmount),
-      },
-    });
+    // Phase 37.2: no delete endpoint exists for SavingGoal today (only
+    // archive/status transitions), so this guard is currently defensive
+    // rather than reachable through the live API surface — it still closes
+    // the same TOCTOU bug class Phase 37.1 fixed, in case a delete path is
+    // ever added or the row is removed by an admin/migration cleanup.
+    return withPrismaErrorTranslation(
+      () => db.savingGoal.update({
+        where: { id },
+        data: {
+          name: input.name?.trim(),
+          targetAmount: input.targetAmount !== undefined ? targetAmount : undefined,
+          targetDate,
+          notes: input.notes === undefined ? undefined : input.notes,
+          status: resolveStatus(existing.currentAmount, targetAmount),
+        },
+      }),
+      { P2025: notFound },
+    );
   }
 
   async function updateSavingGoalProgress(input: UpdateSavingGoalProgressInput): Promise<SavingGoalRecord> {
@@ -144,13 +155,16 @@ export function createSavingGoalService(db: SavingGoalPrismaClient) {
 
     const currentAmount = parseCurrentAmount(input.currentAmount);
 
-    return db.savingGoal.update({
-      where: { id },
-      data: {
-        currentAmount,
-        status: resolveStatus(currentAmount, existing.targetAmount),
-      },
-    });
+    return withPrismaErrorTranslation(
+      () => db.savingGoal.update({
+        where: { id },
+        data: {
+          currentAmount,
+          status: resolveStatus(currentAmount, existing.targetAmount),
+        },
+      }),
+      { P2025: notFound },
+    );
   }
 
   async function archiveSavingGoal(input: ArchiveSavingGoalInput): Promise<SavingGoalRecord> {
@@ -161,7 +175,10 @@ export function createSavingGoalService(db: SavingGoalPrismaClient) {
       throw new SavingGoalError('Target tabungan sudah diarsipkan', 409, 'CONFLICT');
     }
 
-    return db.savingGoal.update({ where: { id }, data: { status: 'ARCHIVED' } });
+    return withPrismaErrorTranslation(
+      () => db.savingGoal.update({ where: { id }, data: { status: 'ARCHIVED' } }),
+      { P2025: notFound },
+    );
   }
 
   return {

@@ -269,4 +269,34 @@ describe('saving goal service', () => {
       expect(goal).toMatchObject({ id: 'goal-1' });
     });
   });
+
+  // Phase 37.2 — same TOCTOU bug class as the Phase 37.1 wallet-alias-delete
+  // race. SavingGoal has no delete endpoint today, so this is a defensive
+  // guard rather than a currently reachable production race; simulated by
+  // making the mocked `update` lose on its second concurrent call.
+  describe('Phase 37.2 — concurrent-delete race', () => {
+    it('archiveSavingGoal: a concurrent delete racing the write never surfaces as a raw error', async () => {
+      const db = makeDb();
+      db.savingGoal.findFirst.mockResolvedValue(existingGoal({ status: 'ACTIVE' }));
+      let calls = 0;
+      db.savingGoal.update = vi.fn(async () => {
+        calls += 1;
+        if (calls === 1) return existingGoal({ status: 'ARCHIVED' });
+        const err: Error & { code?: string } = new Error('Record to update not found.');
+        err.code = 'P2025';
+        throw err;
+      });
+
+      const results = await Promise.allSettled([
+        createSavingGoalService(db as any).archiveSavingGoal({ userId: 'user-1', id: 'goal-1' }),
+        createSavingGoalService(db as any).archiveSavingGoal({ userId: 'user-1', id: 'goal-1' }),
+      ]);
+
+      expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+      const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+      expect(rejected).toHaveLength(1);
+      expect(rejected[0].reason).toBeInstanceOf(SavingGoalError);
+      expect(rejected[0].reason).toMatchObject({ statusCode: 404, code: 'NOT_FOUND', isOperational: true });
+    });
+  });
 });
