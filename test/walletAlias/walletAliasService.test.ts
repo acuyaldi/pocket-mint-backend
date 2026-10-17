@@ -166,6 +166,58 @@ describe('wallet alias service — delete', () => {
     await expect(service.remove({ userId: USER, walletId: 'wallet-wrong', aliasId: 'alias-1' }))
       .rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
+
+  it('translates a P2025 race on the delete itself (already deleted by a concurrent/retried call) into the same typed 404', async () => {
+    const db = makeDb({ aliasFindFirst: makeAlias() });
+    db.walletAlias.delete = vi.fn(async () => {
+      throw Object.assign(new Error('record not found'), { code: 'P2025' });
+    });
+    const service = createWalletAliasService(db as any);
+    await expect(service.remove({ userId: USER, walletId: 'wallet-1', aliasId: 'alias-1' }))
+      .rejects.toMatchObject({ code: 'NOT_FOUND', statusCode: 404 });
+    await expect(service.remove({ userId: USER, walletId: 'wallet-1', aliasId: 'alias-1' }))
+      .rejects.toBeInstanceOf(WalletAliasError);
+  });
+
+  it('propagates an unexpected delete failure untyped (never masked as NOT_FOUND)', async () => {
+    const db = makeDb({ aliasFindFirst: makeAlias() });
+    db.walletAlias.delete = vi.fn(async () => {
+      throw new Error('db exploded');
+    });
+    const service = createWalletAliasService(db as any);
+    const err = await service.remove({ userId: USER, walletId: 'wallet-1', aliasId: 'alias-1' }).catch((e) => e);
+    expect(err).not.toBeInstanceOf(WalletAliasError);
+    expect(err.message).toBe('db exploded');
+  });
+});
+
+describe('wallet alias service — archived-wallet namespace policy (current behavior, unchanged by this patch)', () => {
+  it('queries canonical names for collision checking without filtering out archived wallets', async () => {
+    // A real isArchived: false filter here would exclude archived wallets from
+    // the collision check — this pins the current, intentionally unfiltered
+    // query shape (see walletAlias.service.ts's findCollidingWalletName) so a
+    // future change to it is a deliberate decision, not a silent regression.
+    // The actual end-to-end behavior against a real archived row is proven in
+    // walletAlias.integration.test.ts.
+    const db = makeDb({ walletFindMany: [{ name: 'Old BCA' }] });
+    const service = createWalletAliasService(db as any);
+    await expect(service.create({ userId: USER, walletId: 'wallet-1', aliasDisplay: 'old bca' }))
+      .rejects.toMatchObject({ code: 'CONFLICT', statusCode: 409 });
+    expect(db.wallet.findMany).toHaveBeenCalledWith({ where: { userId: USER }, select: { name: true } });
+    expect(db.walletAlias.create).not.toHaveBeenCalled();
+  });
+
+  it("an existing alias still blocks a new one with the same normalized text regardless of its wallet's archived state", async () => {
+    // walletAlias has no isArchived concept of its own, and the collision
+    // query below is scoped by (userId, aliasNormalized) only — it never
+    // joins wallet.isArchived, so an alias belonging to an archived wallet
+    // remains fully reserved.
+    const db = makeDb({ aliasFindFirst: makeAlias({ walletId: 'archived-wallet' }) });
+    const service = createWalletAliasService(db as any);
+    await expect(service.create({ userId: USER, walletId: 'wallet-1', aliasDisplay: 'Rekening Utama' }))
+      .rejects.toMatchObject({ code: 'CONFLICT', statusCode: 409 });
+    expect(db.walletAlias.findFirst).toHaveBeenCalledWith({ where: { userId: USER, aliasNormalized: 'rekening utama' } });
+  });
 });
 
 describe('wallet alias service — error shape', () => {

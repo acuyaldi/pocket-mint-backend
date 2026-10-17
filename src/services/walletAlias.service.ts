@@ -134,6 +134,14 @@ export function createWalletAliasService(db: WalletAliasPrismaClient) {
    * indistinguishable 404 — no separate "wrong wallet" vs "not yours"
    * signal. A single delete needs no transaction/lock: it removes a row
    * rather than racing a collision check.
+   *
+   * The findFirst-then-delete pair is still a TOCTOU window: a concurrent or
+   * retried delete of the same alias can pass the findFirst check and then
+   * hit Prisma P2025 on the delete itself (the row is already gone). That is
+   * translated into the same typed 404 the pre-check already throws —
+   * mirroring wallet.service.ts's existing P2025 handling for deleteWallet/
+   * updateWallet — instead of propagating a raw Prisma error as an
+   * unexpected 500.
    */
   async function remove(input: DeleteWalletAliasInput): Promise<void> {
     const { userId, walletId, aliasId } = input;
@@ -144,7 +152,15 @@ export function createWalletAliasService(db: WalletAliasPrismaClient) {
     if (!existing) {
       throw new WalletAliasError(`Alias with id ${aliasId} not found`, 404, 'NOT_FOUND');
     }
-    await db.walletAlias.delete({ where: { id: aliasId } });
+    try {
+      await db.walletAlias.delete({ where: { id: aliasId } });
+    } catch (err) {
+      if (err instanceof WalletAliasError) throw err;
+      if ((err as { code?: string }).code === 'P2025') {
+        throw new WalletAliasError(`Alias with id ${aliasId} not found`, 404, 'NOT_FOUND');
+      }
+      throw err;
+    }
   }
 
   return { create, remove };
