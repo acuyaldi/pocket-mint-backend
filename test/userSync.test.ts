@@ -231,3 +231,67 @@ describe('POST /users/sync — password handling (S5)', () => {
     expect(res.body.data).not.toHaveProperty('password');
   });
 });
+
+// Phase 37.2 — same TOCTOU bug class as the Phase 37.1 wallet-alias-delete
+// race: two concurrent first-syncs for the same brand-new user can both pass
+// the initial findUnique and race on create's unique `id`. "Idempotent: a
+// known user is a no-op" (the function's own doc comment) means the loser
+// must see the same 200 "User already exists" outcome, never a raw 500 —
+// and a GENUINE email collision with a different existing user must still
+// be a real, typed conflict, never silently treated as success.
+describe('POST /users/sync — Phase 37.2 concurrent-create races', () => {
+  it('two concurrent first-syncs for the same new user: one creates (201), the loser gets the idempotent 200, never a 500', async () => {
+    let findUniqueCalls = 0;
+    findUnique.mockImplementation(async () => {
+      findUniqueCalls += 1;
+      // Both requests' initial pre-check (calls 1-2) race before either has
+      // created the row; any call after that is the loser's post-P2002
+      // recovery re-fetch, which must now see the winner's row.
+      return findUniqueCalls <= 2 ? null : SAFE_USER;
+    });
+    let createCalls = 0;
+    create.mockImplementation(async () => {
+      createCalls += 1;
+      if (createCalls === 1) return SAFE_USER;
+      const err: Error & { code?: string } = new Error('Unique constraint failed on the fields: (`id`)');
+      err.code = 'P2002';
+      throw err;
+    });
+    const app = await buildApp();
+    const token = await mint(validClaims);
+    const post = () => request(app).post('/sync').set('Authorization', `Bearer ${token}`).send({ name: 'A' });
+
+    const [resA, resB] = await Promise.all([post(), post()]);
+    const statuses = [resA.status, resB.status].sort();
+
+    expect(statuses).toEqual([200, 201]);
+    for (const res of [resA, resB]) {
+      expect(res.body).toMatchObject({ success: true, data: SAFE_USER });
+    }
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(ensureDefaultCategories).toHaveBeenCalledWith('u1');
+  });
+
+  it('a genuine email collision with a different existing user is a typed 409, never silently adopted', async () => {
+    findUnique.mockReset();
+    findUnique
+      .mockResolvedValueOnce(null) // initial pre-check: no row at this id yet
+      .mockResolvedValueOnce(null); // post-P2002 recovery re-fetch: still no row at THIS id — the conflict was on email
+    create.mockImplementation(async () => {
+      const err: Error & { code?: string } = new Error('Unique constraint failed on the fields: (`email`)');
+      err.code = 'P2002';
+      throw err;
+    });
+    const app = await buildApp();
+    const token = await mint(validClaims);
+
+    const res = await request(app).post('/sync').set('Authorization', `Bearer ${token}`).send({ name: 'A' });
+
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({
+      success: false,
+      error: { code: 'EMAIL_ALREADY_EXISTS', statusCode: 409, message: 'An account with this email already exists' },
+    });
+    expect(ensureDefaultCategories).not.toHaveBeenCalled();
+  });
+});
