@@ -335,4 +335,33 @@ describe('recurring transaction service', () => {
       expect(updated).toMatchObject({ reminderEnabled: false, reminderOffsetDays: null });
     });
   });
+
+  // Phase 37.2 — same TOCTOU bug class as the Phase 37.1 wallet-alias-delete
+  // race: a concurrent/retried delete of the same template can pass the
+  // findFirst pre-check and then hit Prisma P2025 on the delete itself.
+  describe('Phase 37.2 — concurrent delete race', () => {
+    it('two concurrent deletes of the same template: one succeeds, one 404s, never a raw error', async () => {
+      const db = makeDb();
+      db.recurringTransactionTemplate.findFirst = vi.fn(async () => ({ id: 'rec-1' }));
+      let calls = 0;
+      db.recurringTransactionTemplate.delete = vi.fn(async () => {
+        calls += 1;
+        if (calls === 1) return { id: 'rec-1' };
+        const err: Error & { code?: string } = new Error('Record to delete not found.');
+        err.code = 'P2025';
+        throw err;
+      });
+
+      const results = await Promise.allSettled([
+        createRecurringTransactionService(db as any).deleteRecurringTransaction({ userId: 'user-1', id: 'rec-1' }),
+        createRecurringTransactionService(db as any).deleteRecurringTransaction({ userId: 'user-1', id: 'rec-1' }),
+      ]);
+
+      expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+      const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+      expect(rejected).toHaveLength(1);
+      expect(rejected[0].reason).toBeInstanceOf(RecurringTransactionError);
+      expect(rejected[0].reason).toMatchObject({ statusCode: 404, code: 'NOT_FOUND', isOperational: true });
+    });
+  });
 });
