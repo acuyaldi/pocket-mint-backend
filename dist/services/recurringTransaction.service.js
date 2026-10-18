@@ -17,6 +17,7 @@ exports.createRecurringTransactionService = createRecurringTransactionService;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const config_1 = require("../config");
 const reportingTime_1 = require("../domain/reportingTime");
+const prismaErrors_1 = require("../utils/prismaErrors");
 const recurringTransaction_errors_1 = require("./recurringTransaction.errors");
 const recurringTransaction_types_1 = require("./recurringTransaction.types");
 const VALID_TYPES = ['INCOME', 'EXPENSE'];
@@ -55,6 +56,9 @@ function parseDate(value, field) {
     }
 }
 function createRecurringTransactionService(db) {
+    function notFound() {
+        return new recurringTransaction_errors_1.RecurringTransactionError('Template transaksi rutin tidak ditemukan', 404, 'NOT_FOUND');
+    }
     async function assertWalletOwnership(userId, walletId) {
         const wallet = await db.wallet.findFirst({ where: { id: walletId, userId }, select: { id: true } });
         if (!wallet) {
@@ -124,9 +128,8 @@ function createRecurringTransactionService(db) {
     async function updateRecurringTransaction(input) {
         const { userId, id } = input;
         const existing = await db.recurringTransactionTemplate.findFirst({ where: { id, userId } });
-        if (!existing) {
-            throw new recurringTransaction_errors_1.RecurringTransactionError('Template transaksi rutin tidak ditemukan', 404, 'NOT_FOUND');
-        }
+        if (!existing)
+            throw notFound();
         if (input.name !== undefined && !input.name.trim()) {
             throw new recurringTransaction_errors_1.RecurringTransactionError('name cannot be empty', 400, 'BAD_REQUEST');
         }
@@ -158,7 +161,12 @@ function createRecurringTransactionService(db) {
         if (input.categoryId !== undefined) {
             await assertCategoryOwnership(userId, input.categoryId);
         }
-        return db.recurringTransactionTemplate.update({
+        // Phase 37.2: a concurrent delete (or a concurrent wallet delete, which
+        // cascades to this row — Wallet.recurringTransactionTemplates is
+        // onDelete: Cascade) can remove this row between the findFirst above and
+        // this write — translate the resulting Prisma P2025 into the same typed
+        // 404 instead of an unhandled 500 (same TOCTOU bug class as Phase 37.1).
+        return (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.recurringTransactionTemplate.update({
             where: { id },
             data: {
                 name: input.name?.trim(),
@@ -176,15 +184,17 @@ function createRecurringTransactionService(db) {
                 reminderOffsetDays: reminder.reminderOffsetDays,
             },
             include: recurringTransaction_types_1.RECURRING_TRANSACTION_INCLUDE,
-        });
+        }), { P2025: notFound });
     }
     async function deleteRecurringTransaction(input) {
         const { userId, id } = input;
         const existing = await db.recurringTransactionTemplate.findFirst({ where: { id, userId }, select: { id: true } });
-        if (!existing) {
-            throw new recurringTransaction_errors_1.RecurringTransactionError('Template transaksi rutin tidak ditemukan', 404, 'NOT_FOUND');
-        }
-        await db.recurringTransactionTemplate.delete({ where: { id } });
+        if (!existing)
+            throw notFound();
+        // Phase 37.2: a concurrent/retried delete of the same template can pass
+        // the findFirst above and then hit Prisma P2025 on the delete itself —
+        // same bug class the Phase 37.1 wallet-alias fix addressed.
+        await (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.recurringTransactionTemplate.delete({ where: { id } }), { P2025: notFound });
         return { id };
     }
     return {

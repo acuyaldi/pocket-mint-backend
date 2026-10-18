@@ -63,11 +63,28 @@ export class UserController {
         return sendSuccess(res, existing, "User already exists");
       }
 
-      // Create the local row keyed to the verified Supabase identity.
-      const user = await prisma.user.create({
-        data: { id: userId, email, name },
-        select: userSelect,
-      });
+      // Create the local row keyed to the verified Supabase identity. Two
+      // concurrent first-syncs for the same brand-new user can both pass the
+      // findUnique above and race on this create's unique `id` (Phase 37.2) —
+      // the loser must see the same idempotent "already exists" outcome the
+      // doc comment above promises, not a raw 500.
+      let user;
+      try {
+        user = await prisma.user.create({ data: { id: userId, email, name }, select: userSelect });
+      } catch (err) {
+        if ((err as { code?: string }).code !== 'P2002') throw err;
+        // Re-fetch by the verified id (never by email) to tell apart the two
+        // P2002 causes: the id race above (same row, already created by the
+        // concurrent winner — a true idempotent success) from a genuine
+        // email collision with a DIFFERENT existing user (never silently
+        // adopt or reveal that other account).
+        const racedUser = await prisma.user.findUnique({ where: { id: userId }, select: userSelect });
+        if (!racedUser) {
+          return sendError(res, "An account with this email already exists", 409, "EMAIL_ALREADY_EXISTS");
+        }
+        await categoryService.ensureDefaultCategories(userId);
+        return sendSuccess(res, racedUser, "User already exists");
+      }
 
       await categoryService.ensureDefaultCategories(userId);
 

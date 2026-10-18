@@ -19,6 +19,7 @@ const prisma_1 = __importDefault(require("../lib/prisma"));
 const client_1 = require("../generated/prisma/client");
 const reportingTime_1 = require("../domain/reportingTime");
 const config_1 = require("../config");
+const prismaErrors_1 = require("../utils/prismaErrors");
 const savingGoal_errors_1 = require("./savingGoal.errors");
 const MONEY_SCALE = 2;
 const MONEY_ROUNDING = client_1.Prisma.Decimal.ROUND_HALF_UP;
@@ -55,11 +56,13 @@ function resolveStatus(currentAmount, targetAmount) {
     return currentAmount.greaterThanOrEqualTo(targetAmount) ? 'COMPLETED' : 'ACTIVE';
 }
 function createSavingGoalService(db) {
+    function notFound() {
+        return new savingGoal_errors_1.SavingGoalError('Target tabungan tidak ditemukan', 404, 'NOT_FOUND');
+    }
     async function findOwned(userId, id) {
         const goal = await db.savingGoal.findFirst({ where: { id, userId } });
-        if (!goal) {
-            throw new savingGoal_errors_1.SavingGoalError('Target tabungan tidak ditemukan', 404, 'NOT_FOUND');
-        }
+        if (!goal)
+            throw notFound();
         return goal;
     }
     async function listSavingGoals(userId) {
@@ -99,7 +102,12 @@ function createSavingGoalService(db) {
         }
         const targetAmount = input.targetAmount !== undefined ? parseTargetAmount(input.targetAmount) : existing.targetAmount;
         const targetDate = input.targetDate === undefined ? existing.targetDate : input.targetDate === null ? null : parseTargetDate(input.targetDate, 'targetDate');
-        return db.savingGoal.update({
+        // Phase 37.2: no delete endpoint exists for SavingGoal today (only
+        // archive/status transitions), so this guard is currently defensive
+        // rather than reachable through the live API surface — it still closes
+        // the same TOCTOU bug class Phase 37.1 fixed, in case a delete path is
+        // ever added or the row is removed by an admin/migration cleanup.
+        return (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.savingGoal.update({
             where: { id },
             data: {
                 name: input.name?.trim(),
@@ -108,7 +116,7 @@ function createSavingGoalService(db) {
                 notes: input.notes === undefined ? undefined : input.notes,
                 status: resolveStatus(existing.currentAmount, targetAmount),
             },
-        });
+        }), { P2025: notFound });
     }
     async function updateSavingGoalProgress(input) {
         const { userId, id } = input;
@@ -117,13 +125,13 @@ function createSavingGoalService(db) {
             throw new savingGoal_errors_1.SavingGoalError('Target tabungan yang diarsipkan tidak dapat diperbarui progresnya', 409, 'CONFLICT');
         }
         const currentAmount = parseCurrentAmount(input.currentAmount);
-        return db.savingGoal.update({
+        return (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.savingGoal.update({
             where: { id },
             data: {
                 currentAmount,
                 status: resolveStatus(currentAmount, existing.targetAmount),
             },
-        });
+        }), { P2025: notFound });
     }
     async function archiveSavingGoal(input) {
         const { userId, id } = input;
@@ -131,7 +139,7 @@ function createSavingGoalService(db) {
         if (existing.status === 'ARCHIVED') {
             throw new savingGoal_errors_1.SavingGoalError('Target tabungan sudah diarsipkan', 409, 'CONFLICT');
         }
-        return db.savingGoal.update({ where: { id }, data: { status: 'ARCHIVED' } });
+        return (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.savingGoal.update({ where: { id }, data: { status: 'ARCHIVED' } }), { P2025: notFound });
     }
     return {
         listSavingGoals,

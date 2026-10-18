@@ -187,3 +187,48 @@ describe('merchant mapping service — findByNormalizedMerchant (pipeline lookup
     expect(db.merchantMapping.findFirst).not.toHaveBeenCalled();
   });
 });
+
+describe('merchant mapping service — remove', () => {
+  it('deletes an owned mapping', async () => {
+    const db = makeDb({ mappingFindFirst: [makeMapping()] });
+    const service = createMerchantMappingService(db as any);
+    await service.remove({ userId: USER, mappingId: 'mapping-1' });
+    expect(db.merchantMapping.delete).toHaveBeenCalledWith({ where: { id: 'mapping-1' } });
+  });
+
+  it("404s removing another user's mapping, indistinguishable from missing", async () => {
+    const db = makeDb({ mappingFindFirst: [null] });
+    const service = createMerchantMappingService(db as any);
+    await expect(service.remove({ userId: OTHER_USER, mappingId: 'mapping-1' })).rejects.toMatchObject({
+      statusCode: 404,
+      code: 'NOT_FOUND',
+    });
+  });
+
+  // Phase 37.2 — same TOCTOU bug class as the Phase 37.1 wallet-alias-delete
+  // race: a concurrent/retried delete of the same mapping can pass the
+  // findOwned pre-check and then hit Prisma P2025 on the delete itself.
+  it('two concurrent deletes of the same mapping: one succeeds, one 404s, never a raw error', async () => {
+    const db = makeDb({ mappingFindFirst: [makeMapping(), makeMapping()] });
+    let calls = 0;
+    db.merchantMapping.delete = vi.fn(async () => {
+      calls += 1;
+      if (calls === 1) return makeMapping();
+      const err: Error & { code?: string } = new Error('Record to delete not found.');
+      err.code = 'P2025';
+      throw err;
+    });
+    const service = createMerchantMappingService(db as any);
+
+    const results = await Promise.allSettled([
+      service.remove({ userId: USER, mappingId: 'mapping-1' }),
+      service.remove({ userId: USER, mappingId: 'mapping-1' }),
+    ]);
+
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0].reason).toBeInstanceOf(MerchantMappingError);
+    expect(rejected[0].reason).toMatchObject({ statusCode: 404, code: 'NOT_FOUND', isOperational: true });
+  });
+});

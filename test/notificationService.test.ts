@@ -336,4 +336,43 @@ describe('notification service — confirmReminder', () => {
     // callback threw, $transaction never commits it into the buffer — no drift.
     expect(committed).toEqual([]);
   });
+
+  // Phase 37.2 — same TOCTOU bug class as the Phase 37.1 wallet-alias-delete
+  // race: a concurrent deleteWallet on the template's wallet can race
+  // applyBalanceDeltas's wallet.update inside this same confirm.
+  it('a concurrent wallet delete racing the balance update never surfaces as a raw error', async () => {
+    const reminder = baseReminder();
+    let calls = 0;
+    const walletUpdate = vi.fn(async () => {
+      calls += 1;
+      if (calls === 1) return undefined;
+      const err: Error & { code?: string } = new Error('Record to update not found.');
+      err.code = 'P2025';
+      throw err;
+    });
+    const db = {
+      recurringReminderEvent: { findFirst: vi.fn(async () => reminder) },
+      wallet: { findFirst: vi.fn(async () => ({ id: 'wallet-1', userId: 'user-1' })) },
+      category: { findFirst: vi.fn(async () => ({ id: 'cat-1', userId: 'user-1' })) },
+      $transaction: vi.fn(async (cb: (tx: any) => Promise<unknown>) =>
+        cb({
+          transaction: { create: vi.fn(async ({ data }: any) => ({ id: 'tx-new', ...data })) },
+          wallet: { update: walletUpdate },
+          recurringReminderEvent: {
+            updateMany: vi.fn(async () => ({ count: 1 })),
+            findUniqueOrThrow: vi.fn(async () => ({ ...reminder, completedAt: new Date(), generatedTransactionId: 'tx-new' })),
+          },
+        }),
+      ),
+    };
+
+    const confirm = () => createNotificationService(db as any).confirmReminder({ userId: 'user-1', id: 'evt-1' });
+    const results = await Promise.allSettled([confirm(), confirm()]);
+
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0].reason).toBeInstanceOf(NotificationError);
+    expect(rejected[0].reason).toMatchObject({ statusCode: 404, code: 'WALLET_NOT_FOUND', isOperational: true });
+  });
 });

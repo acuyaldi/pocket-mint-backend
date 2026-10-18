@@ -579,3 +579,40 @@ describe('transactionService.deleteTransaction', () => {
     expect(err.code).toBe('TRANSACTION_NOT_FOUND');
   });
 });
+
+// Phase 37.2 — createTransaction's P2025 (a concurrent wallet delete racing
+// applyBalanceDeltas's wallet.update) is DELIBERATELY left untranslated.
+// See the comment on rethrowCreate in transaction.service.ts: typing it as a
+// TransactionError would make financial-draft.service.ts's confirm() path
+// permanently mark the draft FAILED for what may be a retryable race,
+// trading an unhandled-error problem for a worse stuck-state problem. This
+// test pins today's actual (imperfect but not regressed) behavior: the raw
+// error still propagates untyped, exactly as before this sweep.
+describe('transactionService.createTransaction — Phase 37.2 (deliberately unchanged)', () => {
+  it('a concurrent wallet delete racing the balance update still propagates untranslated, never as a TransactionError', async () => {
+    const walletUpdate = vi.fn(async () => {
+      const err: Error & { code?: string } = new Error('Record to update not found.');
+      err.code = 'P2025';
+      throw err;
+    });
+    const db = {
+      wallet: { findFirst: vi.fn(async ({ where }: any) => ({ id: where.id, userId: where.userId, type: 'BANK' })) },
+      category: { findFirst: vi.fn(async ({ where }: any) => ({ id: where.id, userId: where.userId, type: 'EXPENSE' })) },
+      transaction: { findFirst: vi.fn() },
+      installment: {},
+      $transaction: vi.fn(async (cb: (tx: any) => Promise<unknown>) =>
+        cb({
+          transaction: { create: vi.fn(async ({ data }: any) => ({ id: 'tx-new', ...data })) },
+          wallet: { update: walletUpdate },
+        }),
+      ),
+    };
+
+    const err = await createTransactionService(db as unknown as TransactionPrismaClient).createTransaction({
+      userId: 'u', type: 'EXPENSE', amount: 100, walletId: 'w1', categoryId: 'cat-1',
+    }).catch((e) => e);
+
+    expect(err).not.toBeInstanceOf(TransactionError);
+    expect((err as { code?: string }).code).toBe('P2025');
+  });
+});

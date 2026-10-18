@@ -359,4 +359,61 @@ describe.skipIf(!url)('Assistant conversation service (disposable PostgreSQL)', 
     const afterPurge = await service().getOwnedConversation(owner, turn.conversationId);
     expect(afterPurge.turns[0]).toMatchObject({ deliveryStatus: 'UNKNOWN', channel: 'TELEGRAM' });
   });
+
+  // Phase 37.2 — same TOCTOU bug class as the Phase 37.1 wallet-alias-delete
+  // race: a concurrent delete can slip in between an owned()/findFirst check
+  // and the later write. Each test races the real mutation against a real
+  // concurrent delete of the SAME conversation. Correct outcome: exactly one
+  // call succeeds, the other rejects with the typed 404 — never a raw/
+  // unhandled Prisma error (no 500).
+  describe('Phase 37.2 — concurrent delete races', () => {
+    it('two concurrent deletes of the same conversation: one succeeds, one 404s, never a raw error', async () => {
+      const owner = await user('race-delete-delete');
+      const turn = await service().beginTurn({ userId: owner, correlationId: `corr-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' });
+
+      const results = await Promise.allSettled([
+        service().deleteOwnedConversation(owner, turn.conversationId),
+        service().deleteOwnedConversation(owner, turn.conversationId),
+      ]);
+
+      expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+      const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+      expect(rejected).toHaveLength(1);
+      expect(rejected[0].reason).toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_FOUND', statusCode: 404, isOperational: true });
+
+      const remaining = await db().assistantConversation.findMany({ where: { id: turn.conversationId } });
+      expect(remaining).toHaveLength(0);
+    });
+
+    it('archive racing a concurrent delete: one succeeds, the other 404s, never a raw error', async () => {
+      const owner = await user('race-archive-delete');
+      const turn = await service().beginTurn({ userId: owner, correlationId: `corr-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' });
+
+      const results = await Promise.allSettled([
+        service().deleteOwnedConversation(owner, turn.conversationId),
+        service().archiveOwnedConversation(owner, turn.conversationId),
+      ]);
+
+      expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+      const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+      expect(rejected).toHaveLength(1);
+      expect(rejected[0].reason).toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_FOUND', statusCode: 404, isOperational: true });
+    });
+
+    it('restore racing a concurrent delete: one succeeds, the other 404s, never a raw error', async () => {
+      const owner = await user('race-restore-delete');
+      const turn = await service().beginTurn({ userId: owner, correlationId: `corr-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' });
+      await service().archiveOwnedConversation(owner, turn.conversationId);
+
+      const results = await Promise.allSettled([
+        service().deleteOwnedConversation(owner, turn.conversationId),
+        service().restoreOwnedConversation(owner, turn.conversationId),
+      ]);
+
+      expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+      const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+      expect(rejected).toHaveLength(1);
+      expect(rejected[0].reason).toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_FOUND', statusCode: 404, isOperational: true });
+    });
+  });
 });

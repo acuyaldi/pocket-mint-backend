@@ -5,6 +5,7 @@ vi.mock('../src/lib/prisma', () => ({ default: {} }));
 
 import { createInstallmentPaymentService } from '../src/services/installment-payment.service';
 import { computeFinalMonthlyAmount } from '../src/domain/installment';
+import { InstallmentError } from '../src/services/installment.errors';
 import type { InstallmentPaymentPrismaClient } from '../src/services/installment-payment.types';
 
 const D = (n: number | string) => new Prisma.Decimal(n);
@@ -306,5 +307,39 @@ describe('installment payment service', () => {
     // threw — a real Prisma client rolls the whole callback back, so the term
     // must not have been advanced.
     expect(installmentUpdate).not.toHaveBeenCalled();
+  });
+
+  // Phase 37.2 — same TOCTOU bug class as the Phase 37.1 wallet-alias-delete
+  // race: a concurrent deleteTransaction on this installment (which deletes
+  // the Installment row too) can race tx.installment.update inside this same
+  // payment's transaction, surfacing as a raw Prisma P2025 without this fix.
+  it('a concurrent delete racing the installment update never surfaces as a raw error', async () => {
+    const h = makeDb();
+    h.installmentFindFirst.mockResolvedValue(makeInstallment({ paidTerms: 0, currentTerm: 1, installmentMonths: 3 }));
+    h.walletFindFirst.mockResolvedValue(makeSource());
+    let calls = 0;
+    h.installmentUpdate.mockImplementation(async ({ where, data }: any) => {
+      calls += 1;
+      if (calls === 1) return { id: where.id, ...data };
+      const err: Error & { code?: string } = new Error('Record to update not found.');
+      err.code = 'P2025';
+      throw err;
+    });
+
+    const pay = () => createInstallmentPaymentService(h.db).payInstallment({
+      userId: 'user-1',
+      installmentId: 'inst-1',
+      sourceWalletId: 'asset-1',
+      amount: D(2500000),
+      date: '2026-07-15',
+    });
+
+    const results = await Promise.allSettled([pay(), pay()]);
+
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0].reason).toBeInstanceOf(InstallmentError);
+    expect(rejected[0].reason).toMatchObject({ statusCode: 404, code: 'NOT_FOUND', isOperational: true });
   });
 });

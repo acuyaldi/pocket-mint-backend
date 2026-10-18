@@ -16,6 +16,7 @@ exports.createNotificationService = createNotificationService;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const client_1 = require("../generated/prisma/client");
 const transactionBalance_1 = require("../domain/transactionBalance");
+const prismaErrors_1 = require("../utils/prismaErrors");
 const transaction_types_1 = require("./transaction.types");
 const notification_errors_1 = require("./notification.errors");
 const recurringReminderEngine_service_1 = require("./recurringReminderEngine.service");
@@ -138,7 +139,14 @@ function createNotificationService(db) {
         else {
             throw new notification_errors_1.NotificationError('Kategori wajib diisi untuk transaksi ini', 400, 'CATEGORY_REQUIRED');
         }
-        return db.$transaction(async (tx) => {
+        // Phase 37.2: a concurrent deleteWallet on `template.walletId` can race
+        // applyBalanceDeltas's wallet.update between the pre-check above and this
+        // write — the whole $transaction already rolls back on any throw (so the
+        // transaction row created above is never left half-committed), this only
+        // translates the resulting raw Prisma P2025 into the existing
+        // NotificationError 404 instead of an unhandled 500 (same TOCTOU bug
+        // class as the Phase 37.1 wallet-alias fix).
+        return (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.$transaction(async (tx) => {
             const transaction = await tx.transaction.create({
                 data: {
                     userId,
@@ -167,7 +175,7 @@ function createNotificationService(db) {
             }
             const notification = await tx.recurringReminderEvent.findUniqueOrThrow({ where: { id }, include: notification_types_1.NOTIFICATION_INCLUDE });
             return { notification, transaction };
-        });
+        }), { P2025: () => new notification_errors_1.NotificationError('Wallet tidak ditemukan', 404, 'WALLET_NOT_FOUND') });
     }
     return {
         listNotifications,

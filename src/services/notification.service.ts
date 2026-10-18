@@ -10,6 +10,7 @@
 import prisma from '../lib/prisma';
 import { Prisma } from '../generated/prisma/client';
 import { applyBalanceDeltas, computeBalanceEffect, type FinancialTxType } from '../domain/transactionBalance';
+import { withPrismaErrorTranslation } from '../utils/prismaErrors';
 import { TRANSACTION_INCLUDE } from './transaction.types';
 import { NotificationError } from './notification.errors';
 import { recurringReminderEngineService } from './recurringReminderEngine.service';
@@ -153,39 +154,49 @@ export function createNotificationService(db: NotificationPrismaClient) {
       throw new NotificationError('Kategori wajib diisi untuk transaksi ini', 400, 'CATEGORY_REQUIRED');
     }
 
-    return db.$transaction(async (tx) => {
-      const transaction = await tx.transaction.create({
-        data: {
-          userId,
-          walletId: template.walletId,
-          categoryId: template.categoryId,
-          type: template.type,
-          amount: amountDecimal,
-          description: template.name,
-          date: new Date(),
-        },
-        include: TRANSACTION_INCLUDE,
-      });
-      await applyBalanceDeltas(
-        tx,
-        computeBalanceEffect({
-          type: template.type as FinancialTxType,
-          amount: amountDecimal,
-          walletId: template.walletId,
-        })
-      );
-      // Guarded on completedAt: null so a concurrent duplicate confirm affects
-      // zero rows here and the whole write above rolls back with it.
-      const { count } = await tx.recurringReminderEvent.updateMany({
-        where: { id, userId, completedAt: null },
-        data: { completedAt: new Date(), generatedTransactionId: transaction.id },
-      });
-      if (count === 0) {
-        throw new NotificationError('Pengingat ini sudah diproses', 409, 'ALREADY_PROCESSED');
-      }
-      const notification = await tx.recurringReminderEvent.findUniqueOrThrow({ where: { id }, include: NOTIFICATION_INCLUDE });
-      return { notification, transaction };
-    });
+    // Phase 37.2: a concurrent deleteWallet on `template.walletId` can race
+    // applyBalanceDeltas's wallet.update between the pre-check above and this
+    // write — the whole $transaction already rolls back on any throw (so the
+    // transaction row created above is never left half-committed), this only
+    // translates the resulting raw Prisma P2025 into the existing
+    // NotificationError 404 instead of an unhandled 500 (same TOCTOU bug
+    // class as the Phase 37.1 wallet-alias fix).
+    return withPrismaErrorTranslation(
+      () => db.$transaction(async (tx) => {
+        const transaction = await tx.transaction.create({
+          data: {
+            userId,
+            walletId: template.walletId,
+            categoryId: template.categoryId,
+            type: template.type,
+            amount: amountDecimal,
+            description: template.name,
+            date: new Date(),
+          },
+          include: TRANSACTION_INCLUDE,
+        });
+        await applyBalanceDeltas(
+          tx,
+          computeBalanceEffect({
+            type: template.type as FinancialTxType,
+            amount: amountDecimal,
+            walletId: template.walletId,
+          })
+        );
+        // Guarded on completedAt: null so a concurrent duplicate confirm affects
+        // zero rows here and the whole write above rolls back with it.
+        const { count } = await tx.recurringReminderEvent.updateMany({
+          where: { id, userId, completedAt: null },
+          data: { completedAt: new Date(), generatedTransactionId: transaction.id },
+        });
+        if (count === 0) {
+          throw new NotificationError('Pengingat ini sudah diproses', 409, 'ALREADY_PROCESSED');
+        }
+        const notification = await tx.recurringReminderEvent.findUniqueOrThrow({ where: { id }, include: NOTIFICATION_INCLUDE });
+        return { notification, transaction };
+      }),
+      { P2025: () => new NotificationError('Wallet tidak ditemukan', 404, 'WALLET_NOT_FOUND') },
+    );
   }
 
   return {

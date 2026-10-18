@@ -337,3 +337,55 @@ describe('budgetService.restoreBudget', () => {
     expect(db.budget.create).not.toHaveBeenCalled();
   });
 });
+
+// Phase 37.2 — same TOCTOU bug class as the Phase 37.1 wallet-alias-delete
+// race: the owning Category's cascade-delete can remove this Budget row
+// between findOwned's check and the update. Simulated here by making the
+// mocked `update` lose a race on its second concurrent call (Prisma's own
+// P2025 shape), then dispatching two real concurrent calls with Promise.all.
+describe('budgetService — Phase 37.2 concurrent-delete races', () => {
+  it('updateBudgetAmount: a concurrent delete racing the write never surfaces as a raw error', async () => {
+    const db = makeDb({ budgetFindFirst: makeBudget() });
+    let calls = 0;
+    db.budget.update = vi.fn(async () => {
+      calls += 1;
+      if (calls === 1) return makeBudget({ amount: D('2000000') });
+      const err: Error & { code?: string } = new Error('Record to update not found.');
+      err.code = 'P2025';
+      throw err;
+    });
+
+    const results = await Promise.allSettled([
+      svc(db).updateBudgetAmount({ userId: USER, budgetId: 'budget-1', amount: '2000000' }),
+      svc(db).updateBudgetAmount({ userId: USER, budgetId: 'budget-1', amount: '2000000' }),
+    ]);
+
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0].reason).toBeInstanceOf(BudgetError);
+    expect(rejected[0].reason).toMatchObject({ statusCode: 404, code: 'NOT_FOUND', isOperational: true });
+  });
+
+  it('archiveBudget: a concurrent delete racing the write never surfaces as a raw error', async () => {
+    const db = makeDb({ budgetFindFirst: makeBudget({ isArchived: false }) });
+    let calls = 0;
+    db.budget.update = vi.fn(async () => {
+      calls += 1;
+      if (calls === 1) return makeBudget({ isArchived: true });
+      const err: Error & { code?: string } = new Error('Record to update not found.');
+      err.code = 'P2025';
+      throw err;
+    });
+
+    const results = await Promise.allSettled([
+      svc(db).archiveBudget({ userId: USER, budgetId: 'budget-1' }),
+      svc(db).archiveBudget({ userId: USER, budgetId: 'budget-1' }),
+    ]);
+
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0].reason).toMatchObject({ statusCode: 404, code: 'NOT_FOUND', isOperational: true });
+  });
+});

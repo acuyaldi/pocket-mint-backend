@@ -41,7 +41,23 @@ const VALID_TYPES = ['INCOME', 'EXPENSE', 'TRANSFER'];
 const CREDIT_WALLET_TYPES = ['CREDIT_CARD', 'PAYLATER'];
 export const TRANSFER_SOURCE_TYPES = ['CASH', 'BANK', 'E_WALLET'];
 
-/** Map a Prisma FK violation to the same 400 the controller used to return. */
+/**
+ * Map a Prisma FK violation to the same 400 the controller used to return.
+ *
+ * Phase 37.2 note: a concurrent wallet delete racing applyBalanceDeltas's
+ * wallet.update inside the same $transaction can also throw P2025 here —
+ * the same TOCTOU bug class fixed everywhere else in this sweep. It is
+ * DELIBERATELY left untranslated (propagates as a raw, untyped error) rather
+ * than mapped to a typed TransactionError: financial-draft.service.ts's
+ * confirm() calls createTransaction with `{ transaction: tx }` and its own
+ * catch treats *any* `instanceof TransactionError` as a terminal failure,
+ * permanently marking the draft FAILED (a state with no recovery path —
+ * see docs/audit/assistant-audit-phase-21-37.md finding B2). Typing this
+ * transient race as a TransactionError would turn a possibly-retryable
+ * concurrency hiccup into a permanently stuck draft, which is worse than
+ * today's raw error. Fixing this needs a semantic decision (see the Phase
+ * 37.2 PR description) — not guessed here.
+ */
 function rethrowCreate(err: unknown): never {
   if (err instanceof TransactionError) throw err;
   if ((err as { code?: string }).code === 'P2003') {

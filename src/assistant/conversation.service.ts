@@ -2,6 +2,7 @@ import type { AssistantChannel, ChannelDeliveryStatus, PrismaClient, Prisma } fr
 import { AssistantError } from './errors';
 import { assertAssistantMessageLength } from './persistence';
 import { validateIdempotencyKey } from './financial-draft';
+import { withPrismaErrorTranslation } from '../utils/prismaErrors';
 import type { AssistantDeliveryStatus, BeginTurnInput, BeginTurnResult, ConversationMessageDto, ConversationSummaryDto, FinalizeToolInput, FinalizeWithoutToolInput, Page } from './conversation.types';
 
 /** Fixed, deterministic display order — also dedupes since each channel appears at most once. */
@@ -253,7 +254,14 @@ export function createAssistantConversationService(db: PrismaClient) {
     const conversation = await owned(userId, id);
     if (conversation.status === 'ARCHIVED') return { id, status: conversation.status, archivedAt: conversation.archivedAt };
     if (conversation.status === 'EXPIRED') throw AssistantError.conversationNotContinuable();
-    const updated = await db.assistantConversation.update({ where: { id }, data: { status: 'ARCHIVED', archivedAt: new Date() } });
+    // A concurrent deleteOwnedConversation can remove this row between the
+    // `owned()` check above and this write (Phase 37.2) — translate the
+    // resulting Prisma P2025 into the same typed 404 `owned()` already
+    // throws for an ordinary missing conversation, instead of an unhandled 500.
+    const updated = await withPrismaErrorTranslation(
+      () => db.assistantConversation.update({ where: { id }, data: { status: 'ARCHIVED', archivedAt: new Date() } }),
+      { P2025: () => AssistantError.conversationNotFound() },
+    );
     return { id: updated.id, status: updated.status, archivedAt: updated.archivedAt };
   }
 
@@ -261,7 +269,11 @@ export function createAssistantConversationService(db: PrismaClient) {
     const conversation = await owned(userId, id);
     if (conversation.status === 'ACTIVE') return { id, status: conversation.status, archivedAt: conversation.archivedAt };
     if (conversation.status === 'EXPIRED') throw AssistantError.conversationNotContinuable();
-    const updated = await db.assistantConversation.update({ where: { id }, data: { status: 'ACTIVE', archivedAt: null } });
+    // Same concurrent-delete TOCTOU as archiveOwnedConversation (Phase 37.2).
+    const updated = await withPrismaErrorTranslation(
+      () => db.assistantConversation.update({ where: { id }, data: { status: 'ACTIVE', archivedAt: null } }),
+      { P2025: () => AssistantError.conversationNotFound() },
+    );
     return { id: updated.id, status: updated.status, archivedAt: updated.archivedAt };
   }
 
@@ -280,7 +292,15 @@ export function createAssistantConversationService(db: PrismaClient) {
    */
   async function deleteOwnedConversation(userId: string, id: string): Promise<{ id: string }> {
     await owned(userId, id);
-    await db.assistantConversation.delete({ where: { id } });
+    // A concurrent/retried delete of the same conversation can pass the
+    // `owned()` check above and then hit Prisma P2025 on the delete itself
+    // (the row is already gone) — translate that into the same typed 404
+    // instead of propagating a raw Prisma error as an unexpected 500
+    // (Phase 37.2, mirrors walletAlias.service.ts's remove()).
+    await withPrismaErrorTranslation(
+      () => db.assistantConversation.delete({ where: { id } }),
+      { P2025: () => AssistantError.conversationNotFound() },
+    );
     return { id };
   }
 

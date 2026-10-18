@@ -9,6 +9,7 @@
 
 import prisma from '../lib/prisma';
 import { normalizeMerchant } from '../domain/categorization';
+import { withPrismaErrorTranslation } from '../utils/prismaErrors';
 import { MerchantMappingError } from './merchantMapping.errors';
 import type {
   CreateMerchantMappingInput,
@@ -35,12 +36,14 @@ function parseMerchantName(value: string | undefined | null): { merchantName: st
 }
 
 export function createMerchantMappingService(db: MerchantMappingPrismaClient) {
+  function notFound(): MerchantMappingError {
+    return new MerchantMappingError('Merchant mapping tidak ditemukan', 404, 'NOT_FOUND');
+  }
+
   /** Ownership-scoped lookup; a missing or another user's mapping is one indistinguishable 404. */
   async function findOwned(userId: string, id: string): Promise<MerchantMappingRecord> {
     const mapping = await db.merchantMapping.findFirst({ where: { id, userId } });
-    if (!mapping) {
-      throw new MerchantMappingError('Merchant mapping tidak ditemukan', 404, 'NOT_FOUND');
-    }
+    if (!mapping) throw notFound();
     return mapping;
   }
 
@@ -117,21 +120,29 @@ export function createMerchantMappingService(db: MerchantMappingPrismaClient) {
       data.categoryId = input.categoryId;
     }
 
-    try {
-      return await db.merchantMapping.update({ where: { id: mappingId }, data });
-    } catch (err) {
-      if (err instanceof MerchantMappingError) throw err;
-      if ((err as { code?: string }).code === 'P2002') {
-        throw new MerchantMappingError('Merchant ini sudah dipetakan ke kategori lain', 409, 'DUPLICATE_MERCHANT');
-      }
-      throw err;
-    }
+    // Phase 37.2: a concurrent delete/retried update can remove this row
+    // between the ownership check above and this write — P2025 is the same
+    // TOCTOU bug class Phase 37.1 fixed, added here alongside the existing
+    // P2002 (duplicate-merchant race) handling.
+    return withPrismaErrorTranslation(
+      () => db.merchantMapping.update({ where: { id: mappingId }, data }),
+      {
+        P2002: () => new MerchantMappingError('Merchant ini sudah dipetakan ke kategori lain', 409, 'DUPLICATE_MERCHANT'),
+        P2025: notFound,
+      },
+    );
   }
 
   async function remove(input: DeleteMerchantMappingInput): Promise<void> {
     const { userId, mappingId } = input;
     await findOwned(userId, mappingId);
-    await db.merchantMapping.delete({ where: { id: mappingId } });
+    // Phase 37.2: a concurrent/retried delete of the same mapping can pass
+    // the findOwned check above and then hit Prisma P2025 on the delete
+    // itself — same bug class the Phase 37.1 wallet-alias fix addressed.
+    await withPrismaErrorTranslation(
+      () => db.merchantMapping.delete({ where: { id: mappingId } }),
+      { P2025: notFound },
+    );
   }
 
   /**

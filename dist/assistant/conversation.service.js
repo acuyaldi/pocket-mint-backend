@@ -6,6 +6,7 @@ exports.createAssistantConversationService = createAssistantConversationService;
 const errors_1 = require("./errors");
 const persistence_1 = require("./persistence");
 const financial_draft_1 = require("./financial-draft");
+const prismaErrors_1 = require("../utils/prismaErrors");
 /** Fixed, deterministic display order — also dedupes since each channel appears at most once. */
 const CHANNEL_ORDER = ['WEB', 'TELEGRAM'];
 const sourceChannelsOf = (channels) => CHANNEL_ORDER.filter((channel) => channels.includes(channel));
@@ -238,7 +239,11 @@ function createAssistantConversationService(db) {
             return { id, status: conversation.status, archivedAt: conversation.archivedAt };
         if (conversation.status === 'EXPIRED')
             throw errors_1.AssistantError.conversationNotContinuable();
-        const updated = await db.assistantConversation.update({ where: { id }, data: { status: 'ARCHIVED', archivedAt: new Date() } });
+        // A concurrent deleteOwnedConversation can remove this row between the
+        // `owned()` check above and this write (Phase 37.2) — translate the
+        // resulting Prisma P2025 into the same typed 404 `owned()` already
+        // throws for an ordinary missing conversation, instead of an unhandled 500.
+        const updated = await (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.assistantConversation.update({ where: { id }, data: { status: 'ARCHIVED', archivedAt: new Date() } }), { P2025: () => errors_1.AssistantError.conversationNotFound() });
         return { id: updated.id, status: updated.status, archivedAt: updated.archivedAt };
     }
     async function restoreOwnedConversation(userId, id) {
@@ -247,7 +252,8 @@ function createAssistantConversationService(db) {
             return { id, status: conversation.status, archivedAt: conversation.archivedAt };
         if (conversation.status === 'EXPIRED')
             throw errors_1.AssistantError.conversationNotContinuable();
-        const updated = await db.assistantConversation.update({ where: { id }, data: { status: 'ACTIVE', archivedAt: null } });
+        // Same concurrent-delete TOCTOU as archiveOwnedConversation (Phase 37.2).
+        const updated = await (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.assistantConversation.update({ where: { id }, data: { status: 'ACTIVE', archivedAt: null } }), { P2025: () => errors_1.AssistantError.conversationNotFound() });
         return { id: updated.id, status: updated.status, archivedAt: updated.archivedAt };
     }
     /**
@@ -265,7 +271,12 @@ function createAssistantConversationService(db) {
      */
     async function deleteOwnedConversation(userId, id) {
         await owned(userId, id);
-        await db.assistantConversation.delete({ where: { id } });
+        // A concurrent/retried delete of the same conversation can pass the
+        // `owned()` check above and then hit Prisma P2025 on the delete itself
+        // (the row is already gone) — translate that into the same typed 404
+        // instead of propagating a raw Prisma error as an unexpected 500
+        // (Phase 37.2, mirrors walletAlias.service.ts's remove()).
+        await (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.assistantConversation.delete({ where: { id } }), { P2025: () => errors_1.AssistantError.conversationNotFound() });
         return { id };
     }
     /**
