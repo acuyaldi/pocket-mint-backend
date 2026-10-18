@@ -76,11 +76,16 @@ export class UserController {
         // Re-fetch by the verified id (never by email) to tell apart the two
         // P2002 causes: the id race above (same row, already created by the
         // concurrent winner — a true idempotent success) from a genuine
-        // email collision with a DIFFERENT existing user (never silently
-        // adopt or reveal that other account).
+        // collision with a DIFFERENT existing user (never silently adopt
+        // that other account). The response for the latter is deliberately
+        // generic — it must not name "email" or otherwise confirm which
+        // value collided, since the body `email` can be attacker-chosen
+        // whenever the verified token carries no email claim, and a
+        // distinct "this email is taken" outcome would turn this endpoint
+        // into an account-enumeration oracle.
         const racedUser = await prisma.user.findUnique({ where: { id: userId }, select: userSelect });
         if (!racedUser) {
-          return sendError(res, "An account with this email already exists", 409, "EMAIL_ALREADY_EXISTS");
+          return sendError(res, "Unable to sync user account", 409, "SYNC_CONFLICT");
         }
         await categoryService.ensureDefaultCategories(userId);
         return sendSuccess(res, racedUser, "User already exists");

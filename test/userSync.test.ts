@@ -272,7 +272,7 @@ describe('POST /users/sync — Phase 37.2 concurrent-create races', () => {
     expect(ensureDefaultCategories).toHaveBeenCalledWith('u1');
   });
 
-  it('a genuine email collision with a different existing user is a typed 409, never silently adopted', async () => {
+  it('a genuine collision with a different existing user is a generic typed 409, never silently adopted and never names which field collided', async () => {
     findUnique.mockReset();
     findUnique
       .mockResolvedValueOnce(null) // initial pre-check: no row at this id yet
@@ -288,10 +288,14 @@ describe('POST /users/sync — Phase 37.2 concurrent-create races', () => {
     const res = await request(app).post('/sync').set('Authorization', `Bearer ${token}`).send({ name: 'A' });
 
     expect(res.status).toBe(409);
+    // Deliberately generic: a distinct "this email is taken" response would
+    // let an attacker-chosen body email (used whenever the verified token
+    // carries no email claim) probe which emails already have an account.
     expect(res.body).toEqual({
       success: false,
-      error: { code: 'EMAIL_ALREADY_EXISTS', statusCode: 409, message: 'An account with this email already exists' },
+      error: { code: 'SYNC_CONFLICT', statusCode: 409, message: 'Unable to sync user account' },
     });
+    expect(res.body.error.message.toLowerCase()).not.toContain('email');
     expect(ensureDefaultCategories).not.toHaveBeenCalled();
   });
 });
