@@ -60,6 +60,46 @@ export declare function toSafeAssistantTurnRow(row: {
     status: string;
     startedAt: Date;
 }): SafeAssistantTurnRow;
+export interface SafeFinancialDraftRow {
+    id: string;
+    userId: string;
+    conversationId: string;
+    operation: string;
+    transactionType: string;
+    status: string;
+    createdAt: Date;
+    expiresAt: Date;
+    failedAt: Date | null;
+}
+export declare function toSafeFinancialDraftRow(row: {
+    id: string;
+    userId: string;
+    conversationId: string;
+    operation: string;
+    transactionType: string;
+    status: string;
+    createdAt: Date;
+    expiresAt: Date;
+    failedAt: Date | null;
+}): SafeFinancialDraftRow;
+export interface SafeClarificationRequestRow {
+    id: string;
+    userId: string;
+    conversationId: string;
+    entityType: string;
+    status: string;
+    createdAt: Date;
+    expiresAt: Date;
+}
+export declare function toSafeClarificationRequestRow(row: {
+    id: string;
+    userId: string;
+    conversationId: string;
+    entityType: string;
+    status: string;
+    createdAt: Date;
+    expiresAt: Date;
+}): SafeClarificationRequestRow;
 /** Groups rows by `errorCategory` (nulls bucketed as `'(none)'`), counted only. */
 export declare function summarizeByErrorCategory(rows: Array<{
     errorCategory: string | null;

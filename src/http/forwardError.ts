@@ -19,11 +19,17 @@ import { sendError } from '../utils/response';
  * The contract a service error must satisfy to be forwarded as a client-safe
  * operational error. Both `TransactionError` and `WalletError` already implement
  * it (each sets `isOperational = true` plus `statusCode`/`code`).
+ *
+ * `detail` (Phase 37.3) is optional and only `AssistantError` currently sets
+ * it (e.g. the specific terminal draft/clarification status a conflict was
+ * rejected from) — every other domain error leaves it `undefined`, so
+ * `sendError` omits the envelope field for them exactly as before.
  */
 export interface OperationalError extends Error {
   statusCode: number;
   code: string;
   isOperational: true;
+  detail?: string;
 }
 
 /** Structural guard: a known, client-safe operational error (never an unexpected 5xx). */
@@ -43,7 +49,7 @@ export function isOperationalError(err: unknown): err is OperationalError {
  */
 export function forwardError(err: unknown, res: Response, next: NextFunction): void {
   if (isOperationalError(err)) {
-    sendError(res, err.message, err.statusCode, err.code);
+    sendError(res, err.message, err.statusCode, err.code, err.detail);
     return;
   }
   next(err);

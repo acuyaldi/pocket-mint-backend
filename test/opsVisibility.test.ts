@@ -3,6 +3,8 @@ import {
   toSafeInboundJobRow,
   toSafeOutboundDeliveryRow,
   toSafeAssistantTurnRow,
+  toSafeFinancialDraftRow,
+  toSafeClarificationRequestRow,
   summarizeByErrorCategory,
   isAmbiguousExecution,
 } from '../src/domain/opsVisibility';
@@ -104,6 +106,74 @@ describe('toSafeAssistantTurnRow — redaction', () => {
       startedAt: row.startedAt,
     });
     expect(Object.keys(safe)).not.toContain('locale');
+  });
+});
+
+describe('toSafeFinancialDraftRow — redaction (Phase 37.3)', () => {
+  it('keeps only the allowlisted fields, dropping amount/wallet/category/description', () => {
+    const row = {
+      id: 'draft1',
+      userId: 'user1',
+      conversationId: 'conv1',
+      operation: 'transaction.create',
+      transactionType: 'EXPENSE',
+      status: 'FAILED',
+      createdAt: new Date('2026-09-01'),
+      expiresAt: new Date('2026-09-01T00:15:00Z'),
+      failedAt: new Date('2026-09-01T00:10:00Z'),
+      amount: '500000',
+      walletId: 'wallet1',
+      categoryId: 'cat1',
+      description: 'transfer to my brother',
+    };
+
+    const safe = toSafeFinancialDraftRow(row);
+
+    expect(safe).toEqual({
+      id: 'draft1',
+      userId: 'user1',
+      conversationId: 'conv1',
+      operation: 'transaction.create',
+      transactionType: 'EXPENSE',
+      status: 'FAILED',
+      createdAt: row.createdAt,
+      expiresAt: row.expiresAt,
+      failedAt: row.failedAt,
+    });
+    expect(Object.keys(safe)).not.toContain('amount');
+    expect(Object.keys(safe)).not.toContain('walletId');
+    expect(Object.keys(safe)).not.toContain('categoryId');
+    expect(Object.keys(safe)).not.toContain('description');
+  });
+});
+
+describe('toSafeClarificationRequestRow — redaction (Phase 37.3)', () => {
+  it('keeps only the allowlisted fields, dropping prompt/trustedContext', () => {
+    const row = {
+      id: 'clar1',
+      userId: 'user1',
+      conversationId: 'conv1',
+      entityType: 'wallet',
+      status: 'PENDING',
+      createdAt: new Date('2026-09-01'),
+      expiresAt: new Date('2026-09-01T00:15:00Z'),
+      prompt: 'Which wallet did you mean: BCA or Mandiri?',
+      trustedContext: { version: 1, operation: 'transaction.create', type: 'EXPENSE', amount: '500000' },
+    };
+
+    const safe = toSafeClarificationRequestRow(row);
+
+    expect(safe).toEqual({
+      id: 'clar1',
+      userId: 'user1',
+      conversationId: 'conv1',
+      entityType: 'wallet',
+      status: 'PENDING',
+      createdAt: row.createdAt,
+      expiresAt: row.expiresAt,
+    });
+    expect(Object.keys(safe)).not.toContain('prompt');
+    expect(Object.keys(safe)).not.toContain('trustedContext');
   });
 });
 

@@ -465,4 +465,138 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
     expect(recovery.status).toBe(200);
     expect(recovery.body.data.pendingDraft.preview).toMatchObject({ categoryId: category.id, transactionDate: '2026-07-22' });
   });
+
+  // ---- Phase 37.3: FAILED/EXPIRED terminal semantics ----------------------
+
+  describe('Phase 37.3 — FAILED is a terminal, never-replayed state', () => {
+    it('rejects a confirm retry on a FAILED draft with a response the client can tell apart from an actionable state', async () => {
+      const { user, wallet, category } = await fixture('failed-no-replay');
+      const server = app();
+      const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+      const draftId = prepared.body.data.data.draftId;
+      await resources!.prisma.category.update({ where: { id: category.id }, data: { type: 'INCOME' } });
+      const failed = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'failed-no-replay-key');
+      expect(failed.status).toBe(400);
+      expect((await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status).toBe('FAILED');
+
+      // A second confirm against the now-FAILED draft — must stay FAILED,
+      // never auto-replay the transaction attempt, and the envelope must
+      // carry a marker a client can branch on without parsing `message`.
+      const retry = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'failed-no-replay-retry-key');
+      expect(retry.status).toBe(409);
+      expect(retry.body.error.code).toBe('ASSISTANT_DRAFT_CONFLICT');
+      expect(retry.body.error.detail).toBe('FAILED');
+      expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(0);
+      expect((await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status).toBe('FAILED');
+    });
+
+    it('rejects a cancel on a FAILED draft the same way', async () => {
+      const { user, wallet, category } = await fixture('failed-no-cancel');
+      const server = app();
+      const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+      const draftId = prepared.body.data.data.draftId;
+      await resources!.prisma.category.update({ where: { id: category.id }, data: { type: 'INCOME' } });
+      await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'failed-no-cancel-key');
+
+      const cancelled = await request(server).post(`/drafts/${draftId}/cancel`).set('x-test-user', user.id);
+      expect(cancelled.status).toBe(409);
+      expect(cancelled.body.error.detail).toBe('FAILED');
+      expect((await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status).toBe('FAILED');
+    });
+  });
+
+  describe('Phase 37.3 — EXPIRED conflict carries a distinguishable marker and is race-safe', () => {
+    it('an EXPIRED conflict response carries error.detail distinct from FAILED/CANCELLED/COMMITTED', async () => {
+      const { user, wallet, category } = await fixture('expired-detail-marker');
+      const prepared = await request(app()).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+      const draftId = prepared.body.data.data.draftId;
+      const draft = await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } });
+      const server = app(() => new Date(draft.expiresAt.getTime() + 1));
+      const response = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'expired-detail-marker-key');
+      expect(response.status).toBe(409);
+      expect(response.body.error.code).toBe('ASSISTANT_DRAFT_CONFLICT');
+      expect(response.body.error.detail).toBe('EXPIRED');
+    });
+
+    it('concurrent confirm vs confirm on an already-expired draft: both reject with the EXPIRED conflict, never a transaction, never a 500', async () => {
+      const { user, wallet, category } = await fixture('expired-race-confirm-confirm');
+      const prepared = await request(app()).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+      const draftId = prepared.body.data.data.draftId;
+      const draft = await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } });
+      const server = app(() => new Date(draft.expiresAt.getTime() + 1));
+
+      const responses = await Promise.all([
+        request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'expired-race-a'),
+        request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'expired-race-b'),
+      ]);
+
+      for (const response of responses) {
+        expect(response.status).toBe(409);
+        expect(response.body.error.detail).toBe('EXPIRED');
+      }
+      expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(0);
+      expect((await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status).toBe('EXPIRED');
+    });
+
+    it('concurrent confirm vs cancel on an already-expired draft: both terminal, never a transaction, never a 500', async () => {
+      const { user, wallet, category } = await fixture('expired-race-confirm-cancel');
+      const prepared = await request(app()).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+      const draftId = prepared.body.data.data.draftId;
+      const draft = await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } });
+      const server = app(() => new Date(draft.expiresAt.getTime() + 1));
+
+      const [confirmRes, cancelRes] = await Promise.all([
+        request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'expired-race-cc'),
+        request(server).post(`/drafts/${draftId}/cancel`).set('x-test-user', user.id),
+      ]);
+
+      expect(confirmRes.status).toBe(409);
+      expect([200, 409]).toContain(cancelRes.status); // cancel() returns EXPIRED as a 200 result, not an error, when it wins the race
+      expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(0);
+      expect((await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status).toBe('EXPIRED');
+    });
+
+    it('a concurrent conversation delete racing the lazy EXPIRED write returns a clean 404, never a raw 500', async () => {
+      const { user, wallet, category } = await fixture('expired-race-conversation-delete');
+      const prepared = await request(app()).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+      const draftId = prepared.body.data.data.draftId;
+      const conversationId = prepared.body.data.conversationId;
+      const draft = await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } });
+      const server = app(() => new Date(draft.expiresAt.getTime() + 1));
+      const conversations = createAssistantConversationService(resources!.prisma);
+
+      const [deleteResult, confirmResponse] = await Promise.allSettled([
+        conversations.deleteOwnedConversation(user.id, conversationId),
+        request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', 'expired-race-delete-key'),
+      ]);
+
+      // Whichever order they actually land in, the draft (cascade-deleted
+      // with its conversation) never ends up COMMITTED, and confirm() never
+      // surfaces a raw/unhandled error — only its own typed 404/409.
+      expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(0);
+      if (confirmResponse.status === 'fulfilled') {
+        expect([404, 409]).toContain(confirmResponse.value.status);
+      }
+      expect(deleteResult.status).toBe('fulfilled');
+    });
+  });
+
+  describe('Phase 37.3 — abandoned PENDING is excluded from active recovery state', () => {
+    it('recovery-state no longer reports a past-TTL PENDING_CONFIRMATION draft as the pending draft', async () => {
+      const { user, wallet, category } = await fixture('abandoned-pending-draft');
+      const prepared = await request(app()).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+      const draftId = prepared.body.data.data.draftId;
+      // Force the row itself past expiresAt without ever touching it through
+      // confirm/cancel — simulates a draft nobody ever acted on again.
+      await resources!.prisma.assistantFinancialDraft.update({ where: { id: draftId }, data: { expiresAt: new Date(0) } });
+
+      const server = app();
+      const recovery = await request(server).get(`/conversations/${prepared.body.data.conversationId}/recovery-state`).set('x-test-user', user.id);
+
+      expect(recovery.status).toBe(200);
+      expect(recovery.body.data.pendingDraft).toBeUndefined();
+      // The DB row itself is untouched — lazy expiry only, no sweep.
+      expect((await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status).toBe('PENDING_CONFIRMATION');
+    });
+  });
 });

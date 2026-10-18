@@ -18,6 +18,8 @@ exports.isAmbiguousExecution = isAmbiguousExecution;
 exports.toSafeInboundJobRow = toSafeInboundJobRow;
 exports.toSafeOutboundDeliveryRow = toSafeOutboundDeliveryRow;
 exports.toSafeAssistantTurnRow = toSafeAssistantTurnRow;
+exports.toSafeFinancialDraftRow = toSafeFinancialDraftRow;
+exports.toSafeClarificationRequestRow = toSafeClarificationRequestRow;
 exports.summarizeByErrorCategory = summarizeByErrorCategory;
 /** Terminal-execution categories PD-015/PD-016 mark as needing manual inspection. */
 exports.AMBIGUOUS_ERROR_CATEGORIES = [
@@ -63,6 +65,30 @@ function toSafeAssistantTurnRow(row) {
         intent: row.intent,
         status: row.status,
         startedAt: row.startedAt,
+    };
+}
+function toSafeFinancialDraftRow(row) {
+    return {
+        id: row.id,
+        userId: row.userId,
+        conversationId: row.conversationId,
+        operation: row.operation,
+        transactionType: row.transactionType,
+        status: row.status,
+        createdAt: row.createdAt,
+        expiresAt: row.expiresAt,
+        failedAt: row.failedAt,
+    };
+}
+function toSafeClarificationRequestRow(row) {
+    return {
+        id: row.id,
+        userId: row.userId,
+        conversationId: row.conversationId,
+        entityType: row.entityType,
+        status: row.status,
+        createdAt: row.createdAt,
+        expiresAt: row.expiresAt,
     };
 }
 /** Groups rows by `errorCategory` (nulls bucketed as `'(none)'`), counted only. */

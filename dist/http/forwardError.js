@@ -30,7 +30,7 @@ function isOperationalError(err) {
  */
 function forwardError(err, res, next) {
     if (isOperationalError(err)) {
-        (0, response_1.sendError)(res, err.message, err.statusCode, err.code);
+        (0, response_1.sendError)(res, err.message, err.statusCode, err.code, err.detail);
         return;
     }
     next(err);
