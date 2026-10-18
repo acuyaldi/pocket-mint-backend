@@ -7,7 +7,7 @@ import { Prisma } from '../src/generated/prisma/client';
 vi.mock('../src/lib/prisma', () => ({ default: {} }));
 
 import { createTransactionService } from '../src/services/transaction.service';
-import { TransactionError } from '../src/services/transaction.errors';
+import { TransactionError, TransactionConcurrencyError } from '../src/services/transaction.errors';
 import type { TransactionPrismaClient } from '../src/services/transaction.types';
 
 const D = (n: number | string) => new Prisma.Decimal(n);
@@ -580,16 +580,17 @@ describe('transactionService.deleteTransaction', () => {
   });
 });
 
-// Phase 37.2 — createTransaction's P2025 (a concurrent wallet delete racing
-// applyBalanceDeltas's wallet.update) is DELIBERATELY left untranslated.
-// See the comment on rethrowCreate in transaction.service.ts: typing it as a
-// TransactionError would make financial-draft.service.ts's confirm() path
-// permanently mark the draft FAILED for what may be a retryable race,
-// trading an unhandled-error problem for a worse stuck-state problem. This
-// test pins today's actual (imperfect but not regressed) behavior: the raw
-// error still propagates untyped, exactly as before this sweep.
-describe('transactionService.createTransaction — Phase 37.2 (deliberately unchanged)', () => {
-  it('a concurrent wallet delete racing the balance update still propagates untranslated, never as a TransactionError', async () => {
+// Phase 37.4 — createTransaction's P2025 (a concurrent wallet delete racing
+// applyBalanceDeltas's wallet.update) is now translated into
+// TransactionConcurrencyError, a deliberate SIBLING of TransactionError (not
+// a subclass) — see the comment on rethrowCreate in transaction.service.ts.
+// financial-draft.service.ts's confirm() specifically checks `instanceof
+// TransactionError` to decide whether to permanently mark a draft FAILED;
+// this sibling class does not match that check, so the draft stays
+// PENDING_CONFIRMATION and the caller can edit+retry (Phase 34) instead of
+// hitting a permanently stuck draft.
+describe('transactionService.createTransaction — Phase 37.4 concurrency translation', () => {
+  it('a concurrent wallet delete racing the balance update is a typed 409 TransactionConcurrencyError, never a raw error or a TransactionError', async () => {
     const walletUpdate = vi.fn(async () => {
       const err: Error & { code?: string } = new Error('Record to update not found.');
       err.code = 'P2025';
@@ -613,6 +614,7 @@ describe('transactionService.createTransaction — Phase 37.2 (deliberately unch
     }).catch((e) => e);
 
     expect(err).not.toBeInstanceOf(TransactionError);
-    expect((err as { code?: string }).code).toBe('P2025');
+    expect(err).toBeInstanceOf(TransactionConcurrencyError);
+    expect(err).toMatchObject({ statusCode: 409, code: 'WALLET_CONCURRENTLY_MODIFIED', isOperational: true });
   });
 });

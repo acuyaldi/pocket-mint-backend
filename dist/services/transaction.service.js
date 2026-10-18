@@ -34,25 +34,28 @@ exports.TRANSFER_SOURCE_TYPES = ['CASH', 'BANK', 'E_WALLET'];
 /**
  * Map a Prisma FK violation to the same 400 the controller used to return.
  *
- * Phase 37.2 note: a concurrent wallet delete racing applyBalanceDeltas's
+ * Phase 37.4: a concurrent wallet delete racing applyBalanceDeltas's
  * wallet.update inside the same $transaction can also throw P2025 here —
- * the same TOCTOU bug class fixed everywhere else in this sweep. It is
- * DELIBERATELY left untranslated (propagates as a raw, untyped error) rather
- * than mapped to a typed TransactionError: financial-draft.service.ts's
- * confirm() calls createTransaction with `{ transaction: tx }` and its own
- * catch treats *any* `instanceof TransactionError` as a terminal failure,
- * permanently marking the draft FAILED (a state with no recovery path —
- * see docs/audit/assistant-audit-phase-21-37.md finding B2). Typing this
- * transient race as a TransactionError would turn a possibly-retryable
- * concurrency hiccup into a permanently stuck draft, which is worse than
- * today's raw error. Fixing this needs a semantic decision (see the Phase
- * 37.2 PR description) — not guessed here.
+ * the same TOCTOU bug class fixed everywhere else in this sweep. Phase 37.2
+ * deliberately left it untranslated (raw, untyped error) because
+ * financial-draft.service.ts's confirm() treats *any* `instanceof
+ * TransactionError` as a terminal failure, permanently marking the draft
+ * FAILED (a state with no recovery path — docs/assistant-stuck-states.md).
+ * Now translated into `TransactionConcurrencyError` instead — a deliberate
+ * SIBLING class, not a TransactionError subclass, so confirm()'s check does
+ * NOT match it: the draft stays PENDING_CONFIRMATION, and the caller can
+ * edit the draft (Phase 34) and retry. This also fixes the direct
+ * `POST /transactions` REST path (no `options.transaction`), which had the
+ * exact same raw-500 gap and has no FAILED-marking concern to protect.
  */
 function rethrowCreate(err) {
-    if (err instanceof transaction_errors_1.TransactionError)
+    if (err instanceof transaction_errors_1.TransactionError || err instanceof transaction_errors_1.TransactionConcurrencyError)
         throw err;
     if (err.code === 'P2003') {
         throw new transaction_errors_1.TransactionError('Invalid userId, walletId, toWalletId, or categoryId (related record not found)', 400, 'BAD_REQUEST');
+    }
+    if (err.code === 'P2025') {
+        throw new transaction_errors_1.TransactionConcurrencyError('Wallet atau kategori telah diubah oleh proses lain. Periksa kembali draft dan coba lagi.', 409, 'WALLET_CONCURRENTLY_MODIFIED');
     }
     throw err;
 }

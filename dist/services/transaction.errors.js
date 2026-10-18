@@ -9,7 +9,7 @@
 // must propagate untyped to the central error handler.
 // ============================================================
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TransactionError = void 0;
+exports.TransactionConcurrencyError = exports.TransactionError = void 0;
 class TransactionError extends Error {
     constructor(message, statusCode, code) {
         super(message);
@@ -23,4 +23,27 @@ class TransactionError extends Error {
     }
 }
 exports.TransactionError = TransactionError;
+/**
+ * Phase 37.4 — a deliberate SIBLING of `TransactionError`, not a subclass:
+ * `financial-draft.service.ts`'s `confirm()` catch specifically checks
+ * `instanceof TransactionError` to decide whether to permanently mark a
+ * draft FAILED (a terminal state with no recovery path — see
+ * docs/assistant-stuck-states.md). Thrown only for a transient concurrency
+ * race (a wallet/category deleted between createTransaction's own ownership
+ * check and its write) that the caller can resolve by editing the draft
+ * (Phase 34) and retrying confirm — the draft must stay
+ * PENDING_CONFIRMATION, not FAILED, so this must never satisfy
+ * `instanceof TransactionError`.
+ */
+class TransactionConcurrencyError extends Error {
+    constructor(message, statusCode, code) {
+        super(message);
+        this.isOperational = true;
+        this.name = 'TransactionConcurrencyError';
+        this.statusCode = statusCode;
+        this.code = code;
+        Object.setPrototypeOf(this, TransactionConcurrencyError.prototype);
+    }
+}
+exports.TransactionConcurrencyError = TransactionConcurrencyError;
 //# sourceMappingURL=transaction.errors.js.map
