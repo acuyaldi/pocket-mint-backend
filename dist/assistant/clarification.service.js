@@ -349,14 +349,26 @@ function createClarificationService(db) {
     }
     // ---- State projection ------------------------------------------------------
     async function getAssistantState(userId, conversationId) {
+        // Abandoned-PENDING visibility (Phase 37.3): a PENDING clarification or
+        // PENDING_CONFIRMATION draft only flips to its terminal state (STALE /
+        // EXPIRED) lazily, the next time something tries to act on it (select/
+        // cancel/confirm). Nobody may ever touch it again after it goes stale —
+        // there is deliberately no background sweep (see
+        // docs/assistant-stuck-states.md for why). Without this filter, this read
+        // path would keep reporting a row as the conversation's "active"
+        // clarification/draft long after it's no longer actionable, misleading
+        // both the recovery UI and this function's own callers. Using database
+        // time (not the process clock) matches every other expiry check in this
+        // file (select/cancel/consumeGuidedFields all use `dbNow`).
+        const now = await dbNow(db);
         const [activeRequest, pendingDraft, latestTerminal, runningTurn] = await Promise.all([
             db.clarificationRequest.findFirst({
-                where: { conversationId, userId, status: 'PENDING' },
+                where: { conversationId, userId, status: 'PENDING', expiresAt: { gt: now } },
                 include: { options: true },
                 orderBy: { createdAt: 'desc' },
             }),
             db.assistantFinancialDraft.findFirst({
-                where: { conversationId, userId, status: 'PENDING_CONFIRMATION' },
+                where: { conversationId, userId, status: 'PENDING_CONFIRMATION', expiresAt: { gt: now } },
                 orderBy: { createdAt: 'desc' },
                 select: {
                     id: true,

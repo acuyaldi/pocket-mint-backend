@@ -417,4 +417,27 @@ describe.skipIf(!url)('Clarification lifecycle expiry (disposable PostgreSQL)', 
 
     void walletB;
   });
+
+  // ==========================================================================
+  // Phase 37.3 — abandoned PENDING excluded from active recovery state
+  // ==========================================================================
+
+  it('getAssistantState no longer reports a past-TTL PENDING clarification nobody ever acted on again as active', async () => {
+    const { server, clarification } = buildServer();
+    const { userId, category } = await walletAmbiguityFixture('abandoned-pending-clarification');
+    const created = await createWalletAmbiguity(server, userId, category.id);
+    const clar = created.data.clarification;
+
+    // Force the row itself past expiresAt directly (same helper the other
+    // expiry tests use) — never touched through select/cancel, simulating a
+    // clarification the user simply walked away from.
+    await expireNow(clar.clarificationId);
+
+    const state = await clarification.getAssistantState(userId, created.conversationId);
+
+    expect(state.activeClarification).toBeUndefined();
+    // The DB row itself is untouched — lazy expiry only, no sweep (see
+    // docs/assistant-stuck-states.md).
+    expect((await db().clarificationRequest.findUniqueOrThrow({ where: { id: clar.clarificationId } })).status).toBe('PENDING');
+  });
 });
