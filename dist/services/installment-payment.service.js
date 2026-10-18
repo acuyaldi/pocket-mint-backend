@@ -12,6 +12,7 @@ const reportingTime_1 = require("../domain/reportingTime");
 const billingCycle_1 = require("../domain/billingCycle");
 const installment_1 = require("../domain/installment");
 const transactionBalance_1 = require("../domain/transactionBalance");
+const prismaErrors_1 = require("../utils/prismaErrors");
 const installment_errors_1 = require("./installment.errors");
 const ALLOWED_SOURCE_TYPES = ['BANK', 'CASH', 'E_WALLET'];
 const INSTALLMENT_PAYMENT_INCLUDE = {
@@ -82,7 +83,15 @@ function createInstallmentPaymentService(db) {
         const nextDueDate = nextStatus === client_1.InstallmentStatus.SETTLED
             ? installment.nextDueDate
             : (0, reportingTime_1.parseBusinessDate)((0, billingCycle_1.addBillingMonth)((0, reportingTime_1.formatReportingDate)(installment.nextDueDate, config_1.reportingConfig.timezone), 1), config_1.reportingConfig.timezone);
-        return db.$transaction(async (tx) => {
+        // Phase 37.2: a concurrent deleteTransaction on this installment's
+        // transaction history deletes the Installment row too (transaction.service.ts
+        // deleteTransaction's isInstallment branch) — if that races this payment
+        // between the findFirst above and tx.installment.update below, the whole
+        // $transaction rolls back (so the transfer created in the same block is
+        // never left half-committed) and Prisma throws a raw P2025. Translate it
+        // into the existing InstallmentError 404 instead of an unhandled 500 —
+        // same TOCTOU bug class as the Phase 37.1 wallet-alias fix.
+        return (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.$transaction(async (tx) => {
             const transaction = await tx.transaction.create({
                 data: {
                     userId: input.userId,
@@ -113,7 +122,7 @@ function createInstallmentPaymentService(db) {
                 include: PAID_INSTALLMENT_INCLUDE,
             });
             return { transaction, installment: updated };
-        });
+        }), { P2025: () => new installment_errors_1.InstallmentError('Cicilan tidak ditemukan', 404, 'NOT_FOUND') });
     }
     return { payInstallment, payBill: payInstallment };
 }

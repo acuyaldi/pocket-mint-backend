@@ -21,6 +21,7 @@ exports.budgetService = void 0;
 exports.createBudgetService = createBudgetService;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const client_1 = require("../generated/prisma/client");
+const prismaErrors_1 = require("../utils/prismaErrors");
 const budget_errors_1 = require("./budget.errors");
 const AMOUNT_SCALE = 2;
 // Decimal(15,2): 13 integer digits + 2 decimal places.
@@ -57,12 +58,14 @@ function parseBudgetAmount(value) {
     return amount;
 }
 function createBudgetService(db) {
+    function notFound() {
+        return new budget_errors_1.BudgetError('Anggaran tidak ditemukan', 404, 'NOT_FOUND');
+    }
     /** Ownership-scoped lookup; a missing or another user's Budget is one indistinguishable 404. */
     async function findOwned(userId, id) {
         const budget = await db.budget.findFirst({ where: { id, userId } });
-        if (!budget) {
-            throw new budget_errors_1.BudgetError('Anggaran tidak ditemukan', 404, 'NOT_FOUND');
-        }
+        if (!budget)
+            throw notFound();
         return budget;
     }
     /**
@@ -111,7 +114,11 @@ function createBudgetService(db) {
         const { userId, budgetId } = input;
         await findOwned(userId, budgetId);
         const amount = parseBudgetAmount(input.amount);
-        return db.budget.update({ where: { id: budgetId }, data: { amount } });
+        // Phase 37.2: a concurrent cascade-delete of the owning Category can
+        // remove this row between the findOwned check above and this write —
+        // translate the resulting Prisma P2025 into the same typed 404 instead
+        // of an unhandled 500 (same TOCTOU bug class as Phase 37.1).
+        return (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.budget.update({ where: { id: budgetId }, data: { amount } }), { P2025: notFound });
     }
     /** Active → archived. Repeating the call is an explicit conflict, not a silent no-op. */
     async function archiveBudget(input) {
@@ -120,7 +127,7 @@ function createBudgetService(db) {
         if (existing.isArchived) {
             throw new budget_errors_1.BudgetError('Anggaran sudah diarsipkan', 409, 'ALREADY_ARCHIVED');
         }
-        return db.budget.update({ where: { id: budgetId }, data: { isArchived: true } });
+        return (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.budget.update({ where: { id: budgetId }, data: { isArchived: true } }), { P2025: notFound });
     }
     /**
      * Archived → active. Repeating the call is an explicit conflict. Restores
@@ -133,7 +140,7 @@ function createBudgetService(db) {
         if (!existing.isArchived) {
             throw new budget_errors_1.BudgetError('Anggaran sudah aktif', 409, 'ALREADY_ACTIVE');
         }
-        return db.budget.update({ where: { id: budgetId }, data: { isArchived: false } });
+        return (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.budget.update({ where: { id: budgetId }, data: { isArchived: false } }), { P2025: notFound });
     }
     return { createBudget, updateBudgetAmount, archiveBudget, restoreBudget };
 }
