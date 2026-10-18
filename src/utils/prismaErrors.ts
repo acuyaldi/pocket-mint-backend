@@ -50,3 +50,37 @@ export async function withPrismaErrorTranslation<T>(
     throw err;
   }
 }
+
+/**
+ * Run `fn`, SWALLOWING (never throwing) a specific Prisma error code instead
+ * of translating it into a thrown error — for call sites where the correct
+ * response to a lost TOCTOU race is "there is nothing meaningful left to do
+ * here, carry on" rather than failing an otherwise-successful request
+ * (Phase 37.4; see docs/assistant-stuck-states.md). `onSwallow` is a
+ * required, synchronous side effect (e.g. a structured warn log) so a
+ * swallowed race is never silent — it just never fails the caller. Resolves
+ * to `undefined` when swallowed. Same safety rules as
+ * `withPrismaErrorTranslation`: an already-operational error and any
+ * unmapped code/error always propagate unchanged.
+ */
+export async function withPrismaErrorSwallowed<T>(
+  fn: () => Promise<T>,
+  swallow: Partial<Record<TranslatablePrismaCode, (err: unknown) => void>>,
+): Promise<T | undefined> {
+  try {
+    return await fn();
+  } catch (err) {
+    if (err instanceof Error && (err as { isOperational?: boolean }).isOperational === true) {
+      throw err;
+    }
+    const code = prismaCodeOf(err);
+    if (code === 'P2025' || code === 'P2002') {
+      const onSwallow = swallow[code];
+      if (onSwallow) {
+        onSwallow(err);
+        return undefined;
+      }
+    }
+    throw err;
+  }
+}

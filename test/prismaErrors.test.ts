@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { withPrismaErrorTranslation } from '../src/utils/prismaErrors';
+import { describe, it, expect, vi } from 'vitest';
+import { withPrismaErrorTranslation, withPrismaErrorSwallowed } from '../src/utils/prismaErrors';
 
 class FakeDomainError extends Error {
   readonly statusCode: number;
@@ -73,5 +73,57 @@ describe('withPrismaErrorTranslation', () => {
       { P2025: () => new FakeDomainError('not found', 404, 'NOT_FOUND') },
     ).catch((e) => e);
     expect(err).toBe(already);
+  });
+});
+
+describe('withPrismaErrorSwallowed', () => {
+  it('returns the resolved value untouched on success', async () => {
+    await expect(withPrismaErrorSwallowed(async () => 'ok', {})).resolves.toBe('ok');
+  });
+
+  it('swallows a mapped P2025, runs the side effect, and resolves to undefined', async () => {
+    const onSwallow = vi.fn();
+    const result = await withPrismaErrorSwallowed(
+      async () => { throw prismaError('P2025'); },
+      { P2025: onSwallow },
+    );
+    expect(result).toBeUndefined();
+    expect(onSwallow).toHaveBeenCalledTimes(1);
+  });
+
+  it('swallows a mapped P2002 the same way', async () => {
+    const onSwallow = vi.fn();
+    const result = await withPrismaErrorSwallowed(
+      async () => { throw prismaError('P2002'); },
+      { P2002: onSwallow },
+    );
+    expect(result).toBeUndefined();
+    expect(onSwallow).toHaveBeenCalledTimes(1);
+  });
+
+  it('propagates a mapped code with no swallow handler supplied unchanged', async () => {
+    const raw = prismaError('P2025');
+    const err = await withPrismaErrorSwallowed(async () => { throw raw; }, {}).catch((e) => e);
+    expect(err).toBe(raw);
+  });
+
+  it('propagates an already-operational error unchanged, never swallowing it', async () => {
+    const already = new FakeDomainError('already typed', 409, 'ALREADY_ARCHIVED');
+    const onSwallow = vi.fn();
+    const err = await withPrismaErrorSwallowed(
+      async () => { throw already; },
+      { P2025: onSwallow },
+    ).catch((e) => e);
+    expect(err).toBe(already);
+    expect(onSwallow).not.toHaveBeenCalled();
+  });
+
+  it('propagates a non-Prisma error unchanged', async () => {
+    const raw = new TypeError('boom');
+    const err = await withPrismaErrorSwallowed(
+      async () => { throw raw; },
+      { P2025: vi.fn() },
+    ).catch((e) => e);
+    expect(err).toBe(raw);
   });
 });
