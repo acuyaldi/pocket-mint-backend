@@ -6,6 +6,7 @@ const config_1 = require("../config");
 const reportingTime_1 = require("../domain/reportingTime");
 const transaction_errors_1 = require("../services/transaction.errors");
 const transaction_service_1 = require("../services/transaction.service");
+const prismaErrors_1 = require("../utils/prismaErrors");
 const errors_1 = require("./errors");
 const financial_draft_1 = require("./financial-draft");
 const CONFIRM_INTENT = 'transaction.create.confirm';
@@ -105,9 +106,33 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                 }
                 const now = clock();
                 if (draft.status === 'PENDING_CONFIRMATION' && draft.expiresAt <= now) {
-                    draft = await tx.assistantFinancialDraft.update({ where: { id: draft.id }, data: { status: 'EXPIRED' } });
+                    // Lazy EXPIRED transition (Phase 37.3). Race-safe against a
+                    // concurrent confirm/cancel on the SAME draft: both acquired the
+                    // advisory lock above, serializing them — only the first to reach
+                    // here performs this write, the second re-reads a status that is
+                    // already non-PENDING_CONFIRMATION and falls into the generic
+                    // conflict guard below. Race-safe against a concurrent
+                    // deleteOwnedConversation (which cascade-deletes this draft): that
+                    // is a DIFFERENT transaction the advisory lock does not cover, so
+                    // this write can lose a real TOCTOU and throw Prisma P2025 —
+                    // translated into the same typed 404 `owned()`-style lookups use,
+                    // never an unhandled 500 (same helper as Phase 37.2).
+                    draft = await (0, prismaErrors_1.withPrismaErrorTranslation)(
+                    // `draftId` (the function parameter) is the same row — `draft.id`
+                    // would re-narrow to possibly-null inside this closure.
+                    () => tx.assistantFinancialDraft.update({ where: { id: draftId }, data: { status: 'EXPIRED' } }), { P2025: () => errors_1.AssistantError.draftNotFound() });
                     return { error: errors_1.AssistantError.draftConflict('EXPIRED') };
                 }
+                // Everything else (COMMITTED, CANCELLED, EXPIRED, FAILED) is terminal
+                // from confirm()'s point of view: no status reachable here ever
+                // transitions back to PENDING_CONFIRMATION, so this single allowlist
+                // check ("must still be PENDING_CONFIRMATION") is the one place an
+                // illegal confirm-from-a-terminal-state is rejected. FAILED
+                // specifically is never auto-replayed — there is no code path
+                // anywhere that re-attempts the underlying transaction for a FAILED
+                // draft; `draftConflict('FAILED')` here is the terminal, explicit
+                // answer, and the caller's only legal recovery is starting a new
+                // draft from a fresh message (see docs/assistant-stuck-states.md).
                 if (draft.status !== 'PENDING_CONFIRMATION')
                     throw errors_1.AssistantError.draftConflict(draft.status);
                 // ---- Merge overrides with immutable draft values (override wins, draft is fallback) ----
@@ -214,6 +239,14 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                     throw errors_1.AssistantError.idempotencyConflict();
             }
             if (error instanceof transaction_errors_1.TransactionError) {
+                // FAILED is a terminal, one-way transition (Phase 37.3): nothing in
+                // this codebase ever moves a draft OUT of FAILED, and nothing ever
+                // auto-replays the underlying transaction attempt for it — see the
+                // comment on the PENDING_CONFIRMATION guard above. Guarded on the
+                // draft still being PENDING_CONFIRMATION (a no-op if it already
+                // raced to some other terminal state), and the write itself is
+                // translated against the same conversation-delete TOCTOU as the
+                // EXPIRED transition above, for the same reason.
                 await db.$transaction(async (tx) => {
                     const draft = await tx.assistantFinancialDraft.findFirst({ where: { id: draftId, userId, status: 'PENDING_CONFIRMATION' } });
                     if (!draft)
@@ -222,7 +255,7 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                     const turn = await tx.assistantTurn.create({ data: { conversationId: draft.conversationId, correlationId, intent: CONFIRM_INTENT, locale: 'id-ID', status: 'FAILED', safeErrorCode: error.code, finishedAt: now } });
                     await tx.assistantMessage.create({ data: { conversationId: draft.conversationId, turnId: turn.id, role: 'USER', source: 'CANONICAL_FALLBACK', content: `Konfirmasi draft transaksi ${draft.id}.` } });
                     await tx.assistantToolExecution.create({ data: { conversationId: draft.conversationId, turnId: turn.id, toolId: CONFIRM_INTENT, capability: 'transaction.create', riskLevel: 'HIGH', policyDecision: 'EXPLICITLY_CONFIRMED', status: 'FAILED', correlationId, completedAt: now, safeErrorCode: error.code, idempotencyKey: key, redactedInput: { draftId }, outputSummary: { draftId, status: 'FAILED' } } });
-                    await tx.assistantFinancialDraft.update({ where: { id: draft.id }, data: { status: 'FAILED', failedAt: now } });
+                    await (0, prismaErrors_1.withPrismaErrorTranslation)(() => tx.assistantFinancialDraft.update({ where: { id: draft.id }, data: { status: 'FAILED', failedAt: now } }), { P2025: () => errors_1.AssistantError.draftNotFound() });
                     await tx.assistantConversation.update({ where: { id: draft.conversationId }, data: { lastActivityAt: now } });
                 });
                 throw error;
@@ -240,9 +273,19 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                 return cancelledResult(draft);
             const now = clock();
             if (draft.status === 'PENDING_CONFIRMATION' && draft.expiresAt <= now) {
-                draft = await tx.assistantFinancialDraft.update({ where: { id: draft.id }, data: { status: 'EXPIRED' } });
+                // Same lazy EXPIRED transition and race-safety rationale as confirm()
+                // (Phase 37.3) — serialized against a concurrent confirm()/cancel()
+                // on this draft by the shared advisory lock above; translated
+                // against a concurrent deleteOwnedConversation's cascade delete,
+                // which the lock does not cover.
+                draft = await (0, prismaErrors_1.withPrismaErrorTranslation)(
+                // `draftId` (the function parameter) is the same row — `draft.id`
+                // would re-narrow to possibly-null inside this closure.
+                () => tx.assistantFinancialDraft.update({ where: { id: draftId }, data: { status: 'EXPIRED' } }), { P2025: () => errors_1.AssistantError.draftNotFound() });
                 return { draftId: draft.id, status: 'EXPIRED', conversationId: draft.conversationId };
             }
+            // See confirm()'s identical guard for why this single allowlist check
+            // is also where cancel() rejects every terminal state, FAILED included.
             if (draft.status !== 'PENDING_CONFIRMATION')
                 throw errors_1.AssistantError.draftConflict(draft.status);
             const turn = await tx.assistantTurn.create({ data: { conversationId: draft.conversationId, correlationId, intent: CANCEL_INTENT, locale: 'id-ID', status: 'SUCCEEDED', finishedAt: now } });
