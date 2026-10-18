@@ -20,11 +20,11 @@ export declare function createCallbackToken(db: PrismaClient, input: CreateCallb
 export declare function findCallbackTokenByRaw(db: PrismaClient, rawToken: string): import("@/generated/prisma").Prisma.Prisma__ChannelCallbackTokenClient<{
     provider: import("@/generated/prisma").$Enums.ChannelProvider;
     interactionType: import("@/generated/prisma").$Enums.ChannelCallbackInteractionType;
+    conversationId: string;
     id: string;
     createdAt: Date;
     updatedAt: Date;
     status: import("@/generated/prisma").$Enums.ChannelCallbackTokenStatus;
-    conversationId: string;
     expiresAt: Date;
     consumedAt: Date | null;
     tokenDigest: string;
