@@ -23,10 +23,14 @@ import {
   isAmbiguousExecution,
   summarizeByErrorCategory,
   toSafeAssistantTurnRow,
+  toSafeClarificationRequestRow,
+  toSafeFinancialDraftRow,
   toSafeInboundJobRow,
   toSafeOutboundDeliveryRow,
   STALE_RUNNING_TURN_MS,
   type SafeAssistantTurnRow,
+  type SafeClarificationRequestRow,
+  type SafeFinancialDraftRow,
   type SafeInboundJobRow,
   type SafeOutboundDeliveryRow,
 } from '../domain/opsVisibility';
@@ -64,17 +68,54 @@ const ASSISTANT_TURN_SELECT = {
   startedAt: true,
 } as const;
 
+const FINANCIAL_DRAFT_SELECT = {
+  id: true,
+  userId: true,
+  conversationId: true,
+  operation: true,
+  transactionType: true,
+  status: true,
+  createdAt: true,
+  expiresAt: true,
+  failedAt: true,
+} as const;
+
+const CLARIFICATION_REQUEST_SELECT = {
+  id: true,
+  userId: true,
+  conversationId: true,
+  entityType: true,
+  status: true,
+  createdAt: true,
+  expiresAt: true,
+} as const;
+
 interface Report {
   ambiguousExecutions: { count: number; byErrorCategory: Record<string, number>; recent: SafeInboundJobRow[] };
   terminalInboundFailures: { count: number; byErrorCategory: Record<string, number>; recent: SafeInboundJobRow[] };
   terminalOutboundFailures: { count: number; byErrorCategory: Record<string, number>; recent: SafeOutboundDeliveryRow[] };
   staleRunningTurns: { count: number; thresholdMs: number; recent: SafeAssistantTurnRow[] };
+  failedDrafts: { count: number; recent: SafeFinancialDraftRow[] };
+  abandonedPendingDrafts: { count: number; recent: SafeFinancialDraftRow[] };
+  abandonedPendingClarifications: { count: number; recent: SafeClarificationRequestRow[] };
 }
 
 async function buildReport(): Promise<Report> {
-  const staleCutoff = new Date(Date.now() - STALE_RUNNING_TURN_MS);
+  const now = new Date();
+  const staleCutoff = new Date(now.getTime() - STALE_RUNNING_TURN_MS);
 
-  const [terminalInboundRows, terminalOutboundRows, staleTurnCount, staleTurnRows] = await Promise.all([
+  const [
+    terminalInboundRows,
+    terminalOutboundRows,
+    staleTurnCount,
+    staleTurnRows,
+    failedDraftCount,
+    failedDraftRows,
+    abandonedDraftCount,
+    abandonedDraftRows,
+    abandonedClarificationCount,
+    abandonedClarificationRows,
+  ] = await Promise.all([
     prisma.channelInboundJob.findMany({
       where: { status: 'FAILED_TERMINAL' },
       orderBy: { completedAt: 'desc' },
@@ -96,6 +137,36 @@ async function buildReport(): Promise<Report> {
       orderBy: { startedAt: 'asc' },
       take: RECENT_LIMIT,
       select: ASSISTANT_TURN_SELECT,
+    }),
+    // FAILED drafts (Phase 37.3) — terminal, never auto-replayed. Visibility
+    // only: this script issues no create/update/delete anywhere (see header).
+    prisma.assistantFinancialDraft.count({ where: { status: 'FAILED' } }),
+    prisma.assistantFinancialDraft.findMany({
+      where: { status: 'FAILED' },
+      orderBy: { failedAt: 'desc' },
+      take: RECENT_LIMIT,
+      select: FINANCIAL_DRAFT_SELECT,
+    }),
+    // Abandoned PENDING drafts (Phase 37.3) — still PENDING_CONFIRMATION in
+    // the DB but past `expiresAt`: nobody has touched them since, so the
+    // lazy EXPIRED transition hasn't run yet. Detected directly by
+    // `expiresAt`, not by status, since status lags reality here by design
+    // (see docs/assistant-stuck-states.md — lazy expiry only, no sweep).
+    prisma.assistantFinancialDraft.count({ where: { status: 'PENDING_CONFIRMATION', expiresAt: { lt: now } } }),
+    prisma.assistantFinancialDraft.findMany({
+      where: { status: 'PENDING_CONFIRMATION', expiresAt: { lt: now } },
+      orderBy: { expiresAt: 'asc' },
+      take: RECENT_LIMIT,
+      select: FINANCIAL_DRAFT_SELECT,
+    }),
+    // Abandoned PENDING clarifications — same rationale, PENDING past
+    // `expiresAt` with the lazy STALE(expired) transition not yet run.
+    prisma.clarificationRequest.count({ where: { status: 'PENDING', expiresAt: { lt: now } } }),
+    prisma.clarificationRequest.findMany({
+      where: { status: 'PENDING', expiresAt: { lt: now } },
+      orderBy: { expiresAt: 'asc' },
+      take: RECENT_LIMIT,
+      select: CLARIFICATION_REQUEST_SELECT,
     }),
   ]);
 
@@ -124,6 +195,18 @@ async function buildReport(): Promise<Report> {
       count: staleTurnCount,
       thresholdMs: STALE_RUNNING_TURN_MS,
       recent: staleTurns,
+    },
+    failedDrafts: {
+      count: failedDraftCount,
+      recent: failedDraftRows.map(toSafeFinancialDraftRow),
+    },
+    abandonedPendingDrafts: {
+      count: abandonedDraftCount,
+      recent: abandonedDraftRows.map(toSafeFinancialDraftRow),
+    },
+    abandonedPendingClarifications: {
+      count: abandonedClarificationCount,
+      recent: abandonedClarificationRows.map(toSafeClarificationRequestRow),
     },
   };
 }
@@ -164,8 +247,36 @@ function printHuman(report: Report): void {
     );
   }
 
+  console.log(`\nFAILED drafts (terminal, never auto-replayed): ${report.failedDrafts.count}`);
+  for (const row of report.failedDrafts.recent) {
+    console.log(
+      `  draft=${row.id} user=${row.userId} conversation=${row.conversationId} ` +
+        `type=${row.transactionType} failedAt=${row.failedAt?.toISOString() ?? '-'}`
+    );
+  }
+  if (report.failedDrafts.count > 0) {
+    console.log('  Never retryable from here — the user recovers by sending a new message, not by replaying this draft.');
+  }
+
+  console.log(`\nAbandoned PENDING_CONFIRMATION drafts (past expiresAt, not yet lazily expired): ${report.abandonedPendingDrafts.count}`);
+  for (const row of report.abandonedPendingDrafts.recent) {
+    console.log(
+      `  draft=${row.id} user=${row.userId} conversation=${row.conversationId} expiresAt=${row.expiresAt.toISOString()}`
+    );
+  }
+
+  console.log(`\nAbandoned PENDING clarifications (past expiresAt, not yet lazily staled): ${report.abandonedPendingClarifications.count}`);
+  for (const row of report.abandonedPendingClarifications.recent) {
+    console.log(
+      `  clarification=${row.id} user=${row.userId} conversation=${row.conversationId} expiresAt=${row.expiresAt.toISOString()}`
+    );
+  }
+  if (report.abandonedPendingDrafts.count > 0 || report.abandonedPendingClarifications.count > 0) {
+    console.log('  Harmless by design (lazy expiry only, no sweep — see docs/assistant-stuck-states.md): the recovery-state read path already excludes these; this is visibility, not an incident.');
+  }
+
   console.log(
-    report.ambiguousExecutions.count === 0 && report.staleRunningTurns.count === 0
+    report.ambiguousExecutions.count === 0 && report.staleRunningTurns.count === 0 && report.failedDrafts.count === 0
       ? '\nNothing actionable found.'
       : '\nSee above — nothing was changed. Follow runbook §8 before any manual action.'
   );
@@ -181,7 +292,11 @@ async function main(): Promise<number> {
     printHuman(report);
   }
 
-  return report.ambiguousExecutions.count > 0 || report.staleRunningTurns.count > 0 ? 2 : 0;
+  // Abandoned PENDING drafts/clarifications are deliberately NOT actionable
+  // (harmless by design, see docs/assistant-stuck-states.md) — they do not
+  // affect the exit code, only FAILED drafts (a genuine terminal outcome
+  // worth an operator's attention) join the existing triggers.
+  return report.ambiguousExecutions.count > 0 || report.staleRunningTurns.count > 0 || report.failedDrafts.count > 0 ? 2 : 0;
 }
 
 main()

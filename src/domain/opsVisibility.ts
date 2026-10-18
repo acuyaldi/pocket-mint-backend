@@ -120,6 +120,79 @@ export function toSafeAssistantTurnRow(row: {
   };
 }
 
+// ------------------------------------------------------------
+// Phase 37.3 additions — FAILED drafts and abandoned PENDING
+// draft/clarification visibility. Same safe-projection discipline as above:
+// never the draft's amount/walletId/categoryId/description, never a
+// clarification's prompt/trustedContext/options (free-text/content).
+// ------------------------------------------------------------
+
+export interface SafeFinancialDraftRow {
+  id: string;
+  userId: string;
+  conversationId: string;
+  operation: string;
+  transactionType: string;
+  status: string;
+  createdAt: Date;
+  expiresAt: Date;
+  failedAt: Date | null;
+}
+
+export function toSafeFinancialDraftRow(row: {
+  id: string;
+  userId: string;
+  conversationId: string;
+  operation: string;
+  transactionType: string;
+  status: string;
+  createdAt: Date;
+  expiresAt: Date;
+  failedAt: Date | null;
+}): SafeFinancialDraftRow {
+  return {
+    id: row.id,
+    userId: row.userId,
+    conversationId: row.conversationId,
+    operation: row.operation,
+    transactionType: row.transactionType,
+    status: row.status,
+    createdAt: row.createdAt,
+    expiresAt: row.expiresAt,
+    failedAt: row.failedAt,
+  };
+}
+
+export interface SafeClarificationRequestRow {
+  id: string;
+  userId: string;
+  conversationId: string;
+  entityType: string;
+  status: string;
+  createdAt: Date;
+  expiresAt: Date;
+}
+
+export function toSafeClarificationRequestRow(row: {
+  id: string;
+  userId: string;
+  conversationId: string;
+  entityType: string;
+  status: string;
+  createdAt: Date;
+  expiresAt: Date;
+}): SafeClarificationRequestRow {
+  return {
+    id: row.id,
+    userId: row.userId,
+    conversationId: row.conversationId,
+    entityType: row.entityType,
+    status: row.status,
+    createdAt: row.createdAt,
+    expiresAt: row.expiresAt,
+  };
+}
+
 /** Groups rows by `errorCategory` (nulls bucketed as `'(none)'`), counted only. */
 export function summarizeByErrorCategory(rows: Array<{ errorCategory: string | null }>): Record<string, number> {
   const counts: Record<string, number> = {};
