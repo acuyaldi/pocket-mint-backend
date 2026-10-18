@@ -29,16 +29,23 @@ const CODE_BY_STATUS: Record<number, string> = {
  * Send an operational error in the standard envelope. `code` defaults to a
  * stable mapping of the status; pass an explicit one for domain-specific codes.
  * Messages passed here must be safe to expose (no internals/secrets).
+ *
+ * `detail` (Phase 37.3) is an optional, bounded, non-sensitive machine marker
+ * — e.g. the specific terminal status a draft/clarification conflict was
+ * rejected from (`FAILED`, `EXPIRED`, `CANCELLED`, ...) — so a caller can
+ * branch on it instead of parsing `message`. Omitted from the envelope
+ * entirely when not supplied, so every existing error response is unchanged.
  */
 export const sendError = (
   res: Response,
   message = 'Internal Server Error',
   statusCode = 500,
-  code?: string
+  code?: string,
+  detail?: string
 ): void => {
   const resolvedCode = code ?? CODE_BY_STATUS[statusCode] ?? (statusCode >= 500 ? 'INTERNAL_ERROR' : 'ERROR');
   res.status(statusCode).json({
     success: false,
-    error: { code: resolvedCode, statusCode, message },
+    error: { code: resolvedCode, statusCode, message, ...(detail !== undefined ? { detail } : {}) },
   });
 };
