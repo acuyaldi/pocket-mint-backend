@@ -159,6 +159,17 @@ export interface AssistantLogEvent {
   /** Clarification entity kind ('wallet'/'merchant'/'category'/'transaction_fields'/'provider_text') — never the option labels/tokens. */
   readonly clarificationKind?: string;
   readonly overridesUsed?: boolean;
+  /**
+   * Opaque internal row ids (Phase 37.4) — cuid strings, never free-text
+   * content. Safe for the same reason conversationId/turnId already appear
+   * in other Assistant projections (e.g. ops visibility, Phase 28/37.3):
+   * they identify a row for correlation, they don't carry a message, an
+   * amount, or any user-entered text.
+   */
+  readonly conversationId?: string;
+  readonly turnId?: string;
+  readonly draftId?: string;
+  readonly executionId?: string;
 }
 
 /**
