@@ -154,6 +154,13 @@ emit identically (`source` = `WEB`/`TELEGRAM`). The Phase 35
   five Phase 39 metrics per source × phase marker, `INSUFFICIENT DATA` below
   the sample threshold. Drafts with no terminal event past the 15-minute TTL
   are reported as "abandoned past TTL" (lazy expiry never wrote them).
+  Phase 38.1 adds, still with no new event: clarifications with no
+  `CLARIFICATION_RESOLVED`/`CANCELLED` past the clarification TTL ("abandoned
+  past TTL", which also absorbs stale/invalid clarifications since those emit
+  nothing), the UNSPECIFIED share of clarification field tags (WARNING above
+  30%), and three printed bias notes: lost events when the process dies
+  between commit and emit, abandoned rows lost to a conversation cascade
+  delete, and the UNSPECIFIED share.
 
 ---
 

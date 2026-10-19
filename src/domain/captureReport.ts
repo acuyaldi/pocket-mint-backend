@@ -7,10 +7,16 @@
 // Window semantics are cohort-based: a draft/clarification belongs to the
 // window when it was CREATED/REQUESTED inside it; its terminal event is
 // counted whenever it happened. A draft with no terminal event older than
-// the draft TTL is "abandoned past TTL" — lazy expiry never wrote it.
+// the draft TTL is "abandoned past TTL" — lazy expiry never wrote it. The
+// same rule applies to a clarification with no RESOLVED/CANCELLED event past
+// the clarification TTL (Phase 38.1) — derived, no new event type.
 // ============================================================
 
 import { ASSISTANT_FINANCIAL_DRAFT_TTL_MS } from '../assistant/financial-draft';
+import { CLARIFICATION_TTL_MS } from '../assistant/clarification.service';
+
+/** Above this UNSPECIFIED share, per-field clarification rates are not trustworthy. */
+export const UNSPECIFIED_SHARE_WARNING = 0.3;
 
 export interface CaptureEventRow {
   readonly occurredAt: Date;
@@ -33,6 +39,11 @@ export interface CaptureReportGroup {
   readonly captureStarts: number;
   /** Metric 1 — clarification per field, rate over capture starts. */
   readonly clarificationByField: Record<string, Rate>;
+  readonly clarificationsRequested: number;
+  /** CLARIFICATION_REQUESTED with no RESOLVED/CANCELLED, older than the clarification TTL (Phase 38.1). */
+  readonly clarificationsAbandonedPastTtl: number;
+  /** UNSPECIFIED over all clarification field tags (Phase 38.1). */
+  readonly unspecifiedFieldShare: Rate;
   readonly draftsCreated: number;
   /** Metric 4 — direct draft vs after clarification. */
   readonly directDraftRate: Rate;
@@ -57,6 +68,8 @@ export interface CaptureReportOptions {
   readonly now: Date;
   readonly minSamples: number;
 }
+
+const CLARIFICATION_TERMINAL = new Set(['CLARIFICATION_RESOLVED', 'CLARIFICATION_CANCELLED']);
 
 const TERMINAL: Record<string, keyof CaptureReportGroup['outcomes']> = {
   DRAFT_CONFIRMED: 'confirmed',
@@ -90,6 +103,10 @@ export function computeCaptureReport(rows: readonly CaptureEventRow[], options: 
 
     const fieldCounts: Record<string, number> = {};
     for (const e of requested) for (const f of e.fields) fieldCounts[f] = (fieldCounts[f] ?? 0) + 1;
+    const fieldTags = Object.values(fieldCounts).reduce((sum, n) => sum + n, 0);
+    const clarificationsAbandonedPastTtl = requested.filter((e) =>
+      !(byKey.get(e.correlationKey) ?? []).some((r) => CLARIFICATION_TERMINAL.has(r.eventType))
+      && options.now.getTime() - e.occurredAt.getTime() > CLARIFICATION_TTL_MS).length;
 
     const outcomes = { confirmed: 0, cancelled: 0, expired: 0, abandonedPastTtl: 0, failed: 0, open: 0 };
     const editedByField: Record<string, number> = {};
@@ -112,6 +129,9 @@ export function computeCaptureReport(rows: readonly CaptureEventRow[], options: 
       phaseMarker: events[0]!.phaseMarker,
       captureStarts,
       clarificationByField: Object.fromEntries(Object.entries(fieldCounts).map(([f, n]) => [f, rate(n, captureStarts)])),
+      clarificationsRequested: requested.length,
+      clarificationsAbandonedPastTtl,
+      unspecifiedFieldShare: rate(fieldCounts.UNSPECIFIED ?? 0, fieldTags),
       draftsCreated: created.length,
       directDraftRate: rate(direct, created.length),
       outcomes,

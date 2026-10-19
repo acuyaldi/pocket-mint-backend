@@ -12,7 +12,7 @@
 
 import prisma from '../lib/prisma';
 import type { PrismaClient } from '../generated/prisma/client';
-import { computeCaptureReport, INSUFFICIENT_DATA, type CaptureReportGroup, type CaptureReportOptions, type Rate } from '../domain/captureReport';
+import { computeCaptureReport, INSUFFICIENT_DATA, UNSPECIFIED_SHARE_WARNING, type CaptureReportGroup, type CaptureReportOptions, type Rate } from '../domain/captureReport';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -37,6 +37,9 @@ const pct = (rate: Rate) => rate.value === INSUFFICIENT_DATA
   ? `${INSUFFICIENT_DATA} (n=${rate.denominator})`
   : `${(rate.value * 100).toFixed(1)}% (${rate.numerator}/${rate.denominator})`;
 
+const unspecifiedWarning = (rate: Rate) =>
+  typeof rate.value === 'number' && rate.value > UNSPECIFIED_SHARE_WARNING ? ` — WARNING: above ${UNSPECIFIED_SHARE_WARNING * 100}%, per-field rates are unreliable` : '';
+
 export function formatReport(groups: readonly CaptureReportGroup[], options: CaptureReportOptions): string {
   const lines = [
     'Assistant capture report (Phase 39.0) — read-only, nothing was changed.',
@@ -57,9 +60,19 @@ export function formatReport(groups: readonly CaptureReportGroup[], options: Cap
       `3. Cancel rate (of drafts created): ${pct(g.cancelRate)}`,
       `4. Direct-draft rate (vs after clarification): ${pct(g.directDraftRate)} — drafts created ${g.draftsCreated}`,
       `   Outcomes: confirmed ${o.confirmed} · cancelled ${o.cancelled} · expired ${o.expired} (+${o.abandonedPastTtl} abandoned past TTL) · failed ${o.failed} · open ${o.open}`,
+      `6. Clarifications abandoned past TTL (no RESOLVED/CANCELLED): ${g.clarificationsAbandonedPastTtl} of ${g.clarificationsRequested} requested`,
+      `   UNSPECIFIED field share: ${pct(g.unspecifiedFieldShare)}${unspecifiedWarning(g.unspecifiedFieldShare)}`,
     );
   }
-  lines.push('', '5. Web vs Telegram: compare the WEB and TELEGRAM sections of the same phase marker above.');
+  lines.push(
+    '',
+    '5. Web vs Telegram: compare the WEB and TELEGRAM sections of the same phase marker above.',
+    '',
+    'Bias notes:',
+    '- Undercount: an event is emitted after its state change commits; a process that dies between the commit and the emit loses that event.',
+    '- Abandoned drafts/clarifications whose conversation was deleted are gone (cascade delete), so abandonment is undercounted.',
+    `- UNSPECIFIED field share above ${UNSPECIFIED_SHARE_WARNING * 100}% makes metric 1 (clarification per field) unreliable; a WARNING is printed per section.`,
+  );
   return lines.join('\n');
 }
 

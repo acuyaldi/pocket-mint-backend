@@ -14,7 +14,7 @@ import { validateAssistantPlan } from '../../src/assistant/provider-plan';
 import { ToolRegistry } from '../../src/assistant/registry';
 import { monthlySpendingSummary, transactionCreate } from '../../src/assistant/tools';
 import { computeCaptureReport, INSUFFICIENT_DATA } from '../../src/domain/captureReport';
-import { parseArgs } from '../../src/scripts/captureReport';
+import { formatReport, parseArgs } from '../../src/scripts/captureReport';
 
 function capturingDb() {
   const rows: Record<string, unknown>[] = [];
@@ -157,6 +157,31 @@ describe('capture report (39.0)', () => {
       row('DRAFT_CREATED', 'stale', { origin: 'DIRECT', occurredAt: new Date('2026-10-09T23:50:00Z') }),
     ], options);
     expect(g!.outcomes).toMatchObject({ open: 1, abandonedPastTtl: 1 });
+  });
+
+  it('counts a clarification with no RESOLVED/CANCELLED past its TTL as abandoned (Phase 38.1)', () => {
+    const old = new Date('2026-10-09T23:50:00Z');
+    const [g] = computeCaptureReport([
+      row('CLARIFICATION_REQUESTED', 'abandoned', { origin: 'DIRECT', fields: ['WALLET'], occurredAt: old }),
+      row('CLARIFICATION_REQUESTED', 'resolved', { origin: 'DIRECT', fields: ['WALLET'], occurredAt: old }),
+      row('CLARIFICATION_RESOLVED', 'resolved', { occurredAt: old }),
+      row('CLARIFICATION_REQUESTED', 'cancelled', { origin: 'DIRECT', fields: ['UNSPECIFIED'], occurredAt: old }),
+      row('CLARIFICATION_CANCELLED', 'cancelled', { occurredAt: old }),
+      row('CLARIFICATION_REQUESTED', 'fresh', { origin: 'DIRECT', fields: ['UNSPECIFIED'], occurredAt: new Date('2026-10-10T00:05:00Z') }),
+    ], options);
+    expect(g).toMatchObject({ clarificationsRequested: 4, clarificationsAbandonedPastTtl: 1 });
+    expect(g!.unspecifiedFieldShare).toEqual({ value: 0.5, numerator: 2, denominator: 4 });
+  });
+
+  it('prints the bias notes and warns when the UNSPECIFIED share is above 30% (Phase 38.1)', () => {
+    const rows = (fields: string[]) => fields.map((f, i) => row('CLARIFICATION_REQUESTED', `k${i}`, { origin: 'DIRECT', fields: [f] }));
+    const warned = formatReport(computeCaptureReport(rows(['UNSPECIFIED', 'WALLET']), options), options);
+    expect(warned).toContain('UNSPECIFIED field share: 50.0% (1/2) — WARNING');
+    expect(warned).toContain('Undercount');
+    expect(warned).toContain('cascade delete');
+    const fine = formatReport(computeCaptureReport(rows(['UNSPECIFIED', 'WALLET', 'WALLET', 'AMOUNT']), options), options);
+    expect(fine).toContain('UNSPECIFIED field share: 25.0% (1/4)');
+    expect(fine).not.toContain('— WARNING');
   });
 
   it('parses the CLI window and rejects bad input', () => {
