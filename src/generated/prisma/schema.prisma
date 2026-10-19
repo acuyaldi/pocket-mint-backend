@@ -227,6 +227,65 @@ model AssistantFinancialDraft {
   @@map("assistant_financial_drafts")
 }
 
+// Phase 35.1 — persisted capture-quality events (Phase 39 metrics), emitted
+// from the Assistant service layer for Web and Telegram alike
+// (src/assistant/capture-events.ts). Closed enums and one opaque hashed
+// correlation key only — never message text, amounts, wallet/merchant/
+// category names, aliases, or user/row ids. Deliberately no FK to anything,
+// so a rollback can leave the table in place.
+enum AssistantCaptureEventType {
+  CLARIFICATION_REQUESTED
+  CLARIFICATION_RESOLVED
+  CLARIFICATION_CANCELLED
+  DRAFT_CREATED
+  DRAFT_EDITED
+  DRAFT_CONFIRMED
+  DRAFT_CANCELLED
+  DRAFT_EXPIRED
+  DRAFT_FAILED
+}
+
+enum AssistantCaptureField {
+  AMOUNT
+  TYPE
+  WALLET
+  SOURCE_WALLET
+  DESTINATION_WALLET
+  MERCHANT
+  CATEGORY
+  DATE
+  DESCRIPTION
+  TRANSACTION_FIELDS
+  UNSPECIFIED
+}
+
+// Whether the step came straight from a user message (DIRECT) or from a
+// clarification continuation (AFTER_CLARIFICATION). DRAFT_CREATED and
+// CLARIFICATION_REQUESTED only.
+enum AssistantCaptureOrigin {
+  DIRECT
+  AFTER_CLARIFICATION
+}
+
+model AssistantCaptureEvent {
+  id             String                    @id @default(cuid())
+  occurredAt     DateTime                  @default(now()) @map("occurred_at")
+  eventType      AssistantCaptureEventType @map("event_type")
+  source         AssistantChannel
+  schemaVersion  Int                       @map("schema_version")
+  phaseMarker    String                    @map("phase_marker")
+  // sha256 of the existing draft/clarification/turn id — dedupes retries and
+  // joins one draft's events, without being joinable back to a row by SQL.
+  correlationKey String                    @map("correlation_key")
+  fields         AssistantCaptureField[]   @default([])
+  origin         AssistantCaptureOrigin?
+
+  @@unique([eventType, correlationKey])
+  @@index([eventType, occurredAt])
+  @@index([source, occurredAt])
+  @@map("assistant_capture_events")
+}
+
 enum AssistantIdempotencyStatus {
   RUNNING
   COMPLETED

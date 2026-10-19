@@ -39,6 +39,11 @@ export type AssistantMessage = $Result.DefaultSelection<Prisma.$AssistantMessage
  */
 export type AssistantFinancialDraft = $Result.DefaultSelection<Prisma.$AssistantFinancialDraftPayload>
 /**
+ * Model AssistantCaptureEvent
+ *
+ */
+export type AssistantCaptureEvent = $Result.DefaultSelection<Prisma.$AssistantCaptureEventPayload>
+/**
  * Model AssistantIdempotencyRecord
  *
  */
@@ -240,6 +245,46 @@ export const AssistantClarificationStatus: {
 };
 
 export type AssistantClarificationStatus = (typeof AssistantClarificationStatus)[keyof typeof AssistantClarificationStatus]
+
+
+export const AssistantCaptureEventType: {
+  CLARIFICATION_REQUESTED: 'CLARIFICATION_REQUESTED',
+  CLARIFICATION_RESOLVED: 'CLARIFICATION_RESOLVED',
+  CLARIFICATION_CANCELLED: 'CLARIFICATION_CANCELLED',
+  DRAFT_CREATED: 'DRAFT_CREATED',
+  DRAFT_EDITED: 'DRAFT_EDITED',
+  DRAFT_CONFIRMED: 'DRAFT_CONFIRMED',
+  DRAFT_CANCELLED: 'DRAFT_CANCELLED',
+  DRAFT_EXPIRED: 'DRAFT_EXPIRED',
+  DRAFT_FAILED: 'DRAFT_FAILED'
+};
+
+export type AssistantCaptureEventType = (typeof AssistantCaptureEventType)[keyof typeof AssistantCaptureEventType]
+
+
+export const AssistantCaptureField: {
+  AMOUNT: 'AMOUNT',
+  TYPE: 'TYPE',
+  WALLET: 'WALLET',
+  SOURCE_WALLET: 'SOURCE_WALLET',
+  DESTINATION_WALLET: 'DESTINATION_WALLET',
+  MERCHANT: 'MERCHANT',
+  CATEGORY: 'CATEGORY',
+  DATE: 'DATE',
+  DESCRIPTION: 'DESCRIPTION',
+  TRANSACTION_FIELDS: 'TRANSACTION_FIELDS',
+  UNSPECIFIED: 'UNSPECIFIED'
+};
+
+export type AssistantCaptureField = (typeof AssistantCaptureField)[keyof typeof AssistantCaptureField]
+
+
+export const AssistantCaptureOrigin: {
+  DIRECT: 'DIRECT',
+  AFTER_CLARIFICATION: 'AFTER_CLARIFICATION'
+};
+
+export type AssistantCaptureOrigin = (typeof AssistantCaptureOrigin)[keyof typeof AssistantCaptureOrigin]
 
 
 export const AssistantIdempotencyStatus: {
@@ -449,6 +494,18 @@ export const AssistantFinancialDraftStatus: typeof $Enums.AssistantFinancialDraf
 export type AssistantClarificationStatus = $Enums.AssistantClarificationStatus
 
 export const AssistantClarificationStatus: typeof $Enums.AssistantClarificationStatus
+
+export type AssistantCaptureEventType = $Enums.AssistantCaptureEventType
+
+export const AssistantCaptureEventType: typeof $Enums.AssistantCaptureEventType
+
+export type AssistantCaptureField = $Enums.AssistantCaptureField
+
+export const AssistantCaptureField: typeof $Enums.AssistantCaptureField
+
+export type AssistantCaptureOrigin = $Enums.AssistantCaptureOrigin
+
+export const AssistantCaptureOrigin: typeof $Enums.AssistantCaptureOrigin
 
 export type AssistantIdempotencyStatus = $Enums.AssistantIdempotencyStatus
 
@@ -696,6 +753,16 @@ export class PrismaClient<
     * ```
     */
   get assistantFinancialDraft(): Prisma.AssistantFinancialDraftDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.assistantCaptureEvent`: Exposes CRUD operations for the **AssistantCaptureEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AssistantCaptureEvents
+    * const assistantCaptureEvents = await prisma.assistantCaptureEvent.findMany()
+    * ```
+    */
+  get assistantCaptureEvent(): Prisma.AssistantCaptureEventDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.assistantIdempotencyRecord`: Exposes CRUD operations for the **AssistantIdempotencyRecord** model.
@@ -1345,6 +1412,7 @@ export namespace Prisma {
     AssistantTurn: 'AssistantTurn',
     AssistantMessage: 'AssistantMessage',
     AssistantFinancialDraft: 'AssistantFinancialDraft',
+    AssistantCaptureEvent: 'AssistantCaptureEvent',
     AssistantIdempotencyRecord: 'AssistantIdempotencyRecord',
     AssistantToolExecution: 'AssistantToolExecution',
     AssistantProviderExecution: 'AssistantProviderExecution',
@@ -1381,7 +1449,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "assistantConversation" | "assistantTurn" | "assistantMessage" | "assistantFinancialDraft" | "assistantIdempotencyRecord" | "assistantToolExecution" | "assistantProviderExecution" | "clarificationRequest" | "clarificationOption" | "wallet" | "walletAlias" | "category" | "merchantMapping" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent" | "savingGoal" | "channelLinkToken" | "channelConnection" | "channelInboundJob" | "channelOutboundDelivery" | "channelAssistantOperation" | "channelCallbackToken" | "budget"
+      modelProps: "user" | "assistantConversation" | "assistantTurn" | "assistantMessage" | "assistantFinancialDraft" | "assistantCaptureEvent" | "assistantIdempotencyRecord" | "assistantToolExecution" | "assistantProviderExecution" | "clarificationRequest" | "clarificationOption" | "wallet" | "walletAlias" | "category" | "merchantMapping" | "transaction" | "installment" | "recurringTransactionTemplate" | "recurringReminderEvent" | "savingGoal" | "channelLinkToken" | "channelConnection" | "channelInboundJob" | "channelOutboundDelivery" | "channelAssistantOperation" | "channelCallbackToken" | "budget"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1752,6 +1820,80 @@ export namespace Prisma {
           count: {
             args: Prisma.AssistantFinancialDraftCountArgs<ExtArgs>
             result: $Utils.Optional<AssistantFinancialDraftCountAggregateOutputType> | number
+          }
+        }
+      }
+      AssistantCaptureEvent: {
+        payload: Prisma.$AssistantCaptureEventPayload<ExtArgs>
+        fields: Prisma.AssistantCaptureEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AssistantCaptureEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantCaptureEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AssistantCaptureEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantCaptureEventPayload>
+          }
+          findFirst: {
+            args: Prisma.AssistantCaptureEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantCaptureEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AssistantCaptureEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantCaptureEventPayload>
+          }
+          findMany: {
+            args: Prisma.AssistantCaptureEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantCaptureEventPayload>[]
+          }
+          create: {
+            args: Prisma.AssistantCaptureEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantCaptureEventPayload>
+          }
+          createMany: {
+            args: Prisma.AssistantCaptureEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AssistantCaptureEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantCaptureEventPayload>[]
+          }
+          delete: {
+            args: Prisma.AssistantCaptureEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantCaptureEventPayload>
+          }
+          update: {
+            args: Prisma.AssistantCaptureEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantCaptureEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.AssistantCaptureEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AssistantCaptureEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.AssistantCaptureEventUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantCaptureEventPayload>[]
+          }
+          upsert: {
+            args: Prisma.AssistantCaptureEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AssistantCaptureEventPayload>
+          }
+          aggregate: {
+            args: Prisma.AssistantCaptureEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAssistantCaptureEvent>
+          }
+          groupBy: {
+            args: Prisma.AssistantCaptureEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AssistantCaptureEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AssistantCaptureEventCountArgs<ExtArgs>
+            result: $Utils.Optional<AssistantCaptureEventCountAggregateOutputType> | number
           }
         }
       }
@@ -3422,6 +3564,7 @@ export namespace Prisma {
     assistantTurn?: AssistantTurnOmit
     assistantMessage?: AssistantMessageOmit
     assistantFinancialDraft?: AssistantFinancialDraftOmit
+    assistantCaptureEvent?: AssistantCaptureEventOmit
     assistantIdempotencyRecord?: AssistantIdempotencyRecordOmit
     assistantToolExecution?: AssistantToolExecutionOmit
     assistantProviderExecution?: AssistantProviderExecutionOmit
@@ -10861,6 +11004,1088 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: AssistantFinancialDraftInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AssistantCaptureEvent
+   */
+
+  export type AggregateAssistantCaptureEvent = {
+    _count: AssistantCaptureEventCountAggregateOutputType | null
+    _avg: AssistantCaptureEventAvgAggregateOutputType | null
+    _sum: AssistantCaptureEventSumAggregateOutputType | null
+    _min: AssistantCaptureEventMinAggregateOutputType | null
+    _max: AssistantCaptureEventMaxAggregateOutputType | null
+  }
+
+  export type AssistantCaptureEventAvgAggregateOutputType = {
+    schemaVersion: number | null
+  }
+
+  export type AssistantCaptureEventSumAggregateOutputType = {
+    schemaVersion: number | null
+  }
+
+  export type AssistantCaptureEventMinAggregateOutputType = {
+    id: string | null
+    occurredAt: Date | null
+    eventType: $Enums.AssistantCaptureEventType | null
+    source: $Enums.AssistantChannel | null
+    schemaVersion: number | null
+    phaseMarker: string | null
+    correlationKey: string | null
+    origin: $Enums.AssistantCaptureOrigin | null
+  }
+
+  export type AssistantCaptureEventMaxAggregateOutputType = {
+    id: string | null
+    occurredAt: Date | null
+    eventType: $Enums.AssistantCaptureEventType | null
+    source: $Enums.AssistantChannel | null
+    schemaVersion: number | null
+    phaseMarker: string | null
+    correlationKey: string | null
+    origin: $Enums.AssistantCaptureOrigin | null
+  }
+
+  export type AssistantCaptureEventCountAggregateOutputType = {
+    id: number
+    occurredAt: number
+    eventType: number
+    source: number
+    schemaVersion: number
+    phaseMarker: number
+    correlationKey: number
+    fields: number
+    origin: number
+    _all: number
+  }
+
+
+  export type AssistantCaptureEventAvgAggregateInputType = {
+    schemaVersion?: true
+  }
+
+  export type AssistantCaptureEventSumAggregateInputType = {
+    schemaVersion?: true
+  }
+
+  export type AssistantCaptureEventMinAggregateInputType = {
+    id?: true
+    occurredAt?: true
+    eventType?: true
+    source?: true
+    schemaVersion?: true
+    phaseMarker?: true
+    correlationKey?: true
+    origin?: true
+  }
+
+  export type AssistantCaptureEventMaxAggregateInputType = {
+    id?: true
+    occurredAt?: true
+    eventType?: true
+    source?: true
+    schemaVersion?: true
+    phaseMarker?: true
+    correlationKey?: true
+    origin?: true
+  }
+
+  export type AssistantCaptureEventCountAggregateInputType = {
+    id?: true
+    occurredAt?: true
+    eventType?: true
+    source?: true
+    schemaVersion?: true
+    phaseMarker?: true
+    correlationKey?: true
+    fields?: true
+    origin?: true
+    _all?: true
+  }
+
+  export type AssistantCaptureEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssistantCaptureEvent to aggregate.
+     */
+    where?: AssistantCaptureEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantCaptureEvents to fetch.
+     */
+    orderBy?: AssistantCaptureEventOrderByWithRelationInput | AssistantCaptureEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: AssistantCaptureEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantCaptureEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantCaptureEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned AssistantCaptureEvents
+    **/
+    _count?: true | AssistantCaptureEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to average
+    **/
+    _avg?: AssistantCaptureEventAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to sum
+    **/
+    _sum?: AssistantCaptureEventSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+    **/
+    _min?: AssistantCaptureEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+    **/
+    _max?: AssistantCaptureEventMaxAggregateInputType
+  }
+
+  export type GetAssistantCaptureEventAggregateType<T extends AssistantCaptureEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateAssistantCaptureEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAssistantCaptureEvent[P]>
+      : GetScalarType<T[P], AggregateAssistantCaptureEvent[P]>
+  }
+
+
+
+
+  export type AssistantCaptureEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AssistantCaptureEventWhereInput
+    orderBy?: AssistantCaptureEventOrderByWithAggregationInput | AssistantCaptureEventOrderByWithAggregationInput[]
+    by: AssistantCaptureEventScalarFieldEnum[] | AssistantCaptureEventScalarFieldEnum
+    having?: AssistantCaptureEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AssistantCaptureEventCountAggregateInputType | true
+    _avg?: AssistantCaptureEventAvgAggregateInputType
+    _sum?: AssistantCaptureEventSumAggregateInputType
+    _min?: AssistantCaptureEventMinAggregateInputType
+    _max?: AssistantCaptureEventMaxAggregateInputType
+  }
+
+  export type AssistantCaptureEventGroupByOutputType = {
+    id: string
+    occurredAt: Date
+    eventType: $Enums.AssistantCaptureEventType
+    source: $Enums.AssistantChannel
+    schemaVersion: number
+    phaseMarker: string
+    correlationKey: string
+    fields: $Enums.AssistantCaptureField[]
+    origin: $Enums.AssistantCaptureOrigin | null
+    _count: AssistantCaptureEventCountAggregateOutputType | null
+    _avg: AssistantCaptureEventAvgAggregateOutputType | null
+    _sum: AssistantCaptureEventSumAggregateOutputType | null
+    _min: AssistantCaptureEventMinAggregateOutputType | null
+    _max: AssistantCaptureEventMaxAggregateOutputType | null
+  }
+
+  type GetAssistantCaptureEventGroupByPayload<T extends AssistantCaptureEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AssistantCaptureEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AssistantCaptureEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AssistantCaptureEventGroupByOutputType[P]>
+            : GetScalarType<T[P], AssistantCaptureEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AssistantCaptureEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    occurredAt?: boolean
+    eventType?: boolean
+    source?: boolean
+    schemaVersion?: boolean
+    phaseMarker?: boolean
+    correlationKey?: boolean
+    fields?: boolean
+    origin?: boolean
+  }, ExtArgs["result"]["assistantCaptureEvent"]>
+
+  export type AssistantCaptureEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    occurredAt?: boolean
+    eventType?: boolean
+    source?: boolean
+    schemaVersion?: boolean
+    phaseMarker?: boolean
+    correlationKey?: boolean
+    fields?: boolean
+    origin?: boolean
+  }, ExtArgs["result"]["assistantCaptureEvent"]>
+
+  export type AssistantCaptureEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    occurredAt?: boolean
+    eventType?: boolean
+    source?: boolean
+    schemaVersion?: boolean
+    phaseMarker?: boolean
+    correlationKey?: boolean
+    fields?: boolean
+    origin?: boolean
+  }, ExtArgs["result"]["assistantCaptureEvent"]>
+
+  export type AssistantCaptureEventSelectScalar = {
+    id?: boolean
+    occurredAt?: boolean
+    eventType?: boolean
+    source?: boolean
+    schemaVersion?: boolean
+    phaseMarker?: boolean
+    correlationKey?: boolean
+    fields?: boolean
+    origin?: boolean
+  }
+
+  export type AssistantCaptureEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "occurredAt" | "eventType" | "source" | "schemaVersion" | "phaseMarker" | "correlationKey" | "fields" | "origin", ExtArgs["result"]["assistantCaptureEvent"]>
+
+  export type $AssistantCaptureEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AssistantCaptureEvent"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      occurredAt: Date
+      eventType: $Enums.AssistantCaptureEventType
+      source: $Enums.AssistantChannel
+      schemaVersion: number
+      phaseMarker: string
+      correlationKey: string
+      fields: $Enums.AssistantCaptureField[]
+      origin: $Enums.AssistantCaptureOrigin | null
+    }, ExtArgs["result"]["assistantCaptureEvent"]>
+    composites: {}
+  }
+
+  type AssistantCaptureEventGetPayload<S extends boolean | null | undefined | AssistantCaptureEventDefaultArgs> = $Result.GetResult<Prisma.$AssistantCaptureEventPayload, S>
+
+  type AssistantCaptureEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AssistantCaptureEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AssistantCaptureEventCountAggregateInputType | true
+    }
+
+  export interface AssistantCaptureEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AssistantCaptureEvent'], meta: { name: 'AssistantCaptureEvent' } }
+    /**
+     * Find zero or one AssistantCaptureEvent that matches the filter.
+     * @param {AssistantCaptureEventFindUniqueArgs} args - Arguments to find a AssistantCaptureEvent
+     * @example
+     * // Get one AssistantCaptureEvent
+     * const assistantCaptureEvent = await prisma.assistantCaptureEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AssistantCaptureEventFindUniqueArgs>(args: SelectSubset<T, AssistantCaptureEventFindUniqueArgs<ExtArgs>>): Prisma__AssistantCaptureEventClient<$Result.GetResult<Prisma.$AssistantCaptureEventPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AssistantCaptureEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AssistantCaptureEventFindUniqueOrThrowArgs} args - Arguments to find a AssistantCaptureEvent
+     * @example
+     * // Get one AssistantCaptureEvent
+     * const assistantCaptureEvent = await prisma.assistantCaptureEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AssistantCaptureEventFindUniqueOrThrowArgs>(args: SelectSubset<T, AssistantCaptureEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AssistantCaptureEventClient<$Result.GetResult<Prisma.$AssistantCaptureEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AssistantCaptureEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantCaptureEventFindFirstArgs} args - Arguments to find a AssistantCaptureEvent
+     * @example
+     * // Get one AssistantCaptureEvent
+     * const assistantCaptureEvent = await prisma.assistantCaptureEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AssistantCaptureEventFindFirstArgs>(args?: SelectSubset<T, AssistantCaptureEventFindFirstArgs<ExtArgs>>): Prisma__AssistantCaptureEventClient<$Result.GetResult<Prisma.$AssistantCaptureEventPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AssistantCaptureEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantCaptureEventFindFirstOrThrowArgs} args - Arguments to find a AssistantCaptureEvent
+     * @example
+     * // Get one AssistantCaptureEvent
+     * const assistantCaptureEvent = await prisma.assistantCaptureEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AssistantCaptureEventFindFirstOrThrowArgs>(args?: SelectSubset<T, AssistantCaptureEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__AssistantCaptureEventClient<$Result.GetResult<Prisma.$AssistantCaptureEventPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AssistantCaptureEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantCaptureEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AssistantCaptureEvents
+     * const assistantCaptureEvents = await prisma.assistantCaptureEvent.findMany()
+     *
+     * // Get first 10 AssistantCaptureEvents
+     * const assistantCaptureEvents = await prisma.assistantCaptureEvent.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const assistantCaptureEventWithIdOnly = await prisma.assistantCaptureEvent.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends AssistantCaptureEventFindManyArgs>(args?: SelectSubset<T, AssistantCaptureEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantCaptureEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AssistantCaptureEvent.
+     * @param {AssistantCaptureEventCreateArgs} args - Arguments to create a AssistantCaptureEvent.
+     * @example
+     * // Create one AssistantCaptureEvent
+     * const AssistantCaptureEvent = await prisma.assistantCaptureEvent.create({
+     *   data: {
+     *     // ... data to create a AssistantCaptureEvent
+     *   }
+     * })
+     *
+     */
+    create<T extends AssistantCaptureEventCreateArgs>(args: SelectSubset<T, AssistantCaptureEventCreateArgs<ExtArgs>>): Prisma__AssistantCaptureEventClient<$Result.GetResult<Prisma.$AssistantCaptureEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AssistantCaptureEvents.
+     * @param {AssistantCaptureEventCreateManyArgs} args - Arguments to create many AssistantCaptureEvents.
+     * @example
+     * // Create many AssistantCaptureEvents
+     * const assistantCaptureEvent = await prisma.assistantCaptureEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends AssistantCaptureEventCreateManyArgs>(args?: SelectSubset<T, AssistantCaptureEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AssistantCaptureEvents and returns the data saved in the database.
+     * @param {AssistantCaptureEventCreateManyAndReturnArgs} args - Arguments to create many AssistantCaptureEvents.
+     * @example
+     * // Create many AssistantCaptureEvents
+     * const assistantCaptureEvent = await prisma.assistantCaptureEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many AssistantCaptureEvents and only return the `id`
+     * const assistantCaptureEventWithIdOnly = await prisma.assistantCaptureEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends AssistantCaptureEventCreateManyAndReturnArgs>(args?: SelectSubset<T, AssistantCaptureEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantCaptureEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a AssistantCaptureEvent.
+     * @param {AssistantCaptureEventDeleteArgs} args - Arguments to delete one AssistantCaptureEvent.
+     * @example
+     * // Delete one AssistantCaptureEvent
+     * const AssistantCaptureEvent = await prisma.assistantCaptureEvent.delete({
+     *   where: {
+     *     // ... filter to delete one AssistantCaptureEvent
+     *   }
+     * })
+     *
+     */
+    delete<T extends AssistantCaptureEventDeleteArgs>(args: SelectSubset<T, AssistantCaptureEventDeleteArgs<ExtArgs>>): Prisma__AssistantCaptureEventClient<$Result.GetResult<Prisma.$AssistantCaptureEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AssistantCaptureEvent.
+     * @param {AssistantCaptureEventUpdateArgs} args - Arguments to update one AssistantCaptureEvent.
+     * @example
+     * // Update one AssistantCaptureEvent
+     * const assistantCaptureEvent = await prisma.assistantCaptureEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends AssistantCaptureEventUpdateArgs>(args: SelectSubset<T, AssistantCaptureEventUpdateArgs<ExtArgs>>): Prisma__AssistantCaptureEventClient<$Result.GetResult<Prisma.$AssistantCaptureEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AssistantCaptureEvents.
+     * @param {AssistantCaptureEventDeleteManyArgs} args - Arguments to filter AssistantCaptureEvents to delete.
+     * @example
+     * // Delete a few AssistantCaptureEvents
+     * const { count } = await prisma.assistantCaptureEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends AssistantCaptureEventDeleteManyArgs>(args?: SelectSubset<T, AssistantCaptureEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssistantCaptureEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantCaptureEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AssistantCaptureEvents
+     * const assistantCaptureEvent = await prisma.assistantCaptureEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends AssistantCaptureEventUpdateManyArgs>(args: SelectSubset<T, AssistantCaptureEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AssistantCaptureEvents and returns the data updated in the database.
+     * @param {AssistantCaptureEventUpdateManyAndReturnArgs} args - Arguments to update many AssistantCaptureEvents.
+     * @example
+     * // Update many AssistantCaptureEvents
+     * const assistantCaptureEvent = await prisma.assistantCaptureEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more AssistantCaptureEvents and only return the `id`
+     * const assistantCaptureEventWithIdOnly = await prisma.assistantCaptureEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends AssistantCaptureEventUpdateManyAndReturnArgs>(args: SelectSubset<T, AssistantCaptureEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AssistantCaptureEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one AssistantCaptureEvent.
+     * @param {AssistantCaptureEventUpsertArgs} args - Arguments to update or create a AssistantCaptureEvent.
+     * @example
+     * // Update or create a AssistantCaptureEvent
+     * const assistantCaptureEvent = await prisma.assistantCaptureEvent.upsert({
+     *   create: {
+     *     // ... data to create a AssistantCaptureEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AssistantCaptureEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AssistantCaptureEventUpsertArgs>(args: SelectSubset<T, AssistantCaptureEventUpsertArgs<ExtArgs>>): Prisma__AssistantCaptureEventClient<$Result.GetResult<Prisma.$AssistantCaptureEventPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AssistantCaptureEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantCaptureEventCountArgs} args - Arguments to filter AssistantCaptureEvents to count.
+     * @example
+     * // Count the number of AssistantCaptureEvents
+     * const count = await prisma.assistantCaptureEvent.count({
+     *   where: {
+     *     // ... the filter for the AssistantCaptureEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends AssistantCaptureEventCountArgs>(
+      args?: Subset<T, AssistantCaptureEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AssistantCaptureEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AssistantCaptureEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantCaptureEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AssistantCaptureEventAggregateArgs>(args: Subset<T, AssistantCaptureEventAggregateArgs>): Prisma.PrismaPromise<GetAssistantCaptureEventAggregateType<T>>
+
+    /**
+     * Group by AssistantCaptureEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AssistantCaptureEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+    **/
+    groupBy<
+      T extends AssistantCaptureEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AssistantCaptureEventGroupByArgs['orderBy'] }
+        : { orderBy?: AssistantCaptureEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AssistantCaptureEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAssistantCaptureEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AssistantCaptureEvent model
+   */
+  readonly fields: AssistantCaptureEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AssistantCaptureEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AssistantCaptureEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AssistantCaptureEvent model
+   */
+  interface AssistantCaptureEventFieldRefs {
+    readonly id: FieldRef<"AssistantCaptureEvent", 'String'>
+    readonly occurredAt: FieldRef<"AssistantCaptureEvent", 'DateTime'>
+    readonly eventType: FieldRef<"AssistantCaptureEvent", 'AssistantCaptureEventType'>
+    readonly source: FieldRef<"AssistantCaptureEvent", 'AssistantChannel'>
+    readonly schemaVersion: FieldRef<"AssistantCaptureEvent", 'Int'>
+    readonly phaseMarker: FieldRef<"AssistantCaptureEvent", 'String'>
+    readonly correlationKey: FieldRef<"AssistantCaptureEvent", 'String'>
+    readonly fields: FieldRef<"AssistantCaptureEvent", 'AssistantCaptureField[]'>
+    readonly origin: FieldRef<"AssistantCaptureEvent", 'AssistantCaptureOrigin'>
+  }
+
+
+  // Custom InputTypes
+  /**
+   * AssistantCaptureEvent findUnique
+   */
+  export type AssistantCaptureEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantCaptureEvent
+     */
+    select?: AssistantCaptureEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantCaptureEvent
+     */
+    omit?: AssistantCaptureEventOmit<ExtArgs> | null
+    /**
+     * Filter, which AssistantCaptureEvent to fetch.
+     */
+    where: AssistantCaptureEventWhereUniqueInput
+  }
+
+  /**
+   * AssistantCaptureEvent findUniqueOrThrow
+   */
+  export type AssistantCaptureEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantCaptureEvent
+     */
+    select?: AssistantCaptureEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantCaptureEvent
+     */
+    omit?: AssistantCaptureEventOmit<ExtArgs> | null
+    /**
+     * Filter, which AssistantCaptureEvent to fetch.
+     */
+    where: AssistantCaptureEventWhereUniqueInput
+  }
+
+  /**
+   * AssistantCaptureEvent findFirst
+   */
+  export type AssistantCaptureEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantCaptureEvent
+     */
+    select?: AssistantCaptureEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantCaptureEvent
+     */
+    omit?: AssistantCaptureEventOmit<ExtArgs> | null
+    /**
+     * Filter, which AssistantCaptureEvent to fetch.
+     */
+    where?: AssistantCaptureEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantCaptureEvents to fetch.
+     */
+    orderBy?: AssistantCaptureEventOrderByWithRelationInput | AssistantCaptureEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for AssistantCaptureEvents.
+     */
+    cursor?: AssistantCaptureEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantCaptureEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantCaptureEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantCaptureEvents.
+     */
+    distinct?: AssistantCaptureEventScalarFieldEnum | AssistantCaptureEventScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantCaptureEvent findFirstOrThrow
+   */
+  export type AssistantCaptureEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantCaptureEvent
+     */
+    select?: AssistantCaptureEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantCaptureEvent
+     */
+    omit?: AssistantCaptureEventOmit<ExtArgs> | null
+    /**
+     * Filter, which AssistantCaptureEvent to fetch.
+     */
+    where?: AssistantCaptureEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantCaptureEvents to fetch.
+     */
+    orderBy?: AssistantCaptureEventOrderByWithRelationInput | AssistantCaptureEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for AssistantCaptureEvents.
+     */
+    cursor?: AssistantCaptureEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantCaptureEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantCaptureEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantCaptureEvents.
+     */
+    distinct?: AssistantCaptureEventScalarFieldEnum | AssistantCaptureEventScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantCaptureEvent findMany
+   */
+  export type AssistantCaptureEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantCaptureEvent
+     */
+    select?: AssistantCaptureEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantCaptureEvent
+     */
+    omit?: AssistantCaptureEventOmit<ExtArgs> | null
+    /**
+     * Filter, which AssistantCaptureEvents to fetch.
+     */
+    where?: AssistantCaptureEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of AssistantCaptureEvents to fetch.
+     */
+    orderBy?: AssistantCaptureEventOrderByWithRelationInput | AssistantCaptureEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing AssistantCaptureEvents.
+     */
+    cursor?: AssistantCaptureEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` AssistantCaptureEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` AssistantCaptureEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of AssistantCaptureEvents.
+     */
+    distinct?: AssistantCaptureEventScalarFieldEnum | AssistantCaptureEventScalarFieldEnum[]
+  }
+
+  /**
+   * AssistantCaptureEvent create
+   */
+  export type AssistantCaptureEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantCaptureEvent
+     */
+    select?: AssistantCaptureEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantCaptureEvent
+     */
+    omit?: AssistantCaptureEventOmit<ExtArgs> | null
+    /**
+     * The data needed to create a AssistantCaptureEvent.
+     */
+    data: XOR<AssistantCaptureEventCreateInput, AssistantCaptureEventUncheckedCreateInput>
+  }
+
+  /**
+   * AssistantCaptureEvent createMany
+   */
+  export type AssistantCaptureEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AssistantCaptureEvents.
+     */
+    data: AssistantCaptureEventCreateManyInput | AssistantCaptureEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AssistantCaptureEvent createManyAndReturn
+   */
+  export type AssistantCaptureEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantCaptureEvent
+     */
+    select?: AssistantCaptureEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantCaptureEvent
+     */
+    omit?: AssistantCaptureEventOmit<ExtArgs> | null
+    /**
+     * The data used to create many AssistantCaptureEvents.
+     */
+    data: AssistantCaptureEventCreateManyInput | AssistantCaptureEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AssistantCaptureEvent update
+   */
+  export type AssistantCaptureEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantCaptureEvent
+     */
+    select?: AssistantCaptureEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantCaptureEvent
+     */
+    omit?: AssistantCaptureEventOmit<ExtArgs> | null
+    /**
+     * The data needed to update a AssistantCaptureEvent.
+     */
+    data: XOR<AssistantCaptureEventUpdateInput, AssistantCaptureEventUncheckedUpdateInput>
+    /**
+     * Choose, which AssistantCaptureEvent to update.
+     */
+    where: AssistantCaptureEventWhereUniqueInput
+  }
+
+  /**
+   * AssistantCaptureEvent updateMany
+   */
+  export type AssistantCaptureEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AssistantCaptureEvents.
+     */
+    data: XOR<AssistantCaptureEventUpdateManyMutationInput, AssistantCaptureEventUncheckedUpdateManyInput>
+    /**
+     * Filter which AssistantCaptureEvents to update
+     */
+    where?: AssistantCaptureEventWhereInput
+    /**
+     * Limit how many AssistantCaptureEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssistantCaptureEvent updateManyAndReturn
+   */
+  export type AssistantCaptureEventUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantCaptureEvent
+     */
+    select?: AssistantCaptureEventSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantCaptureEvent
+     */
+    omit?: AssistantCaptureEventOmit<ExtArgs> | null
+    /**
+     * The data used to update AssistantCaptureEvents.
+     */
+    data: XOR<AssistantCaptureEventUpdateManyMutationInput, AssistantCaptureEventUncheckedUpdateManyInput>
+    /**
+     * Filter which AssistantCaptureEvents to update
+     */
+    where?: AssistantCaptureEventWhereInput
+    /**
+     * Limit how many AssistantCaptureEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssistantCaptureEvent upsert
+   */
+  export type AssistantCaptureEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantCaptureEvent
+     */
+    select?: AssistantCaptureEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantCaptureEvent
+     */
+    omit?: AssistantCaptureEventOmit<ExtArgs> | null
+    /**
+     * The filter to search for the AssistantCaptureEvent to update in case it exists.
+     */
+    where: AssistantCaptureEventWhereUniqueInput
+    /**
+     * In case the AssistantCaptureEvent found by the `where` argument doesn't exist, create a new AssistantCaptureEvent with this data.
+     */
+    create: XOR<AssistantCaptureEventCreateInput, AssistantCaptureEventUncheckedCreateInput>
+    /**
+     * In case the AssistantCaptureEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AssistantCaptureEventUpdateInput, AssistantCaptureEventUncheckedUpdateInput>
+  }
+
+  /**
+   * AssistantCaptureEvent delete
+   */
+  export type AssistantCaptureEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantCaptureEvent
+     */
+    select?: AssistantCaptureEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantCaptureEvent
+     */
+    omit?: AssistantCaptureEventOmit<ExtArgs> | null
+    /**
+     * Filter which AssistantCaptureEvent to delete.
+     */
+    where: AssistantCaptureEventWhereUniqueInput
+  }
+
+  /**
+   * AssistantCaptureEvent deleteMany
+   */
+  export type AssistantCaptureEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AssistantCaptureEvents to delete
+     */
+    where?: AssistantCaptureEventWhereInput
+    /**
+     * Limit how many AssistantCaptureEvents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AssistantCaptureEvent without action
+   */
+  export type AssistantCaptureEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AssistantCaptureEvent
+     */
+    select?: AssistantCaptureEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AssistantCaptureEvent
+     */
+    omit?: AssistantCaptureEventOmit<ExtArgs> | null
   }
 
 
@@ -37016,6 +38241,21 @@ export namespace Prisma {
   export type AssistantFinancialDraftScalarFieldEnum = (typeof AssistantFinancialDraftScalarFieldEnum)[keyof typeof AssistantFinancialDraftScalarFieldEnum]
 
 
+  export const AssistantCaptureEventScalarFieldEnum: {
+    id: 'id',
+    occurredAt: 'occurredAt',
+    eventType: 'eventType',
+    source: 'source',
+    schemaVersion: 'schemaVersion',
+    phaseMarker: 'phaseMarker',
+    correlationKey: 'correlationKey',
+    fields: 'fields',
+    origin: 'origin'
+  };
+
+  export type AssistantCaptureEventScalarFieldEnum = (typeof AssistantCaptureEventScalarFieldEnum)[keyof typeof AssistantCaptureEventScalarFieldEnum]
+
+
   export const AssistantIdempotencyRecordScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
@@ -37608,16 +38848,16 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'AssistantIdempotencyStatus'
+   * Reference to a field of type 'AssistantCaptureEventType'
    */
-  export type EnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantIdempotencyStatus'>
+  export type EnumAssistantCaptureEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantCaptureEventType'>
 
 
 
   /**
-   * Reference to a field of type 'AssistantIdempotencyStatus[]'
+   * Reference to a field of type 'AssistantCaptureEventType[]'
    */
-  export type ListEnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantIdempotencyStatus[]'>
+  export type ListEnumAssistantCaptureEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantCaptureEventType[]'>
 
 
 
@@ -37632,6 +38872,48 @@ export namespace Prisma {
    * Reference to a field of type 'Int[]'
    */
   export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantCaptureField[]'
+   */
+  export type ListEnumAssistantCaptureFieldFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantCaptureField[]'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantCaptureField'
+   */
+  export type EnumAssistantCaptureFieldFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantCaptureField'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantCaptureOrigin'
+   */
+  export type EnumAssistantCaptureOriginFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantCaptureOrigin'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantCaptureOrigin[]'
+   */
+  export type ListEnumAssistantCaptureOriginFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantCaptureOrigin[]'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantIdempotencyStatus'
+   */
+  export type EnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantIdempotencyStatus'>
+
+
+
+  /**
+   * Reference to a field of type 'AssistantIdempotencyStatus[]'
+   */
+  export type ListEnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssistantIdempotencyStatus[]'>
 
 
 
@@ -38475,6 +39757,81 @@ export namespace Prisma {
     transactionId?: StringNullableWithAggregatesFilter<"AssistantFinancialDraft"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"AssistantFinancialDraft"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"AssistantFinancialDraft"> | Date | string
+  }
+
+  export type AssistantCaptureEventWhereInput = {
+    AND?: AssistantCaptureEventWhereInput | AssistantCaptureEventWhereInput[]
+    OR?: AssistantCaptureEventWhereInput[]
+    NOT?: AssistantCaptureEventWhereInput | AssistantCaptureEventWhereInput[]
+    id?: StringFilter<"AssistantCaptureEvent"> | string
+    occurredAt?: DateTimeFilter<"AssistantCaptureEvent"> | Date | string
+    eventType?: EnumAssistantCaptureEventTypeFilter<"AssistantCaptureEvent"> | $Enums.AssistantCaptureEventType
+    source?: EnumAssistantChannelFilter<"AssistantCaptureEvent"> | $Enums.AssistantChannel
+    schemaVersion?: IntFilter<"AssistantCaptureEvent"> | number
+    phaseMarker?: StringFilter<"AssistantCaptureEvent"> | string
+    correlationKey?: StringFilter<"AssistantCaptureEvent"> | string
+    fields?: EnumAssistantCaptureFieldNullableListFilter<"AssistantCaptureEvent">
+    origin?: EnumAssistantCaptureOriginNullableFilter<"AssistantCaptureEvent"> | $Enums.AssistantCaptureOrigin | null
+  }
+
+  export type AssistantCaptureEventOrderByWithRelationInput = {
+    id?: SortOrder
+    occurredAt?: SortOrder
+    eventType?: SortOrder
+    source?: SortOrder
+    schemaVersion?: SortOrder
+    phaseMarker?: SortOrder
+    correlationKey?: SortOrder
+    fields?: SortOrder
+    origin?: SortOrderInput | SortOrder
+  }
+
+  export type AssistantCaptureEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    eventType_correlationKey?: AssistantCaptureEventEventTypeCorrelationKeyCompoundUniqueInput
+    AND?: AssistantCaptureEventWhereInput | AssistantCaptureEventWhereInput[]
+    OR?: AssistantCaptureEventWhereInput[]
+    NOT?: AssistantCaptureEventWhereInput | AssistantCaptureEventWhereInput[]
+    occurredAt?: DateTimeFilter<"AssistantCaptureEvent"> | Date | string
+    eventType?: EnumAssistantCaptureEventTypeFilter<"AssistantCaptureEvent"> | $Enums.AssistantCaptureEventType
+    source?: EnumAssistantChannelFilter<"AssistantCaptureEvent"> | $Enums.AssistantChannel
+    schemaVersion?: IntFilter<"AssistantCaptureEvent"> | number
+    phaseMarker?: StringFilter<"AssistantCaptureEvent"> | string
+    correlationKey?: StringFilter<"AssistantCaptureEvent"> | string
+    fields?: EnumAssistantCaptureFieldNullableListFilter<"AssistantCaptureEvent">
+    origin?: EnumAssistantCaptureOriginNullableFilter<"AssistantCaptureEvent"> | $Enums.AssistantCaptureOrigin | null
+  }, "id" | "eventType_correlationKey">
+
+  export type AssistantCaptureEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    occurredAt?: SortOrder
+    eventType?: SortOrder
+    source?: SortOrder
+    schemaVersion?: SortOrder
+    phaseMarker?: SortOrder
+    correlationKey?: SortOrder
+    fields?: SortOrder
+    origin?: SortOrderInput | SortOrder
+    _count?: AssistantCaptureEventCountOrderByAggregateInput
+    _avg?: AssistantCaptureEventAvgOrderByAggregateInput
+    _max?: AssistantCaptureEventMaxOrderByAggregateInput
+    _min?: AssistantCaptureEventMinOrderByAggregateInput
+    _sum?: AssistantCaptureEventSumOrderByAggregateInput
+  }
+
+  export type AssistantCaptureEventScalarWhereWithAggregatesInput = {
+    AND?: AssistantCaptureEventScalarWhereWithAggregatesInput | AssistantCaptureEventScalarWhereWithAggregatesInput[]
+    OR?: AssistantCaptureEventScalarWhereWithAggregatesInput[]
+    NOT?: AssistantCaptureEventScalarWhereWithAggregatesInput | AssistantCaptureEventScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AssistantCaptureEvent"> | string
+    occurredAt?: DateTimeWithAggregatesFilter<"AssistantCaptureEvent"> | Date | string
+    eventType?: EnumAssistantCaptureEventTypeWithAggregatesFilter<"AssistantCaptureEvent"> | $Enums.AssistantCaptureEventType
+    source?: EnumAssistantChannelWithAggregatesFilter<"AssistantCaptureEvent"> | $Enums.AssistantChannel
+    schemaVersion?: IntWithAggregatesFilter<"AssistantCaptureEvent"> | number
+    phaseMarker?: StringWithAggregatesFilter<"AssistantCaptureEvent"> | string
+    correlationKey?: StringWithAggregatesFilter<"AssistantCaptureEvent"> | string
+    fields?: EnumAssistantCaptureFieldNullableListFilter<"AssistantCaptureEvent">
+    origin?: EnumAssistantCaptureOriginNullableWithAggregatesFilter<"AssistantCaptureEvent"> | $Enums.AssistantCaptureOrigin | null
   }
 
   export type AssistantIdempotencyRecordWhereInput = {
@@ -41229,6 +42586,90 @@ export namespace Prisma {
     transactionId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AssistantCaptureEventCreateInput = {
+    id?: string
+    occurredAt?: Date | string
+    eventType: $Enums.AssistantCaptureEventType
+    source: $Enums.AssistantChannel
+    schemaVersion: number
+    phaseMarker: string
+    correlationKey: string
+    fields?: AssistantCaptureEventCreatefieldsInput | $Enums.AssistantCaptureField[]
+    origin?: $Enums.AssistantCaptureOrigin | null
+  }
+
+  export type AssistantCaptureEventUncheckedCreateInput = {
+    id?: string
+    occurredAt?: Date | string
+    eventType: $Enums.AssistantCaptureEventType
+    source: $Enums.AssistantChannel
+    schemaVersion: number
+    phaseMarker: string
+    correlationKey: string
+    fields?: AssistantCaptureEventCreatefieldsInput | $Enums.AssistantCaptureField[]
+    origin?: $Enums.AssistantCaptureOrigin | null
+  }
+
+  export type AssistantCaptureEventUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    eventType?: EnumAssistantCaptureEventTypeFieldUpdateOperationsInput | $Enums.AssistantCaptureEventType
+    source?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
+    schemaVersion?: IntFieldUpdateOperationsInput | number
+    phaseMarker?: StringFieldUpdateOperationsInput | string
+    correlationKey?: StringFieldUpdateOperationsInput | string
+    fields?: AssistantCaptureEventUpdatefieldsInput | $Enums.AssistantCaptureField[]
+    origin?: NullableEnumAssistantCaptureOriginFieldUpdateOperationsInput | $Enums.AssistantCaptureOrigin | null
+  }
+
+  export type AssistantCaptureEventUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    eventType?: EnumAssistantCaptureEventTypeFieldUpdateOperationsInput | $Enums.AssistantCaptureEventType
+    source?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
+    schemaVersion?: IntFieldUpdateOperationsInput | number
+    phaseMarker?: StringFieldUpdateOperationsInput | string
+    correlationKey?: StringFieldUpdateOperationsInput | string
+    fields?: AssistantCaptureEventUpdatefieldsInput | $Enums.AssistantCaptureField[]
+    origin?: NullableEnumAssistantCaptureOriginFieldUpdateOperationsInput | $Enums.AssistantCaptureOrigin | null
+  }
+
+  export type AssistantCaptureEventCreateManyInput = {
+    id?: string
+    occurredAt?: Date | string
+    eventType: $Enums.AssistantCaptureEventType
+    source: $Enums.AssistantChannel
+    schemaVersion: number
+    phaseMarker: string
+    correlationKey: string
+    fields?: AssistantCaptureEventCreatefieldsInput | $Enums.AssistantCaptureField[]
+    origin?: $Enums.AssistantCaptureOrigin | null
+  }
+
+  export type AssistantCaptureEventUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    eventType?: EnumAssistantCaptureEventTypeFieldUpdateOperationsInput | $Enums.AssistantCaptureEventType
+    source?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
+    schemaVersion?: IntFieldUpdateOperationsInput | number
+    phaseMarker?: StringFieldUpdateOperationsInput | string
+    correlationKey?: StringFieldUpdateOperationsInput | string
+    fields?: AssistantCaptureEventUpdatefieldsInput | $Enums.AssistantCaptureField[]
+    origin?: NullableEnumAssistantCaptureOriginFieldUpdateOperationsInput | $Enums.AssistantCaptureOrigin | null
+  }
+
+  export type AssistantCaptureEventUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    occurredAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    eventType?: EnumAssistantCaptureEventTypeFieldUpdateOperationsInput | $Enums.AssistantCaptureEventType
+    source?: EnumAssistantChannelFieldUpdateOperationsInput | $Enums.AssistantChannel
+    schemaVersion?: IntFieldUpdateOperationsInput | number
+    phaseMarker?: StringFieldUpdateOperationsInput | string
+    correlationKey?: StringFieldUpdateOperationsInput | string
+    fields?: AssistantCaptureEventUpdatefieldsInput | $Enums.AssistantCaptureField[]
+    origin?: NullableEnumAssistantCaptureOriginFieldUpdateOperationsInput | $Enums.AssistantCaptureOrigin | null
   }
 
   export type AssistantIdempotencyRecordCreateInput = {
@@ -44318,6 +45759,122 @@ export namespace Prisma {
     _max?: NestedDecimalFilter<$PrismaModel>
   }
 
+  export type EnumAssistantCaptureEventTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantCaptureEventType | EnumAssistantCaptureEventTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantCaptureEventType[] | ListEnumAssistantCaptureEventTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantCaptureEventType[] | ListEnumAssistantCaptureEventTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantCaptureEventTypeFilter<$PrismaModel> | $Enums.AssistantCaptureEventType
+  }
+
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type EnumAssistantCaptureFieldNullableListFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantCaptureField[] | ListEnumAssistantCaptureFieldFieldRefInput<$PrismaModel> | null
+    has?: $Enums.AssistantCaptureField | EnumAssistantCaptureFieldFieldRefInput<$PrismaModel> | null
+    hasEvery?: $Enums.AssistantCaptureField[] | ListEnumAssistantCaptureFieldFieldRefInput<$PrismaModel>
+    hasSome?: $Enums.AssistantCaptureField[] | ListEnumAssistantCaptureFieldFieldRefInput<$PrismaModel>
+    isEmpty?: boolean
+  }
+
+  export type EnumAssistantCaptureOriginNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantCaptureOrigin | EnumAssistantCaptureOriginFieldRefInput<$PrismaModel> | null
+    in?: $Enums.AssistantCaptureOrigin[] | ListEnumAssistantCaptureOriginFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.AssistantCaptureOrigin[] | ListEnumAssistantCaptureOriginFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumAssistantCaptureOriginNullableFilter<$PrismaModel> | $Enums.AssistantCaptureOrigin | null
+  }
+
+  export type AssistantCaptureEventEventTypeCorrelationKeyCompoundUniqueInput = {
+    eventType: $Enums.AssistantCaptureEventType
+    correlationKey: string
+  }
+
+  export type AssistantCaptureEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    occurredAt?: SortOrder
+    eventType?: SortOrder
+    source?: SortOrder
+    schemaVersion?: SortOrder
+    phaseMarker?: SortOrder
+    correlationKey?: SortOrder
+    fields?: SortOrder
+    origin?: SortOrder
+  }
+
+  export type AssistantCaptureEventAvgOrderByAggregateInput = {
+    schemaVersion?: SortOrder
+  }
+
+  export type AssistantCaptureEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    occurredAt?: SortOrder
+    eventType?: SortOrder
+    source?: SortOrder
+    schemaVersion?: SortOrder
+    phaseMarker?: SortOrder
+    correlationKey?: SortOrder
+    origin?: SortOrder
+  }
+
+  export type AssistantCaptureEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    occurredAt?: SortOrder
+    eventType?: SortOrder
+    source?: SortOrder
+    schemaVersion?: SortOrder
+    phaseMarker?: SortOrder
+    correlationKey?: SortOrder
+    origin?: SortOrder
+  }
+
+  export type AssistantCaptureEventSumOrderByAggregateInput = {
+    schemaVersion?: SortOrder
+  }
+
+  export type EnumAssistantCaptureEventTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantCaptureEventType | EnumAssistantCaptureEventTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantCaptureEventType[] | ListEnumAssistantCaptureEventTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantCaptureEventType[] | ListEnumAssistantCaptureEventTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantCaptureEventTypeWithAggregatesFilter<$PrismaModel> | $Enums.AssistantCaptureEventType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantCaptureEventTypeFilter<$PrismaModel>
+    _max?: NestedEnumAssistantCaptureEventTypeFilter<$PrismaModel>
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type EnumAssistantCaptureOriginNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantCaptureOrigin | EnumAssistantCaptureOriginFieldRefInput<$PrismaModel> | null
+    in?: $Enums.AssistantCaptureOrigin[] | ListEnumAssistantCaptureOriginFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.AssistantCaptureOrigin[] | ListEnumAssistantCaptureOriginFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumAssistantCaptureOriginNullableWithAggregatesFilter<$PrismaModel> | $Enums.AssistantCaptureOrigin | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumAssistantCaptureOriginNullableFilter<$PrismaModel>
+    _max?: NestedEnumAssistantCaptureOriginNullableFilter<$PrismaModel>
+  }
+
   export type EnumAssistantIdempotencyStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.AssistantIdempotencyStatus | EnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
     in?: $Enums.AssistantIdempotencyStatus[] | ListEnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
@@ -44562,17 +46119,6 @@ export namespace Prisma {
     not?: NestedEnumAssistantProviderExecutionStatusFilter<$PrismaModel> | $Enums.AssistantProviderExecutionStatus
   }
 
-  export type IntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
-  }
-
   export type AssistantProviderExecutionCountOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
@@ -44667,22 +46213,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumAssistantProviderExecutionStatusFilter<$PrismaModel>
     _max?: NestedEnumAssistantProviderExecutionStatusFilter<$PrismaModel>
-  }
-
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type EnumAssistantClarificationStatusFilter<$PrismaModel = never> = {
@@ -47657,6 +49187,31 @@ export namespace Prisma {
     deleteMany?: AssistantIdempotencyRecordScalarWhereInput | AssistantIdempotencyRecordScalarWhereInput[]
   }
 
+  export type AssistantCaptureEventCreatefieldsInput = {
+    set: $Enums.AssistantCaptureField[]
+  }
+
+  export type EnumAssistantCaptureEventTypeFieldUpdateOperationsInput = {
+    set?: $Enums.AssistantCaptureEventType
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type AssistantCaptureEventUpdatefieldsInput = {
+    set?: $Enums.AssistantCaptureField[]
+    push?: $Enums.AssistantCaptureField | $Enums.AssistantCaptureField[]
+  }
+
+  export type NullableEnumAssistantCaptureOriginFieldUpdateOperationsInput = {
+    set?: $Enums.AssistantCaptureOrigin | null
+  }
+
   export type UserCreateNestedOneWithoutAssistantIdempotencyRecordsInput = {
     create?: XOR<UserCreateWithoutAssistantIdempotencyRecordsInput, UserUncheckedCreateWithoutAssistantIdempotencyRecordsInput>
     connectOrCreate?: UserCreateOrConnectWithoutAssistantIdempotencyRecordsInput
@@ -47815,14 +49370,6 @@ export namespace Prisma {
 
   export type EnumAssistantProviderExecutionStatusFieldUpdateOperationsInput = {
     set?: $Enums.AssistantProviderExecutionStatus
-  }
-
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type UserUpdateOneRequiredWithoutAssistantProviderExecutionsNestedInput = {
@@ -49575,6 +51122,67 @@ export namespace Prisma {
     _max?: NestedDecimalFilter<$PrismaModel>
   }
 
+  export type NestedEnumAssistantCaptureEventTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantCaptureEventType | EnumAssistantCaptureEventTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantCaptureEventType[] | ListEnumAssistantCaptureEventTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantCaptureEventType[] | ListEnumAssistantCaptureEventTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantCaptureEventTypeFilter<$PrismaModel> | $Enums.AssistantCaptureEventType
+  }
+
+  export type NestedEnumAssistantCaptureOriginNullableFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantCaptureOrigin | EnumAssistantCaptureOriginFieldRefInput<$PrismaModel> | null
+    in?: $Enums.AssistantCaptureOrigin[] | ListEnumAssistantCaptureOriginFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.AssistantCaptureOrigin[] | ListEnumAssistantCaptureOriginFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumAssistantCaptureOriginNullableFilter<$PrismaModel> | $Enums.AssistantCaptureOrigin | null
+  }
+
+  export type NestedEnumAssistantCaptureEventTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantCaptureEventType | EnumAssistantCaptureEventTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AssistantCaptureEventType[] | ListEnumAssistantCaptureEventTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AssistantCaptureEventType[] | ListEnumAssistantCaptureEventTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAssistantCaptureEventTypeWithAggregatesFilter<$PrismaModel> | $Enums.AssistantCaptureEventType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAssistantCaptureEventTypeFilter<$PrismaModel>
+    _max?: NestedEnumAssistantCaptureEventTypeFilter<$PrismaModel>
+  }
+
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type NestedEnumAssistantCaptureOriginNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AssistantCaptureOrigin | EnumAssistantCaptureOriginFieldRefInput<$PrismaModel> | null
+    in?: $Enums.AssistantCaptureOrigin[] | ListEnumAssistantCaptureOriginFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.AssistantCaptureOrigin[] | ListEnumAssistantCaptureOriginFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumAssistantCaptureOriginNullableWithAggregatesFilter<$PrismaModel> | $Enums.AssistantCaptureOrigin | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumAssistantCaptureOriginNullableFilter<$PrismaModel>
+    _max?: NestedEnumAssistantCaptureOriginNullableFilter<$PrismaModel>
+  }
+
   export type NestedEnumAssistantIdempotencyStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.AssistantIdempotencyStatus | EnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
     in?: $Enums.AssistantIdempotencyStatus[] | ListEnumAssistantIdempotencyStatusFieldRefInput<$PrismaModel>
@@ -49674,33 +51282,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumAssistantProviderExecutionStatusFilter<$PrismaModel>
     _max?: NestedEnumAssistantProviderExecutionStatusFilter<$PrismaModel>
-  }
-
-  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
-  }
-
-  export type NestedFloatFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
   }
 
   export type NestedEnumAssistantClarificationStatusFilter<$PrismaModel = never> = {
