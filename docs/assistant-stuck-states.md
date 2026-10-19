@@ -1,4 +1,4 @@
-# Assistant state machines — final semantics (Phase 37.3)
+# Assistant state machines — final semantics (Phase 37.3, updated 38.1)
 
 Companion to `docs/audit/assistant-audit-phase-21-37.md` (finding B2 and the
 state-machine section) in the top-level `pocket-mint` workspace. This doc is
@@ -130,7 +130,8 @@ choosing one mechanism when it's sufficient. Reasoning:
    needing its DB status column to have flipped yet.
 4. Residual imperfection, accepted: the DB `status` column itself can still
    say `PENDING`/`PENDING_CONFIRMATION` for a row nobody has touched since
-   it expired, until the next touch. This is cosmetic/audit-trail only —
+   it expired, until the next touch (see "Effective vs recorded status"
+   below — read paths report the effective status since Phase 38.1). This is cosmetic/audit-trail only —
    not a correctness or safety issue, since every actionable read/write path
    already treats it as inactionable. Ops visibility (below) surfaces these
    rows directly by `expiresAt`, not by status, so this residual lag is
@@ -190,16 +191,94 @@ re-validating `expiresAt` client-side.
   the `ASSISTANT_CLARIFICATION_*` codes, `ASSISTANT_CONVERSATION_NOT_CONTINUABLE`,
   `session.conversation.status`, and `latestTerminalClarification` (only when the
   conversation's last turn intent is `clarification.*`, since it carries no turn link).
-- **Known gaps (not guessed client-side)**:
-  1. `recovery-state` exposes no terminal *draft*. After a refresh, an
-     EXPIRED/FAILED/CANCELLED draft is indistinguishable from "nothing pending"
-     until the user acts on a stale card and gets the 409 `detail`.
-  2. An untouched, past-TTL clarification stays `PENDING` in the DB (lazy expiry),
-     is filtered out of `activeClarification`, and never appears as
-     `latestTerminalClarification` — so "expired" can't be shown for it on refresh.
-  3. `latestTerminalClarification` has no `originatingTurnId`; the client can only
-     associate it with "what just happened" via the last turn's intent.
-  4. The capture taxonomy has no clarification expired/stale event; adding one needs
-     an `ALTER TYPE` migration, out of scope for Phase 38.
-  5. Conversation `EXPIRED` is never written; the client treats any non-ACTIVE
-     conversation as archived.
+- **Known gaps as of Phase 38** — gaps 1–3 and 6 are closed in Phase 38.1 (below).
+
+## Phase 38.1 — effective status, terminal drafts, archived guard
+
+### Effective vs recorded status
+
+`src/assistant/effective-status.ts` holds the one definition of a row's
+status at a given `now`:
+
+| Recorded (column) | Past `expiresAt`? | Effective |
+|---|---|---|
+| Draft `PENDING_CONFIRMATION` | yes | `EXPIRED` |
+| Clarification `PENDING` | yes | `STALE` + `terminalCode: 'expired'` |
+| anything else | — | unchanged |
+
+Every lazy-expiry write decides from it (`confirm()`/`cancel()` for drafts;
+`select()`/`consumeGuidedFields()`/`cancel()` for clarifications: "write when
+effective ≠ recorded"), and `getAssistantState()` reports it. Reads never
+write: a past-TTL row keeps its recorded `PENDING*` status until something
+acts on it, exactly as before. The read and the next write can no longer
+disagree. Drafts compare against the process clock in `confirm()`/`cancel()`
+(unchanged, injectable for tests) and against database time in
+`getAssistantState()`; clarifications use database time everywhere.
+
+### Recovery-state additions (gaps 1–3)
+
+- `latestTerminalDraft`: the conversation's **most recent** draft when its
+  effective status is `EXPIRED`, `FAILED` or `CANCELLED`. A newer draft of
+  any status (including `COMMITTED`) supersedes it. Shape:
+  `{ draftId, status, recordedStatus, originatingTurnId }`. No preview.
+- `latestTerminalClarification` is now the conversation's most recent
+  clarification (by `createdAt`, was "most recently updated terminal row")
+  when it is effectively terminal, so an untouched past-TTL clarification
+  shows up as `STALE`/`expired`, `recordedStatus: 'PENDING'`. It now carries
+  `recordedStatus` and `originatingTurnId`.
+- Turn link: both use the existing non-null `originatingTurnId` column. No
+  migration was needed.
+- `activeClarification`/`pendingDraft` behave as before: the newest pending
+  row, only while it is effectively still pending. TTLs are constant from
+  creation, so the newest pending row is always the last one to expire.
+
+### Archived-conversation guard (gap 6)
+
+`confirm()` and `cancel()` reject a still-`PENDING_CONFIRMATION` draft whose
+conversation is not `ACTIVE` with `409 ASSISTANT_CONVERSATION_NOT_CONTINUABLE`,
+`detail: 'CONVERSATION_ARCHIVED'` (`AssistantError.conversationArchived()`).
+This covers the Web confirm/edit/cancel routes and the Telegram Confirm/Cancel
+buttons, which call the same service (Telegram maps it to the `archived`
+terminal status).
+
+- Nothing is written on rejection. The draft stays `PENDING_CONFIRMATION`,
+  never `FAILED`, and is not lazily `EXPIRED` while archived. No turn, no
+  transaction.
+- Order inside the confirm transaction: committed replay → recorded terminal
+  status (`ASSISTANT_DRAFT_CONFLICT` + its `detail`) → archived guard → lazy
+  `EXPIRED` → commit. A terminal draft therefore still reports its own
+  status in an archived conversation.
+- Race safety: the guard reads the conversation with `SELECT … FOR NO KEY
+  UPDATE` inside the confirm/cancel transaction (after the draft advisory
+  lock). That conflicts with archive/restore (`UPDATE`) and delete, so the
+  status cannot change before the confirm commits. A confirm racing an
+  archive either commits first (archive then waits) or sees `ARCHIVED` and
+  is rejected. It does not conflict with the FK `KEY SHARE` locks taken when
+  inserting turns/messages. Lock order (draft advisory → conversation row →
+  wallet rows) matches the other paths, so it adds no deadlock cycle.
+- Restore: `restore` → `ACTIVE`, and the same draft confirms normally until
+  its TTL. After the TTL the next confirm writes `EXPIRED` as usual.
+- Telegram: the callback token is consumed on the press, as for every other
+  outcome. After a restore the user confirms from the Web (the old button
+  answers "already handled").
+
+### Conversation `EXPIRED` (gap 5)
+
+Still never written by any code path. `archive`/`restore` reject it
+defensively and every guard treats any non-`ACTIVE` status the same way, so
+it needs no handling of its own. The Web client had no `EXPIRED`-specific
+branch; it treats any non-`ACTIVE` status as archived.
+
+### Remaining gaps after Phase 38.1
+
+1. **Capture taxonomy**: still no clarification expired/stale event (needs
+   an `ALTER TYPE` migration). The capture report derives "abandoned past
+   TTL" instead, and that bucket also absorbs stale/invalid clarifications.
+2. **Clarification select on an archived conversation** is not guarded.
+   Selecting a pending clarification there can still prepare a draft, which
+   the new guard then refuses to confirm until restore. Out of scope (the
+   guard was scoped to confirm/cancel/edit).
+3. **Telegram after restore**: the consumed callback token cannot be pressed
+   again. Confirm from the Web.
+4. Resending the original message still needs that message on the loaded
+   history page (frontend; unchanged).
