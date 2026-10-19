@@ -175,7 +175,7 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
     const draft = await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } });
     const server = app(() => new Date(draft.expiresAt.getTime() + offsetMs));
     const response = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', `expiry-${offsetMs}`);
-    expect(response.status).toBe(expectedHttp);
+    expect(response.status, JSON.stringify(response.body)).toBe(expectedHttp);
     expect((await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status).toBe(expectedStatus);
     expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(offsetMs < 0 ? 1 : 0);
   });
@@ -781,7 +781,7 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
           request(server).post(`/conversations/${conversationId}/archive`).set('x-test-user', user.id),
           confirmReq(server, user.id, draftId, `archive-race-${i}`),
         ]);
-        expect(archived.status).toBe(200);
+        expect(archived.status, JSON.stringify(archived.body)).toBe(200);
         expect([200, 409]).toContain(confirmed.status);
         if (confirmed.status === 200) {
           expect(await draftStatus(draftId)).toBe('COMMITTED');
