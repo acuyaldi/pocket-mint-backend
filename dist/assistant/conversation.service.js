@@ -161,13 +161,25 @@ function createAssistantConversationService(db) {
             await tx.assistantConversation.update({ where: { id: input.conversationId }, data: { lastActivityAt: now } });
         };
         // Phase 37.4 — a concurrent deleteOwnedConversation can cascade-delete
-        // the turn/tool-execution/conversation rows this writes to, at any point
-        // during `work`. Wraps the WHOLE write (not just the conversation touch)
-        // since every statement in it races the same cascade identically — a
-        // partial no-op (e.g. still trying the turn update after the
-        // conversation touch failed) would just fail the same way one step
-        // later. No-op, never throw (see logConversationRaceSkip above).
-        await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => (options.transaction ? work(options.transaction) : db.$transaction(work)), { P2025: () => logConversationRaceSkip('finalize', { conversationId: input.conversationId, turnId: input.turnId }) });
+        // the turn/tool-execution/conversation rows this writes to, at any
+        // point during `work`. No-op, never throw (see logConversationRaceSkip
+        // above) — but ONLY when this function opened and controls the
+        // transaction itself: a throw from `db.$transaction(work)`'s own
+        // callback is guaranteed to roll back everything `work` did, so
+        // swallowing the rejection afterward is safe (nothing partial survives).
+        // When the caller supplied its OWN transaction (`options.transaction`),
+        // this function is just one participant in an ambient transaction it
+        // does not control the commit/rollback of — swallowing here would let
+        // this write silently no-op while every other write already made in
+        // that same transaction still commits. No current caller in this
+        // codebase passes `options.transaction` to finalize(), but this must
+        // stay correct if one ever does: let it propagate so the caller's own
+        // transaction aborts instead (security review, Phase 37.4).
+        if (options.transaction) {
+            await work(options.transaction);
+            return;
+        }
+        await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => db.$transaction(work), { P2025: () => logConversationRaceSkip('finalize', { conversationId: input.conversationId, turnId: input.turnId }) });
     }
     async function finalizeRejected(input) {
         (0, persistence_1.assertAssistantMessageLength)(input.content);
@@ -197,8 +209,13 @@ function createAssistantConversationService(db) {
                 } });
             await tx.assistantConversation.update({ where: { id: input.conversationId }, data: { lastActivityAt: now } });
         };
-        // Same race-shape and no-op decision as finalize() above.
-        await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => (options.transaction ? work(options.transaction) : db.$transaction(work)), { P2025: () => logConversationRaceSkip('finalizeWithoutTool', { conversationId: input.conversationId, turnId: input.turnId }) });
+        // Same race-shape, and the same options.transaction carve-out, as
+        // finalize() above (security review, Phase 37.4).
+        if (options.transaction) {
+            await work(options.transaction);
+            return;
+        }
+        await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => db.$transaction(work), { P2025: () => logConversationRaceSkip('finalizeWithoutTool', { conversationId: input.conversationId, turnId: input.turnId }) });
     }
     async function listOwnedConversations(userId, page, limit) {
         const p = pageArgs(page, limit);
