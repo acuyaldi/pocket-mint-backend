@@ -154,11 +154,6 @@ export interface AssistantLogEvent {
   /** Callback interaction taxonomy (Phase 26A) — bounded closed-enum labels only, never token/payload content. */
   readonly interactionType?: string;
   readonly terminalStatus?: string;
-  /** Capture-quality signals (Phase 35) — bounded labels/booleans only, never message text, amounts, or ids. */
-  readonly captureSource?: 'direct' | 'clarification_resolved';
-  /** Clarification entity kind ('wallet'/'merchant'/'category'/'transaction_fields'/'provider_text') — never the option labels/tokens. */
-  readonly clarificationKind?: string;
-  readonly overridesUsed?: boolean;
   /**
    * Opaque internal row ids (Phase 37.4) — cuid strings, never free-text
    * content. Safe for the same reason conversationId/turnId already appear

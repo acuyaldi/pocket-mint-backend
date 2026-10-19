@@ -99,7 +99,8 @@ export type AssistantPlan =
     readonly arguments: unknown;
     readonly policy: { readonly action: 'EXECUTE_IMMEDIATELY' | 'DRAFT_AND_CONFIRM' };
   }
-  | { readonly kind: 'clarification'; readonly question: string }
+  /** `field`: set only when the question is a deterministic missing-argument prompt (Phase 35.1 capture events). */
+  | { readonly kind: 'clarification'; readonly question: string; readonly field?: 'AMOUNT' | 'WALLET' | 'TYPE' }
   | { readonly kind: 'unsupported'; readonly message: string };
 
 /**

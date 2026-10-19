@@ -22,6 +22,7 @@ import { assistantProviderConfig } from '../config';
 import { createGeminiAssistantProvider } from './providers/gemini.provider';
 import { createAssistantProviderAuditService } from './provider-audit.service';
 import { createAssistantProviderRuntime } from './provider-runtime';
+import { createCaptureEventEmitter } from './capture-events';
 import {
   EntityResolverRegistry,
   createCategoryResolver,
@@ -48,6 +49,8 @@ entityResolverRegistry.register(createCategoryResolver(prisma));
 entityResolverRegistry.finalize();
 
 export const assistantConversationService = createAssistantConversationService(prisma);
+/** The one capture-event emitter (Phase 35.1), shared by every Assistant service below. */
+const captureEvents = createCaptureEventEmitter(prisma);
 export const assistantContextService = createAssistantContextService(prisma);
 
 // Lazy wiring: `inferCategoryId` lives on the application service, but the draft
@@ -58,6 +61,8 @@ export const assistantFinancialDraftService = createAssistantFinancialDraftServi
   prisma,
   transactionService,
   () => ({ inferCategoryId: inferCategoryIdForDrafts }),
+  undefined,
+  captureEvents,
 );
 
 export const entityResolutionService = createEntityResolutionService(entityResolverRegistry);
@@ -71,6 +76,7 @@ export const assistantApplicationService = createAssistantApplicationService({
   entityResolution: entityResolutionService,
   clarification: clarificationService,
   categorization: categorizationService,
+  captureEvents,
 });
 
 // Wire the deferred dependency now that application service exists.
@@ -90,5 +96,6 @@ export const assistantProviderRuntime = assistantProviderConfig.enabled
     audit: assistantProviderAuditService,
     toolRegistry,
     timeoutMs: assistantProviderConfig.timeoutMs,
+    captureEvents,
   })
   : undefined;

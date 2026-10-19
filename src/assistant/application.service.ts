@@ -24,7 +24,8 @@ import {
 } from './entity-resolution';
 import type { ClarificationService } from './clarification.service';
 import type { CanonicalContext } from './clarification.types';
-import type { Prisma } from '../generated/prisma/client';
+import type { AssistantCaptureField, Prisma } from '../generated/prisma/client';
+import { emitForResult, type CaptureEventEmitter } from './capture-events';
 import { reportingConfig } from '../config';
 import { formatReportingDate } from '../domain/reportingTime';
 import type { CategorySuggestion } from '../domain/categorization';
@@ -44,6 +45,8 @@ export interface AssistantApplicationResult {
   httpStatus: number;
   /** Present only when the caller supplied an Idempotency-Key (Phase 27). Log-only — never sent to the client. */
   idempotencyOutcome?: 'new' | 'replay';
+  /** Which field a clarification asks about (Phase 35.1 capture events). Never sent to the client. */
+  captureField?: AssistantCaptureField;
 }
 
 export function createAssistantApplicationService(deps: {
@@ -63,6 +66,7 @@ export function createAssistantApplicationService(deps: {
       options?: { transaction?: TxClient },
     ): Promise<readonly CategorySuggestion[]>;
   };
+  captureEvents?: CaptureEventEmitter;
 }) {
   async function prepareProviderExecution(input: BuildAssistantExecutionContextInput) {
     if (!deps.contexts) throw new Error('Assistant context service is not configured');
@@ -180,8 +184,10 @@ export function createAssistantApplicationService(deps: {
     startedAt: number,
     projection: Awaited<ReturnType<NonNullable<typeof deps.clarification>['create']>>,
     entityType: EntityKind,
+    captureField: AssistantCaptureField = entityType === 'wallet' ? 'WALLET' : entityType === 'merchant' ? 'MERCHANT' : 'CATEGORY',
   ): AssistantApplicationResult {
     return {
+      captureField,
       httpStatus: 200,
       response: {
         status: 'clarification_required',
@@ -240,6 +246,8 @@ export function createAssistantApplicationService(deps: {
       if (idempotencyKey !== undefined) await deps.conversations.releaseIdempotencyKey(userId, idempotencyKey);
       throw error;
     }
+    // A replay returned above, before re-executing — so it never re-emits.
+    await emitForResult(deps.captureEvents, result, 'DIRECT');
     if (idempotencyKey !== undefined) {
       await deps.conversations.resolveIdempotencyKey(userId, idempotencyKey, { httpStatus: result.httpStatus, response: result.response, turnId: result.response.turnId });
       return { ...result, idempotencyOutcome: 'new' };
@@ -331,7 +339,7 @@ export function createAssistantApplicationService(deps: {
           durationMs: Date.now() - startedAt,
           outputSummary: { operation: 'transaction.create', walletResolution: 'not_found' },
         });
-        return { httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' as const }, correlationId, ...turn } };
+        return { captureField: 'WALLET', httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' as const }, correlationId, ...turn } };
       }
       if (walletResult.kind !== 'resolved') {
         const invalid = AssistantError.invalidInput('transaction.create', 'walletReference is invalid');
@@ -491,7 +499,7 @@ export function createAssistantApplicationService(deps: {
       durationMs: Date.now() - startedAt,
       outputSummary: { operation: 'transaction.create', transferWalletResolution: `${role}_not_found` },
     }, { transaction });
-    return { httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' as const }, correlationId, ...turn } };
+    return { captureField: role === 'source' ? 'SOURCE_WALLET' : 'DESTINATION_WALLET', httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' as const }, correlationId, ...turn } };
   }
 
   async function executeTransferCreate(
@@ -557,7 +565,7 @@ export function createAssistantApplicationService(deps: {
         durationMs: Date.now() - startedAt,
         outputSummary: { operation: 'transaction.create', transferWalletResolution: 'source_ambiguous', clarificationId: projection.clarificationId },
       }, { transaction });
-      return clarificationResponse(turn, executionId, correlationId, startedAt, projection, 'wallet');
+      return clarificationResponse(turn, executionId, correlationId, startedAt, projection, 'wallet', 'SOURCE_WALLET');
     }
 
     const sourceData = sourceOutcome.data;
@@ -576,7 +584,7 @@ export function createAssistantApplicationService(deps: {
         durationMs: Date.now() - startedAt,
         outputSummary: { operation: 'transaction.create', transferWalletResolution: 'destination_ambiguous', clarificationId: projection.clarificationId },
       }, { transaction });
-      return clarificationResponse(turn, executionId, correlationId, startedAt, projection, 'wallet');
+      return clarificationResponse(turn, executionId, correlationId, startedAt, projection, 'wallet', 'DESTINATION_WALLET');
     }
 
     return finalizeTransferDraft(userId, correlationId, turn, executionId, startedAt, transactionInput, sourceData, destOutcome.data, transaction);
@@ -637,7 +645,7 @@ export function createAssistantApplicationService(deps: {
         durationMs: Date.now() - startedAt,
         outputSummary: { operation: 'transaction.create', transferWalletResolution: 'same_wallet' },
       }, { transaction });
-      return { httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' as const }, correlationId, ...turn } };
+      return { captureField: 'DESTINATION_WALLET', httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' as const }, correlationId, ...turn } };
     }
 
     const transactionDate = transactionInput.date || formatReportingDate(new Date(), reportingConfig.timezone);
@@ -717,7 +725,7 @@ export function createAssistantApplicationService(deps: {
         durationMs: Date.now() - startedAt,
         outputSummary: { operation: 'transaction.create', categoryResolution: 'not_found' },
       }, { transaction });
-      return { httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' as const }, correlationId, ...turn } };
+      return { captureField: 'CATEGORY', httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' as const }, correlationId, ...turn } };
     }
     if (!walletId) {
       throw AssistantError.invalidInput('transaction.create', 'wallet is required before drafting');
@@ -1060,6 +1068,8 @@ export function createAssistantApplicationService(deps: {
         assistantContent: message,
         assistantSource: 'DETERMINISTIC_RENDERER',
       });
+      // A repeated cancel-of-cancelled is a no-op success; the unique key dedupes its event.
+      await deps.captureEvents?.({ type: 'CLARIFICATION_CANCELLED', entityId: clarificationId });
       return { httpStatus: 200, response: { status: 'success', renderedText: message, data: { clarificationId, status: 'CANCELLED', entityType }, correlationId, ...turn } };
     } catch (error) {
       const operational = error instanceof AssistantError ? error : { message: 'Clarification cancellation failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
@@ -1113,7 +1123,28 @@ export function createAssistantApplicationService(deps: {
     return { httpStatus: 200, response: { status: 'success', renderedText, data: result.output, correlationId, ...turn } };
   }
 
-  return { execute, prepareProviderExecution, selectClarification, submitGuidedClarification, cancelClarification, getAssistantState, inferCategoryId };
+  // Capture events fire here, after runInTransaction has committed — never inside it.
+  async function selectClarificationWithCapture(...args: Parameters<typeof selectClarification>): Promise<AssistantApplicationResult> {
+    const result = await selectClarification(...args);
+    await emitForResult(deps.captureEvents, result, 'AFTER_CLARIFICATION', args[4]);
+    return result;
+  }
+
+  async function submitGuidedClarificationWithCapture(...args: Parameters<typeof submitGuidedClarification>): Promise<AssistantApplicationResult> {
+    const result = await submitGuidedClarification(...args);
+    await emitForResult(deps.captureEvents, result, 'AFTER_CLARIFICATION', args[4]);
+    return result;
+  }
+
+  return {
+    execute,
+    prepareProviderExecution,
+    selectClarification: selectClarificationWithCapture,
+    submitGuidedClarification: submitGuidedClarificationWithCapture,
+    cancelClarification,
+    getAssistantState,
+    inferCategoryId,
+  };
 }
 
 export type AssistantApplicationService = ReturnType<typeof createAssistantApplicationService>;

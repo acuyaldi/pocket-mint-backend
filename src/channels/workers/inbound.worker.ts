@@ -21,6 +21,7 @@ import { cleanupChannelRecords } from '../retention';
 import { processCallback, renderApplicationResult } from '../interaction.service';
 import { findCallbackTokenByRaw } from '../callbackToken.service';
 import type { ChannelWorkerConfig } from '../workerConfig';
+import { runWithCaptureSource } from '../../assistant/capture-events';
 
 export interface InboundWorkerDeps {
   readonly db: PrismaClient;
@@ -192,9 +193,18 @@ async function processCallbackJob(deps: InboundWorkerDeps, job: ClaimedInboundJo
   }
 }
 
-/** Exported for direct unit testing — pollOnce composes this with the raw-SQL claim step. */
-export async function processJob(deps: InboundWorkerDeps, job: ClaimedInboundJob, correlationId: string): Promise<void> {
-  if (job.kind === 'CALLBACK') return processCallbackJob(deps, job, correlationId);
+/**
+ * Exported for direct unit testing — pollOnce composes this with the raw-SQL claim step.
+ * The single Telegram entry point: every Assistant service call below emits its
+ * capture events (Phase 35.1) labelled TELEGRAM.
+ */
+export function processJob(deps: InboundWorkerDeps, job: ClaimedInboundJob, correlationId: string): Promise<void> {
+  return runWithCaptureSource('TELEGRAM', () => (job.kind === 'CALLBACK'
+    ? processCallbackJob(deps, job, correlationId)
+    : processMessageJob(deps, job, correlationId)));
+}
+
+async function processMessageJob(deps: InboundWorkerDeps, job: ClaimedInboundJob, correlationId: string): Promise<void> {
 
   const backoff = { baseMs: 1000, maxMs: 60_000 };
   try {
