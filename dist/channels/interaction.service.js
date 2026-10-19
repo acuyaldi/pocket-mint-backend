@@ -48,6 +48,8 @@ function mapAssistantErrorToStatus(error) {
         case 'ASSISTANT_DRAFT_CONFLICT': return error.detail === 'EXPIRED' ? 'expired' : 'conflict';
         case 'ASSISTANT_IDEMPOTENCY_CONFLICT': return 'conflict';
         case 'ASSISTANT_DRAFT_NOT_FOUND': return 'not_found';
+        // Phase 38.1 — draft untouched, confirmable again from the app after restore.
+        case 'ASSISTANT_CONVERSATION_NOT_CONTINUABLE': return 'archived';
         default: return 'failed';
     }
 }

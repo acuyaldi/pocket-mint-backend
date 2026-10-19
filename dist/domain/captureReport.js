@@ -8,13 +8,19 @@
 // Window semantics are cohort-based: a draft/clarification belongs to the
 // window when it was CREATED/REQUESTED inside it; its terminal event is
 // counted whenever it happened. A draft with no terminal event older than
-// the draft TTL is "abandoned past TTL" — lazy expiry never wrote it.
+// the draft TTL is "abandoned past TTL" — lazy expiry never wrote it. The
+// same rule applies to a clarification with no RESOLVED/CANCELLED event past
+// the clarification TTL (Phase 38.1) — derived, no new event type.
 // ============================================================
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.INSUFFICIENT_DATA = void 0;
+exports.INSUFFICIENT_DATA = exports.UNSPECIFIED_SHARE_WARNING = void 0;
 exports.computeCaptureReport = computeCaptureReport;
 const financial_draft_1 = require("../assistant/financial-draft");
+const clarification_service_1 = require("../assistant/clarification.service");
+/** Above this UNSPECIFIED share, per-field clarification rates are not trustworthy. */
+exports.UNSPECIFIED_SHARE_WARNING = 0.3;
 exports.INSUFFICIENT_DATA = 'INSUFFICIENT DATA';
+const CLARIFICATION_TERMINAL = new Set(['CLARIFICATION_RESOLVED', 'CLARIFICATION_CANCELLED']);
 const TERMINAL = {
     DRAFT_CONFIRMED: 'confirmed',
     DRAFT_CANCELLED: 'cancelled',
@@ -45,6 +51,9 @@ function computeCaptureReport(rows, options) {
         for (const e of requested)
             for (const f of e.fields)
                 fieldCounts[f] = (fieldCounts[f] ?? 0) + 1;
+        const fieldTags = Object.values(fieldCounts).reduce((sum, n) => sum + n, 0);
+        const clarificationsAbandonedPastTtl = requested.filter((e) => !(byKey.get(e.correlationKey) ?? []).some((r) => CLARIFICATION_TERMINAL.has(r.eventType))
+            && options.now.getTime() - e.occurredAt.getTime() > clarification_service_1.CLARIFICATION_TTL_MS).length;
         const outcomes = { confirmed: 0, cancelled: 0, expired: 0, abandonedPastTtl: 0, failed: 0, open: 0 };
         const editedByField = {};
         let edited = 0;
@@ -69,6 +78,9 @@ function computeCaptureReport(rows, options) {
             phaseMarker: events[0].phaseMarker,
             captureStarts,
             clarificationByField: Object.fromEntries(Object.entries(fieldCounts).map(([f, n]) => [f, rate(n, captureStarts)])),
+            clarificationsRequested: requested.length,
+            clarificationsAbandonedPastTtl,
+            unspecifiedFieldShare: rate(fieldCounts.UNSPECIFIED ?? 0, fieldTags),
             draftsCreated: created.length,
             directDraftRate: rate(direct, created.length),
             outcomes,

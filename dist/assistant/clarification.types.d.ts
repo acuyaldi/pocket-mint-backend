@@ -115,12 +115,28 @@ export interface TerminalClarification {
     readonly status: ClarificationLifecycleStatus;
     readonly terminalCode?: string;
     readonly restartRequired: boolean;
+    /** Raw status column (Phase 38.1). Differs from `status` only for a past-TTL row lazy expiry hasn't written yet (`PENDING`). */
+    readonly recordedStatus: ClarificationLifecycleStatus;
+    /** Turn that asked this clarification (Phase 38.1). */
+    readonly originatingTurnId: string;
 }
 /** Safe draft metadata for the conversation state projection. */
 export interface SafeDraftMetadata {
     readonly draftId: string;
     readonly status: string;
     readonly preview: Record<string, unknown>;
+}
+/**
+ * The conversation's most recent draft, when it is effectively terminal without
+ * being committed (Phase 38.1). `status` is the effective status; `recordedStatus`
+ * is the column, which still reads `PENDING_CONFIRMATION` for a draft that
+ * expired untouched.
+ */
+export interface TerminalDraftMetadata {
+    readonly draftId: string;
+    readonly status: 'EXPIRED' | 'FAILED' | 'CANCELLED';
+    readonly recordedStatus: string;
+    readonly originatingTurnId: string;
 }
 /**
  * A turn still `RUNNING` on this conversation (Phase 27) — lets the client
@@ -137,6 +153,7 @@ export interface AssistantStateProjection {
     readonly activeClarification?: ClarificationProjection;
     readonly pendingDraft?: SafeDraftMetadata;
     readonly latestTerminalClarification?: TerminalClarification;
+    readonly latestTerminalDraft?: TerminalDraftMetadata;
     readonly activeTurn?: ActiveTurnMetadata;
 }
 export interface CreateClarificationInput {

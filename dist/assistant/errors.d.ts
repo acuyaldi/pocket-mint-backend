@@ -18,6 +18,8 @@ export declare class AssistantError extends Error {
     static invalidRequest(detail: string): AssistantError;
     static conversationNotFound(): AssistantError;
     static conversationNotContinuable(): AssistantError;
+    /** Draft confirm/cancel on a non-ACTIVE conversation (Phase 38.1). Same code as above, so existing clients keep working; `detail` tells it apart. The draft itself is untouched. */
+    static conversationArchived(): AssistantError;
     static invalidContextConfiguration(): AssistantError;
     static contextTooLarge(): AssistantError;
     static unsupportedContextData(): AssistantError;
