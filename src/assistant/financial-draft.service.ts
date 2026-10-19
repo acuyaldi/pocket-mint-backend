@@ -6,6 +6,7 @@ import { TRANSFER_SOURCE_TYPES, type TransactionService } from '../services/tran
 import { withPrismaErrorSwallowed, withPrismaErrorTranslation } from '../utils/prismaErrors';
 import { logEvent } from '../utils/logger';
 import { AssistantError } from './errors';
+import { effectiveDraftStatus } from './effective-status';
 import { ASSISTANT_FINANCIAL_DRAFT_TTL_MS, renderTransactionDraftPreview, validateIdempotencyKey } from './financial-draft';
 import type { TransactionCreateInput } from './tools';
 import type { AssistantCaptureField } from '../generated/prisma/client';
@@ -153,7 +154,7 @@ export function createAssistantFinancialDraftService(
           return { ...committedResult(draft), idempotencyOutcome: 'replay' as const };
         }
         const now = clock();
-        if (draft.status === 'PENDING_CONFIRMATION' && draft.expiresAt <= now) {
+        if (effectiveDraftStatus(draft, now) !== draft.status) {
           // Lazy EXPIRED transition (Phase 37.3). Race-safe against a
           // concurrent confirm/cancel on the SAME draft: both acquired the
           // advisory lock above, serializing them — only the first to reach
@@ -374,7 +375,7 @@ export function createAssistantFinancialDraftService(
       if (!draft) throw AssistantError.draftNotFound();
       if (draft.status === 'CANCELLED') return cancelledResult(draft);
       const now = clock();
-      if (draft.status === 'PENDING_CONFIRMATION' && draft.expiresAt <= now) {
+      if (effectiveDraftStatus(draft, now) !== draft.status) {
         // Same lazy EXPIRED transition and race-safety rationale as confirm()
         // (Phase 37.3) — serialized against a concurrent confirm()/cancel()
         // on this draft by the shared advisory lock above; translated
