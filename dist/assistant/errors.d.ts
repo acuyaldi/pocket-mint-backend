@@ -27,6 +27,8 @@ export declare class AssistantError extends Error {
     static invalidIdempotencyKey(): AssistantError;
     static draftNotFound(): AssistantError;
     static draftConflict(status: string): AssistantError;
+    /** Prisma P2028 on draft confirm: rolled back, nothing saved, draft untouched — retry with the same Idempotency-Key. */
+    static transactionTimeout(): AssistantError;
     static idempotencyConflict(): AssistantError;
     static requestInProgress(): AssistantError;
     static clarificationNotFound(): AssistantError;

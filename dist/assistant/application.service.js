@@ -8,6 +8,7 @@ const renderer_1 = require("./renderer");
 const persistence_1 = require("./persistence");
 const policy_1 = require("./policy");
 const logger_1 = require("../utils/logger");
+const prismaErrors_1 = require("../utils/prismaErrors");
 const entity_resolution_1 = require("./entity-resolution");
 const clarification_service_1 = require("./clarification.service");
 const capture_events_1 = require("./capture-events");
@@ -654,7 +655,8 @@ function createAssistantApplicationService(deps) {
             });
         }
         catch (error) {
-            const operational = error instanceof errors_1.AssistantError ? error : { message: 'Clarification selection failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
+            // P2028: the whole continuation rolled back, so the clarification is still PENDING and its token reusable.
+            const operational = error instanceof errors_1.AssistantError ? error : (0, prismaErrors_1.isTransactionTimeout)(error) ? errors_1.AssistantError.transactionTimeout() : { message: 'Clarification selection failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
             await deps.conversations.finalize({
                 executionId, ...turn, status: 'FAILED', turnStatus: 'FAILED',
                 assistantContent: operational.message, assistantSource: 'SAFE_ERROR',
@@ -721,7 +723,7 @@ function createAssistantApplicationService(deps) {
             });
         }
         catch (error) {
-            const operational = error instanceof errors_1.AssistantError ? error : { message: 'Guided clarification submission failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
+            const operational = error instanceof errors_1.AssistantError ? error : (0, prismaErrors_1.isTransactionTimeout)(error) ? errors_1.AssistantError.transactionTimeout() : { message: 'Guided clarification submission failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
             await deps.conversations.finalize({
                 executionId, ...turn, status: 'FAILED', turnStatus: 'FAILED',
                 assistantContent: operational.message, assistantSource: 'SAFE_ERROR',

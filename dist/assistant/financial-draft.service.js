@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.CONFIRM_TRANSACTION_OPTIONS = void 0;
 exports.createAssistantFinancialDraftService = createAssistantFinancialDraftService;
 const client_1 = require("../generated/prisma/client");
 const config_1 = require("../config");
@@ -13,6 +14,12 @@ const effective_status_1 = require("./effective-status");
 const financial_draft_1 = require("./financial-draft");
 const CONFIRM_INTENT = 'transaction.create.confirm';
 const CANCEL_INTENT = 'transaction.create.cancel';
+/**
+ * Interactive-transaction budget for confirm() only — the Prisma default
+ * (timeout 5000) is too tight for ~16 round-trips to a far pooler (Jakarta →
+ * ap-southeast-2 ≈ 250–350 ms each). Every other transaction keeps the default.
+ */
+exports.CONFIRM_TRANSACTION_OPTIONS = { maxWait: 5000, timeout: 15000 };
 function preview(input, categoryName) {
     return {
         type: input.type,
@@ -239,11 +246,13 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                     ...(overrides?.date !== undefined && overrides.date !== (0, reportingTime_1.formatReportingDate)(draft.transactionDate, config_1.reportingConfig.timezone) ? ['DATE'] : []),
                 ];
                 // ---- Build canonical transaction input ----
-                const turn = await tx.assistantTurn.create({ data: { conversationId: draft.conversationId, correlationId, intent: CONFIRM_INTENT, locale: 'id-ID', status: 'RUNNING' } });
+                // Turn and execution rows are written once, already in their final
+                // SUCCEEDED state: a RUNNING → SUCCEEDED update pair inside this same
+                // transaction was never visible outside it (any failure rolls the
+                // rows back), so it only cost two extra round-trips.
+                const turn = await tx.assistantTurn.create({ data: { conversationId: draft.conversationId, correlationId, intent: CONFIRM_INTENT, locale: 'id-ID', status: 'SUCCEEDED', finishedAt: now } });
                 await tx.assistantMessage.create({ data: { conversationId: draft.conversationId, turnId: turn.id, role: 'USER', source: 'CANONICAL_FALLBACK', content: `Konfirmasi draft transaksi ${draft.id}.` } });
-                const execution = await tx.assistantToolExecution.create({ data: { conversationId: draft.conversationId, turnId: turn.id, toolId: CONFIRM_INTENT, capability: 'transaction.create', riskLevel: 'HIGH', policyDecision: 'EXPLICITLY_CONFIRMED', status: 'RUNNING', correlationId, idempotencyKey: key, redactedInput: { draftId: draft.id } } });
-                if (!existingKey)
-                    await tx.assistantIdempotencyRecord.create({ data: { userId, draftId, operation: CONFIRM_INTENT, key } });
+                const executionStartedAt = new Date();
                 const created = await transactions.createTransaction({
                     userId,
                     type: effectiveType,
@@ -252,14 +261,18 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                     ...(isTransfer ? { toWalletId: effectiveToWalletId } : { categoryId: effectiveCategoryId }),
                     date: parsedDate.toISOString(),
                     description: effectiveDescription,
-                }, { transaction: tx });
+                }, { transaction: tx, relations: false });
                 const claimed = await tx.assistantFinancialDraft.updateMany({ where: { id: draft.id, userId, status: 'PENDING_CONFIRMATION', transactionId: null }, data: { status: 'COMMITTED', committedAt: now, transactionId: created.id } });
                 if (claimed.count !== 1)
                     throw errors_1.AssistantError.draftConflict('TERMINAL');
-                await tx.assistantIdempotencyRecord.update({ where: { userId_key: { userId, key } }, data: { transactionId: created.id } });
+                // One write instead of create-then-update. A same-key race on another
+                // draft still loses here with P2002 and rolls back (handled below).
+                if (existingKey)
+                    await tx.assistantIdempotencyRecord.update({ where: { userId_key: { userId, key } }, data: { transactionId: created.id } });
+                else
+                    await tx.assistantIdempotencyRecord.create({ data: { userId, draftId, operation: CONFIRM_INTENT, key, transactionId: created.id } });
                 // No ASSISTANT chat bubble for confirm — the UI shows a toast instead.
-                await tx.assistantToolExecution.update({ where: { id: execution.id }, data: { status: 'SUCCEEDED', completedAt: now, outputSummary: { draftId: draft.id, transactionId: created.id, status: 'COMMITTED' } } });
-                await tx.assistantTurn.update({ where: { id: turn.id }, data: { status: 'SUCCEEDED', finishedAt: now } });
+                await tx.assistantToolExecution.create({ data: { conversationId: draft.conversationId, turnId: turn.id, toolId: CONFIRM_INTENT, capability: 'transaction.create', riskLevel: 'HIGH', policyDecision: 'EXPLICITLY_CONFIRMED', status: 'SUCCEEDED', correlationId, startedAt: executionStartedAt, completedAt: now, idempotencyKey: key, redactedInput: { draftId: draft.id }, outputSummary: { draftId: draft.id, transactionId: created.id, status: 'COMMITTED' } } });
                 // Phase 37.4 — a concurrent deleteOwnedConversation can cascade-delete
                 // the conversation between the draft-claim above and this touch. The
                 // draft is already COMMITTED and the transaction already created in
@@ -269,7 +282,7 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                 // family in conversation.service.ts).
                 await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => tx.assistantConversation.update({ where: { id: draft.conversationId }, data: { lastActivityAt: now } }), { P2025: () => (0, logger_1.logEvent)('warn', { event: 'assistant.conversation_race_skip', stage: 'financialDraft.confirm.commit', conversationId: draft.conversationId, draftId: draft.id }) });
                 return { draftId: draft.id, status: 'COMMITTED', transactionId: created.id, conversationId: draft.conversationId, turnId: turn.id, idempotencyOutcome: 'new' };
-            });
+            }, exports.CONFIRM_TRANSACTION_OPTIONS);
             if ('error' in result) {
                 // Only reachable after the lazy EXPIRED transition committed above.
                 await emit({ type: 'DRAFT_EXPIRED', entityId: draftId });
@@ -285,6 +298,11 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
         catch (error) {
             if (error instanceof errors_1.AssistantError)
                 throw error;
+            // Rolled back, draft still PENDING_CONFIRMATION: never FAILED. Retrying
+            // with the same Idempotency-Key is safe either way — it commits once or
+            // replays the committed result.
+            if ((0, prismaErrors_1.isTransactionTimeout)(error))
+                throw errors_1.AssistantError.transactionTimeout();
             if (error.code === 'P2002') {
                 const existingKey = await db.assistantIdempotencyRecord.findUnique({ where: { userId_key: { userId, key } }, select: { draftId: true } });
                 if (existingKey && existingKey.draftId !== draftId)
@@ -321,6 +339,9 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                     await (0, prismaErrors_1.withPrismaErrorTranslation)(() => tx.assistantFinancialDraft.update({ where: { id: draft.id }, data: { status: 'FAILED', failedAt: now } }), { P2025: () => errors_1.AssistantError.draftNotFound() });
                     await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => tx.assistantConversation.update({ where: { id: draft.conversationId }, data: { lastActivityAt: now } }), { P2025: () => (0, logger_1.logEvent)('warn', { event: 'assistant.conversation_race_skip', stage: 'financialDraft.confirm.failed', conversationId: draft.conversationId, draftId: draft.id }) });
                     return true;
+                }, exports.CONFIRM_TRANSACTION_OPTIONS).catch((recordError) => {
+                    // FAILED was not recorded, so the draft is still PENDING — same retryable answer.
+                    throw (0, prismaErrors_1.isTransactionTimeout)(recordError) ? errors_1.AssistantError.transactionTimeout() : recordError;
                 });
                 if (failed)
                     await emit({ type: 'DRAFT_FAILED', entityId: draftId });

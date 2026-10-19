@@ -2,6 +2,15 @@ import { Prisma, type PrismaClient } from '../generated/prisma/client';
 import { type TransactionService } from '../services/transaction.service';
 import type { TransactionCreateInput } from './tools';
 import type { CaptureEventEmitter } from './capture-events';
+/**
+ * Interactive-transaction budget for confirm() only — the Prisma default
+ * (timeout 5000) is too tight for ~16 round-trips to a far pooler (Jakarta →
+ * ap-southeast-2 ≈ 250–350 ms each). Every other transaction keeps the default.
+ */
+export declare const CONFIRM_TRANSACTION_OPTIONS: {
+    readonly maxWait: 5000;
+    readonly timeout: 15000;
+};
 type DraftReadyTransactionInput = TransactionCreateInput & {
     walletId: string;
     categoryId?: string;

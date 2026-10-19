@@ -87,6 +87,10 @@ class AssistantError extends Error {
     static draftConflict(status) {
         return new AssistantError(`Financial draft cannot perform this operation from ${status}`, 409, 'ASSISTANT_DRAFT_CONFLICT', status);
     }
+    /** Prisma P2028 on draft confirm: rolled back, nothing saved, draft untouched — retry with the same Idempotency-Key. */
+    static transactionTimeout() {
+        return new AssistantError('The operation timed out before it was saved. Nothing changed; retry with the same Idempotency-Key.', 503, 'ASSISTANT_TRANSACTION_TIMEOUT');
+    }
     static idempotencyConflict() {
         return new AssistantError('Idempotency key is already bound to another operation', 409, 'ASSISTANT_IDEMPOTENCY_CONFLICT');
     }
