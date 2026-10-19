@@ -72,6 +72,25 @@ function preview(input: DraftReadyTransactionInput & {
   };
 }
 
+/**
+ * Archived-conversation guard (Phase 38.1) for confirm()/cancel() — the Web
+ * routes and the Telegram buttons both land here. Row-locks the draft's
+ * conversation for the rest of the caller's transaction: FOR NO KEY UPDATE
+ * conflicts with a concurrent archive/restore (UPDATE) and delete, so the
+ * status read here cannot change before this transaction commits — a confirm
+ * either commits while the conversation is ACTIVE or is rejected — but it
+ * does not block the FK inserts of turns/messages. Rejection writes nothing:
+ * the draft stays PENDING_CONFIRMATION and becomes confirmable again once the
+ * conversation is restored (until its TTL).
+ */
+async function assertConversationActive(tx: Prisma.TransactionClient, conversationId: string): Promise<void> {
+  const rows = await tx.$queryRaw<{ status: string }[]>(
+    Prisma.sql`SELECT status::text AS "status" FROM assistant_conversations WHERE id = ${conversationId} FOR NO KEY UPDATE`,
+  );
+  if (!rows[0]) throw AssistantError.draftNotFound();
+  if (rows[0].status !== 'ACTIVE') throw AssistantError.conversationArchived();
+}
+
 export function createAssistantFinancialDraftService(
   db: PrismaClient,
   transactions: TransactionService,
@@ -154,6 +173,9 @@ export function createAssistantFinancialDraftService(
           return { ...committedResult(draft), idempotencyOutcome: 'replay' as const };
         }
         const now = clock();
+        // A terminal draft keeps answering with its own status (below); only a
+        // still-actionable one is held back by an archived conversation.
+        if (draft.status === 'PENDING_CONFIRMATION') await assertConversationActive(tx, draft.conversationId);
         if (effectiveDraftStatus(draft, now) !== draft.status) {
           // Lazy EXPIRED transition (Phase 37.3). Race-safe against a
           // concurrent confirm/cancel on the SAME draft: both acquired the
@@ -375,6 +397,7 @@ export function createAssistantFinancialDraftService(
       if (!draft) throw AssistantError.draftNotFound();
       if (draft.status === 'CANCELLED') return cancelledResult(draft);
       const now = clock();
+      if (draft.status === 'PENDING_CONFIRMATION') await assertConversationActive(tx, draft.conversationId);
       if (effectiveDraftStatus(draft, now) !== draft.status) {
         // Same lazy EXPIRED transition and race-safety rationale as confirm()
         // (Phase 37.3) — serialized against a concurrent confirm()/cancel()

@@ -198,6 +198,15 @@ describe('interaction.service — processCallback (security resolution)', () => 
     expect(result.terminalStatus).toBe('conflict');
   });
 
+  it('maps an archived-conversation rejection on a draft button to the bounded "archived" status (Phase 38.1)', async () => {
+    const db = fakeDb();
+    const providerRuntime = fakeProviderRuntime({ confirmDraft: vi.fn().mockRejectedValue(AssistantError.conversationArchived()) });
+    const { token } = await createCallbackToken(db, { connectionId: 'conn-1', conversationId: 'conv-1', interactionType: 'DRAFT_CONFIRM', financialDraftId: 'draft-1' });
+    const result = await processCallback({ db, providerRuntime }, job({ text: token }), 'corr-1');
+    expect(result.terminalStatus).toBe('archived');
+    expect(result.replyText).toBe('Conversation is archived. Restore it to continue.');
+  });
+
   it('CLARIFICATION_SELECT passes the wrapped actionSecret (never the callback token itself) to selectClarification', async () => {
     const db = fakeDb();
     const providerRuntime = fakeProviderRuntime({

@@ -120,6 +120,11 @@ export class AssistantError extends Error {
     return new AssistantError('Conversation cannot be continued', 409, 'ASSISTANT_CONVERSATION_NOT_CONTINUABLE');
   }
 
+  /** Draft confirm/cancel on a non-ACTIVE conversation (Phase 38.1). Same code as above, so existing clients keep working; `detail` tells it apart. The draft itself is untouched. */
+  static conversationArchived(): AssistantError {
+    return new AssistantError('Conversation is archived. Restore it to continue.', 409, 'ASSISTANT_CONVERSATION_NOT_CONTINUABLE', 'CONVERSATION_ARCHIVED');
+  }
+
   static invalidContextConfiguration(): AssistantError {
     return new AssistantError('Assistant context configuration is invalid', 500, 'ASSISTANT_CONTEXT_INVALID_CONFIGURATION');
   }
