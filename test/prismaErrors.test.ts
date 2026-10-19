@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { withPrismaErrorTranslation, withPrismaErrorSwallowed } from '../src/utils/prismaErrors';
+import { withPrismaErrorTranslation, withPrismaErrorSwallowed, isTransactionTimeout, transactionTimeoutCause } from '../src/utils/prismaErrors';
 
 class FakeDomainError extends Error {
   readonly statusCode: number;
@@ -137,5 +137,33 @@ describe('withPrismaErrorSwallowed', () => {
       { P2025: vi.fn() },
     ).catch((e) => e);
     expect(err).toBe(raw);
+  });
+});
+
+// Phase 38.2
+describe('P2003 translation and P2028 cause', () => {
+  it('translates a mapped P2003 (parent row deleted before the insert)', async () => {
+    const err = await withPrismaErrorTranslation(
+      async () => { throw prismaError('P2003'); },
+      { P2003: () => new FakeDomainError('gone', 404, 'NOT_FOUND') },
+    ).catch((e) => e);
+    expect(err).toMatchObject({ statusCode: 404, code: 'NOT_FOUND' });
+  });
+
+  it('classifies maxWait vs timeout and logs only the cause, never the message', () => {
+    const maxWait = Object.assign(new Error('Transaction API error: Unable to start a transaction in the given time.'), { code: 'P2028' });
+    const timeout = Object.assign(new Error('A commit cannot be executed on an expired transaction. The timeout for this transaction was 5000 ms'), { code: 'P2028' });
+    expect(transactionTimeoutCause(maxWait)).toBe('maxWait');
+    expect(transactionTimeoutCause(timeout)).toBe('timeout');
+    expect(transactionTimeoutCause(new Error('other'))).toBe('unknown');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(isTransactionTimeout(timeout, 'clarification.select')).toBe(true);
+    expect(isTransactionTimeout(prismaError('P2025'), 'clarification.select')).toBe(false);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    const logged = warnSpy.mock.calls[0]![0] as string;
+    expect(JSON.parse(logged)).toMatchObject({ event: 'assistant.transaction_timeout', stage: 'clarification.select', timeoutCause: 'timeout' });
+    expect(logged).not.toContain('expired transaction');
+    warnSpy.mockRestore();
   });
 });

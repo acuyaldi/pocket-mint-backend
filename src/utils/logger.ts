@@ -165,6 +165,8 @@ export interface AssistantLogEvent {
   readonly turnId?: string;
   readonly draftId?: string;
   readonly executionId?: string;
+  /** Which Prisma P2028 budget ran out (Phase 38.2) — closed enum, never the error message. */
+  readonly timeoutCause?: 'maxWait' | 'timeout' | 'unknown';
 }
 
 /**

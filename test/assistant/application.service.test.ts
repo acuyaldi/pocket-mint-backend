@@ -5,8 +5,8 @@ import { monthlySpendingSummary, transactionCreate } from '../../src/assistant/t
 import { reportingConfig } from '../../src/config';
 import { formatReportingDate } from '../../src/domain/reportingTime';
 
-/** Stand-in for a Prisma interactive transaction client in mocked tests. */
-const TX_STUB = { __tx: true };
+/** Stand-in for a Prisma interactive transaction client in mocked tests; `$queryRaw` answers the conversation lock every continuation takes first (Phase 38.2). */
+const TX_STUB = { __tx: true, $queryRaw: async () => [{ status: 'ACTIVE' }] };
 
 /** The reporting-timezone day the service defaults an omitted transaction date to. */
 const today = () => formatReportingDate(new Date(), reportingConfig.timezone);

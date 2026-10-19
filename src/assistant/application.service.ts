@@ -9,6 +9,7 @@ import { assertAssistantMessageLength, monthlySummaryFallback, monthlySummaryInp
 import { evaluatePolicy } from './policy';
 import { logger } from '../utils/logger';
 import { isTransactionTimeout } from '../utils/prismaErrors';
+import { lockConversation } from './conversation.service';
 import type {
   TransactionCreateInput,
   TransactionCreateReferenceInput,
@@ -774,6 +775,21 @@ export function createAssistantApplicationService(deps: {
 
   // ---- Clarification selection (sequential continuation) --------------------
 
+  /**
+   * First statement of every clarification continuation transaction: the
+   * conversation lock comes before the clarification claim and any child
+   * clarification / draft / turn write (global lock order, Phase 38.2), and an
+   * archived conversation is rejected with nothing claimed.
+   */
+  async function lockActiveConversation(tx: TxClient, conversationId: string): Promise<void> {
+    const status = await lockConversation(tx, conversationId);
+    if (status === undefined) throw AssistantError.conversationNotFound();
+    if (status === 'ARCHIVED') throw AssistantError.conversationArchived();
+    if (status !== 'ACTIVE') throw AssistantError.conversationNotContinuable();
+  }
+
+  const detailOf = (error: object) => (error instanceof AssistantError && error.detail ? { detail: error.detail } : {});
+
   async function selectClarification(
     userId: string,
     correlationId: string,
@@ -812,6 +828,7 @@ export function createAssistantApplicationService(deps: {
       // clarification PENDING (its token still usable) with no partial
       // child/draft/lifecycle state, so the caller can safely retry.
       return await clarification.runInTransaction(async (tx) => {
+        await lockActiveConversation(tx, conversationId);
         const result = await clarification.select({
           userId, conversationId, token, correlationId,
           ...(clarificationId ? { clarificationId } : {}),
@@ -882,13 +899,13 @@ export function createAssistantApplicationService(deps: {
       });
     } catch (error) {
       // P2028: the whole continuation rolled back, so the clarification is still PENDING and its token reusable.
-      const operational = error instanceof AssistantError ? error : isTransactionTimeout(error) ? AssistantError.transactionTimeout() : { message: 'Clarification selection failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
+      const operational = error instanceof AssistantError ? error : isTransactionTimeout(error, 'clarification.select') ? AssistantError.transactionTimeout() : { message: 'Clarification selection failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
       await deps.conversations.finalize({
         executionId, ...turn, status: 'FAILED', turnStatus: 'FAILED',
         assistantContent: operational.message, assistantSource: 'SAFE_ERROR',
         durationMs: Date.now() - startedAt, safeErrorCode: operational.code,
       }).catch(() => undefined);
-      return { httpStatus: operational.statusCode, response: { status: 'error', code: operational.code, message: operational.message, correlationId, ...turn } };
+      return { httpStatus: operational.statusCode, response: { status: 'error', code: operational.code, message: operational.message, ...detailOf(operational), correlationId, ...turn } };
     }
   }
 
@@ -928,6 +945,7 @@ export function createAssistantApplicationService(deps: {
       }
 
       return await clarification.runInTransaction(async (tx) => {
+        await lockActiveConversation(tx, conversationId);
         const result = await clarification.consumeGuidedFields({
           userId, conversationId, clarificationId, correlationId,
         }, { transaction: tx });
@@ -957,13 +975,13 @@ export function createAssistantApplicationService(deps: {
         return continueToCategory(userId, correlationId, turn, executionId, startedAt, txInput, walletData, merchantData, result.clarificationId, tx);
       });
     } catch (error) {
-      const operational = error instanceof AssistantError ? error : isTransactionTimeout(error) ? AssistantError.transactionTimeout() : { message: 'Guided clarification submission failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
+      const operational = error instanceof AssistantError ? error : isTransactionTimeout(error, 'clarification.guided_submit') ? AssistantError.transactionTimeout() : { message: 'Guided clarification submission failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
       await deps.conversations.finalize({
         executionId, ...turn, status: 'FAILED', turnStatus: 'FAILED',
         assistantContent: operational.message, assistantSource: 'SAFE_ERROR',
         durationMs: Date.now() - startedAt, safeErrorCode: operational.code,
       }).catch(() => undefined);
-      return { httpStatus: operational.statusCode, response: { status: 'error', code: operational.code, message: operational.message, correlationId, ...turn } };
+      return { httpStatus: operational.statusCode, response: { status: 'error', code: operational.code, message: operational.message, ...detailOf(operational), correlationId, ...turn } };
     }
   }
 

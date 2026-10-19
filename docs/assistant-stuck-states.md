@@ -1,4 +1,4 @@
-# Assistant state machines — final semantics (Phase 37.3, updated 38.1)
+# Assistant state machines — final semantics (Phase 37.3, updated 38.2)
 
 Companion to `docs/audit/assistant-audit-phase-21-37.md` (finding B2 and the
 state-machine section) in the top-level `pocket-mint` workspace. This doc is
@@ -274,11 +274,50 @@ branch; it treats any non-`ACTIVE` status as archived.
 1. **Capture taxonomy**: still no clarification expired/stale event (needs
    an `ALTER TYPE` migration). The capture report derives "abandoned past
    TTL" instead, and that bucket also absorbs stale/invalid clarifications.
-2. **Clarification select on an archived conversation** is not guarded.
-   Selecting a pending clarification there can still prepare a draft, which
-   the new guard then refuses to confirm until restore. Out of scope (the
-   guard was scoped to confirm/cancel/edit).
+2. ~~**Clarification select on an archived conversation** is not guarded.~~
+   Closed in Phase 38.2 (below).
 3. **Telegram after restore**: the consumed callback token cannot be pressed
    again. Confirm from the Web.
 4. Resending the original message still needs that message on the loaded
    history page (frontend; unchanged).
+
+## Phase 38.2 — global lock order
+
+**Rule.** A transaction that writes more than one Assistant row locks the
+**conversation row first**, then clarification / draft / turn / execution
+rows. `deleteOwnedConversation` takes the conversation row (`FOR UPDATE`) and
+then cascades into every child table, so any path that holds a child row and
+then needs the conversation row can deadlock against it (Postgres aborts one
+side with `40P01`, which surfaced as a 500).
+
+The lock is `lockConversation(tx, id)` in `conversation.service.ts`:
+`SELECT status … FOR NO KEY UPDATE`. It blocks a concurrent
+delete/archive/restore until commit, but not the FK `KEY SHARE` locks taken
+when inserting turns/messages. It returns the status, or `undefined` when the
+conversation is already gone.
+
+| Path | Order | Notes |
+|---|---|---|
+| Clarification select / guided submit (`application.service.ts`) | conversation → clarification claim → child clarification / draft → finalize | **Fixed in 38.2.** Before: claim first, conversation later through the draft/message FK and the `lastActivityAt` update. An archived conversation is rejected here with `409` + `detail: 'CONVERSATION_ARCHIVED'`, nothing claimed (clarification stays `PENDING`). A deleted one answers `404 ASSISTANT_CONVERSATION_NOT_FOUND`. |
+| Turn finalize family (`finalize`, `finalizeWithoutTool`, `finalizeRejected`) in their own transaction | conversation → execution → message → turn → conversation update | **Fixed in 38.2** (deadlock reproduced by test d). A conversation already deleted is a logged no-op (`assistant.conversation_race_skip`), the same decision as the 37.4 P2025 swallow. With a caller-supplied transaction the caller holds the lock (select path). |
+| Provider audit finalize (`provider-audit.service.ts`) | conversation → provider execution → turn (FK) | **Fixed in 38.2.** The single `UPDATE` sets `turn_id`, so it locked the execution row and then key-shared the turn, the reverse of the cascade (deadlock reproduced by test c). |
+| Draft confirm/cancel (`financial-draft.service.ts`) | draft advisory lock → conversation → wallet rows → draft | Compliant since 38.1. The advisory lock is not a row the delete touches. The lazy `EXPIRED` write on a terminal path is a single-row write with no second lock. |
+| `beginTurn` | conversation (turn insert FK) → message → conversation update | Compliant: the first lock is the conversation's `KEY SHARE`. |
+| Single-statement inserts (tool execution, draft, clarification, provider execution, message) | FK checks: conversation before turn/execution | Compliant. Postgres fires FK checks in trigger-name order (`RI_ConstraintTrigger_c_<oid>`), and every conversation FK was created before the turn/execution FKs. Recreating those constraints in a different order would break this; re-check with `pg_trigger` if a migration touches them. |
+| Clarification cancel, `markTurnRunning`, lazy terminalizations | single row | No second lock, so no cycle. |
+
+**Lost races are typed, never 500.** P2003 (FK violation: the conversation was
+deleted between the read and the insert) in `beginTurn`, `beginToolExecution`,
+provider audit `begin` and draft `prepare` becomes `404
+ASSISTANT_CONVERSATION_NOT_FOUND`. P2025 on re-reading a clarification after a
+lost claim becomes `404 ASSISTANT_CLARIFICATION_NOT_FOUND`. Both go through
+`withPrismaErrorTranslation`.
+
+**P2028 cause.** Every `isTransactionTimeout(err, stage)` match logs
+`assistant.transaction_timeout` with `stage` and `timeoutCause`: `maxWait` (the
+transaction never started, so the pool was exhausted) or `timeout` (it ran
+past its budget). Only that enum is logged, never the error message.
+
+**Evidence.** `test/assistant/conversation-lock-order.integration.test.ts`
+races 100 iterations per case at 0 ms and 200 ms server-side write latency and
+checks `pg_stat_database.deadlocks`.

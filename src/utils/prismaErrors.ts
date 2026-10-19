@@ -19,15 +19,34 @@
 // caller supplies a factory that constructs its own existing domain error.
 // ============================================================
 
-type TranslatablePrismaCode = 'P2025' | 'P2002';
+import { logEvent } from './logger';
+
+// P2003 (foreign key violation) is the insert-side twin of P2025: the parent
+// row (e.g. a conversation) a prior read saw was deleted before the insert.
+type TranslatablePrismaCode = 'P2025' | 'P2002' | 'P2003';
+
+/**
+ * Which P2028 budget ran out: `maxWait` — the transaction never started (no
+ * pooled connection in time); `timeout` — it started but ran past its
+ * `timeout`. Classified from Prisma's own fixed wording, never logged raw.
+ */
+export function transactionTimeoutCause(err: unknown): 'maxWait' | 'timeout' | 'unknown' {
+  const message = err instanceof Error ? err.message : '';
+  if (message.includes('Unable to start a transaction')) return 'maxWait';
+  if (message.includes('expired transaction')) return 'timeout';
+  return 'unknown';
+}
 
 /**
  * Prisma P2028: an interactive transaction expired or never started. Postgres
  * rolled it back, so nothing it wrote survives — callers answer a retryable
- * error (AssistantError.transactionTimeout) instead of a generic 500.
+ * error (AssistantError.transactionTimeout) instead of a generic 500. With a
+ * `stage`, a match is logged with its cause only (no message content).
  */
-export function isTransactionTimeout(err: unknown): boolean {
-  return prismaCodeOf(err) === 'P2028';
+export function isTransactionTimeout(err: unknown, stage?: string): boolean {
+  const timedOut = prismaCodeOf(err) === 'P2028';
+  if (timedOut && stage) logEvent('warn', { event: 'assistant.transaction_timeout', stage, timeoutCause: transactionTimeoutCause(err) });
+  return timedOut;
 }
 
 function prismaCodeOf(err: unknown): string | undefined {
@@ -52,7 +71,7 @@ export async function withPrismaErrorTranslation<T>(
       throw err;
     }
     const code = prismaCodeOf(err);
-    if (code === 'P2025' || code === 'P2002') {
+    if (code === 'P2025' || code === 'P2002' || code === 'P2003') {
       const factory = mapping[code];
       if (factory) throw factory();
     }
