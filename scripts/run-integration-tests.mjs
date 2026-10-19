@@ -73,6 +73,7 @@ const integrationTests = [
   'test/channels/telegram-callback.integration.test.ts',
   'test/channels/durableProcessing.integration.test.ts',
   'test/assistant/capture-events.integration.test.ts',
+  'test/assistant/conversation-lock-order.integration.test.ts',
 ];
 
 async function main() {
