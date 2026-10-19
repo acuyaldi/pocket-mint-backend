@@ -1,3 +1,5 @@
+/** Above this UNSPECIFIED share, per-field clarification rates are not trustworthy. */
+export declare const UNSPECIFIED_SHARE_WARNING = 0.3;
 export interface CaptureEventRow {
     readonly occurredAt: Date;
     readonly eventType: string;
@@ -21,6 +23,11 @@ export interface CaptureReportGroup {
     readonly captureStarts: number;
     /** Metric 1 — clarification per field, rate over capture starts. */
     readonly clarificationByField: Record<string, Rate>;
+    readonly clarificationsRequested: number;
+    /** CLARIFICATION_REQUESTED with no RESOLVED/CANCELLED, older than the clarification TTL (Phase 38.1). */
+    readonly clarificationsAbandonedPastTtl: number;
+    /** UNSPECIFIED over all clarification field tags (Phase 38.1). */
+    readonly unspecifiedFieldShare: Rate;
     readonly draftsCreated: number;
     /** Metric 4 — direct draft vs after clarification. */
     readonly directDraftRate: Rate;

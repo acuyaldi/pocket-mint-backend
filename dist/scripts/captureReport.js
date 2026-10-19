@@ -43,6 +43,7 @@ function parseArgs(argv, now) {
 const pct = (rate) => rate.value === captureReport_1.INSUFFICIENT_DATA
     ? `${captureReport_1.INSUFFICIENT_DATA} (n=${rate.denominator})`
     : `${(rate.value * 100).toFixed(1)}% (${rate.numerator}/${rate.denominator})`;
+const unspecifiedWarning = (rate) => typeof rate.value === 'number' && rate.value > captureReport_1.UNSPECIFIED_SHARE_WARNING ? ` — WARNING: above ${captureReport_1.UNSPECIFIED_SHARE_WARNING * 100}%, per-field rates are unreliable` : '';
 function formatReport(groups, options) {
     const lines = [
         'Assistant capture report (Phase 39.0) — read-only, nothing was changed.',
@@ -54,9 +55,9 @@ function formatReport(groups, options) {
         const o = g.outcomes;
         lines.push('', `== ${g.source} · ${g.phaseMarker} ==`, `Capture starts: ${g.captureStarts}`, '1. Clarification per field (of capture starts):', ...(Object.keys(g.clarificationByField).length === 0
             ? ['   (none)']
-            : Object.entries(g.clarificationByField).sort().map(([f, r]) => `   ${f.padEnd(20)} ${pct(r)}`)), `2. Draft edit rate (of confirmed): ${pct(g.editRate)}${Object.keys(g.editedByField).length ? ` [${Object.entries(g.editedByField).sort().map(([f, n]) => `${f} ${n}`).join(', ')}]` : ''}`, `3. Cancel rate (of drafts created): ${pct(g.cancelRate)}`, `4. Direct-draft rate (vs after clarification): ${pct(g.directDraftRate)} — drafts created ${g.draftsCreated}`, `   Outcomes: confirmed ${o.confirmed} · cancelled ${o.cancelled} · expired ${o.expired} (+${o.abandonedPastTtl} abandoned past TTL) · failed ${o.failed} · open ${o.open}`);
+            : Object.entries(g.clarificationByField).sort().map(([f, r]) => `   ${f.padEnd(20)} ${pct(r)}`)), `2. Draft edit rate (of confirmed): ${pct(g.editRate)}${Object.keys(g.editedByField).length ? ` [${Object.entries(g.editedByField).sort().map(([f, n]) => `${f} ${n}`).join(', ')}]` : ''}`, `3. Cancel rate (of drafts created): ${pct(g.cancelRate)}`, `4. Direct-draft rate (vs after clarification): ${pct(g.directDraftRate)} — drafts created ${g.draftsCreated}`, `   Outcomes: confirmed ${o.confirmed} · cancelled ${o.cancelled} · expired ${o.expired} (+${o.abandonedPastTtl} abandoned past TTL) · failed ${o.failed} · open ${o.open}`, `6. Clarifications abandoned past TTL (no RESOLVED/CANCELLED): ${g.clarificationsAbandonedPastTtl} of ${g.clarificationsRequested} requested`, `   UNSPECIFIED field share: ${pct(g.unspecifiedFieldShare)}${unspecifiedWarning(g.unspecifiedFieldShare)}`);
     }
-    lines.push('', '5. Web vs Telegram: compare the WEB and TELEGRAM sections of the same phase marker above.');
+    lines.push('', '5. Web vs Telegram: compare the WEB and TELEGRAM sections of the same phase marker above.', '', 'Bias notes:', '- Undercount: an event is emitted after its state change commits; a process that dies between the commit and the emit loses that event.', '- Abandoned drafts/clarifications whose conversation was deleted are gone (cascade delete), so abandonment is undercounted.', `- UNSPECIFIED field share above ${captureReport_1.UNSPECIFIED_SHARE_WARNING * 100}% makes metric 1 (clarification per field) unreliable; a WARNING is printed per section.`);
     return lines.join('\n');
 }
 async function buildCaptureReport(db, options) {

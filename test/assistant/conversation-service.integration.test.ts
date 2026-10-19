@@ -394,10 +394,11 @@ describe.skipIf(!url)('Assistant conversation service (disposable PostgreSQL)', 
         service().archiveOwnedConversation(owner, turn.conversationId),
       ]);
 
-      expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
-      const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
-      expect(rejected).toHaveLength(1);
-      expect(rejected[0].reason).toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_FOUND', statusCode: 404, isOperational: true });
+      // The delete always succeeds. The other call either ran first (both
+      // fulfil) or lost the race (typed 404) — never a raw error.
+      expect(results[0].status).toBe('fulfilled');
+      for (const r of results) if (r.status === 'rejected') expect(r.reason).toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_FOUND', statusCode: 404, isOperational: true });
+      expect(await db().assistantConversation.count({ where: { id: turn.conversationId } })).toBe(0);
     });
 
     it('restore racing a concurrent delete: one succeeds, the other 404s, never a raw error', async () => {
@@ -410,10 +411,11 @@ describe.skipIf(!url)('Assistant conversation service (disposable PostgreSQL)', 
         service().restoreOwnedConversation(owner, turn.conversationId),
       ]);
 
-      expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
-      const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
-      expect(rejected).toHaveLength(1);
-      expect(rejected[0].reason).toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_FOUND', statusCode: 404, isOperational: true });
+      // The delete always succeeds. The other call either ran first (both
+      // fulfil) or lost the race (typed 404) — never a raw error.
+      expect(results[0].status).toBe('fulfilled');
+      for (const r of results) if (r.status === 'rejected') expect(r.reason).toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_FOUND', statusCode: 404, isOperational: true });
+      expect(await db().assistantConversation.count({ where: { id: turn.conversationId } })).toBe(0);
     });
   });
 

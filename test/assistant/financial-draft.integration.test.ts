@@ -66,6 +66,8 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
     server.post('/execute', controllers.execute); server.post('/drafts/:draftId/confirm', controllers.confirmDraft);
     server.post('/drafts/:draftId/cancel', controllers.cancelDraft); server.get('/conversations/:conversationId', controllers.get);
     server.get('/conversations/:conversationId/recovery-state', controllers.recoveryState);
+    server.post('/conversations/:conversationId/archive', controllers.archive);
+    server.post('/conversations/:conversationId/restore', controllers.restore);
     server.use(errorHandler); return server;
   }
   const draftBody = (walletId: string, categoryId: string) => ({ intent: 'transaction.create', arguments: { type: 'EXPENSE', amount: '12500.50', walletId, categoryId, date: '2026-07-22', description: 'Lunch' } });
@@ -173,7 +175,7 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
     const draft = await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } });
     const server = app(() => new Date(draft.expiresAt.getTime() + offsetMs));
     const response = await request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', `expiry-${offsetMs}`);
-    expect(response.status).toBe(expectedHttp);
+    expect(response.status, JSON.stringify(response.body)).toBe(expectedHttp);
     expect((await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status).toBe(expectedStatus);
     expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(offsetMs < 0 ? 1 : 0);
   });
@@ -714,6 +716,118 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
       expect(committedDraft.status).toBe('COMMITTED');
       const transaction = await resources!.prisma.transaction.findUniqueOrThrow({ where: { id: committedDraft.transactionId! } });
       expect(transaction.walletId).toBe(replacementWallet.id);
+    });
+  });
+
+  // ---- Phase 38.1: archived-conversation confirm guard ---------------------
+
+  describe('Phase 38.1 — confirm/cancel on a non-ACTIVE conversation', () => {
+    async function preparedDraft(label: string) {
+      const f = await fixture(label); const server = app();
+      const prepared = await request(server).post('/execute').set('x-test-user', f.user.id).send(draftBody(f.wallet.id, f.category.id));
+      return { ...f, server, draftId: prepared.body.data.data.draftId as string, conversationId: prepared.body.data.conversationId as string };
+    }
+    const confirmReq = (server: express.Express, userId: string, draftId: string, key: string, body?: object) =>
+      request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', userId).set('Idempotency-Key', key).send(body ?? {});
+    const draftStatus = async (draftId: string) => (await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status;
+    const txCount = (userId: string) => resources!.prisma.transaction.count({ where: { userId } });
+    function expectArchived(res: request.Response) {
+      expect(res.status).toBe(409);
+      expect(res.body.error.code).toBe('ASSISTANT_CONVERSATION_NOT_CONTINUABLE');
+      expect(res.body.error.detail).toBe('CONVERSATION_ARCHIVED');
+    }
+
+    it('(a) rejects confirm, edit-confirm and cancel with 409 CONVERSATION_ARCHIVED; draft stays PENDING_CONFIRMATION, no transaction', async () => {
+      const { user, wallet, server, draftId, conversationId } = await preparedDraft('archived-confirm');
+      expect((await request(server).post(`/conversations/${conversationId}/archive`).set('x-test-user', user.id)).status).toBe(200);
+
+      expectArchived(await confirmReq(server, user.id, draftId, 'archived-a'));
+      expectArchived(await confirmReq(server, user.id, draftId, 'archived-a-edit', { amount: 2000, description: 'Dinner' }));
+      expectArchived(await request(server).post(`/drafts/${draftId}/cancel`).set('x-test-user', user.id));
+
+      expect(await draftStatus(draftId)).toBe('PENDING_CONFIRMATION');
+      expect(await txCount(user.id)).toBe(0);
+      expect((await resources!.prisma.wallet.findUniqueOrThrow({ where: { id: wallet.id } })).balance.toString()).toBe('100000');
+      // No confirm/cancel turn was written into the archived conversation either.
+      expect(await resources!.prisma.assistantTurn.count({ where: { conversationId } })).toBe(1);
+    });
+
+    it('(b) a confirm racing an in-flight archive waits for it and is rejected — never a transaction from an archived conversation', async () => {
+      const { user, server, draftId, conversationId } = await preparedDraft('archive-inflight');
+      let release!: () => void;
+      const gate = new Promise<void>((resolve) => { release = resolve; });
+      let archiveWritten!: () => void;
+      const written = new Promise<void>((resolve) => { archiveWritten = resolve; });
+      const archiving = resources!.prisma.$transaction(async (tx) => {
+        await tx.assistantConversation.update({ where: { id: conversationId }, data: { status: 'ARCHIVED', archivedAt: new Date() } });
+        archiveWritten();
+        await gate;
+      }, { timeout: 10000 });
+      await written;
+      const confirming = confirmReq(server, user.id, draftId, 'archive-inflight');
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      release();
+      await archiving;
+
+      expectArchived(await confirming);
+      expect(await draftStatus(draftId)).toBe('PENDING_CONFIRMATION');
+      expect(await txCount(user.id)).toBe(0);
+    });
+
+    it('(b) archive and confirm in parallel never 500 and the outcome is always consistent', async () => {
+      for (let i = 0; i < 8; i += 1) {
+        const { user, server, draftId, conversationId } = await preparedDraft(`archive-race-${i}`);
+        const [archived, confirmed] = await Promise.all([
+          request(server).post(`/conversations/${conversationId}/archive`).set('x-test-user', user.id),
+          confirmReq(server, user.id, draftId, `archive-race-${i}`),
+        ]);
+        expect(archived.status, JSON.stringify(archived.body)).toBe(200);
+        expect([200, 409]).toContain(confirmed.status);
+        if (confirmed.status === 200) {
+          expect(await draftStatus(draftId)).toBe('COMMITTED');
+          expect(await txCount(user.id)).toBe(1);
+        } else {
+          expectArchived(confirmed);
+          expect(await draftStatus(draftId)).toBe('PENDING_CONFIRMATION');
+          expect(await txCount(user.id)).toBe(0);
+        }
+      }
+    });
+
+    it('(c) restore makes the draft confirmable again while it is within TTL', async () => {
+      const { user, server, draftId, conversationId } = await preparedDraft('archive-restore');
+      await request(server).post(`/conversations/${conversationId}/archive`).set('x-test-user', user.id);
+      expectArchived(await confirmReq(server, user.id, draftId, 'restore-1'));
+      expect((await request(server).post(`/conversations/${conversationId}/restore`).set('x-test-user', user.id)).status).toBe(200);
+
+      const confirmed = await confirmReq(server, user.id, draftId, 'restore-2');
+      expect(confirmed.status).toBe(200);
+      expect(await draftStatus(draftId)).toBe('COMMITTED');
+      expect(await txCount(user.id)).toBe(1);
+    });
+
+    it('(c) an archived draft that passes its TTL is not written while archived, and expires on confirm after restore', async () => {
+      const { user, server, draftId, conversationId } = await preparedDraft('archive-restore-expired');
+      await request(server).post(`/conversations/${conversationId}/archive`).set('x-test-user', user.id);
+      await resources!.prisma.assistantFinancialDraft.update({ where: { id: draftId }, data: { expiresAt: new Date(0) } });
+      expectArchived(await confirmReq(server, user.id, draftId, 'restore-expired-1'));
+      expect(await draftStatus(draftId)).toBe('PENDING_CONFIRMATION');
+
+      await request(server).post(`/conversations/${conversationId}/restore`).set('x-test-user', user.id);
+      const expired = await confirmReq(server, user.id, draftId, 'restore-expired-2');
+      expect(expired.status).toBe(409);
+      expect(expired.body.error.detail).toBe('EXPIRED');
+      expect(await txCount(user.id)).toBe(0);
+    });
+
+    it('(d) a double confirm after restore still produces exactly one transaction', async () => {
+      const { user, server, draftId, conversationId } = await preparedDraft('archive-double');
+      await request(server).post(`/conversations/${conversationId}/archive`).set('x-test-user', user.id);
+      await request(server).post(`/conversations/${conversationId}/restore`).set('x-test-user', user.id);
+      const responses = await Promise.all([confirmReq(server, user.id, draftId, 'double-1'), confirmReq(server, user.id, draftId, 'double-2')]);
+      expect(responses.map((r) => r.status)).toEqual([200, 200]);
+      expect(responses[0]!.body.data.transactionId).toBe(responses[1]!.body.data.transactionId);
+      expect(await txCount(user.id)).toBe(1);
     });
   });
 });

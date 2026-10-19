@@ -48,12 +48,16 @@ function mapAssistantErrorToStatus(error) {
         case 'ASSISTANT_DRAFT_CONFLICT': return error.detail === 'EXPIRED' ? 'expired' : 'conflict';
         case 'ASSISTANT_IDEMPOTENCY_CONFLICT': return 'conflict';
         case 'ASSISTANT_DRAFT_NOT_FOUND': return 'not_found';
+        // Phase 38.1 — draft untouched, confirmable again from the app after restore.
+        case 'ASSISTANT_CONVERSATION_NOT_CONTINUABLE': return 'archived';
         default: return 'failed';
     }
 }
 /** Persists one ChannelCallbackToken per option and builds the neutral button descriptors for a fresh clarification. */
 async function buildClarificationKeyboard(db, connectionId, conversationId, projection) {
     const buttons = [];
+    // Phase 38: TRANSFER wallet buttons name their slot so source and destination never read alike.
+    const prefix = projection.transfer?.field === 'SOURCE_WALLET' ? 'Dari: ' : projection.transfer?.field === 'DESTINATION_WALLET' ? 'Ke: ' : '';
     for (const option of projection.options) {
         const created = await (0, callbackToken_service_1.createCallbackToken)(db, {
             connectionId,
@@ -62,7 +66,7 @@ async function buildClarificationKeyboard(db, connectionId, conversationId, proj
             clarificationRequestId: projection.clarificationId,
             actionSecret: option.token,
         });
-        buttons.push({ label: option.label, ...(option.discriminator ? { discriminator: option.discriminator } : {}), token: created.token });
+        buttons.push({ label: `${prefix}${option.label}`, ...(option.discriminator ? { discriminator: option.discriminator } : {}), token: created.token });
     }
     const cancel = await (0, callbackToken_service_1.createCallbackToken)(db, {
         connectionId,
@@ -95,6 +99,7 @@ async function renderApplicationResult(db, connectionId, conversationId, result)
         const buttons = await buildClarificationKeyboard(db, connectionId, conversationId, {
             clarificationId: response.data.clarification.clarificationId,
             options: response.data.clarification.options,
+            transfer: response.data.clarification.transfer,
         });
         return {
             terminalStatus: 'clarification_advanced',

@@ -28,8 +28,8 @@ const node_crypto_1 = require("node:crypto");
 const logger_1 = require("../utils/logger");
 const errorCategory_1 = require("../utils/errorCategory");
 exports.CAPTURE_SCHEMA_VERSION = 1;
-/** Bump in the phase that changes capture behavior (e.g. Phase 38) so the report can split it from this baseline. */
-exports.CAPTURE_PHASE_MARKER = 'phase-35.1';
+/** Bump in the phase that changes capture behavior so the report can split it from the previous baseline (phase-35.1 → phase-38: clarification UX). */
+exports.CAPTURE_PHASE_MARKER = 'phase-38';
 /** Rows older than this are purged opportunistically (no cron in this repo — same pattern as inboundJob.service.ts). */
 exports.CAPTURE_EVENT_RETENTION_DAYS = 180;
 const PURGE_INTERVAL_MS = 60 * 60 * 1000;

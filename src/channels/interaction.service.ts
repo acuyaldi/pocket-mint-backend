@@ -64,6 +64,8 @@ function mapAssistantErrorToStatus(error: AssistantError): string {
     case 'ASSISTANT_DRAFT_CONFLICT': return error.detail === 'EXPIRED' ? 'expired' : 'conflict';
     case 'ASSISTANT_IDEMPOTENCY_CONFLICT': return 'conflict';
     case 'ASSISTANT_DRAFT_NOT_FOUND': return 'not_found';
+    // Phase 38.1 — draft untouched, confirmable again from the app after restore.
+    case 'ASSISTANT_CONVERSATION_NOT_CONTINUABLE': return 'archived';
     default: return 'failed';
   }
 }
@@ -73,9 +75,11 @@ async function buildClarificationKeyboard(
   db: PrismaClient,
   connectionId: string,
   conversationId: string,
-  projection: { clarificationId: string; options: readonly { token: string; label: string; discriminator?: string }[] },
+  projection: { clarificationId: string; options: readonly { token: string; label: string; discriminator?: string }[]; transfer?: { field: string } },
 ): Promise<InteractionButton[]> {
   const buttons: InteractionButton[] = [];
+  // Phase 38: TRANSFER wallet buttons name their slot so source and destination never read alike.
+  const prefix = projection.transfer?.field === 'SOURCE_WALLET' ? 'Dari: ' : projection.transfer?.field === 'DESTINATION_WALLET' ? 'Ke: ' : '';
   for (const option of projection.options) {
     const created = await createCallbackToken(db, {
       connectionId,
@@ -84,7 +88,7 @@ async function buildClarificationKeyboard(
       clarificationRequestId: projection.clarificationId,
       actionSecret: option.token,
     });
-    buttons.push({ label: option.label, ...(option.discriminator ? { discriminator: option.discriminator } : {}), token: created.token });
+    buttons.push({ label: `${prefix}${option.label}`, ...(option.discriminator ? { discriminator: option.discriminator } : {}), token: created.token });
   }
   const cancel = await createCallbackToken(db, {
     connectionId,
@@ -131,7 +135,7 @@ export async function renderApplicationResult(
     turnId?: string;
     data?: {
       kind?: string;
-      clarification?: { clarificationId: string; prompt?: string; options?: readonly { token: string; label: string; discriminator?: string }[] };
+      clarification?: { clarificationId: string; prompt?: string; options?: readonly { token: string; label: string; discriminator?: string }[]; transfer?: { field: string } };
       draftId?: string;
       status?: string;
       preview?: { type?: string };
@@ -142,6 +146,7 @@ export async function renderApplicationResult(
     const buttons = await buildClarificationKeyboard(db, connectionId, conversationId, {
       clarificationId: response.data.clarification.clarificationId,
       options: response.data.clarification.options,
+      transfer: response.data.clarification.transfer,
     });
     return {
       terminalStatus: 'clarification_advanced',

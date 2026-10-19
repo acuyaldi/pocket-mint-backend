@@ -10,7 +10,7 @@
 // Either way: `prisma migrate deploy` runs against the disposable URL first
 // (never `db push`), then the integration test file runs, then teardown.
 
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -35,11 +35,16 @@ function assertTestDatabaseUrl(rawUrl) {
   }
 }
 
+// Async on purpose: embedded-postgres pipes the server's log output through
+// this process. A blocking spawnSync stops that pipe from being drained, so
+// once it fills Postgres blocks on its next log write (every ERROR logs) and
+// tests time out.
 function run(command, args, env) {
-  const result = spawnSync(command, args, { stdio: 'inherit', shell: true, env: { ...process.env, ...env } });
-  if (result.status !== 0) {
-    throw new Error(`${command} ${args.join(' ')} exited with code ${result.status}`);
-  }
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, { stdio: 'inherit', shell: true, env: { ...process.env, ...env } });
+    child.on('error', reject);
+    child.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`${command} ${args.join(' ')} exited with code ${code}`))));
+  });
 }
 
 const integrationTests = [
@@ -74,8 +79,8 @@ async function main() {
   if (existing) {
     assertTestDatabaseUrl(existing);
     console.log('Using existing TEST_DATABASE_URL.');
-    run('npx', ['prisma', 'migrate', 'deploy'], { DATABASE_URL: existing });
-    run('npx', ['vitest', 'run', ...integrationTests], { TEST_DATABASE_URL: existing, DATABASE_URL: existing });
+    await run('npx', ['prisma', 'migrate', 'deploy'], { DATABASE_URL: existing });
+    await run('npx', ['vitest', 'run', ...integrationTests], { TEST_DATABASE_URL: existing, DATABASE_URL: existing });
     return;
   }
 
@@ -99,8 +104,8 @@ async function main() {
   await pg.createDatabase('pocketmint_test');
 
   try {
-    run('npx', ['prisma', 'migrate', 'deploy'], { DATABASE_URL: testDatabaseUrl });
-    run('npx', ['vitest', 'run', ...integrationTests], { TEST_DATABASE_URL: testDatabaseUrl, DATABASE_URL: testDatabaseUrl });
+    await run('npx', ['prisma', 'migrate', 'deploy'], { DATABASE_URL: testDatabaseUrl });
+    await run('npx', ['vitest', 'run', ...integrationTests], { TEST_DATABASE_URL: testDatabaseUrl, DATABASE_URL: testDatabaseUrl });
   } finally {
     console.log('Stopping disposable Postgres...');
     await pg.stop();

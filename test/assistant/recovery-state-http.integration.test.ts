@@ -76,6 +76,8 @@ describe.skipIf(!url)('GET /conversations/:conversationId/recovery-state (dispos
       next();
     });
     server.post('/execute', controllers.execute);
+    server.post('/drafts/:draftId/confirm', controllers.confirmDraft);
+    server.post('/drafts/:draftId/cancel', controllers.cancelDraft);
     server.get('/conversations/:conversationId/recovery-state', controllers.recoveryState);
     server.use(errorHandler);
     return server;
@@ -250,5 +252,94 @@ describe.skipIf(!url)('GET /conversations/:conversationId/recovery-state (dispos
     const res = await request(server).get(`/conversations/${conversation.id}/recovery-state`);
 
     expect(res.status).toBe(401);
+  });
+
+  // ==========================================================================
+  // 8. Phase 38.1 — effective terminal states after a refresh
+  // ==========================================================================
+
+  describe('Phase 38.1 — effective terminal states', () => {
+    async function draftFixture(label: string) {
+      const userId = await makeUser(label);
+      const wallet = await db().wallet.create({ data: { userId, name: 'Cash', type: 'CASH', balance: 100000 } });
+      const category = await db().category.create({ data: { userId, name: 'Food', type: 'EXPENSE', icon: 'food', color: '#000000' } });
+      return { userId, wallet, category };
+    }
+    async function makeDraft(server: express.Express, f: { userId: string; wallet: { id: string }; category: { id: string } }, conversationId?: string) {
+      const res = await request(server).post('/execute').set('x-test-user', f.userId).send({
+        ...(conversationId ? { conversationId } : {}),
+        intent: 'transaction.create',
+        arguments: { type: 'EXPENSE', amount: '1000', walletId: f.wallet.id, categoryId: f.category.id, date: '2026-07-22' },
+      });
+      const body = executeEnvelope(res);
+      return { conversationId: body.conversationId as string, draftId: body.data.draftId as string, turnId: body.turnId as string };
+    }
+    const state = async (server: express.Express, userId: string, conversationId: string) =>
+      (await request(server).get(`/conversations/${conversationId}/recovery-state`).set('x-test-user', userId)).body.data;
+
+    it('reports an untouched past-TTL clarification as effectively expired, linked to its turn, without writing', async () => {
+      const server = buildServer();
+      const { userId, category } = await walletAmbiguityFixture('eff-clar-expired');
+      const created = executeEnvelope(await request(server).post('/execute').set('x-test-user', userId).send({
+        intent: 'transaction.create',
+        arguments: { type: 'EXPENSE', amount: '50000', walletReference: 'BCA', categoryId: category.id, date: '2026-07-24' },
+      }));
+      const clarificationId = created.data.clarification.clarificationId;
+      await db().clarificationRequest.update({ where: { id: clarificationId }, data: { expiresAt: new Date(Date.now() - 1000) } });
+
+      const data = await state(server, userId, created.conversationId);
+
+      expect(data.activeClarification).toBeUndefined();
+      expect(data.latestTerminalClarification).toEqual({
+        clarificationId,
+        entityType: 'wallet',
+        status: 'STALE',
+        terminalCode: 'expired',
+        restartRequired: true,
+        recordedStatus: 'PENDING',
+        originatingTurnId: created.turnId,
+      });
+      expect((await db().clarificationRequest.findUniqueOrThrow({ where: { id: clarificationId } })).status).toBe('PENDING');
+    });
+
+    it('reports an untouched past-TTL draft as latestTerminalDraft EXPIRED without writing', async () => {
+      const server = buildServer();
+      const f = await draftFixture('eff-draft-expired');
+      const { conversationId, draftId, turnId } = await makeDraft(server, f);
+      await db().assistantFinancialDraft.update({ where: { id: draftId }, data: { expiresAt: new Date(Date.now() - 1000) } });
+
+      const data = await state(server, f.userId, conversationId);
+
+      expect(data.pendingDraft).toBeUndefined();
+      expect(data.latestTerminalDraft).toEqual({ draftId, status: 'EXPIRED', recordedStatus: 'PENDING_CONFIRMATION', originatingTurnId: turnId });
+      expect((await db().assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status).toBe('PENDING_CONFIRMATION');
+    });
+
+    it('reports FAILED and CANCELLED drafts as latestTerminalDraft', async () => {
+      const server = buildServer();
+      const f = await draftFixture('eff-draft-failed');
+      const failed = await makeDraft(server, f);
+      await db().category.update({ where: { id: f.category.id }, data: { type: 'INCOME' } });
+      expect((await request(server).post(`/drafts/${failed.draftId}/confirm`).set('x-test-user', f.userId).set('Idempotency-Key', 'eff-failed')).status).toBe(400);
+      expect((await state(server, f.userId, failed.conversationId)).latestTerminalDraft).toEqual({ draftId: failed.draftId, status: 'FAILED', recordedStatus: 'FAILED', originatingTurnId: failed.turnId });
+
+      const g = await draftFixture('eff-draft-cancelled');
+      const cancelled = await makeDraft(server, g);
+      expect((await request(server).post(`/drafts/${cancelled.draftId}/cancel`).set('x-test-user', g.userId)).status).toBe(200);
+      expect((await state(server, g.userId, cancelled.conversationId)).latestTerminalDraft).toMatchObject({ draftId: cancelled.draftId, status: 'CANCELLED' });
+    });
+
+    it('omits latestTerminalDraft once a newer draft in the conversation committed', async () => {
+      const server = buildServer();
+      const f = await draftFixture('eff-draft-superseded');
+      const first = await makeDraft(server, f);
+      await request(server).post(`/drafts/${first.draftId}/cancel`).set('x-test-user', f.userId);
+      const second = await makeDraft(server, f, first.conversationId);
+      expect((await request(server).post(`/drafts/${second.draftId}/confirm`).set('x-test-user', f.userId).set('Idempotency-Key', 'eff-superseded')).status).toBe(200);
+
+      const data = await state(server, f.userId, first.conversationId);
+      expect(data.latestTerminalDraft).toBeUndefined();
+      expect(data.pendingDraft).toBeUndefined();
+    });
   });
 });

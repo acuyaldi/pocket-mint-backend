@@ -241,6 +241,33 @@ describe.skipIf(!url)('Assistant capture events (disposable PostgreSQL)', () => 
     expect((await exec({ walletReference: 'GoPay', toWalletReference: 'BCA' })).response.status).toBe('clarification_required');
     const rows = await db().assistantCaptureEvent.findMany({ where: { eventType: 'CLARIFICATION_REQUESTED' } });
     expect(rows.flatMap((r) => r.fields).sort()).toEqual(['DESTINATION_WALLET', 'SOURCE_WALLET']);
+    expect(rows.map((r) => r.phaseMarker)).toEqual(['phase-38', 'phase-38']);
+  });
+
+  it('transfer clarification copy asks "Dari" then "Ke", showing the chosen source before the second question', async () => {
+    const { user } = await fixture('transfer-copy');
+    const { application } = buildServices();
+    type Clar = { clarificationId: string; prompt: string; options: { token: string; label: string }[]; transfer?: unknown };
+    const first = (await application.execute(user.id, 'corr-copy-1', {
+      intent: 'transaction.create', arguments: { type: 'TRANSFER', amount: '50000', date: '2026-10-19', walletReference: 'BCA', toWalletReference: 'BCA' },
+    })).response as { conversationId: string; data: { clarification: Clar } };
+    const source = first.data.clarification;
+    expect(source.prompt).toBe('Dari wallet mana? Pilih salah satu: BCA Debit (BANK), BCA Payroll (BANK).');
+    expect(source.transfer).toEqual({ field: 'SOURCE_WALLET' });
+
+    const debit = source.options.find((o) => o.label === 'BCA Debit')!;
+    const second = (await application.selectClarification(user.id, 'corr-copy-2', debit.token, first.conversationId, source.clarificationId))
+      .response as { data: { clarification: Clar } };
+    const destination = second.data.clarification;
+    expect(destination.prompt).toBe('Dari: BCA Debit. Ke wallet mana? Pilih salah satu: BCA Debit (BANK), BCA Payroll (BANK).');
+    expect(destination.transfer).toEqual({ field: 'DESTINATION_WALLET', sourceWalletLabel: 'BCA Debit' });
+
+    // Survives a refresh: recovery-state carries the same role for the open question.
+    const state = await application.getAssistantState(user.id, first.conversationId) as { activeClarification?: Clar };
+    expect(state.activeClarification?.transfer).toEqual({ field: 'DESTINATION_WALLET', sourceWalletLabel: 'BCA Debit' });
+
+    const stored = await db().assistantCaptureEvent.findMany({ where: { eventType: 'CLARIFICATION_REQUESTED' } });
+    expect(stored.map((r) => [r.fields, r.phaseMarker])).toEqual(expect.arrayContaining([[['SOURCE_WALLET'], 'phase-38'], [['DESTINATION_WALLET'], 'phase-38']]));
   });
 
   it('a failing event store never fails confirm or its transaction', async () => {

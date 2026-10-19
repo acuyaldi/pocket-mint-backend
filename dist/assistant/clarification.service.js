@@ -8,16 +8,17 @@
 // ============================================================
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CLARIFICATION_TTL_MS = void 0;
+exports.transferWalletClarification = transferWalletClarification;
 exports.createClarificationService = createClarificationService;
 const node_crypto_1 = require("node:crypto");
 const client_1 = require("../generated/prisma/client");
 const config_1 = require("../config");
 const reportingTime_1 = require("../domain/reportingTime");
 const errors_1 = require("./errors");
+const effective_status_1 = require("./effective-status");
 const TOKEN_BYTES = 32;
 const TOKEN_PREFIX = 'clarify_';
 exports.CLARIFICATION_TTL_MS = 15 * 60 * 1000;
-const EXPIRED_TERMINAL_CODE = 'expired';
 /**
  * Database-backed current time — never the application process clock.
  * Rendered as an explicit UTC ISO-8601 string (not a raw `timestamptz`
@@ -70,13 +71,30 @@ function isValidTrustedContext(value) {
         (ctx.date === undefined || typeof ctx.date === 'string');
 }
 /** Maps a non-PENDING terminal status to its specific bounded error. */
+/**
+ * Projects the TRANSFER wallet role of a clarification's trusted context
+ * (Phase 38). Only `pendingWalletRole` and the already-resolved source label
+ * are read — the label is skipped when it is just the raw id (direct-id path).
+ */
+function transferWalletClarification(ctx) {
+    if (ctx?.type !== 'TRANSFER' || !ctx.pendingWalletRole)
+        return undefined;
+    if (ctx.pendingWalletRole === 'wallet')
+        return { field: 'SOURCE_WALLET' };
+    const label = ctx.wallet?.displayLabel;
+    return { field: 'DESTINATION_WALLET', ...(label && label !== ctx.wallet?.internalId ? { sourceWalletLabel: label } : {}) };
+}
+function withTransfer(ctx) {
+    const transfer = transferWalletClarification(ctx);
+    return transfer ? { transfer } : {};
+}
 function terminalStatusError(status, terminalCode) {
     if (status === 'CONSUMED')
         return errors_1.AssistantError.clarificationAlreadyConsumed();
     if (status === 'CANCELLED')
         return errors_1.AssistantError.clarificationCancelled();
     if (status === 'STALE')
-        return terminalCode === EXPIRED_TERMINAL_CODE ? errors_1.AssistantError.clarificationExpired() : errors_1.AssistantError.clarificationStale();
+        return terminalCode === effective_status_1.CLARIFICATION_EXPIRED_TERMINAL_CODE ? errors_1.AssistantError.clarificationExpired() : errors_1.AssistantError.clarificationStale();
     return errors_1.AssistantError.clarificationNotFound();
 }
 /**
@@ -152,6 +170,7 @@ function createClarificationService(db) {
                 ...(opt.discriminator ? { discriminator: opt.discriminator } : {}),
             })),
             expiresAt: row.expiresAt.toISOString(),
+            ...withTransfer(input.trustedContext),
         };
     }
     async function createGuidedFields(input, options = {}) {
@@ -214,10 +233,10 @@ function createClarificationService(db) {
         // ever matched against stored digests — an expired request never reveals
         // whether the supplied token would otherwise have been valid.
         const now = await dbNow(db);
-        if (request.expiresAt <= now) {
+        if ((0, effective_status_1.effectiveClarificationStatus)(request, now).status !== 'PENDING') {
             // Must commit even though the caller receives an error — runs outside
             // (not nested inside) the claim below, same as the other terminalizations.
-            await terminalizeOrReportActual(db, request.id, EXPIRED_TERMINAL_CODE, () => errors_1.AssistantError.clarificationExpired());
+            await terminalizeOrReportActual(db, request.id, effective_status_1.CLARIFICATION_EXPIRED_TERMINAL_CODE, () => errors_1.AssistantError.clarificationExpired());
         }
         // These terminalizations must also commit even though the caller receives
         // an error, so they run outside (not nested inside) the claim transaction.
@@ -273,8 +292,8 @@ function createClarificationService(db) {
             throw terminalStatusError(request.status, request.terminalCode);
         }
         const now = await dbNow(db);
-        if (request.expiresAt <= now) {
-            await terminalizeOrReportActual(db, request.id, EXPIRED_TERMINAL_CODE, () => errors_1.AssistantError.clarificationExpired());
+        if ((0, effective_status_1.effectiveClarificationStatus)(request, now).status !== 'PENDING') {
+            await terminalizeOrReportActual(db, request.id, effective_status_1.CLARIFICATION_EXPIRED_TERMINAL_CODE, () => errors_1.AssistantError.clarificationExpired());
         }
         if (!isValidTrustedContext(request.trustedContext)) {
             await terminalizeOrReportActual(db, request.id, 'context_invalid', () => errors_1.AssistantError.clarificationContextInvalid());
@@ -325,8 +344,8 @@ function createClarificationService(db) {
         // commit even though the caller receives an error, so it runs against
         // `db` directly rather than the claim transaction below.
         const now = await dbNow(db);
-        if (request.expiresAt <= now) {
-            await terminalizeOrReportActual(db, request.id, EXPIRED_TERMINAL_CODE, () => errors_1.AssistantError.clarificationExpired());
+        if ((0, effective_status_1.effectiveClarificationStatus)(request, now).status !== 'PENDING') {
+            await terminalizeOrReportActual(db, request.id, effective_status_1.CLARIFICATION_EXPIRED_TERMINAL_CODE, () => errors_1.AssistantError.clarificationExpired());
         }
         // Atomic claim, same race-safety rationale as select().
         const client = options.transaction ?? db;
@@ -349,26 +368,28 @@ function createClarificationService(db) {
     }
     // ---- State projection ------------------------------------------------------
     async function getAssistantState(userId, conversationId) {
-        // Abandoned-PENDING visibility (Phase 37.3): a PENDING clarification or
-        // PENDING_CONFIRMATION draft only flips to its terminal state (STALE /
-        // EXPIRED) lazily, the next time something tries to act on it (select/
-        // cancel/confirm). Nobody may ever touch it again after it goes stale —
-        // there is deliberately no background sweep (see
-        // docs/assistant-stuck-states.md for why). Without this filter, this read
-        // path would keep reporting a row as the conversation's "active"
-        // clarification/draft long after it's no longer actionable, misleading
-        // both the recovery UI and this function's own callers. Using database
-        // time (not the process clock) matches every other expiry check in this
-        // file (select/cancel/consumeGuidedFields all use `dbNow`).
+        // Abandoned-PENDING visibility (Phase 37.3, normalized in 38.1): a PENDING
+        // clarification or PENDING_CONFIRMATION draft only flips to its terminal
+        // state (STALE / EXPIRED) lazily, the next time something acts on it —
+        // there is deliberately no background sweep (docs/assistant-stuck-states.md).
+        // So every status reported here is the EFFECTIVE status from
+        // effective-status.ts — the same function the mutation paths use to decide
+        // the lazy write — never the raw column, and nothing is written. Database
+        // time, same as select/cancel/consumeGuidedFields.
         const now = await dbNow(db);
-        const [activeRequest, pendingDraft, latestTerminal, runningTurn] = await Promise.all([
+        const [pendingRequest, latestRequest, pendingDraft, latestDraft, runningTurn] = await Promise.all([
             db.clarificationRequest.findFirst({
-                where: { conversationId, userId, status: 'PENDING', expiresAt: { gt: now } },
+                where: { conversationId, userId, status: 'PENDING' },
                 include: { options: true },
                 orderBy: { createdAt: 'desc' },
             }),
+            db.clarificationRequest.findFirst({
+                where: { conversationId, userId },
+                orderBy: { createdAt: 'desc' },
+                select: { id: true, entityType: true, status: true, terminalCode: true, restartRequired: true, expiresAt: true, originatingTurnId: true },
+            }),
             db.assistantFinancialDraft.findFirst({
-                where: { conversationId, userId, status: 'PENDING_CONFIRMATION', expiresAt: { gt: now } },
+                where: { conversationId, userId, status: 'PENDING_CONFIRMATION' },
                 orderBy: { createdAt: 'desc' },
                 select: {
                     id: true,
@@ -384,13 +405,13 @@ function createClarificationService(db) {
                     expiresAt: true,
                 },
             }),
-            db.clarificationRequest.findFirst({
-                where: {
-                    conversationId,
-                    userId,
-                    status: { in: ['CONSUMED', 'CANCELLED', 'STALE'] },
-                },
-                orderBy: { updatedAt: 'desc' },
+            // Relevance rule for the terminal draft: only the conversation's most
+            // recent draft — an older failure superseded by a later draft (committed
+            // or not) is history, not a recovery state.
+            db.assistantFinancialDraft.findFirst({
+                where: { conversationId, userId },
+                orderBy: { createdAt: 'desc' },
+                select: { id: true, status: true, expiresAt: true, originatingTurnId: true },
             }),
             // Conversation ownership is already asserted by the caller (see
             // assistant.controller.ts's recoveryState) — assistantTurn has no
@@ -401,6 +422,10 @@ function createClarificationService(db) {
                 select: { id: true, intent: true, startedAt: true },
             }),
         ]);
+        // TTL is a constant from creation, so the newest PENDING row is the last to
+        // expire: if it is effectively expired, no older PENDING row is live either.
+        const activeRequest = pendingRequest && (0, effective_status_1.effectiveClarificationStatus)(pendingRequest, now).status === 'PENDING' ? pendingRequest : undefined;
+        const liveDraft = pendingDraft && (0, effective_status_1.effectiveDraftStatus)(pendingDraft, now) === 'PENDING_CONFIRMATION' ? pendingDraft : undefined;
         const activeClarification = activeRequest ? {
             clarificationId: activeRequest.id,
             entityType: activeRequest.entityType,
@@ -410,33 +435,45 @@ function createClarificationService(db) {
                 ...(opt.discriminator ? { discriminator: opt.discriminator } : {}),
             })),
             expiresAt: activeRequest.expiresAt.toISOString(),
+            ...withTransfer(activeRequest.trustedContext),
         } : undefined;
-        const safeDraft = pendingDraft ? {
-            draftId: pendingDraft.id,
-            status: pendingDraft.status,
+        const safeDraft = liveDraft ? {
+            draftId: liveDraft.id,
+            status: liveDraft.status,
             preview: {
-                operation: pendingDraft.operation,
-                type: pendingDraft.transactionType,
-                amount: pendingDraft.amount.toString(),
-                walletId: pendingDraft.walletId,
-                ...(pendingDraft.toWalletId ? { toWalletId: pendingDraft.toWalletId } : {}),
-                ...(pendingDraft.categoryId ? { categoryId: pendingDraft.categoryId } : {}),
-                date: pendingDraft.transactionDate.toISOString().slice(0, 10),
+                operation: liveDraft.operation,
+                type: liveDraft.transactionType,
+                amount: liveDraft.amount.toString(),
+                walletId: liveDraft.walletId,
+                ...(liveDraft.toWalletId ? { toWalletId: liveDraft.toWalletId } : {}),
+                ...(liveDraft.categoryId ? { categoryId: liveDraft.categoryId } : {}),
+                date: liveDraft.transactionDate.toISOString().slice(0, 10),
                 // Reporting-timezone business date, additive alongside `date` (which is
                 // a naive UTC slice and can be off by one day from the reporting
                 // calendar date — see financial-draft.service.ts `prepare()`). Owner-only
                 // projection, same boundary as `categoryId` above.
-                transactionDate: (0, reportingTime_1.formatReportingDate)(pendingDraft.transactionDate, config_1.reportingConfig.timezone),
-                ...(pendingDraft.description ? { description: pendingDraft.description } : {}),
-                expiresAt: pendingDraft.expiresAt.toISOString(),
+                transactionDate: (0, reportingTime_1.formatReportingDate)(liveDraft.transactionDate, config_1.reportingConfig.timezone),
+                ...(liveDraft.description ? { description: liveDraft.description } : {}),
+                expiresAt: liveDraft.expiresAt.toISOString(),
             },
         } : undefined;
-        const terminal = (latestTerminal && latestTerminal.status !== 'PENDING') ? {
-            clarificationId: latestTerminal.id,
-            entityType: latestTerminal.entityType,
-            status: latestTerminal.status,
-            ...(latestTerminal.terminalCode ? { terminalCode: latestTerminal.terminalCode } : {}),
-            restartRequired: latestTerminal.restartRequired,
+        const clarificationEffective = latestRequest ? (0, effective_status_1.effectiveClarificationStatus)(latestRequest, now) : undefined;
+        const terminal = latestRequest && clarificationEffective && clarificationEffective.status !== 'PENDING' ? {
+            clarificationId: latestRequest.id,
+            entityType: latestRequest.entityType,
+            status: clarificationEffective.status,
+            ...(clarificationEffective.terminalCode ? { terminalCode: clarificationEffective.terminalCode } : {}),
+            // A lazily-expired row will get restartRequired=true when written.
+            restartRequired: latestRequest.status === 'PENDING' ? true : latestRequest.restartRequired,
+            recordedStatus: latestRequest.status,
+            originatingTurnId: latestRequest.originatingTurnId,
+        } : undefined;
+        const draftEffective = latestDraft ? (0, effective_status_1.effectiveDraftStatus)(latestDraft, now) : undefined;
+        const terminalDraft = latestDraft && (draftEffective === 'EXPIRED' || draftEffective === 'FAILED' || draftEffective === 'CANCELLED') ? {
+            draftId: latestDraft.id,
+            status: draftEffective,
+            recordedStatus: latestDraft.status,
+            originatingTurnId: latestDraft.originatingTurnId,
         } : undefined;
         const activeTurn = runningTurn ? {
             turnId: runningTurn.id,
@@ -447,6 +484,7 @@ function createClarificationService(db) {
             ...(activeClarification ? { activeClarification } : {}),
             ...(safeDraft ? { pendingDraft: safeDraft } : {}),
             ...(terminal ? { latestTerminalClarification: terminal } : {}),
+            ...(terminalDraft ? { latestTerminalDraft: terminalDraft } : {}),
             ...(activeTurn ? { activeTurn } : {}),
         };
     }

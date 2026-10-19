@@ -198,6 +198,15 @@ describe('interaction.service — processCallback (security resolution)', () => 
     expect(result.terminalStatus).toBe('conflict');
   });
 
+  it('maps an archived-conversation rejection on a draft button to the bounded "archived" status (Phase 38.1)', async () => {
+    const db = fakeDb();
+    const providerRuntime = fakeProviderRuntime({ confirmDraft: vi.fn().mockRejectedValue(AssistantError.conversationArchived()) });
+    const { token } = await createCallbackToken(db, { connectionId: 'conn-1', conversationId: 'conv-1', interactionType: 'DRAFT_CONFIRM', financialDraftId: 'draft-1' });
+    const result = await processCallback({ db, providerRuntime }, job({ text: token }), 'corr-1');
+    expect(result.terminalStatus).toBe('archived');
+    expect(result.replyText).toBe('Conversation is archived. Restore it to continue.');
+  });
+
   it('CLARIFICATION_SELECT passes the wrapped actionSecret (never the callback token itself) to selectClarification', async () => {
     const db = fakeDb();
     const providerRuntime = fakeProviderRuntime({
@@ -233,6 +242,27 @@ describe('interaction.service — renderApplicationResult', () => {
     expect(result.terminalStatus).toBe('clarification_advanced');
     expect(result.keyboard?.rows).toHaveLength(3);
     expect(JSON.stringify(result.keyboard)).not.toContain('clarify_secret');
+  });
+
+  it.each([
+    ['SOURCE_WALLET', 'Dari: '],
+    ['DESTINATION_WALLET', 'Ke: '],
+  ])('labels TRANSFER %s buttons so source and destination never read alike', async (field, prefix) => {
+    const result = await renderApplicationResult(fakeDb(), 'conn-1', 'conv-1', {
+      response: {
+        status: 'clarification_required',
+        data: {
+          kind: 'entity_selection',
+          clarification: {
+            clarificationId: 'clar-transfer',
+            prompt: 'Ke wallet mana? Pilih salah satu: BCA Debit, BCA Payroll.',
+            options: [{ token: 'clarify_a', label: 'BCA Debit' }, { token: 'clarify_b', label: 'BCA Payroll' }],
+            transfer: { field },
+          },
+        },
+      },
+    });
+    expect(result.keyboard?.rows.flat().map((b) => b.label)).toEqual([`${prefix}BCA Debit`, `${prefix}BCA Payroll`, 'Cancel']);
   });
 
   it('does not build Telegram buttons for guided_fields date/category clarification', async () => {
