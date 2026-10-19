@@ -287,10 +287,13 @@ export function createAssistantFinancialDraftService(
         ];
 
         // ---- Build canonical transaction input ----
-        const turn = await tx.assistantTurn.create({ data: { conversationId: draft.conversationId, correlationId, intent: CONFIRM_INTENT, locale: 'id-ID', status: 'RUNNING' } });
+        // Turn and execution rows are written once, already in their final
+        // SUCCEEDED state: a RUNNING → SUCCEEDED update pair inside this same
+        // transaction was never visible outside it (any failure rolls the
+        // rows back), so it only cost two extra round-trips.
+        const turn = await tx.assistantTurn.create({ data: { conversationId: draft.conversationId, correlationId, intent: CONFIRM_INTENT, locale: 'id-ID', status: 'SUCCEEDED', finishedAt: now } });
         await tx.assistantMessage.create({ data: { conversationId: draft.conversationId, turnId: turn.id, role: 'USER', source: 'CANONICAL_FALLBACK', content: `Konfirmasi draft transaksi ${draft.id}.` } });
-        const execution = await tx.assistantToolExecution.create({ data: { conversationId: draft.conversationId, turnId: turn.id, toolId: CONFIRM_INTENT, capability: 'transaction.create', riskLevel: 'HIGH', policyDecision: 'EXPLICITLY_CONFIRMED', status: 'RUNNING', correlationId, idempotencyKey: key, redactedInput: { draftId: draft.id } } });
-        if (!existingKey) await tx.assistantIdempotencyRecord.create({ data: { userId, draftId, operation: CONFIRM_INTENT, key } });
+        const executionStartedAt = new Date();
 
         const created = await transactions.createTransaction({
           userId,
@@ -300,15 +303,17 @@ export function createAssistantFinancialDraftService(
           ...(isTransfer ? { toWalletId: effectiveToWalletId } : { categoryId: effectiveCategoryId }),
           date: parsedDate.toISOString(),
           description: effectiveDescription,
-        }, { transaction: tx });
+        }, { transaction: tx, relations: false });
 
         const claimed = await tx.assistantFinancialDraft.updateMany({ where: { id: draft.id, userId, status: 'PENDING_CONFIRMATION', transactionId: null }, data: { status: 'COMMITTED', committedAt: now, transactionId: created.id } });
         if (claimed.count !== 1) throw AssistantError.draftConflict('TERMINAL');
-        await tx.assistantIdempotencyRecord.update({ where: { userId_key: { userId, key } }, data: { transactionId: created.id } });
+        // One write instead of create-then-update. A same-key race on another
+        // draft still loses here with P2002 and rolls back (handled below).
+        if (existingKey) await tx.assistantIdempotencyRecord.update({ where: { userId_key: { userId, key } }, data: { transactionId: created.id } });
+        else await tx.assistantIdempotencyRecord.create({ data: { userId, draftId, operation: CONFIRM_INTENT, key, transactionId: created.id } });
 
         // No ASSISTANT chat bubble for confirm — the UI shows a toast instead.
-        await tx.assistantToolExecution.update({ where: { id: execution.id }, data: { status: 'SUCCEEDED', completedAt: now, outputSummary: { draftId: draft.id, transactionId: created.id, status: 'COMMITTED' } } });
-        await tx.assistantTurn.update({ where: { id: turn.id }, data: { status: 'SUCCEEDED', finishedAt: now } });
+        await tx.assistantToolExecution.create({ data: { conversationId: draft.conversationId, turnId: turn.id, toolId: CONFIRM_INTENT, capability: 'transaction.create', riskLevel: 'HIGH', policyDecision: 'EXPLICITLY_CONFIRMED', status: 'SUCCEEDED', correlationId, startedAt: executionStartedAt, completedAt: now, idempotencyKey: key, redactedInput: { draftId: draft.id }, outputSummary: { draftId: draft.id, transactionId: created.id, status: 'COMMITTED' } } });
         // Phase 37.4 — a concurrent deleteOwnedConversation can cascade-delete
         // the conversation between the draft-claim above and this touch. The
         // draft is already COMMITTED and the transaction already created in
