@@ -22,8 +22,8 @@ import {
   type EntityResolutionResult,
   type EntityResolutionService,
 } from './entity-resolution';
-import type { ClarificationService } from './clarification.service';
-import type { CanonicalContext } from './clarification.types';
+import { transferWalletClarification, type ClarificationService } from './clarification.service';
+import type { CanonicalContext, TransferWalletClarification } from './clarification.types';
 import type { AssistantCaptureField, Prisma } from '../generated/prisma/client';
 import { emitForResult, type CaptureEventEmitter } from './capture-events';
 import { reportingConfig } from '../config';
@@ -154,12 +154,10 @@ export function createAssistantApplicationService(deps: {
     resolution: Extract<EntityResolutionResult, { kind: 'ambiguous' }>;
     parentClarificationId?: string;
     transaction?: TxClient;
-    /** Overrides the generic entity-type label in the rendered prompt (e.g. "Wallet sumber transfer"). */
-    promptLabel?: string;
   }) {
     if (!deps.clarification) throw new Error('Clarification service is not configured');
 
-    const prompt = renderEntityClarificationPrompt(params.entityType, params.resolution, params.promptLabel);
+    const prompt = renderEntityClarificationPrompt(params.entityType, params.resolution, transferWalletClarification(params.trustedContext));
     return deps.clarification.create({
       userId: params.userId,
       conversationId: params.conversationId,
@@ -557,7 +555,6 @@ export function createAssistantApplicationService(deps: {
         userId, conversationId: turn.conversationId, turnId: turn.turnId,
         executionId, entityType: 'wallet', trustedContext: canonical,
         resolution: sourceOutcome.resolution, parentClarificationId, transaction,
-        promptLabel: 'Wallet sumber transfer',
       });
       await deps.conversations.finalize({
         executionId, ...turn, status: 'SUCCEEDED', turnStatus: 'CLARIFICATION_REQUIRED',
@@ -576,7 +573,6 @@ export function createAssistantApplicationService(deps: {
         userId, conversationId: turn.conversationId, turnId: turn.turnId,
         executionId, entityType: 'wallet', trustedContext: canonical,
         resolution: destOutcome.resolution, parentClarificationId, transaction,
-        promptLabel: 'Wallet tujuan transfer',
       });
       await deps.conversations.finalize({
         executionId, ...turn, status: 'SUCCEEDED', turnStatus: 'CLARIFICATION_REQUIRED',
@@ -1154,9 +1150,16 @@ export type AssistantApplicationService = ReturnType<typeof createAssistantAppli
 function renderEntityClarificationPrompt(
   entityType: 'wallet' | 'merchant' | 'category',
   resolution: Extract<EntityResolutionResult, { kind: 'ambiguous' }>,
-  labelOverride?: string,
+  transfer?: TransferWalletClarification,
 ): string {
-  const label = labelOverride ?? (entityType === 'wallet' ? 'Wallet' : entityType === 'merchant' ? 'Pedagang' : 'Kategori');
+  const label = entityType === 'wallet' ? 'Wallet' : entityType === 'merchant' ? 'Pedagang' : 'Kategori';
+  // Phase 38: a TRANSFER wallet question names its slot, and the destination
+  // question shows the already chosen source first.
+  const lead = transfer?.field === 'SOURCE_WALLET'
+    ? 'Dari wallet mana?'
+    : transfer
+      ? `${transfer.sourceWalletLabel ? `Dari: ${transfer.sourceWalletLabel}. ` : ''}Ke wallet mana?`
+      : `${label} yang dimaksud belum jelas.`;
   const options = resolution.options
     .map((opt) =>
       opt.discriminator
@@ -1164,7 +1167,7 @@ function renderEntityClarificationPrompt(
         : opt.displayLabel,
     )
     .join(', ');
-  return `${label} yang dimaksud belum jelas. Pilih salah satu: ${options}.`;
+  return `${lead} Pilih salah satu: ${options}.`;
 }
 
 function renderWalletNotFound(

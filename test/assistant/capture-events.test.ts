@@ -35,6 +35,13 @@ const allEvents: CaptureEvent[] = Object.values(AssistantCaptureEventType).map((
   ...(type === 'CLARIFICATION_REQUESTED' || type === 'DRAFT_CREATED' ? { origin: 'AFTER_CLARIFICATION' as const } : {}),
 }));
 
+describe('capture events — phase marker', () => {
+  it('Phase 38 rows are split from the phase-35.1 baseline', () => {
+    expect(CAPTURE_PHASE_MARKER).toBe('phase-38');
+    expect(toCaptureEventRow({ type: 'DRAFT_CREATED', entityId: ENTITY_ID }).phaseMarker).toBe('phase-38');
+  });
+});
+
 describe('capture events — privacy', () => {
   it.each(allEvents)('$type payload carries only closed enums, constants, and a hashed key', (event) => {
     const row = toCaptureEventRow(event);

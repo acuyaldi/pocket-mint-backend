@@ -30,8 +30,8 @@ import { logEvent } from '../utils/logger';
 import { categorizeError } from '../utils/errorCategory';
 
 export const CAPTURE_SCHEMA_VERSION = 1;
-/** Bump in the phase that changes capture behavior (e.g. Phase 38) so the report can split it from this baseline. */
-export const CAPTURE_PHASE_MARKER = 'phase-35.1';
+/** Bump in the phase that changes capture behavior so the report can split it from the previous baseline (phase-35.1 → phase-38: clarification UX). */
+export const CAPTURE_PHASE_MARKER = 'phase-38';
 /** Rows older than this are purged opportunistically (no cron in this repo — same pattern as inboundJob.service.ts). */
 export const CAPTURE_EVENT_RETENTION_DAYS = 180;
 const PURGE_INTERVAL_MS = 60 * 60 * 1000;

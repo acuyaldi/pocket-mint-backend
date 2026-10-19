@@ -177,3 +177,29 @@ Practical implication for Phase 38: `getAssistantState()`'s *absence* of
 signal on its own (no more false "still active" reads past TTL) — Phase
 38's recovery-after-refresh work can trust it directly instead of also
 re-validating `expiresAt` client-side.
+
+## Phase 38 — how the client consumes this
+
+- **Transfer wallet role**: an open TRANSFER wallet clarification now carries
+  `clarification.transfer = { field: 'SOURCE_WALLET' | 'DESTINATION_WALLET', sourceWalletLabel? }`
+  (create response and `recovery-state.activeClarification`), derived from the
+  persisted `trustedContext.pendingWalletRole`. Read-only projection — no state
+  machine, resolver, or schema change.
+- **Recovery conditions** the Web client distinguishes, from structured markers only:
+  `error.detail` on `ASSISTANT_DRAFT_CONFLICT` (EXPIRED / FAILED / CANCELLED / COMMITTED),
+  the `ASSISTANT_CLARIFICATION_*` codes, `ASSISTANT_CONVERSATION_NOT_CONTINUABLE`,
+  `session.conversation.status`, and `latestTerminalClarification` (only when the
+  conversation's last turn intent is `clarification.*`, since it carries no turn link).
+- **Known gaps (not guessed client-side)**:
+  1. `recovery-state` exposes no terminal *draft*. After a refresh, an
+     EXPIRED/FAILED/CANCELLED draft is indistinguishable from "nothing pending"
+     until the user acts on a stale card and gets the 409 `detail`.
+  2. An untouched, past-TTL clarification stays `PENDING` in the DB (lazy expiry),
+     is filtered out of `activeClarification`, and never appears as
+     `latestTerminalClarification` — so "expired" can't be shown for it on refresh.
+  3. `latestTerminalClarification` has no `originatingTurnId`; the client can only
+     associate it with "what just happened" via the last turn's intent.
+  4. The capture taxonomy has no clarification expired/stale event; adding one needs
+     an `ALTER TYPE` migration, out of scope for Phase 38.
+  5. Conversation `EXPIRED` is never written; the client treats any non-ACTIVE
+     conversation as archived.

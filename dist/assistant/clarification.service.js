@@ -8,6 +8,7 @@
 // ============================================================
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CLARIFICATION_TTL_MS = void 0;
+exports.transferWalletClarification = transferWalletClarification;
 exports.createClarificationService = createClarificationService;
 const node_crypto_1 = require("node:crypto");
 const client_1 = require("../generated/prisma/client");
@@ -70,6 +71,23 @@ function isValidTrustedContext(value) {
         (ctx.date === undefined || typeof ctx.date === 'string');
 }
 /** Maps a non-PENDING terminal status to its specific bounded error. */
+/**
+ * Projects the TRANSFER wallet role of a clarification's trusted context
+ * (Phase 38). Only `pendingWalletRole` and the already-resolved source label
+ * are read — the label is skipped when it is just the raw id (direct-id path).
+ */
+function transferWalletClarification(ctx) {
+    if (ctx?.type !== 'TRANSFER' || !ctx.pendingWalletRole)
+        return undefined;
+    if (ctx.pendingWalletRole === 'wallet')
+        return { field: 'SOURCE_WALLET' };
+    const label = ctx.wallet?.displayLabel;
+    return { field: 'DESTINATION_WALLET', ...(label && label !== ctx.wallet?.internalId ? { sourceWalletLabel: label } : {}) };
+}
+function withTransfer(ctx) {
+    const transfer = transferWalletClarification(ctx);
+    return transfer ? { transfer } : {};
+}
 function terminalStatusError(status, terminalCode) {
     if (status === 'CONSUMED')
         return errors_1.AssistantError.clarificationAlreadyConsumed();
@@ -152,6 +170,7 @@ function createClarificationService(db) {
                 ...(opt.discriminator ? { discriminator: opt.discriminator } : {}),
             })),
             expiresAt: row.expiresAt.toISOString(),
+            ...withTransfer(input.trustedContext),
         };
     }
     async function createGuidedFields(input, options = {}) {
@@ -410,6 +429,7 @@ function createClarificationService(db) {
                 ...(opt.discriminator ? { discriminator: opt.discriminator } : {}),
             })),
             expiresAt: activeRequest.expiresAt.toISOString(),
+            ...withTransfer(activeRequest.trustedContext),
         } : undefined;
         const safeDraft = pendingDraft ? {
             draftId: pendingDraft.id,

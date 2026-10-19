@@ -56,6 +56,16 @@ export interface SafeClarificationOption {
     readonly label: string;
     readonly discriminator?: string;
 }
+/**
+ * Which TRANSFER wallet slot an open wallet clarification fills (Phase 38) —
+ * same closed values as the capture taxonomy's AssistantCaptureField, derived
+ * from `pendingWalletRole`. `sourceWalletLabel` is the user's own already
+ * chosen source wallet, so the destination question can show it first.
+ */
+export interface TransferWalletClarification {
+    readonly field: 'SOURCE_WALLET' | 'DESTINATION_WALLET';
+    readonly sourceWalletLabel?: string;
+}
 /** Creation response — carries newly issued one-time tokens. */
 export interface ClarificationCreationProjection {
     readonly clarificationId: string;
@@ -63,6 +73,8 @@ export interface ClarificationCreationProjection {
     readonly prompt: string;
     readonly options: readonly ClarificationOptionToken[];
     readonly expiresAt: string;
+    /** Present only for a TRANSFER wallet clarification. */
+    readonly transfer?: TransferWalletClarification;
 }
 export type GuidedClarificationField = {
     readonly field: 'date';
@@ -93,6 +105,8 @@ export interface ClarificationProjection {
     readonly prompt: string;
     readonly options: readonly SafeClarificationOption[];
     readonly expiresAt: string;
+    /** Present only for a TRANSFER wallet clarification. */
+    readonly transfer?: TransferWalletClarification;
 }
 /** Safe terminal clarification summary. */
 export interface TerminalClarification {

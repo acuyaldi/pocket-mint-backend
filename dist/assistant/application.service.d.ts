@@ -5,7 +5,7 @@ import type { AssistantConversationService } from './conversation.service';
 import type { AssistantFinancialDraftService } from './financial-draft.service';
 import type { AssistantContextService, BuildAssistantExecutionContextInput } from './context.service';
 import { type EntityResolutionService } from './entity-resolution';
-import type { ClarificationService } from './clarification.service';
+import { type ClarificationService } from './clarification.service';
 import type { AssistantCaptureField, Prisma } from '../generated/prisma/client';
 import { type CaptureEventEmitter } from './capture-events';
 import type { CategorySuggestion } from '../domain/categorization';

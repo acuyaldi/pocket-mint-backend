@@ -235,6 +235,27 @@ describe('interaction.service — renderApplicationResult', () => {
     expect(JSON.stringify(result.keyboard)).not.toContain('clarify_secret');
   });
 
+  it.each([
+    ['SOURCE_WALLET', 'Dari: '],
+    ['DESTINATION_WALLET', 'Ke: '],
+  ])('labels TRANSFER %s buttons so source and destination never read alike', async (field, prefix) => {
+    const result = await renderApplicationResult(fakeDb(), 'conn-1', 'conv-1', {
+      response: {
+        status: 'clarification_required',
+        data: {
+          kind: 'entity_selection',
+          clarification: {
+            clarificationId: 'clar-transfer',
+            prompt: 'Ke wallet mana? Pilih salah satu: BCA Debit, BCA Payroll.',
+            options: [{ token: 'clarify_a', label: 'BCA Debit' }, { token: 'clarify_b', label: 'BCA Payroll' }],
+            transfer: { field },
+          },
+        },
+      },
+    });
+    expect(result.keyboard?.rows.flat().map((b) => b.label)).toEqual([`${prefix}BCA Debit`, `${prefix}BCA Payroll`, 'Cancel']);
+  });
+
   it('does not build Telegram buttons for guided_fields date/category clarification', async () => {
     const db = fakeDb();
 

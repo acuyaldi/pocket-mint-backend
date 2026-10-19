@@ -27,6 +27,7 @@ import type {
   SelectClarificationInput,
   SelectClarificationResult,
   TerminalClarification,
+  TransferWalletClarification,
 } from './clarification.types';
 import type { EntityType } from './entity-resolution';
 
@@ -105,6 +106,23 @@ function isValidTrustedContext(value: unknown): value is CanonicalContext {
 }
 
 /** Maps a non-PENDING terminal status to its specific bounded error. */
+/**
+ * Projects the TRANSFER wallet role of a clarification's trusted context
+ * (Phase 38). Only `pendingWalletRole` and the already-resolved source label
+ * are read — the label is skipped when it is just the raw id (direct-id path).
+ */
+export function transferWalletClarification(ctx: Partial<CanonicalContext> | null | undefined): TransferWalletClarification | undefined {
+  if (ctx?.type !== 'TRANSFER' || !ctx.pendingWalletRole) return undefined;
+  if (ctx.pendingWalletRole === 'wallet') return { field: 'SOURCE_WALLET' };
+  const label = ctx.wallet?.displayLabel;
+  return { field: 'DESTINATION_WALLET', ...(label && label !== ctx.wallet?.internalId ? { sourceWalletLabel: label } : {}) };
+}
+
+function withTransfer(ctx: Partial<CanonicalContext> | null | undefined): { transfer?: TransferWalletClarification } {
+  const transfer = transferWalletClarification(ctx);
+  return transfer ? { transfer } : {};
+}
+
 function terminalStatusError(status: string, terminalCode?: string | null): AssistantError {
   if (status === 'CONSUMED') return AssistantError.clarificationAlreadyConsumed();
   if (status === 'CANCELLED') return AssistantError.clarificationCancelled();
@@ -200,6 +218,7 @@ export function createClarificationService(db: PrismaClient) {
         ...(opt.discriminator ? { discriminator: opt.discriminator } : {}),
       })),
       expiresAt: row.expiresAt.toISOString(),
+      ...withTransfer(input.trustedContext),
     };
   }
 
@@ -492,6 +511,7 @@ export function createClarificationService(db: PrismaClient) {
         ...(opt.discriminator ? { discriminator: opt.discriminator } : {}),
       })),
       expiresAt: activeRequest.expiresAt.toISOString(),
+      ...withTransfer(activeRequest.trustedContext as Partial<CanonicalContext> | null),
     } : undefined;
 
     const safeDraft = pendingDraft ? {
