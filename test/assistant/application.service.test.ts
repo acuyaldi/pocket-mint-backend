@@ -601,6 +601,19 @@ describe('Assistant application lifecycle', () => {
     });
   });
 
+  it.each([
+    ['select', (service: ReturnType<typeof setup>['service']) => service.selectClarification('u1', 'corr-p2028-select', 'token-1', 'c1', 'clar-1')],
+    ['guided submit', (service: ReturnType<typeof setup>['service']) => service.submitGuidedClarification('u1', 'corr-p2028-guided', { date: '2026-07-29' }, 'c1', 'clar-date')],
+  ])('answers a rolled-back P2028 on clarification %s with a retryable 503, not a generic 500', async (_label, run) => {
+    const { service, clarification } = setup();
+    clarification.runInTransaction.mockRejectedValueOnce(Object.assign(new Error('Transaction API error: expired transaction'), { code: 'P2028' }));
+
+    const result = await run(service);
+
+    expect(result.httpStatus).toBe(503);
+    expect(result.response).toMatchObject({ status: 'error', code: 'ASSISTANT_TRANSACTION_TIMEOUT' });
+  });
+
   it('resolves submitted guided category text server-side before drafting', async () => {
     const { service, clarification, entityResolution, financialDrafts } = setup();
     clarification.consumeGuidedFields.mockResolvedValueOnce({

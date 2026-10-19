@@ -80,6 +80,7 @@ describe.skipIf(!url)('Assistant draft confirm under pooler latency (disposable 
     const server = express(); server.use(express.json()); server.use(correlationMiddleware);
     server.use((req, _res, next) => { (req as any).auth = { userId: req.header('x-test-user') }; next(); });
     server.post('/execute', controllers.execute); server.post('/drafts/:draftId/confirm', controllers.confirmDraft);
+    server.post('/conversations/:conversationId/clarifications/:clarificationId/select', controllers.selectClarification);
     server.use(errorHandler); return server;
   }
   async function pendingDraft(server: express.Express, userId: string, walletId: string, categoryId: string): Promise<string> {
@@ -139,4 +140,32 @@ describe.skipIf(!url)('Assistant draft confirm under pooler latency (disposable 
     expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(1);
     expect((await resources!.prisma.wallet.findUniqueOrThrow({ where: { id: wallet.id } })).balance.toString()).toBe('87500');
   }, 60_000);
+
+  it('a P2028 on clarification select answers a retryable 503 and leaves the clarification PENDING and reusable', async () => {
+    const { user, category } = await fixture('latency-clarification');
+    await resources!.prisma.wallet.create({ data: { userId: user.id, name: 'BCA Debit', type: 'BANK', balance: 500000 } });
+    await resources!.prisma.wallet.create({ data: { userId: user.id, name: 'BCA Payroll', type: 'BANK', balance: 500000 } });
+    const server = app();
+    const asked = await request(server).post('/execute').set('x-test-user', user.id)
+      .send({ intent: 'transaction.create', arguments: { type: 'EXPENSE', amount: '50000', walletReference: 'BCA', categoryId: category.id, date: '2026-07-24' } });
+    const { conversationId, data: { clarification: clar } } = asked.body.error;
+    expect(asked.body.error.status).toBe('clarification_required');
+    const select = () => request(server).post(`/conversations/${conversationId}/clarifications/${clar.clarificationId}/select`)
+      .set('x-test-user', user.id).send({ optionToken: clar.options[0].token });
+
+    // Stall the claim UPDATE past Prisma's default 5000 ms interactive timeout
+    // (the clarification transaction keeps the default on purpose).
+    Object.assign(latency, { slowPattern: /^UPDATE "public"\."clarification_requests"/, slowMs: 6000 });
+    const timedOut = await select();
+    latency.slowPattern = undefined;
+
+    expect(timedOut.status).toBe(503);
+    expect(timedOut.body.error.code).toBe('ASSISTANT_TRANSACTION_TIMEOUT');
+    expect(await resources!.prisma.clarificationRequest.findUniqueOrThrow({ where: { id: clar.clarificationId } })).toMatchObject({ status: 'PENDING' });
+    expect(await resources!.prisma.assistantFinancialDraft.count({ where: { userId: user.id } })).toBe(0);
+
+    const retried = await select();
+    expect(retried.status).toBe(200);
+    expect(await resources!.prisma.clarificationRequest.findUniqueOrThrow({ where: { id: clar.clarificationId } })).toMatchObject({ status: 'CONSUMED' });
+  }, 30_000);
 });
