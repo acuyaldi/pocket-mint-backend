@@ -14,6 +14,7 @@ const retry_1 = require("./retry");
 const retention_1 = require("../retention");
 const interaction_service_1 = require("../interaction.service");
 const callbackToken_service_1 = require("../callbackToken.service");
+const capture_events_1 = require("../../assistant/capture-events");
 const PROVIDER_UNAVAILABLE_MESSAGE = 'The Assistant is not available right now. Please try again later.';
 async function markSucceeded(db, jobId) {
     await db.channelInboundJob.update({
@@ -162,10 +163,17 @@ async function processCallbackJob(deps, job, correlationId) {
         });
     }
 }
-/** Exported for direct unit testing — pollOnce composes this with the raw-SQL claim step. */
-async function processJob(deps, job, correlationId) {
-    if (job.kind === 'CALLBACK')
-        return processCallbackJob(deps, job, correlationId);
+/**
+ * Exported for direct unit testing — pollOnce composes this with the raw-SQL claim step.
+ * The single Telegram entry point: every Assistant service call below emits its
+ * capture events (Phase 35.1) labelled TELEGRAM.
+ */
+function processJob(deps, job, correlationId) {
+    return (0, capture_events_1.runWithCaptureSource)('TELEGRAM', () => (job.kind === 'CALLBACK'
+        ? processCallbackJob(deps, job, correlationId)
+        : processMessageJob(deps, job, correlationId)));
+}
+async function processMessageJob(deps, job, correlationId) {
     const backoff = { baseMs: 1000, maxMs: 60000 };
     try {
         const command = (0, commands_1.parseTelegramCommand)(job.text);

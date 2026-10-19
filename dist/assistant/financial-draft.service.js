@@ -37,7 +37,8 @@ function preview(input, categoryName) {
         ...(input.description === undefined ? {} : { description: input.description }),
     };
 }
-function createAssistantFinancialDraftService(db, transactions, deps, clock = () => new Date()) {
+function createAssistantFinancialDraftService(db, transactions, deps, clock = () => new Date(), captureEvents) {
+    const emit = captureEvents ?? (async () => undefined);
     async function prepare(input) {
         const client = input.transaction ?? db;
         const isTransfer = input.type === 'TRANSFER';
@@ -93,6 +94,8 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
         const key = (0, financial_draft_1.validateIdempotencyKey)(keyValue);
         // Resolve deps lazily — supports deferred wiring to break the circular dependency with application service.
         const resolvedDeps = typeof deps === 'function' ? deps() : deps;
+        // Filled inside the transaction, emitted only after it commits (Phase 35.1).
+        let editedFields = [];
         try {
             const result = await db.$transaction(async (tx) => {
                 await tx.$queryRaw(client_1.Prisma.sql `SELECT pg_advisory_xact_lock(hashtextextended(${draftId}, 0))::text AS "lock"`);
@@ -202,6 +205,16 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                 }
                 // 3. Parse and validate date
                 const parsedDate = (0, reportingTime_1.parseBusinessDate)(effectiveDate, config_1.reportingConfig.timezone);
+                // Capture-event bookkeeping only (Phase 35.1): which overrides actually
+                // changed a draft value. Read-only — never feeds the transaction below.
+                editedFields = [
+                    ...(overrides?.amount !== undefined && !effectiveAmount.equals(draft.amount) ? ['AMOUNT'] : []),
+                    ...(overrides?.walletId !== undefined && effectiveWalletId !== draft.walletId ? [isTransfer ? 'SOURCE_WALLET' : 'WALLET'] : []),
+                    ...(overrides?.toWalletId !== undefined && effectiveToWalletId !== draft.toWalletId ? ['DESTINATION_WALLET'] : []),
+                    ...(overrides?.categoryId !== undefined && effectiveCategoryId !== draft.categoryId ? ['CATEGORY'] : []),
+                    ...(descriptionChanged ? ['DESCRIPTION'] : []),
+                    ...(overrides?.date !== undefined && overrides.date !== (0, reportingTime_1.formatReportingDate)(draft.transactionDate, config_1.reportingConfig.timezone) ? ['DATE'] : []),
+                ];
                 // ---- Build canonical transaction input ----
                 const turn = await tx.assistantTurn.create({ data: { conversationId: draft.conversationId, correlationId, intent: CONFIRM_INTENT, locale: 'id-ID', status: 'RUNNING' } });
                 await tx.assistantMessage.create({ data: { conversationId: draft.conversationId, turnId: turn.id, role: 'USER', source: 'CANONICAL_FALLBACK', content: `Konfirmasi draft transaksi ${draft.id}.` } });
@@ -234,8 +247,16 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                 await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => tx.assistantConversation.update({ where: { id: draft.conversationId }, data: { lastActivityAt: now } }), { P2025: () => (0, logger_1.logEvent)('warn', { event: 'assistant.conversation_race_skip', stage: 'financialDraft.confirm.commit', conversationId: draft.conversationId, draftId: draft.id }) });
                 return { draftId: draft.id, status: 'COMMITTED', transactionId: created.id, conversationId: draft.conversationId, turnId: turn.id, idempotencyOutcome: 'new' };
             });
-            if ('error' in result)
+            if ('error' in result) {
+                // Only reachable after the lazy EXPIRED transition committed above.
+                await emit({ type: 'DRAFT_EXPIRED', entityId: draftId });
                 throw result.error;
+            }
+            if (result.idempotencyOutcome === 'new') {
+                if (editedFields.length > 0)
+                    await emit({ type: 'DRAFT_EDITED', entityId: draftId, fields: editedFields });
+                await emit({ type: 'DRAFT_CONFIRMED', entityId: draftId });
+            }
             return result;
         }
         catch (error) {
@@ -266,23 +287,35 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                 // raced to some other terminal state), and the write itself is
                 // translated against the same conversation-delete TOCTOU as the
                 // EXPIRED transition above, for the same reason.
-                await db.$transaction(async (tx) => {
+                const failed = await db.$transaction(async (tx) => {
                     const draft = await tx.assistantFinancialDraft.findFirst({ where: { id: draftId, userId, status: 'PENDING_CONFIRMATION' } });
                     if (!draft)
-                        return;
+                        return false;
                     const now = new Date();
                     const turn = await tx.assistantTurn.create({ data: { conversationId: draft.conversationId, correlationId, intent: CONFIRM_INTENT, locale: 'id-ID', status: 'FAILED', safeErrorCode: error.code, finishedAt: now } });
                     await tx.assistantMessage.create({ data: { conversationId: draft.conversationId, turnId: turn.id, role: 'USER', source: 'CANONICAL_FALLBACK', content: `Konfirmasi draft transaksi ${draft.id}.` } });
                     await tx.assistantToolExecution.create({ data: { conversationId: draft.conversationId, turnId: turn.id, toolId: CONFIRM_INTENT, capability: 'transaction.create', riskLevel: 'HIGH', policyDecision: 'EXPLICITLY_CONFIRMED', status: 'FAILED', correlationId, completedAt: now, safeErrorCode: error.code, idempotencyKey: key, redactedInput: { draftId }, outputSummary: { draftId, status: 'FAILED' } } });
                     await (0, prismaErrors_1.withPrismaErrorTranslation)(() => tx.assistantFinancialDraft.update({ where: { id: draft.id }, data: { status: 'FAILED', failedAt: now } }), { P2025: () => errors_1.AssistantError.draftNotFound() });
                     await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => tx.assistantConversation.update({ where: { id: draft.conversationId }, data: { lastActivityAt: now } }), { P2025: () => (0, logger_1.logEvent)('warn', { event: 'assistant.conversation_race_skip', stage: 'financialDraft.confirm.failed', conversationId: draft.conversationId, draftId: draft.id }) });
+                    return true;
                 });
+                if (failed)
+                    await emit({ type: 'DRAFT_FAILED', entityId: draftId });
                 throw error;
             }
             throw error;
         }
     }
     async function cancel(userId, draftId, correlationId) {
+        const result = await cancelInTransaction(userId, draftId, correlationId);
+        // A fresh cancel carries turnId; a repeated cancel-of-cancelled does not.
+        if (result.status === 'EXPIRED')
+            await emit({ type: 'DRAFT_EXPIRED', entityId: draftId });
+        else if ('turnId' in result)
+            await emit({ type: 'DRAFT_CANCELLED', entityId: draftId });
+        return result;
+    }
+    async function cancelInTransaction(userId, draftId, correlationId) {
         return db.$transaction(async (tx) => {
             await tx.$queryRaw(client_1.Prisma.sql `SELECT pg_advisory_xact_lock(hashtextextended(${draftId}, 0))::text AS "lock"`);
             let draft = await tx.assistantFinancialDraft.findFirst({ where: { id: draftId, userId } });

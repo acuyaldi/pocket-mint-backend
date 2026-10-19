@@ -9,6 +9,7 @@ const persistence_1 = require("./persistence");
 const policy_1 = require("./policy");
 const logger_1 = require("../utils/logger");
 const entity_resolution_1 = require("./entity-resolution");
+const capture_events_1 = require("./capture-events");
 const config_1 = require("../config");
 const reportingTime_1 = require("../domain/reportingTime");
 /**
@@ -88,8 +89,9 @@ function createAssistantApplicationService(deps) {
             })),
         }, ...(params.transaction ? [{ transaction: params.transaction }] : []));
     }
-    function clarificationResponse(turn, executionId, correlationId, startedAt, projection, entityType) {
+    function clarificationResponse(turn, executionId, correlationId, startedAt, projection, entityType, captureField = entityType === 'wallet' ? 'WALLET' : entityType === 'merchant' ? 'MERCHANT' : 'CATEGORY') {
         return {
+            captureField,
             httpStatus: 200,
             response: {
                 status: 'clarification_required',
@@ -139,6 +141,8 @@ function createAssistantApplicationService(deps) {
                 await deps.conversations.releaseIdempotencyKey(userId, idempotencyKey);
             throw error;
         }
+        // A replay returned above, before re-executing — so it never re-emits.
+        await (0, capture_events_1.emitForResult)(deps.captureEvents, result, 'DIRECT');
         if (idempotencyKey !== undefined) {
             await deps.conversations.resolveIdempotencyKey(userId, idempotencyKey, { httpStatus: result.httpStatus, response: result.response, turnId: result.response.turnId });
             return { ...result, idempotencyOutcome: 'new' };
@@ -217,7 +221,7 @@ function createAssistantApplicationService(deps) {
                     durationMs: Date.now() - startedAt,
                     outputSummary: { operation: 'transaction.create', walletResolution: 'not_found' },
                 });
-                return { httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' }, correlationId, ...turn } };
+                return { captureField: 'WALLET', httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' }, correlationId, ...turn } };
             }
             if (walletResult.kind !== 'resolved') {
                 const invalid = errors_1.AssistantError.invalidInput('transaction.create', 'walletReference is invalid');
@@ -352,7 +356,7 @@ function createAssistantApplicationService(deps) {
             durationMs: Date.now() - startedAt,
             outputSummary: { operation: 'transaction.create', transferWalletResolution: `${role}_not_found` },
         }, { transaction });
-        return { httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' }, correlationId, ...turn } };
+        return { captureField: role === 'source' ? 'SOURCE_WALLET' : 'DESTINATION_WALLET', httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' }, correlationId, ...turn } };
     }
     async function executeTransferCreate(userId, correlationId, turn, executionId, startedAt, transactionInput) {
         // Source accepts either a reference (the model's only path — resolved like
@@ -397,7 +401,7 @@ function createAssistantApplicationService(deps) {
                 durationMs: Date.now() - startedAt,
                 outputSummary: { operation: 'transaction.create', transferWalletResolution: 'source_ambiguous', clarificationId: projection.clarificationId },
             }, { transaction });
-            return clarificationResponse(turn, executionId, correlationId, startedAt, projection, 'wallet');
+            return clarificationResponse(turn, executionId, correlationId, startedAt, projection, 'wallet', 'SOURCE_WALLET');
         }
         const sourceData = sourceOutcome.data;
         if (destOutcome.kind === 'ambiguous') {
@@ -414,7 +418,7 @@ function createAssistantApplicationService(deps) {
                 durationMs: Date.now() - startedAt,
                 outputSummary: { operation: 'transaction.create', transferWalletResolution: 'destination_ambiguous', clarificationId: projection.clarificationId },
             }, { transaction });
-            return clarificationResponse(turn, executionId, correlationId, startedAt, projection, 'wallet');
+            return clarificationResponse(turn, executionId, correlationId, startedAt, projection, 'wallet', 'DESTINATION_WALLET');
         }
         return finalizeTransferDraft(userId, correlationId, turn, executionId, startedAt, transactionInput, sourceData, destOutcome.data, transaction);
     }
@@ -447,7 +451,7 @@ function createAssistantApplicationService(deps) {
                 durationMs: Date.now() - startedAt,
                 outputSummary: { operation: 'transaction.create', transferWalletResolution: 'same_wallet' },
             }, { transaction });
-            return { httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' }, correlationId, ...turn } };
+            return { captureField: 'DESTINATION_WALLET', httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' }, correlationId, ...turn } };
         }
         const transactionDate = transactionInput.date || (0, reportingTime_1.formatReportingDate)(new Date(), config_1.reportingConfig.timezone);
         try {
@@ -508,7 +512,7 @@ function createAssistantApplicationService(deps) {
                 durationMs: Date.now() - startedAt,
                 outputSummary: { operation: 'transaction.create', categoryResolution: 'not_found' },
             }, { transaction });
-            return { httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' }, correlationId, ...turn } };
+            return { captureField: 'CATEGORY', httpStatus: 200, response: { status: 'clarification_required', message, data: { kind: 'provider_text' }, correlationId, ...turn } };
         }
         if (!walletId) {
             throw errors_1.AssistantError.invalidInput('transaction.create', 'wallet is required before drafting');
@@ -800,6 +804,8 @@ function createAssistantApplicationService(deps) {
                 assistantContent: message,
                 assistantSource: 'DETERMINISTIC_RENDERER',
             });
+            // A repeated cancel-of-cancelled is a no-op success; the unique key dedupes its event.
+            await deps.captureEvents?.({ type: 'CLARIFICATION_CANCELLED', entityId: clarificationId });
             return { httpStatus: 200, response: { status: 'success', renderedText: message, data: { clarificationId, status: 'CANCELLED', entityType }, correlationId, ...turn } };
         }
         catch (error) {
@@ -844,7 +850,26 @@ function createAssistantApplicationService(deps) {
         }
         return { httpStatus: 200, response: { status: 'success', renderedText, data: result.output, correlationId, ...turn } };
     }
-    return { execute, prepareProviderExecution, selectClarification, submitGuidedClarification, cancelClarification, getAssistantState, inferCategoryId };
+    // Capture events fire here, after runInTransaction has committed — never inside it.
+    async function selectClarificationWithCapture(...args) {
+        const result = await selectClarification(...args);
+        await (0, capture_events_1.emitForResult)(deps.captureEvents, result, 'AFTER_CLARIFICATION', args[4]);
+        return result;
+    }
+    async function submitGuidedClarificationWithCapture(...args) {
+        const result = await submitGuidedClarification(...args);
+        await (0, capture_events_1.emitForResult)(deps.captureEvents, result, 'AFTER_CLARIFICATION', args[4]);
+        return result;
+    }
+    return {
+        execute,
+        prepareProviderExecution,
+        selectClarification: selectClarificationWithCapture,
+        submitGuidedClarification: submitGuidedClarificationWithCapture,
+        cancelClarification,
+        getAssistantState,
+        inferCategoryId,
+    };
 }
 // ---- Render helpers ----------------------------------------------------------
 function renderEntityClarificationPrompt(entityType, resolution, labelOverride) {

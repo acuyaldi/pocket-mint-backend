@@ -12,7 +12,11 @@ export interface InboundWorkerDeps {
     readonly config: ChannelWorkerConfig;
     readonly owner: string;
 }
-/** Exported for direct unit testing — pollOnce composes this with the raw-SQL claim step. */
+/**
+ * Exported for direct unit testing — pollOnce composes this with the raw-SQL claim step.
+ * The single Telegram entry point: every Assistant service call below emits its
+ * capture events (Phase 35.1) labelled TELEGRAM.
+ */
 export declare function processJob(deps: InboundWorkerDeps, job: ClaimedInboundJob, correlationId: string): Promise<void>;
 export declare function createInboundWorker(deps: InboundWorkerDeps): {
     pollOnce: () => Promise<number>;

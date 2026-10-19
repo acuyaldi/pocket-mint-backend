@@ -97,16 +97,16 @@ function missingRequiredArgumentQuestion(intent, argumentsValue, required) {
         return null;
     if (intent === 'transaction.create') {
         if (missing === 'amount')
-            return SAFE_AMOUNT_CLARIFICATION;
+            return { question: SAFE_AMOUNT_CLARIFICATION, field: 'AMOUNT' };
         if (missing === 'walletReference')
-            return SAFE_WALLET_CLARIFICATION;
+            return { question: SAFE_WALLET_CLARIFICATION, field: 'WALLET' };
         if (missing === 'type')
-            return SAFE_TYPE_CLARIFICATION;
+            return { question: SAFE_TYPE_CLARIFICATION, field: 'TYPE' };
     }
     if (intent === 'analytics.monthly-spending-summary' && missing === 'month') {
-        return SAFE_MONTH_CLARIFICATION;
+        return { question: SAFE_MONTH_CLARIFICATION };
     }
-    return SAFE_CLARIFICATION;
+    return { question: SAFE_CLARIFICATION };
 }
 function validateAssistantPlan(output, registry) {
     let serialized;
@@ -134,7 +134,7 @@ function validateAssistantPlan(output, registry) {
         if (output.intent === 'transaction.create') {
             const normalized = normalizeTransactionCreateArguments(output.arguments);
             if (normalized === null) {
-                return { kind: 'clarification', question: SAFE_AMOUNT_CLARIFICATION };
+                return { kind: 'clarification', question: SAFE_AMOUNT_CLARIFICATION, field: 'AMOUNT' };
             }
             output.arguments = normalized;
         }
@@ -145,7 +145,7 @@ function validateAssistantPlan(output, registry) {
         }
         const requiredQuestion = missingRequiredArgumentQuestion(output.intent, providerArguments, contract.providerArguments.required);
         if (requiredQuestion)
-            return { kind: 'clarification', question: requiredQuestion };
+            return { kind: 'clarification', ...requiredQuestion };
         let validatedArguments;
         try {
             validatedArguments = contract.validateInput(providerArguments);

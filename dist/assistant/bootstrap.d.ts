@@ -241,7 +241,7 @@ export declare const clarificationService: {
 export declare const assistantApplicationService: {
     execute: (userId: string, correlationId: string, request: import("./types").AssistantCanonicalRequest, idempotencyKey?: string) => Promise<import("./application.service").AssistantApplicationResult>;
     prepareProviderExecution: (input: import("./context.service").BuildAssistantExecutionContextInput) => Promise<import("./context.types").AssistantContext>;
-    selectClarification: (userId: string, correlationId: string, token: string, conversationId: string, clarificationId?: string) => Promise<import("./application.service").AssistantApplicationResult>;
+    selectClarification: (userId: string, correlationId: string, token: string, conversationId: string, clarificationId?: string | undefined) => Promise<import("./application.service").AssistantApplicationResult>;
     submitGuidedClarification: (userId: string, correlationId: string, fields: Record<string, unknown>, conversationId: string, clarificationId: string) => Promise<import("./application.service").AssistantApplicationResult>;
     cancelClarification: (userId: string, correlationId: string, clarificationId: string, conversationId: string) => Promise<import("./application.service").AssistantApplicationResult>;
     getAssistantState: (userId: string, conversationId: string) => Promise<import("./clarification.types").AssistantStateProjection>;
