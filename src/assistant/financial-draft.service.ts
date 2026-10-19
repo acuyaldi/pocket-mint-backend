@@ -14,6 +14,17 @@ import type { CaptureEventEmitter } from './capture-events';
 
 const CONFIRM_INTENT = 'transaction.create.confirm';
 const CANCEL_INTENT = 'transaction.create.cancel';
+/**
+ * Interactive-transaction budget for confirm() only — the Prisma default
+ * (timeout 5000) is too tight for ~16 round-trips to a far pooler (Jakarta →
+ * ap-southeast-2 ≈ 250–350 ms each). Every other transaction keeps the default.
+ */
+export const CONFIRM_TRANSACTION_OPTIONS = { maxWait: 5_000, timeout: 15_000 } as const;
+
+/** Prisma P2028: the interactive transaction expired or never started — Postgres rolled it back, so nothing was written. */
+function isTransactionTimeout(error: unknown): boolean {
+  return (error as { code?: string } | null)?.code === 'P2028';
+}
 type DraftReadyTransactionInput = TransactionCreateInput & { walletId: string; categoryId?: string; date: string };
 
 /** Fields the user may override when confirming a draft. All optional — missing fields use the draft's original values. */
@@ -326,7 +337,7 @@ export function createAssistantFinancialDraftService(
           { P2025: () => logEvent('warn', { event: 'assistant.conversation_race_skip', stage: 'financialDraft.confirm.commit', conversationId: draft.conversationId, draftId: draft.id }) },
         );
         return { draftId: draft.id, status: 'COMMITTED' as const, transactionId: created.id, conversationId: draft.conversationId, turnId: turn.id, idempotencyOutcome: 'new' as const };
-      });
+      }, CONFIRM_TRANSACTION_OPTIONS);
       if ('error' in result) {
         // Only reachable after the lazy EXPIRED transition committed above.
         await emit({ type: 'DRAFT_EXPIRED', entityId: draftId });
@@ -339,6 +350,10 @@ export function createAssistantFinancialDraftService(
       return result;
     } catch (error) {
       if (error instanceof AssistantError) throw error;
+      // Rolled back, draft still PENDING_CONFIRMATION: never FAILED. Retrying
+      // with the same Idempotency-Key is safe either way — it commits once or
+      // replays the committed result.
+      if (isTransactionTimeout(error)) throw AssistantError.transactionTimeout();
       if ((error as { code?: string }).code === 'P2002') {
         const existingKey = await db.assistantIdempotencyRecord.findUnique({ where: { userId_key: { userId, key } }, select: { draftId: true } });
         if (existingKey && existingKey.draftId !== draftId) throw AssistantError.idempotencyConflict();
@@ -379,6 +394,9 @@ export function createAssistantFinancialDraftService(
             { P2025: () => logEvent('warn', { event: 'assistant.conversation_race_skip', stage: 'financialDraft.confirm.failed', conversationId: draft.conversationId, draftId: draft.id }) },
           );
           return true;
+        }, CONFIRM_TRANSACTION_OPTIONS).catch((recordError: unknown) => {
+          // FAILED was not recorded, so the draft is still PENDING — same retryable answer.
+          throw isTransactionTimeout(recordError) ? AssistantError.transactionTimeout() : recordError;
         });
         if (failed) await emit({ type: 'DRAFT_FAILED', entityId: draftId });
         throw error;
