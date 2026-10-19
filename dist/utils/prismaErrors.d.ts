@@ -1,10 +1,17 @@
-type TranslatablePrismaCode = 'P2025' | 'P2002';
+type TranslatablePrismaCode = 'P2025' | 'P2002' | 'P2003';
+/**
+ * Which P2028 budget ran out: `maxWait` — the transaction never started (no
+ * pooled connection in time); `timeout` — it started but ran past its
+ * `timeout`. Classified from Prisma's own fixed wording, never logged raw.
+ */
+export declare function transactionTimeoutCause(err: unknown): 'maxWait' | 'timeout' | 'unknown';
 /**
  * Prisma P2028: an interactive transaction expired or never started. Postgres
  * rolled it back, so nothing it wrote survives — callers answer a retryable
- * error (AssistantError.transactionTimeout) instead of a generic 500.
+ * error (AssistantError.transactionTimeout) instead of a generic 500. With a
+ * `stage`, a match is logged with its cause only (no message content).
  */
-export declare function isTransactionTimeout(err: unknown): boolean;
+export declare function isTransactionTimeout(err: unknown, stage?: string): boolean;
 /**
  * Run `fn`, translating specific Prisma error codes into the caller's own
  * typed operational error. An error that is already operational (thrown by

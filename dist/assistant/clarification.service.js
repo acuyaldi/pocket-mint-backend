@@ -15,6 +15,7 @@ const client_1 = require("../generated/prisma/client");
 const config_1 = require("../config");
 const reportingTime_1 = require("../domain/reportingTime");
 const errors_1 = require("./errors");
+const prismaErrors_1 = require("../utils/prismaErrors");
 const effective_status_1 = require("./effective-status");
 const TOKEN_BYTES = 32;
 const TOKEN_PREFIX = 'clarify_';
@@ -110,8 +111,16 @@ async function terminalizeOrReportActual(client, requestId, terminalCode, onWin)
     });
     if (claimed.count === 1)
         throw onWin();
-    const current = await client.clarificationRequest.findUniqueOrThrow({ where: { id: requestId } });
-    throw terminalStatusError(current.status, current.terminalCode);
+    throw terminalStatusError(...await currentStatus(client, requestId));
+}
+/**
+ * Re-reads the status a lost claim raced against. A concurrent
+ * deleteOwnedConversation can cascade-delete the row in between (P2025) —
+ * that is a typed 404, never a raw 500 (Phase 38.2).
+ */
+async function currentStatus(client, requestId) {
+    const current = await (0, prismaErrors_1.withPrismaErrorTranslation)(() => client.clarificationRequest.findUniqueOrThrow({ where: { id: requestId } }), { P2025: () => errors_1.AssistantError.clarificationNotFound() });
+    return [current.status, current.terminalCode];
 }
 function createClarificationService(db) {
     // ---- Create ---------------------------------------------------------------
@@ -171,35 +180,6 @@ function createClarificationService(db) {
             })),
             expiresAt: row.expiresAt.toISOString(),
             ...withTransfer(input.trustedContext),
-        };
-    }
-    async function createGuidedFields(input, options = {}) {
-        if (input.fields.length === 0) {
-            throw errors_1.AssistantError.invalidInput('clarification.create', 'at least one guided field is required');
-        }
-        const work = async (tx) => {
-            const expiresAt = new Date((await dbNow(tx)).getTime() + exports.CLARIFICATION_TTL_MS);
-            return tx.clarificationRequest.create({
-                data: {
-                    userId: input.userId,
-                    conversationId: input.conversationId,
-                    originatingTurnId: input.turnId,
-                    executionId: input.executionId,
-                    ...(input.parentClarificationId ? { parentId: input.parentClarificationId } : {}),
-                    entityType: input.entityType,
-                    status: 'PENDING',
-                    trustedContext: input.trustedContext,
-                    prompt: input.prompt,
-                    expiresAt,
-                },
-            });
-        };
-        const row = options.transaction ? await work(options.transaction) : await db.$transaction(work);
-        return {
-            kind: 'guided',
-            clarificationId: row.id,
-            fields: input.fields,
-            expiresAt: row.expiresAt.toISOString(),
         };
     }
     // ---- Select ----------------------------------------------------------------
@@ -263,8 +243,7 @@ function createClarificationService(db) {
             data: { status: 'CONSUMED', consumedAt: now },
         });
         if (claimed.count !== 1) {
-            const current = await client.clarificationRequest.findUniqueOrThrow({ where: { id: request.id } });
-            throw terminalStatusError(current.status, current.terminalCode);
+            throw terminalStatusError(...await currentStatus(client, request.id));
         }
         const trustedContext = request.trustedContext;
         return {
@@ -307,8 +286,7 @@ function createClarificationService(db) {
             data: { status: 'CONSUMED', consumedAt: now },
         });
         if (claimed.count !== 1) {
-            const current = await client.clarificationRequest.findUniqueOrThrow({ where: { id: request.id } });
-            throw terminalStatusError(current.status, current.terminalCode);
+            throw terminalStatusError(...await currentStatus(client, request.id));
         }
         return {
             clarificationId: request.id,
@@ -359,10 +337,10 @@ function createClarificationService(db) {
             },
         });
         if (claimed.count !== 1) {
-            const current = await client.clarificationRequest.findUniqueOrThrow({ where: { id: request.id } });
-            if (current.status === 'CANCELLED')
-                return { entityType: safeEntityType(current.entityType) };
-            throw terminalStatusError(current.status, current.terminalCode);
+            const [status, terminalCode] = await currentStatus(client, request.id);
+            if (status === 'CANCELLED')
+                return { entityType: safeEntityType(request.entityType) };
+            throw terminalStatusError(status, terminalCode);
         }
         return { entityType: safeEntityType(request.entityType) };
     }
@@ -511,7 +489,6 @@ function createClarificationService(db) {
     }
     return {
         create,
-        createGuidedFields,
         select,
         consumeGuidedFields,
         cancel,

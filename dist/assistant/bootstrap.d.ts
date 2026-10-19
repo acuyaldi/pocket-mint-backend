@@ -226,7 +226,6 @@ export declare const assistantFinancialDraftService: {
 export declare const entityResolutionService: import("./entity-resolution").EntityResolutionService;
 export declare const clarificationService: {
     create: (input: import("./clarification.types").CreateClarificationInput, options?: import("./clarification.service").TransactionOption) => Promise<import("./clarification.types").ClarificationCreationProjection>;
-    createGuidedFields: (input: import("./clarification.types").CreateGuidedFieldsClarificationInput, options?: import("./clarification.service").TransactionOption) => Promise<import("./clarification.types").GuidedClarificationProjection>;
     select: (input: import("./clarification.types").SelectClarificationInput, options?: import("./clarification.service").TransactionOption) => Promise<import("./clarification.types").SelectClarificationResult>;
     consumeGuidedFields: (input: import("./clarification.types").ConsumeGuidedFieldsInput, options?: import("./clarification.service").TransactionOption) => Promise<import("./clarification.types").ConsumeGuidedFieldsResult>;
     cancel: (input: import("./clarification.types").CancelClarificationInput, options?: import("./clarification.service").TransactionOption) => Promise<{
