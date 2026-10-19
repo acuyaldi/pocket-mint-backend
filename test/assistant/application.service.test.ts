@@ -113,7 +113,6 @@ function setup() {
         resumeAt: new Date().toISOString(),
       },
     }),
-    createGuidedFields: vi.fn(),
     cancel: vi.fn().mockResolvedValue({ entityType: 'wallet' }),
     getAssistantState: vi.fn().mockResolvedValue({}),
     runInTransaction: vi.fn((work: (tx: unknown) => unknown) => work(TX_STUB)),
@@ -325,7 +324,6 @@ describe('Assistant application lifecycle', () => {
       categoryId: 'category-resolved',
       date: today(),
     }));
-    expect(clarification.createGuidedFields).not.toHaveBeenCalled();
   });
 
   it('infers a category from the transaction hint when no category was provided', async () => {
@@ -347,7 +345,6 @@ describe('Assistant application lifecycle', () => {
       categoryId: 'category-tagihan',
       date: today(),
     }));
-    expect(clarification.createGuidedFields).not.toHaveBeenCalled();
     expect(clarification.create).not.toHaveBeenCalled();
   });
 
@@ -458,7 +455,6 @@ describe('Assistant application lifecycle', () => {
       data: { kind: 'provider_text' },
     });
     expect(financialDrafts.prepare).not.toHaveBeenCalled();
-    expect(clarification.createGuidedFields).not.toHaveBeenCalled();
   });
 
   it('does not clarify merchant ambiguity that was only derived from the description', async () => {
@@ -559,7 +555,6 @@ describe('Assistant application lifecycle', () => {
 
     expect(second.response.status).toBe('success');
     expect(clarification.create).toHaveBeenCalledTimes(1);
-    expect(clarification.createGuidedFields).not.toHaveBeenCalled();
     expect(financialDrafts.prepare).toHaveBeenCalledWith(expect.objectContaining({
       type: 'EXPENSE',
       amount: '350000',

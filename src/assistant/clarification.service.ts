@@ -21,9 +21,7 @@ import type {
   ClarificationProjection,
   ConsumeGuidedFieldsInput,
   ConsumeGuidedFieldsResult,
-  CreateGuidedFieldsClarificationInput,
   CreateClarificationInput,
-  GuidedClarificationProjection,
   SafeClarificationOption,
   SelectClarificationInput,
   SelectClarificationResult,
@@ -232,42 +230,6 @@ export function createClarificationService(db: PrismaClient) {
       })),
       expiresAt: row.expiresAt.toISOString(),
       ...withTransfer(input.trustedContext),
-    };
-  }
-
-  async function createGuidedFields(
-    input: CreateGuidedFieldsClarificationInput,
-    options: TransactionOption = {},
-  ): Promise<GuidedClarificationProjection> {
-    if (input.fields.length === 0) {
-      throw AssistantError.invalidInput('clarification.create', 'at least one guided field is required');
-    }
-
-    const work = async (tx: TransactionClient) => {
-      const expiresAt = new Date((await dbNow(tx)).getTime() + CLARIFICATION_TTL_MS);
-      return tx.clarificationRequest.create({
-        data: {
-          userId: input.userId,
-          conversationId: input.conversationId,
-          originatingTurnId: input.turnId,
-          executionId: input.executionId,
-          ...(input.parentClarificationId ? { parentId: input.parentClarificationId } : {}),
-          entityType: input.entityType,
-          status: 'PENDING',
-          trustedContext: input.trustedContext as unknown as Prisma.InputJsonValue,
-          prompt: input.prompt,
-          expiresAt,
-        },
-      });
-    };
-
-    const row = options.transaction ? await work(options.transaction) : await db.$transaction(work);
-
-    return {
-      kind: 'guided',
-      clarificationId: row.id,
-      fields: input.fields,
-      expiresAt: row.expiresAt.toISOString(),
     };
   }
 
@@ -619,7 +581,6 @@ export function createClarificationService(db: PrismaClient) {
 
   return {
     create,
-    createGuidedFields,
     select,
     consumeGuidedFields,
     cancel,
