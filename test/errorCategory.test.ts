@@ -42,6 +42,10 @@ describe('categorizeError', () => {
     expect(categorizeError({ code: 'P2002' })).toBe('database');
   });
 
+  it('keeps a translated transaction timeout (P2028 → 503) in the database category', () => {
+    expect(categorizeError(AssistantError.transactionTimeout())).toBe('database');
+  });
+
   it('falls back to internal for a wholly unknown error shape', () => {
     expect(categorizeError(new Error('something unexpected'))).toBe('internal');
     expect(categorizeError('not even an object')).toBe('internal');

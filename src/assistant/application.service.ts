@@ -8,6 +8,7 @@ import type { AssistantConversationService } from './conversation.service';
 import { assertAssistantMessageLength, monthlySummaryFallback, monthlySummaryInputForAudit, monthlySummaryOutputForAudit, normalizeProvidedMessage, safeRejectedAssistantMessage, safeRejectedUserMessage, SAFE_REJECTED_INTENT } from './persistence';
 import { evaluatePolicy } from './policy';
 import { logger } from '../utils/logger';
+import { isTransactionTimeout } from '../utils/prismaErrors';
 import type {
   TransactionCreateInput,
   TransactionCreateReferenceInput,
@@ -880,7 +881,8 @@ export function createAssistantApplicationService(deps: {
         return finalizeTransactionDraft(userId, correlationId, turn, executionId, startedAt, txInput, walletData, merchantData, categoryData, tx);
       });
     } catch (error) {
-      const operational = error instanceof AssistantError ? error : { message: 'Clarification selection failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
+      // P2028: the whole continuation rolled back, so the clarification is still PENDING and its token reusable.
+      const operational = error instanceof AssistantError ? error : isTransactionTimeout(error) ? AssistantError.transactionTimeout() : { message: 'Clarification selection failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
       await deps.conversations.finalize({
         executionId, ...turn, status: 'FAILED', turnStatus: 'FAILED',
         assistantContent: operational.message, assistantSource: 'SAFE_ERROR',
@@ -955,7 +957,7 @@ export function createAssistantApplicationService(deps: {
         return continueToCategory(userId, correlationId, turn, executionId, startedAt, txInput, walletData, merchantData, result.clarificationId, tx);
       });
     } catch (error) {
-      const operational = error instanceof AssistantError ? error : { message: 'Guided clarification submission failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
+      const operational = error instanceof AssistantError ? error : isTransactionTimeout(error) ? AssistantError.transactionTimeout() : { message: 'Guided clarification submission failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
       await deps.conversations.finalize({
         executionId, ...turn, status: 'FAILED', turnStatus: 'FAILED',
         assistantContent: operational.message, assistantSource: 'SAFE_ERROR',

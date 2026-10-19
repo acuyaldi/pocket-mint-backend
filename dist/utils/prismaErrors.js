@@ -20,8 +20,17 @@
 // caller supplies a factory that constructs its own existing domain error.
 // ============================================================
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.isTransactionTimeout = isTransactionTimeout;
 exports.withPrismaErrorTranslation = withPrismaErrorTranslation;
 exports.withPrismaErrorSwallowed = withPrismaErrorSwallowed;
+/**
+ * Prisma P2028: an interactive transaction expired or never started. Postgres
+ * rolled it back, so nothing it wrote survives — callers answer a retryable
+ * error (AssistantError.transactionTimeout) instead of a generic 500.
+ */
+function isTransactionTimeout(err) {
+    return prismaCodeOf(err) === 'P2028';
+}
 function prismaCodeOf(err) {
     return typeof err === 'object' && err !== null ? err.code : undefined;
 }

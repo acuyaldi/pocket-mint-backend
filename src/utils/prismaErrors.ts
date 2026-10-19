@@ -21,6 +21,15 @@
 
 type TranslatablePrismaCode = 'P2025' | 'P2002';
 
+/**
+ * Prisma P2028: an interactive transaction expired or never started. Postgres
+ * rolled it back, so nothing it wrote survives — callers answer a retryable
+ * error (AssistantError.transactionTimeout) instead of a generic 500.
+ */
+export function isTransactionTimeout(err: unknown): boolean {
+  return prismaCodeOf(err) === 'P2028';
+}
+
 function prismaCodeOf(err: unknown): string | undefined {
   return typeof err === 'object' && err !== null ? (err as { code?: string }).code : undefined;
 }

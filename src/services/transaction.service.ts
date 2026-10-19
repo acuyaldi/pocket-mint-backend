@@ -13,7 +13,7 @@
 // ============================================================
 
 import prisma from '../lib/prisma';
-import { Prisma } from '../generated/prisma/client';
+import { Prisma, type Transaction } from '../generated/prisma/client';
 import { reportingConfig } from '../config';
 import { classifyWalletForNetWorth } from '../utils/financial';
 import { formatReportingDate, parseBusinessDate } from '../domain/reportingTime';
@@ -83,8 +83,11 @@ export function createTransactionService(db: TransactionPrismaClient) {
    * resolve wallet → validate type/amount/transfer → parse date → verify wallet,
    * destination, and category ownership → (installment branch or) atomic write.
    */
-  async function createTransaction(input: CreateTransactionInput, options: CreateTransactionOptions = {}): Promise<TransactionWithRelations> {
+  function createTransaction(input: CreateTransactionInput, options?: CreateTransactionOptions & { relations?: undefined }): Promise<TransactionWithRelations>;
+  function createTransaction(input: CreateTransactionInput, options: CreateTransactionOptions & { relations: false }): Promise<Transaction>;
+  async function createTransaction(input: CreateTransactionInput, options: CreateTransactionOptions = {}): Promise<TransactionWithRelations | Transaction> {
     const client = options.transaction ?? db;
+    const include = options.relations === false ? undefined : TRANSACTION_INCLUDE;
     const inTransaction = <T>(work: (tx: typeof client) => Promise<T>): Promise<T> =>
       options.transaction ? work(client) : db.$transaction((tx) => work(tx));
     const { userId, type, toWalletId, categoryId } = input;
@@ -267,7 +270,7 @@ export function createTransactionService(db: TransactionPrismaClient) {
               isInstallment: true,
               installmentId: installment.id,
             },
-            include: TRANSACTION_INCLUDE,
+            include,
           });
           // Deduct the full debt (grandTotal), locked on the wallet at create.
           await tx.wallet.update({ where: { id: resolvedWalletId }, data: { balance: { decrement: grandTotal } } });
@@ -293,7 +296,7 @@ export function createTransactionService(db: TransactionPrismaClient) {
             date: parsedDate,
             isInstallment: false,
           },
-          include: TRANSACTION_INCLUDE,
+          include,
         });
         // One source of truth for the balance effect → reversible on update/delete.
         await applyBalanceDeltas(

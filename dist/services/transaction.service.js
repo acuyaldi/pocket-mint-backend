@@ -60,13 +60,9 @@ function rethrowCreate(err) {
     throw err;
 }
 function createTransactionService(db) {
-    /**
-     * Create a regular or installment transaction. Preserves the original order:
-     * resolve wallet → validate type/amount/transfer → parse date → verify wallet,
-     * destination, and category ownership → (installment branch or) atomic write.
-     */
     async function createTransaction(input, options = {}) {
         const client = options.transaction ?? db;
+        const include = options.relations === false ? undefined : transaction_types_1.TRANSACTION_INCLUDE;
         const inTransaction = (work) => options.transaction ? work(client) : db.$transaction((tx) => work(tx));
         const { userId, type, toWalletId, categoryId } = input;
         // Resolve walletId: explicit, else the user's first wallet (unchanged default).
@@ -230,7 +226,7 @@ function createTransactionService(db) {
                             isInstallment: true,
                             installmentId: installment.id,
                         },
-                        include: transaction_types_1.TRANSACTION_INCLUDE,
+                        include,
                     });
                     // Deduct the full debt (grandTotal), locked on the wallet at create.
                     await tx.wallet.update({ where: { id: resolvedWalletId }, data: { balance: { decrement: grandTotal } } });
@@ -254,7 +250,7 @@ function createTransactionService(db) {
                         date: parsedDate,
                         isInstallment: false,
                     },
-                    include: transaction_types_1.TRANSACTION_INCLUDE,
+                    include,
                 });
                 // One source of truth for the balance effect → reversible on update/delete.
                 await (0, transactionBalance_1.applyBalanceDeltas)(tx, (0, transactionBalance_1.computeBalanceEffect)({

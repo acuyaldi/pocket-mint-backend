@@ -28,6 +28,12 @@ export interface CreateTransactionInput {
 }
 export interface CreateTransactionOptions {
     transaction?: TransactionAtomicClient;
+    /**
+     * `false` skips re-reading the created row's wallet/category relations
+     * (3 extra round-trips under the Prisma 7 query compiler) for a caller that
+     * only needs the id — e.g. draft confirm on a high-latency pooler.
+     */
+    relations?: false;
 }
 /** Update fields; `undefined` means "omitted" (keep the persisted value). */
 export interface UpdateTransactionFields {
