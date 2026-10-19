@@ -1,6 +1,7 @@
 import { afterAll, afterEach, describe, expect, it } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import { loopbackServer } from '../helpers/loopbackServer';
 import type { PoolClient } from 'pg';
 import { createPrismaResources } from '../../src/lib/prismaFactory';
 import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
@@ -21,6 +22,8 @@ import { monthlySpendingSummary, transactionCreate } from '../../src/assistant/t
 import { createAssistantControllers } from '../../src/controllers/assistant.controller';
 import { correlationMiddleware } from '../../src/http/correlation';
 import { errorHandler } from '../../src/middlewares/error.middleware';
+
+const serve = loopbackServer();
 
 // Simulates a far-away pooler (Jakarta → ap-southeast-2): every statement is
 // preceded by a server-side `pg_sleep` queued on the SAME connection, so the
@@ -81,15 +84,15 @@ describe.skipIf(!url)('Assistant draft confirm under pooler latency (disposable 
     server.use((req, _res, next) => { (req as any).auth = { userId: req.header('x-test-user') }; next(); });
     server.post('/execute', controllers.execute); server.post('/drafts/:draftId/confirm', controllers.confirmDraft);
     server.post('/conversations/:conversationId/clarifications/:clarificationId/select', controllers.selectClarification);
-    server.use(errorHandler); return server;
+    server.use(errorHandler); return serve(server);
   }
-  async function pendingDraft(server: express.Express, userId: string, walletId: string, categoryId: string): Promise<string> {
+  async function pendingDraft(server: string, userId: string, walletId: string, categoryId: string): Promise<string> {
     const prepared = await request(server).post('/execute').set('x-test-user', userId)
       .send({ intent: 'transaction.create', arguments: { type: 'EXPENSE', amount: '12500', walletId, categoryId, date: '2026-07-22', description: 'Lunch' } });
     expect(prepared.status).toBe(200);
     return prepared.body.data.data.draftId;
   }
-  const confirm = (server: express.Express, userId: string, draftId: string, key: string) =>
+  const confirm = (server: string, userId: string, draftId: string, key: string) =>
     request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', userId).set('Idempotency-Key', key);
 
   it('commits a confirm whose round-trips exceed the 5s Prisma default but fit the confirm timeout', async () => {

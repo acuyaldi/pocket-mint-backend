@@ -8,6 +8,7 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import { loopbackServer } from '../helpers/loopbackServer';
 import { createHash } from 'node:crypto';
 import { createPrismaResources } from '../../src/lib/prismaFactory';
 import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
@@ -38,6 +39,8 @@ import { processJob, type InboundWorkerDeps } from '../../src/channels/workers/i
 import { claimInboundJobs } from '../../src/channels/workers/claim';
 import { buildCaptureReport, formatReport } from '../../src/scripts/captureReport';
 import { assertPrivacySafeRow } from './capture-privacy';
+
+const serve = loopbackServer();
 
 const url = process.env.TEST_DATABASE_URL;
 if (url) assertTestDatabaseUrl(url);
@@ -107,7 +110,7 @@ describe.skipIf(!url)('Assistant capture events (disposable PostgreSQL)', () => 
     server.post('/drafts/:draftId/confirm', controllers.confirmDraft);
     server.post('/drafts/:draftId/cancel', controllers.cancelDraft);
     server.use(errorHandler);
-    return { server, drafts, application, runtime };
+    return { server: serve(server), drafts, application, runtime };
   }
 
   const envelope = (res: request.Response) => (res.body.success ? res.body.data : res.body.error);

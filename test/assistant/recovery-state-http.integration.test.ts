@@ -10,6 +10,7 @@
 import { afterAll, afterEach, describe, expect, it } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import { loopbackServer } from '../helpers/loopbackServer';
 import { createPrismaResources } from '../../src/lib/prismaFactory';
 import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
 import { createAssistantConversationService } from '../../src/assistant/conversation.service';
@@ -29,6 +30,8 @@ import {
   createMerchantResolver,
   createCategoryResolver,
 } from '../../src/assistant/entity-resolution';
+
+const serve = loopbackServer();
 
 const url = process.env.TEST_DATABASE_URL;
 if (url) assertTestDatabaseUrl(url);
@@ -80,7 +83,7 @@ describe.skipIf(!url)('GET /conversations/:conversationId/recovery-state (dispos
     server.post('/drafts/:draftId/cancel', controllers.cancelDraft);
     server.get('/conversations/:conversationId/recovery-state', controllers.recoveryState);
     server.use(errorHandler);
-    return server;
+    return serve(server);
   }
 
   async function walletAmbiguityFixture(label: string) {
@@ -265,7 +268,7 @@ describe.skipIf(!url)('GET /conversations/:conversationId/recovery-state (dispos
       const category = await db().category.create({ data: { userId, name: 'Food', type: 'EXPENSE', icon: 'food', color: '#000000' } });
       return { userId, wallet, category };
     }
-    async function makeDraft(server: express.Express, f: { userId: string; wallet: { id: string }; category: { id: string } }, conversationId?: string) {
+    async function makeDraft(server: string, f: { userId: string; wallet: { id: string }; category: { id: string } }, conversationId?: string) {
       const res = await request(server).post('/execute').set('x-test-user', f.userId).send({
         ...(conversationId ? { conversationId } : {}),
         intent: 'transaction.create',
@@ -274,7 +277,7 @@ describe.skipIf(!url)('GET /conversations/:conversationId/recovery-state (dispos
       const body = executeEnvelope(res);
       return { conversationId: body.conversationId as string, draftId: body.data.draftId as string, turnId: body.turnId as string };
     }
-    const state = async (server: express.Express, userId: string, conversationId: string) =>
+    const state = async (server: string, userId: string, conversationId: string) =>
       (await request(server).get(`/conversations/${conversationId}/recovery-state`).set('x-test-user', userId)).body.data;
 
     it('reports an untouched past-TTL clarification as effectively expired, linked to its turn, without writing', async () => {

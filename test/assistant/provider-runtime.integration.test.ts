@@ -1,6 +1,7 @@
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import { loopbackServer } from '../helpers/loopbackServer';
 import { createPrismaResources } from '../../src/lib/prismaFactory';
 import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
 import { createAssistantConversationService } from '../../src/assistant/conversation.service';
@@ -25,6 +26,8 @@ import {
   createMerchantResolver,
   createWalletResolver,
 } from '../../src/assistant/entity-resolution';
+
+const serve = loopbackServer();
 
 const url = process.env.TEST_DATABASE_URL;
 if (url) assertTestDatabaseUrl(url);
@@ -134,7 +137,7 @@ describe.skipIf(!url)('Assistant provider runtime (disposable PostgreSQL)', () =
     server.post('/drafts/:draftId/confirm', controllers.confirmDraft);
     server.post('/conversations/:conversationId/archive', controllers.archive);
     server.use(errorHandler);
-    return { server, provider, application, prepareSpy };
+    return { server: serve(server), provider, application, prepareSpy };
   }
 
   it('runs new and existing read-only requests once each with no duplicate user message or raw provider persistence', async () => {

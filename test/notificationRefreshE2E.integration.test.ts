@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, afterAll, afterEach } from 'vitest';
 import request from 'supertest';
-import type { Express } from 'express';
+import { loopbackServer } from './helpers/loopbackServer';
 import { createPrismaResources } from '../src/lib/prismaFactory';
 import { assertTestDatabaseUrl, assertDatabaseUrlsMatch } from '../src/lib/assertTestDatabaseUrl';
 import { formatReportingDate } from '../src/domain/reportingTime';
 import { mint, validClaims, SECRET, ISSUER, applyEnv } from './helpers';
+
+const serve = loopbackServer();
 
 /**
  * Phase 10 item 4 — isolated, data-backed HTTP verification of the
@@ -32,10 +34,10 @@ afterAll(async () => {
 describe.skipIf(!TEST_DATABASE_URL)('Notification refresh — isolated E2E (disposable PostgreSQL)', () => {
   const db = () => resources!.prisma;
 
-  let app: Express;
+  let app: string;
   let createdUserIds: string[] = [];
 
-  async function loadApp(): Promise<Express> {
+  async function loadApp(): Promise<string> {
     vi.resetModules();
     applyEnv({
       NODE_ENV: 'development',
@@ -47,7 +49,7 @@ describe.skipIf(!TEST_DATABASE_URL)('Notification refresh — isolated E2E (disp
       RATE_LIMIT_ENABLED: 'false',
     });
     const mod = await import('../src/app');
-    return mod.default;
+    return serve(mod.default);
   }
 
   async function createUser(label: string): Promise<{ id: string; email: string; token: string }> {

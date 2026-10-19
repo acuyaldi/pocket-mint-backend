@@ -1,6 +1,7 @@
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import { loopbackServer } from '../helpers/loopbackServer';
 import { createPrismaResources } from '../../src/lib/prismaFactory';
 import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
 import { createAssistantConversationService } from '../../src/assistant/conversation.service';
@@ -24,6 +25,8 @@ import {
   createMerchantResolver,
   createWalletResolver,
 } from '../../src/assistant/entity-resolution';
+
+const serve = loopbackServer();
 
 // Proves Phase 27 request-level idempotency: a Web client retry, double
 // submit, or dropped-connection resubmit of POST /assistant/messages or
@@ -113,7 +116,7 @@ describe.skipIf(!url)('Assistant request-level idempotency (disposable PostgreSQ
     server.post('/messages', controllers.messages);
     server.get('/conversations/:conversationId/recovery-state', controllers.recoveryState);
     server.use(errorHandler);
-    return { server };
+    return { server: serve(server) };
   }
 
   it('serializes concurrent identical-key /execute requests to exactly one draft', async () => {

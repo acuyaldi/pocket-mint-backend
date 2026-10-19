@@ -1,6 +1,7 @@
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import { loopbackServer } from '../helpers/loopbackServer';
 import { createPrismaResources } from '../../src/lib/prismaFactory';
 import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
 import { createAssistantConversationService } from '../../src/assistant/conversation.service';
@@ -22,6 +23,8 @@ import { correlationMiddleware } from '../../src/http/correlation';
 import { errorHandler } from '../../src/middlewares/error.middleware';
 import { reportingConfig } from '../../src/config';
 import { formatReportingDate } from '../../src/domain/reportingTime';
+
+const serve = loopbackServer();
 
 const url = process.env.TEST_DATABASE_URL;
 if (url) assertTestDatabaseUrl(url);
@@ -68,7 +71,7 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
     server.get('/conversations/:conversationId/recovery-state', controllers.recoveryState);
     server.post('/conversations/:conversationId/archive', controllers.archive);
     server.post('/conversations/:conversationId/restore', controllers.restore);
-    server.use(errorHandler); return server;
+    server.use(errorHandler); return serve(server);
   }
   const draftBody = (walletId: string, categoryId: string) => ({ intent: 'transaction.create', arguments: { type: 'EXPENSE', amount: '12500.50', walletId, categoryId, date: '2026-07-22', description: 'Lunch' } });
 
@@ -727,7 +730,7 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
       const prepared = await request(server).post('/execute').set('x-test-user', f.user.id).send(draftBody(f.wallet.id, f.category.id));
       return { ...f, server, draftId: prepared.body.data.data.draftId as string, conversationId: prepared.body.data.conversationId as string };
     }
-    const confirmReq = (server: express.Express, userId: string, draftId: string, key: string, body?: object) =>
+    const confirmReq = (server: string, userId: string, draftId: string, key: string, body?: object) =>
       request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', userId).set('Idempotency-Key', key).send(body ?? {});
     const draftStatus = async (draftId: string) => (await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status;
     const txCount = (userId: string) => resources!.prisma.transaction.count({ where: { userId } });

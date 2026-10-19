@@ -11,6 +11,7 @@
 import { afterAll, afterEach, describe, expect, it } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import { loopbackServer } from '../helpers/loopbackServer';
 import { createPrismaResources } from '../../src/lib/prismaFactory';
 import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
 import { createAssistantConversationService } from '../../src/assistant/conversation.service';
@@ -30,6 +31,8 @@ import {
   createMerchantResolver,
   createCategoryResolver,
 } from '../../src/assistant/entity-resolution';
+
+const serve = loopbackServer();
 
 const url = process.env.TEST_DATABASE_URL;
 if (url) assertTestDatabaseUrl(url);
@@ -80,7 +83,7 @@ describe.skipIf(!url)('Clarification lifecycle expiry (disposable PostgreSQL)', 
     server.post('/conversations/:conversationId/clarifications/:clarificationId/select', controllers.selectClarification);
     server.post('/conversations/:conversationId/clarifications/:clarificationId/cancel', controllers.cancelClarification);
     server.use(errorHandler);
-    return { server, clarification };
+    return { server: serve(server), clarification };
   }
 
   async function walletAmbiguityFixture(label: string) {
@@ -95,7 +98,7 @@ describe.skipIf(!url)('Clarification lifecycle expiry (disposable PostgreSQL)', 
     return res.body.success ? res.body.data : res.body.error;
   }
 
-  async function createWalletAmbiguity(server: express.Express, userId: string, categoryId: string) {
+  async function createWalletAmbiguity(server: string, userId: string, categoryId: string) {
     const res = await request(server).post('/execute').set('x-test-user', userId).send({
       intent: 'transaction.create',
       arguments: { type: 'EXPENSE', amount: '50000', walletReference: 'BCA', categoryId, date: '2026-07-24' },

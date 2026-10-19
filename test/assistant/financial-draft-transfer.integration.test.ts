@@ -1,6 +1,7 @@
 import { afterAll, afterEach, describe, expect, it } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import { loopbackServer } from '../helpers/loopbackServer';
 import { createPrismaResources } from '../../src/lib/prismaFactory';
 import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
 import { createAssistantConversationService } from '../../src/assistant/conversation.service';
@@ -21,6 +22,8 @@ import { createAssistantControllers } from '../../src/controllers/assistant.cont
 import { correlationMiddleware } from '../../src/http/correlation';
 import { errorHandler } from '../../src/middlewares/error.middleware';
 import { renderApplicationResult } from '../../src/channels/interaction.service';
+
+const serve = loopbackServer();
 
 const url = process.env.TEST_DATABASE_URL;
 if (url) assertTestDatabaseUrl(url);
@@ -61,7 +64,7 @@ describe.skipIf(!url)('Assistant TRANSFER drafts (disposable PostgreSQL)', () =>
     server.post('/conversations/:conversationId/clarifications/:clarificationId/select', controllers.selectClarification);
     server.post('/conversations/:conversationId/clarifications/:clarificationId/cancel', controllers.cancelClarification);
     server.use(errorHandler);
-    return server;
+    return serve(server);
   }
 
   const transferBody = (walletId: string, toWalletReference: string, amount = '50000') =>
