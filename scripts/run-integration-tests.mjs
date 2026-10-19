@@ -56,6 +56,7 @@ const integrationTests = [
   'test/assistant/conversation-http.integration.test.ts',
   'test/assistant/financial-draft.integration.test.ts',
   'test/assistant/financial-draft-transfer.integration.test.ts',
+  'test/assistant/financial-draft-latency.integration.test.ts',
   'test/assistant/context-service.integration.test.ts',
   'test/assistant/provider-runtime.integration.test.ts',
   'test/assistant/clarification-sequential.integration.test.ts',
