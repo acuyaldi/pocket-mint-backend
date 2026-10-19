@@ -3,7 +3,7 @@ import { reportingConfig } from '../config';
 import { formatReportingDate, parseBusinessDate } from '../domain/reportingTime';
 import { TransactionConcurrencyError, TransactionError } from '../services/transaction.errors';
 import { TRANSFER_SOURCE_TYPES, type TransactionService } from '../services/transaction.service';
-import { withPrismaErrorSwallowed, withPrismaErrorTranslation } from '../utils/prismaErrors';
+import { isTransactionTimeout, withPrismaErrorSwallowed, withPrismaErrorTranslation } from '../utils/prismaErrors';
 import { logEvent } from '../utils/logger';
 import { AssistantError } from './errors';
 import { effectiveDraftStatus } from './effective-status';
@@ -20,11 +20,6 @@ const CANCEL_INTENT = 'transaction.create.cancel';
  * ap-southeast-2 ≈ 250–350 ms each). Every other transaction keeps the default.
  */
 export const CONFIRM_TRANSACTION_OPTIONS = { maxWait: 5_000, timeout: 15_000 } as const;
-
-/** Prisma P2028: the interactive transaction expired or never started — Postgres rolled it back, so nothing was written. */
-function isTransactionTimeout(error: unknown): boolean {
-  return (error as { code?: string } | null)?.code === 'P2028';
-}
 type DraftReadyTransactionInput = TransactionCreateInput & { walletId: string; categoryId?: string; date: string };
 
 /** Fields the user may override when confirming a draft. All optional — missing fields use the draft's original values. */
