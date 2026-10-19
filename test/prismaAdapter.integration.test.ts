@@ -182,6 +182,28 @@ describe.skipIf(!TEST_DATABASE_URL)('Prisma integration (disposable PostgreSQL)'
     });
   });
 
+  describe('createTransaction relations option', () => {
+    it('returns wallet/category relations by default and only the row with relations: false (regular and installment)', async () => {
+      const userId = await createUser('create-relations');
+      const cash = await walletService().createWallet({ userId, name: 'Cash', type: 'CASH', balance: 100000 });
+      const card = await walletService().createWallet({ userId, name: 'Kartu', type: 'CREDIT_CARD', balance: 0, creditLimit: 1000000 });
+      const category = await db().category.create({ data: { userId, name: 'Makan', type: 'EXPENSE' } });
+      const regular = { userId, type: 'EXPENSE' as const, amount: 1000, walletId: cash.id, categoryId: category.id, date: '2026-01-08' };
+      const credit = { ...regular, walletId: card.id, billingMode: 'FULL' as const, firstDueDate: '2026-02-10' };
+
+      for (const input of [regular, credit]) {
+        const withRelations = await transactionService().createTransaction(input);
+        expect(withRelations.wallet).toEqual({ id: input.walletId, name: input.walletId === cash.id ? 'Cash' : 'Kartu', type: input.walletId === cash.id ? 'CASH' : 'CREDIT_CARD' });
+        expect(withRelations.category).toEqual({ id: category.id, name: 'Makan', type: 'EXPENSE' });
+
+        const idOnly = await transactionService().createTransaction(input, { relations: false });
+        expect(idOnly.id).toEqual(expect.any(String));
+        expect(idOnly).not.toHaveProperty('wallet');
+        expect(idOnly).not.toHaveProperty('category');
+      }
+    });
+  });
+
   describe('debt transaction (credit expense)', () => {
     it('debits the wallet by grandTotal and creates a linked FULL installment', async () => {
       const userId = await createUser('debt-full');
