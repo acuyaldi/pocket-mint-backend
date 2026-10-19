@@ -91,14 +91,26 @@ describe('withPrismaErrorSwallowed', () => {
     expect(onSwallow).toHaveBeenCalledTimes(1);
   });
 
-  it('swallows a mapped P2002 the same way', async () => {
+  // Phase 37.4 security review: deliberately P2025-only. P2002 means a
+  // concurrent write already happened — swallowing it without reading back
+  // what that write was risks an idempotency/replay bypass, so it must
+  // always propagate here (a caller that genuinely needs to react to a
+  // concurrent insert uses withPrismaErrorTranslation or its own explicit
+  // read-and-verify instead).
+  it('never swallows P2002, even if a (type-unsafe) caller forces a P2002 handler in', async () => {
+    const raw = prismaError('P2002');
     const onSwallow = vi.fn();
-    const result = await withPrismaErrorSwallowed(
-      async () => { throw prismaError('P2002'); },
-      { P2002: onSwallow },
-    );
-    expect(result).toBeUndefined();
-    expect(onSwallow).toHaveBeenCalledTimes(1);
+    // `swallow` is typed to only accept P2025 — this cast simulates a
+    // caller bypassing that (e.g. via `as never`) to prove the RUNTIME
+    // guard itself (not just the type) refuses to swallow anything but
+    // P2025, in case the type is ever weakened later.
+    const unsafeSwallow = { P2025: onSwallow, P2002: onSwallow } as unknown as Parameters<typeof withPrismaErrorSwallowed>[1];
+    const err = await withPrismaErrorSwallowed(
+      async () => { throw raw; },
+      unsafeSwallow,
+    ).catch((e) => e);
+    expect(err).toBe(raw);
+    expect(onSwallow).not.toHaveBeenCalled();
   });
 
   it('propagates a mapped code with no swallow handler supplied unchanged', async () => {
