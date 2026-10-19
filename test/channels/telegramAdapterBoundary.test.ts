@@ -39,9 +39,10 @@ const FORBIDDEN_IMPORT_SUFFIXES = [
 ];
 
 // The only Assistant-namespace imports allowed from Telegram/channel files:
-// the provider-runtime passthrough boundary itself, and the shared bounded
-// error type (structural only — no clarification/draft logic lives there).
-const ALLOWED_ASSISTANT_IMPORTS = ['assistant/provider-runtime', 'assistant/errors'];
+// the provider-runtime passthrough boundary itself, the shared bounded
+// error type (structural only — no clarification/draft logic lives there),
+// and the capture-event source label (Phase 35.1 — sets WEB/TELEGRAM only).
+const ALLOWED_ASSISTANT_IMPORTS = ['assistant/provider-runtime', 'assistant/errors', 'assistant/capture-events'];
 
 // Files whose whole job is calling clarification/financial-draft services
 // through the AssistantProviderRuntime passthrough boundary — everything

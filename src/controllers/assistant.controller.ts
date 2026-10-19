@@ -48,37 +48,6 @@ function draftWasCreated(response: unknown): boolean {
   return value.status === 'success' && value.data?.confirmationRequired === true;
 }
 
-/** Closed allowlist for the bounded clarification-kind log label — never widened to an arbitrary string from a response payload. */
-const CLARIFICATION_KINDS = new Set(['wallet', 'merchant', 'category', 'transaction_fields', 'provider_text']);
-
-/** Bounded clarification-kind label only ('wallet'/'merchant'/'category'/'transaction_fields'/'provider_text') — never the prompt text or options. */
-function clarificationKindOf(response: unknown): string | undefined {
-  if (typeof response !== 'object' || response === null) return undefined;
-  const value = response as { status?: unknown; data?: { kind?: unknown; entityType?: unknown } };
-  if (value.status !== 'clarification_required') return undefined;
-  if (value.data?.kind === 'entity_selection' && typeof value.data.entityType === 'string' && CLARIFICATION_KINDS.has(value.data.entityType)) {
-    return value.data.entityType;
-  }
-  return 'provider_text';
-}
-
-/**
- * Privacy-safe capture-quality signals (Phase 35) — fired alongside the
- * existing ops events above, never in place of them. Only a bounded
- * outcome/kind/source label ever leaves this function; never message text,
- * amounts, wallet/category ids, or any other draft/clarification content.
- */
-function logCaptureLifecycle(requestId: string, response: unknown, captureSource: 'direct' | 'clarification_resolved'): void {
-  if (draftWasCreated(response)) {
-    logEvent('info', { event: 'assistant.capture.draft_created', requestId, captureSource });
-    return;
-  }
-  const clarificationKind = clarificationKindOf(response);
-  if (clarificationKind) {
-    logEvent('info', { event: 'assistant.capture.clarification_required', requestId, clarificationKind });
-  }
-}
-
 type ClarificationContinuationRequest =
   | { optionToken: string }
   | { fields: Record<string, unknown> };
@@ -161,7 +130,6 @@ export function createAssistantControllers(
         idempotencyOutcome,
         idempotentReplay: idempotencyOutcome === 'replay',
       });
-      if (idempotencyOutcome !== 'replay') logCaptureLifecycle(req.correlationId, result.response, 'direct');
       if (result.response.status === 'success') return sendSuccess(res, result.response, 'Assistant executed successfully');
       res.status(result.httpStatus).json({ success: false, error: { ...result.response, statusCode: result.httpStatus } });
     } catch (error) {
@@ -197,7 +165,6 @@ export function createAssistantControllers(
         idempotencyOutcome,
         idempotentReplay: idempotencyOutcome === 'replay',
       });
-      if (idempotencyOutcome !== 'replay') logCaptureLifecycle(req.correlationId, result.response, 'direct');
       if (result.response.status === 'error' || result.response.status === 'rejected') {
         return void res.status(result.httpStatus).json({
           success: false,
@@ -296,19 +263,9 @@ export function createAssistantControllers(
         idempotencyOutcome,
         idempotentReplay: idempotencyOutcome === 'replay',
       });
-      if (idempotencyOutcome !== 'replay') {
-        logEvent('info', {
-          event: 'assistant.capture.draft_confirmed',
-          requestId: req.correlationId,
-          overridesUsed: overrides !== undefined,
-        });
-      }
       sendSuccess(res, result, 'Financial draft confirmed');
     } catch (error) {
       logEvent('warn', { event: 'assistant.draft.confirmed', requestId: req.correlationId, durationMs: elapsed(), outcome: 'failed', errorCategory: categorizeError(error) });
-      if (categorizeError(error) === 'expired') {
-        logEvent('info', { event: 'assistant.capture.draft_expired', requestId: req.correlationId });
-      }
       forwardError(error, res, next);
     }
   }
@@ -320,11 +277,6 @@ export function createAssistantControllers(
       if (!drafts) return sendError(res, 'Assistant financial drafts unavailable', 503);
       const result = await drafts.cancel(userId, routeId(req.params.draftId), req.correlationId);
       logEvent('info', { event: 'assistant.draft.cancelled', requestId: req.correlationId, durationMs: elapsed(), outcome: result.status });
-      if (result.status === 'EXPIRED') {
-        logEvent('info', { event: 'assistant.capture.draft_expired', requestId: req.correlationId });
-      } else if (result.status === 'CANCELLED' && 'turnId' in result) {
-        logEvent('info', { event: 'assistant.capture.draft_cancelled', requestId: req.correlationId });
-      }
       sendSuccess(res, result, 'Financial draft cancelled');
     } catch (error) {
       logEvent('warn', { event: 'assistant.draft.cancelled', requestId: req.correlationId, durationMs: elapsed(), outcome: 'failed', errorCategory: categorizeError(error) });
@@ -353,7 +305,6 @@ export function createAssistantControllers(
         chainedClarification: result.response.status === 'clarification_required',
         draftCreated: draftWasCreated(result.response),
       });
-      logCaptureLifecycle(req.correlationId, result.response, 'clarification_resolved');
       if (result.response.status === 'error' || result.response.status === 'rejected') {
         return void res.status(result.httpStatus).json({ success: false, error: { ...result.response, statusCode: result.httpStatus } });
       }
@@ -378,15 +329,6 @@ export function createAssistantControllers(
         outcome: result.response.status,
         httpStatus: result.httpStatus,
       });
-      if (result.response.status === 'success') {
-        const value = result.response.data as { entityType?: unknown } | undefined;
-        const clarificationKind = typeof value?.entityType === 'string' && CLARIFICATION_KINDS.has(value.entityType) ? value.entityType : undefined;
-        logEvent('info', {
-          event: 'assistant.capture.clarification_cancelled',
-          requestId: req.correlationId,
-          clarificationKind,
-        });
-      }
       if (result.response.status === 'error' || result.response.status === 'rejected') {
         return void res.status(result.httpStatus).json({ success: false, error: { ...result.response, statusCode: result.httpStatus } });
       }

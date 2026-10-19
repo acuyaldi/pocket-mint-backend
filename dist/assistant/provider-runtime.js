@@ -11,6 +11,7 @@ const logger_1 = require("../utils/logger");
 const errorCategory_1 = require("../utils/errorCategory");
 const rupiah_amount_recovery_1 = require("./rupiah-amount-recovery");
 const transaction_type_recovery_1 = require("./transaction-type-recovery");
+const capture_events_1 = require("./capture-events");
 function modelInputBytes(request) {
     return Buffer.byteLength(JSON.stringify({
         systemInstruction: request.systemInstruction,
@@ -198,10 +199,12 @@ function createAssistantProviderRuntime(deps) {
                     finishClassification: providerResponse.finishClassification,
                     usage: providerResponse.usage,
                 }, { correlationId, conversationId });
-                return {
+                const clarificationResult = {
                     httpStatus: 200,
                     response: { status: 'clarification_required', message: plan.question, data: { kind: 'provider_text' }, correlationId, ...turn },
                 };
+                await (0, capture_events_1.emitForResult)(deps.captureEvents, { ...clarificationResult, captureField: plan.field ?? 'UNSPECIFIED' }, 'DIRECT');
+                return clarificationResult;
             }
             const turn = await persistNonToolResult(userId, correlationId, conversationId, locale, message, {
                 intent: 'provider.unsupported',

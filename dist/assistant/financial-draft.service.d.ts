@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from '../generated/prisma/client';
 import { type TransactionService } from '../services/transaction.service';
 import type { TransactionCreateInput } from './tools';
+import type { CaptureEventEmitter } from './capture-events';
 type DraftReadyTransactionInput = TransactionCreateInput & {
     walletId: string;
     categoryId?: string;
@@ -34,7 +35,7 @@ export declare function createAssistantFinancialDraftService(db: PrismaClient, t
     inferCategoryId?: (userId: string, type: 'INCOME' | 'EXPENSE', hint: string | undefined, tx?: Prisma.TransactionClient) => Promise<string | undefined>;
 }) | {
     inferCategoryId?: (userId: string, type: 'INCOME' | 'EXPENSE', hint: string | undefined, tx?: Prisma.TransactionClient) => Promise<string | undefined>;
-}, clock?: () => Date): {
+}, clock?: () => Date, captureEvents?: CaptureEventEmitter): {
     prepare: (input: DraftReadyTransactionInput & {
         walletDisplayLabel?: string;
         toWalletDisplayLabel?: string;

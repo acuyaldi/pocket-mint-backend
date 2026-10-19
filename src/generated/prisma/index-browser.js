@@ -189,6 +189,18 @@ exports.Prisma.AssistantFinancialDraftScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.AssistantCaptureEventScalarFieldEnum = {
+  id: 'id',
+  occurredAt: 'occurredAt',
+  eventType: 'eventType',
+  source: 'source',
+  schemaVersion: 'schemaVersion',
+  phaseMarker: 'phaseMarker',
+  correlationKey: 'correlationKey',
+  fields: 'fields',
+  origin: 'origin'
+};
+
 exports.Prisma.AssistantIdempotencyRecordScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -602,6 +614,37 @@ exports.TransactionType = exports.$Enums.TransactionType = {
   TRANSFER: 'TRANSFER'
 };
 
+exports.AssistantCaptureEventType = exports.$Enums.AssistantCaptureEventType = {
+  CLARIFICATION_REQUESTED: 'CLARIFICATION_REQUESTED',
+  CLARIFICATION_RESOLVED: 'CLARIFICATION_RESOLVED',
+  CLARIFICATION_CANCELLED: 'CLARIFICATION_CANCELLED',
+  DRAFT_CREATED: 'DRAFT_CREATED',
+  DRAFT_EDITED: 'DRAFT_EDITED',
+  DRAFT_CONFIRMED: 'DRAFT_CONFIRMED',
+  DRAFT_CANCELLED: 'DRAFT_CANCELLED',
+  DRAFT_EXPIRED: 'DRAFT_EXPIRED',
+  DRAFT_FAILED: 'DRAFT_FAILED'
+};
+
+exports.AssistantCaptureOrigin = exports.$Enums.AssistantCaptureOrigin = {
+  DIRECT: 'DIRECT',
+  AFTER_CLARIFICATION: 'AFTER_CLARIFICATION'
+};
+
+exports.AssistantCaptureField = exports.$Enums.AssistantCaptureField = {
+  AMOUNT: 'AMOUNT',
+  TYPE: 'TYPE',
+  WALLET: 'WALLET',
+  SOURCE_WALLET: 'SOURCE_WALLET',
+  DESTINATION_WALLET: 'DESTINATION_WALLET',
+  MERCHANT: 'MERCHANT',
+  CATEGORY: 'CATEGORY',
+  DATE: 'DATE',
+  DESCRIPTION: 'DESCRIPTION',
+  TRANSACTION_FIELDS: 'TRANSACTION_FIELDS',
+  UNSPECIFIED: 'UNSPECIFIED'
+};
+
 exports.AssistantIdempotencyStatus = exports.$Enums.AssistantIdempotencyStatus = {
   RUNNING: 'RUNNING',
   COMPLETED: 'COMPLETED'
@@ -740,6 +783,7 @@ exports.Prisma.ModelName = {
   AssistantTurn: 'AssistantTurn',
   AssistantMessage: 'AssistantMessage',
   AssistantFinancialDraft: 'AssistantFinancialDraft',
+  AssistantCaptureEvent: 'AssistantCaptureEvent',
   AssistantIdempotencyRecord: 'AssistantIdempotencyRecord',
   AssistantToolExecution: 'AssistantToolExecution',
   AssistantProviderExecution: 'AssistantProviderExecution',

@@ -3,6 +3,7 @@ import type { AssistantConversationService } from './conversation.service';
 import type { AssistantFinancialDraftService } from './financial-draft.service';
 import { type AssistantModelProvider, type AssistantProviderUsage } from './provider-types';
 import type { ToolRegistry } from './registry';
+import { type CaptureEventEmitter } from './capture-events';
 export interface AssistantProviderAudit {
     begin(input: {
         userId: string;
@@ -47,6 +48,7 @@ interface RuntimeDependencies {
     audit: AssistantProviderAudit;
     toolRegistry: ToolRegistry;
     timeoutMs: number;
+    captureEvents?: CaptureEventEmitter;
 }
 export declare function createAssistantProviderRuntime(deps: RuntimeDependencies): {
     sendMessage: (userId: string, correlationId: string, input: AssistantProviderMessageInput, idempotencyKey?: string) => Promise<AssistantProviderRuntimeResult>;

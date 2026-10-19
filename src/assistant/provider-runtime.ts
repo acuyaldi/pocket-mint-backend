@@ -12,6 +12,7 @@ import { logger, logEvent } from '../utils/logger';
 import { categorizeError } from '../utils/errorCategory';
 import { recoverSingleExplicitIndonesianAmount } from './rupiah-amount-recovery';
 import { recoverExplicitTransactionType } from './transaction-type-recovery';
+import { emitForResult, type CaptureEventEmitter } from './capture-events';
 
 export interface AssistantProviderAudit {
   begin(input: {
@@ -62,6 +63,7 @@ interface RuntimeDependencies {
   audit: AssistantProviderAudit;
   toolRegistry: ToolRegistry;
   timeoutMs: number;
+  captureEvents?: CaptureEventEmitter;
 }
 
 function modelInputBytes(request: { systemInstruction: string; messages: readonly { content: string }[] }): number {
@@ -276,10 +278,12 @@ export function createAssistantProviderRuntime(deps: RuntimeDependencies) {
           finishClassification: providerResponse.finishClassification,
           usage: providerResponse.usage,
         }, { correlationId, conversationId });
-        return {
+        const clarificationResult = {
           httpStatus: 200,
-          response: { status: 'clarification_required', message: plan.question, data: { kind: 'provider_text' as const }, correlationId, ...turn },
+          response: { status: 'clarification_required' as const, message: plan.question, data: { kind: 'provider_text' as const }, correlationId, ...turn },
         };
+        await emitForResult(deps.captureEvents, { ...clarificationResult, captureField: plan.field ?? 'UNSPECIFIED' }, 'DIRECT');
+        return clarificationResult;
       }
 
       const turn = await persistNonToolResult(userId, correlationId, conversationId, locale, message, {

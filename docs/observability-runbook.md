@@ -18,7 +18,7 @@ keys. See §5 for the redaction boundary.
 | --- | --- |
 | **Log format** | Single-line JSON via `src/utils/logger.ts` (`logger.info/warn/error`, `logEvent`). Written to stdout/stderr — Railway captures both as the log stream. |
 | **Correlation ID** | `req.correlationId`, generated fresh per request in `src/http/correlation.ts`, returned as `X-Correlation-Id` response header, logged as `requestId` on every event. |
-| **Event taxonomy** | `assistant.message.*`, `assistant.provider.*`, `assistant.tool.*`, `assistant.draft.*`, `assistant.clarification.*`, `assistant.recovery.*` (operational health) and `assistant.capture.*` (Phase 35 — capture-quality signal, see §9) — see `.claude/skills/assistant-core.skill.md` §13. |
+| **Event taxonomy** | `assistant.message.*`, `assistant.provider.*`, `assistant.tool.*`, `assistant.draft.*`, `assistant.clarification.*`, `assistant.recovery.*` (operational health) plus persisted capture events (Phase 35.1 `assistant_capture_events` table, see §9) — see `.claude/skills/assistant-core.skill.md` §13. |
 | **Error classification** | `errorCategory` field, computed by `src/utils/errorCategory.ts#categorizeError`, present on every `request error` log line and on failed lifecycle events. |
 | **Metrics** | Log-based only — no metrics backend is connected. Derive counters/histograms by aggregating `event`/`durationMs`/`errorCategory` fields from the Railway log stream (or an export of it). No `/metrics` endpoint exists. |
 
@@ -125,32 +125,35 @@ is never logged — correlate by `requestId` and draft confirm timing instead.
   logger's redaction.
 - No metrics backend or `/metrics` endpoint is deployed — see §0.
 
-## 9. Measuring capture-quality (Phase 35)
+## 9. Measuring capture-quality (Phase 35 → 35.1)
 
-- `assistant.capture.*` events (`draft_created`, `clarification_required`,
-  `clarification_cancelled`, `draft_confirmed`, `draft_cancelled`,
-  `draft_expired`) answer a product question the ops events in §0–§8 don't:
-  how often a message reaches a usable draft on the first pass, and where it
-  doesn't. They are additive to, never a replacement for, the existing
-  `assistant.message.*`/`assistant.draft.*`/`assistant.clarification.*`
-  events — aggregate both families together when investigating a request by
-  `requestId`, same as any other event.
-- First-pass rate: compare `draft_created` counts by `captureSource` —
-  `'direct'` (no clarification needed) vs. `'clarification_resolved'`.
-- Clarification friction: `clarification_required` counts by
-  `clarificationKind` show which entity (`wallet`/`merchant`/`category`) or
-  provider-text path drives clarification most often;
-  `clarification_cancelled` (same `clarificationKind` field) shows abandonment
-  rather than completion.
-- Edit rate at confirm: `draft_confirmed`'s `overridesUsed` boolean shows how
-  often a user corrects the draft before confirming, without exposing which
-  field or value changed.
-- `draft_expired` only fires when the existing lazy expiry check inside
-  `confirm()`/`cancel()` actually detects an expired draft — it is not a
-  live/polled expiry count, so it under-reports drafts that expire without
-  ever being confirmed or cancelled again (no worker closes that gap, by
-  design — see `.claude/skills/assistant-core.skill.md` §9 Pending Financial
-  Draft).
+Since Phase 35.1 capture events are **persisted rows**, not stdout lines: the
+`assistant_capture_events` table, written by the single emitter in
+`src/assistant/capture-events.ts` from the service layer, so Web and Telegram
+emit identically (`source` = `WEB`/`TELEGRAM`). The Phase 35
+`assistant.capture.*` log lines were removed — one emitter, one taxonomy.
+
+- Taxonomy (`event_type`): `CLARIFICATION_REQUESTED` (`fields`: the asked
+  field, `SOURCE_WALLET`/`DESTINATION_WALLET` for transfers; `origin`),
+  `CLARIFICATION_RESOLVED`, `CLARIFICATION_CANCELLED`, `DRAFT_CREATED`
+  (`origin` `DIRECT`/`AFTER_CLARIFICATION`), `DRAFT_EDITED` (`fields`
+  actually changed at confirm), `DRAFT_CONFIRMED`, `DRAFT_CANCELLED`,
+  `DRAFT_EXPIRED` (only when the lazy expiry transition happens),
+  `DRAFT_FAILED`.
+- Rows carry closed enums, `schema_version`, `phase_marker`
+  (`CAPTURE_PHASE_MARKER` — bump it in the phase that changes capture
+  behavior), and `correlation_key` = sha256 of the draft/clarification/turn
+  id. Never text, amounts, names, aliases, or user/row ids.
+- Emission never fails a request: it runs after the financial transaction
+  commits, swallows errors (`assistant.capture.persist_failed` warn), and is
+  idempotent via `UNIQUE (event_type, correlation_key)` + `ON CONFLICT DO NOTHING`.
+- Retention: 180 days, purged opportunistically by the emitter (at most once
+  per hour per process) — no cron exists in this repo.
+- Report (read-only): `npx ts-node src/scripts/captureReport.ts
+  [--from=YYYY-MM-DD] [--to=YYYY-MM-DD] [--min-samples=30] [--json]` — the
+  five Phase 39 metrics per source × phase marker, `INSUFFICIENT DATA` below
+  the sample threshold. Drafts with no terminal event past the 15-minute TTL
+  are reported as "abandoned past TTL" (lazy expiry never wrote them).
 
 ---
 

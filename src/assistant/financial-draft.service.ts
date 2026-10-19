@@ -8,6 +8,8 @@ import { logEvent } from '../utils/logger';
 import { AssistantError } from './errors';
 import { ASSISTANT_FINANCIAL_DRAFT_TTL_MS, renderTransactionDraftPreview, validateIdempotencyKey } from './financial-draft';
 import type { TransactionCreateInput } from './tools';
+import type { AssistantCaptureField } from '../generated/prisma/client';
+import type { CaptureEventEmitter } from './capture-events';
 
 const CONFIRM_INTENT = 'transaction.create.confirm';
 const CANCEL_INTENT = 'transaction.create.cancel';
@@ -78,7 +80,10 @@ export function createAssistantFinancialDraftService(
     inferCategoryId?: (userId: string, type: 'INCOME' | 'EXPENSE', hint: string | undefined, tx?: Prisma.TransactionClient) => Promise<string | undefined>;
   },
   clock: () => Date = () => new Date(),
+  captureEvents?: CaptureEventEmitter,
 ) {
+  const emit: CaptureEventEmitter = captureEvents ?? (async () => undefined);
+
   async function prepare(input: DraftReadyTransactionInput & { walletDisplayLabel?: string; toWalletDisplayLabel?: string; merchantDisplayLabel?: string; userId: string; conversationId: string; turnId: string; executionId: string; now?: Date; transaction?: Prisma.TransactionClient }) {
     const client = input.transaction ?? db;
     const isTransfer = input.type === 'TRANSFER';
@@ -135,6 +140,8 @@ export function createAssistantFinancialDraftService(
     const key = validateIdempotencyKey(keyValue);
     // Resolve deps lazily — supports deferred wiring to break the circular dependency with application service.
     const resolvedDeps = typeof deps === 'function' ? deps() : deps;
+    // Filled inside the transaction, emitted only after it commits (Phase 35.1).
+    let editedFields: AssistantCaptureField[] = [];
     try {
       const result = await db.$transaction(async (tx) => {
         await tx.$queryRaw(Prisma.sql`SELECT pg_advisory_xact_lock(hashtextextended(${draftId}, 0))::text AS "lock"`);
@@ -245,6 +252,17 @@ export function createAssistantFinancialDraftService(
         // 3. Parse and validate date
         const parsedDate = parseBusinessDate(effectiveDate, reportingConfig.timezone);
 
+        // Capture-event bookkeeping only (Phase 35.1): which overrides actually
+        // changed a draft value. Read-only — never feeds the transaction below.
+        editedFields = [
+          ...(overrides?.amount !== undefined && !effectiveAmount.equals(draft.amount) ? ['AMOUNT' as const] : []),
+          ...(overrides?.walletId !== undefined && effectiveWalletId !== draft.walletId ? [isTransfer ? 'SOURCE_WALLET' as const : 'WALLET' as const] : []),
+          ...(overrides?.toWalletId !== undefined && effectiveToWalletId !== draft.toWalletId ? ['DESTINATION_WALLET' as const] : []),
+          ...(overrides?.categoryId !== undefined && effectiveCategoryId !== draft.categoryId ? ['CATEGORY' as const] : []),
+          ...(descriptionChanged ? ['DESCRIPTION' as const] : []),
+          ...(overrides?.date !== undefined && overrides.date !== formatReportingDate(draft.transactionDate, reportingConfig.timezone) ? ['DATE' as const] : []),
+        ];
+
         // ---- Build canonical transaction input ----
         const turn = await tx.assistantTurn.create({ data: { conversationId: draft.conversationId, correlationId, intent: CONFIRM_INTENT, locale: 'id-ID', status: 'RUNNING' } });
         await tx.assistantMessage.create({ data: { conversationId: draft.conversationId, turnId: turn.id, role: 'USER', source: 'CANONICAL_FALLBACK', content: `Konfirmasi draft transaksi ${draft.id}.` } });
@@ -281,7 +299,15 @@ export function createAssistantFinancialDraftService(
         );
         return { draftId: draft.id, status: 'COMMITTED' as const, transactionId: created.id, conversationId: draft.conversationId, turnId: turn.id, idempotencyOutcome: 'new' as const };
       });
-      if ('error' in result) throw result.error;
+      if ('error' in result) {
+        // Only reachable after the lazy EXPIRED transition committed above.
+        await emit({ type: 'DRAFT_EXPIRED', entityId: draftId });
+        throw result.error;
+      }
+      if (result.idempotencyOutcome === 'new') {
+        if (editedFields.length > 0) await emit({ type: 'DRAFT_EDITED', entityId: draftId, fields: editedFields });
+        await emit({ type: 'DRAFT_CONFIRMED', entityId: draftId });
+      }
       return result;
     } catch (error) {
       if (error instanceof AssistantError) throw error;
@@ -309,9 +335,9 @@ export function createAssistantFinancialDraftService(
         // raced to some other terminal state), and the write itself is
         // translated against the same conversation-delete TOCTOU as the
         // EXPIRED transition above, for the same reason.
-        await db.$transaction(async (tx) => {
+        const failed = await db.$transaction(async (tx) => {
           const draft = await tx.assistantFinancialDraft.findFirst({ where: { id: draftId, userId, status: 'PENDING_CONFIRMATION' } });
-          if (!draft) return;
+          if (!draft) return false;
           const now = new Date();
           const turn = await tx.assistantTurn.create({ data: { conversationId: draft.conversationId, correlationId, intent: CONFIRM_INTENT, locale: 'id-ID', status: 'FAILED', safeErrorCode: error.code, finishedAt: now } });
           await tx.assistantMessage.create({ data: { conversationId: draft.conversationId, turnId: turn.id, role: 'USER', source: 'CANONICAL_FALLBACK', content: `Konfirmasi draft transaksi ${draft.id}.` } });
@@ -324,7 +350,9 @@ export function createAssistantFinancialDraftService(
             () => tx.assistantConversation.update({ where: { id: draft.conversationId }, data: { lastActivityAt: now } }),
             { P2025: () => logEvent('warn', { event: 'assistant.conversation_race_skip', stage: 'financialDraft.confirm.failed', conversationId: draft.conversationId, draftId: draft.id }) },
           );
+          return true;
         });
+        if (failed) await emit({ type: 'DRAFT_FAILED', entityId: draftId });
         throw error;
       }
       throw error;
@@ -332,6 +360,14 @@ export function createAssistantFinancialDraftService(
   }
 
   async function cancel(userId: string, draftId: string, correlationId: string) {
+    const result = await cancelInTransaction(userId, draftId, correlationId);
+    // A fresh cancel carries turnId; a repeated cancel-of-cancelled does not.
+    if (result.status === 'EXPIRED') await emit({ type: 'DRAFT_EXPIRED', entityId: draftId });
+    else if ('turnId' in result) await emit({ type: 'DRAFT_CANCELLED', entityId: draftId });
+    return result;
+  }
+
+  async function cancelInTransaction(userId: string, draftId: string, correlationId: string) {
     return db.$transaction(async (tx) => {
       await tx.$queryRaw(Prisma.sql`SELECT pg_advisory_xact_lock(hashtextextended(${draftId}, 0))::text AS "lock"`);
       let draft = await tx.assistantFinancialDraft.findFirst({ where: { id: draftId, userId } });

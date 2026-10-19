@@ -83,21 +83,21 @@ function normalizeTransactionCreateArguments(argumentsValue: Record<string, unkn
   return normalized;
 }
 
-function missingRequiredArgumentQuestion(intent: string, argumentsValue: Record<string, unknown>, required: readonly string[]): string | null {
+function missingRequiredArgumentQuestion(intent: string, argumentsValue: Record<string, unknown>, required: readonly string[]): { question: string; field?: 'AMOUNT' | 'WALLET' | 'TYPE' } | null {
   const missing = required.find((key) => {
     const value = argumentsValue[key];
     return value === null || value === undefined || (typeof value === 'string' && !value.trim());
   });
   if (!missing) return null;
   if (intent === 'transaction.create') {
-    if (missing === 'amount') return SAFE_AMOUNT_CLARIFICATION;
-    if (missing === 'walletReference') return SAFE_WALLET_CLARIFICATION;
-    if (missing === 'type') return SAFE_TYPE_CLARIFICATION;
+    if (missing === 'amount') return { question: SAFE_AMOUNT_CLARIFICATION, field: 'AMOUNT' };
+    if (missing === 'walletReference') return { question: SAFE_WALLET_CLARIFICATION, field: 'WALLET' };
+    if (missing === 'type') return { question: SAFE_TYPE_CLARIFICATION, field: 'TYPE' };
   }
   if (intent === 'analytics.monthly-spending-summary' && missing === 'month') {
-    return SAFE_MONTH_CLARIFICATION;
+    return { question: SAFE_MONTH_CLARIFICATION };
   }
-  return SAFE_CLARIFICATION;
+  return { question: SAFE_CLARIFICATION };
 }
 
 export function validateAssistantPlan(output: unknown, registry: ToolRegistry): AssistantPlan {
@@ -120,7 +120,7 @@ export function validateAssistantPlan(output: unknown, registry: ToolRegistry): 
     if (output.intent === 'transaction.create') {
       const normalized = normalizeTransactionCreateArguments(output.arguments);
       if (normalized === null) {
-        return { kind: 'clarification', question: SAFE_AMOUNT_CLARIFICATION };
+        return { kind: 'clarification', question: SAFE_AMOUNT_CLARIFICATION, field: 'AMOUNT' };
       }
       output.arguments = normalized;
     }
@@ -130,7 +130,7 @@ export function validateAssistantPlan(output: unknown, registry: ToolRegistry): 
       invalid();
     }
     const requiredQuestion = missingRequiredArgumentQuestion(output.intent, providerArguments, contract.providerArguments.required);
-    if (requiredQuestion) return { kind: 'clarification', question: requiredQuestion };
+    if (requiredQuestion) return { kind: 'clarification', ...requiredQuestion };
     let validatedArguments: unknown;
     try {
       validatedArguments = contract.validateInput(providerArguments);

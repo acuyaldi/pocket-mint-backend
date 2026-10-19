@@ -45,36 +45,6 @@ function draftWasCreated(response) {
     const value = response;
     return value.status === 'success' && value.data?.confirmationRequired === true;
 }
-/** Closed allowlist for the bounded clarification-kind log label — never widened to an arbitrary string from a response payload. */
-const CLARIFICATION_KINDS = new Set(['wallet', 'merchant', 'category', 'transaction_fields', 'provider_text']);
-/** Bounded clarification-kind label only ('wallet'/'merchant'/'category'/'transaction_fields'/'provider_text') — never the prompt text or options. */
-function clarificationKindOf(response) {
-    if (typeof response !== 'object' || response === null)
-        return undefined;
-    const value = response;
-    if (value.status !== 'clarification_required')
-        return undefined;
-    if (value.data?.kind === 'entity_selection' && typeof value.data.entityType === 'string' && CLARIFICATION_KINDS.has(value.data.entityType)) {
-        return value.data.entityType;
-    }
-    return 'provider_text';
-}
-/**
- * Privacy-safe capture-quality signals (Phase 35) — fired alongside the
- * existing ops events above, never in place of them. Only a bounded
- * outcome/kind/source label ever leaves this function; never message text,
- * amounts, wallet/category ids, or any other draft/clarification content.
- */
-function logCaptureLifecycle(requestId, response, captureSource) {
-    if (draftWasCreated(response)) {
-        (0, logger_1.logEvent)('info', { event: 'assistant.capture.draft_created', requestId, captureSource });
-        return;
-    }
-    const clarificationKind = clarificationKindOf(response);
-    if (clarificationKind) {
-        (0, logger_1.logEvent)('info', { event: 'assistant.capture.clarification_required', requestId, clarificationKind });
-    }
-}
 /** Strict body for clarification continuation — either one option token or one guided fields object. */
 function selectClarificationRequest(body) {
     if (typeof body !== 'object' || body === null || Array.isArray(body))
@@ -159,8 +129,6 @@ function createAssistantControllers(application, conversations, drafts, provider
                 idempotencyOutcome,
                 idempotentReplay: idempotencyOutcome === 'replay',
             });
-            if (idempotencyOutcome !== 'replay')
-                logCaptureLifecycle(req.correlationId, result.response, 'direct');
             if (result.response.status === 'success')
                 return (0, response_1.sendSuccess)(res, result.response, 'Assistant executed successfully');
             res.status(result.httpStatus).json({ success: false, error: { ...result.response, statusCode: result.httpStatus } });
@@ -199,8 +167,6 @@ function createAssistantControllers(application, conversations, drafts, provider
                 idempotencyOutcome,
                 idempotentReplay: idempotencyOutcome === 'replay',
             });
-            if (idempotencyOutcome !== 'replay')
-                logCaptureLifecycle(req.correlationId, result.response, 'direct');
             if (result.response.status === 'error' || result.response.status === 'rejected') {
                 return void res.status(result.httpStatus).json({
                     success: false,
@@ -322,20 +288,10 @@ function createAssistantControllers(application, conversations, drafts, provider
                 idempotencyOutcome,
                 idempotentReplay: idempotencyOutcome === 'replay',
             });
-            if (idempotencyOutcome !== 'replay') {
-                (0, logger_1.logEvent)('info', {
-                    event: 'assistant.capture.draft_confirmed',
-                    requestId: req.correlationId,
-                    overridesUsed: overrides !== undefined,
-                });
-            }
             (0, response_1.sendSuccess)(res, result, 'Financial draft confirmed');
         }
         catch (error) {
             (0, logger_1.logEvent)('warn', { event: 'assistant.draft.confirmed', requestId: req.correlationId, durationMs: elapsed(), outcome: 'failed', errorCategory: (0, errorCategory_1.categorizeError)(error) });
-            if ((0, errorCategory_1.categorizeError)(error) === 'expired') {
-                (0, logger_1.logEvent)('info', { event: 'assistant.capture.draft_expired', requestId: req.correlationId });
-            }
             (0, forwardError_1.forwardError)(error, res, next);
         }
     }
@@ -349,12 +305,6 @@ function createAssistantControllers(application, conversations, drafts, provider
                 return (0, response_1.sendError)(res, 'Assistant financial drafts unavailable', 503);
             const result = await drafts.cancel(userId, routeId(req.params.draftId), req.correlationId);
             (0, logger_1.logEvent)('info', { event: 'assistant.draft.cancelled', requestId: req.correlationId, durationMs: elapsed(), outcome: result.status });
-            if (result.status === 'EXPIRED') {
-                (0, logger_1.logEvent)('info', { event: 'assistant.capture.draft_expired', requestId: req.correlationId });
-            }
-            else if (result.status === 'CANCELLED' && 'turnId' in result) {
-                (0, logger_1.logEvent)('info', { event: 'assistant.capture.draft_cancelled', requestId: req.correlationId });
-            }
             (0, response_1.sendSuccess)(res, result, 'Financial draft cancelled');
         }
         catch (error) {
@@ -385,7 +335,6 @@ function createAssistantControllers(application, conversations, drafts, provider
                 chainedClarification: result.response.status === 'clarification_required',
                 draftCreated: draftWasCreated(result.response),
             });
-            logCaptureLifecycle(req.correlationId, result.response, 'clarification_resolved');
             if (result.response.status === 'error' || result.response.status === 'rejected') {
                 return void res.status(result.httpStatus).json({ success: false, error: { ...result.response, statusCode: result.httpStatus } });
             }
@@ -412,15 +361,6 @@ function createAssistantControllers(application, conversations, drafts, provider
                 outcome: result.response.status,
                 httpStatus: result.httpStatus,
             });
-            if (result.response.status === 'success') {
-                const value = result.response.data;
-                const clarificationKind = typeof value?.entityType === 'string' && CLARIFICATION_KINDS.has(value.entityType) ? value.entityType : undefined;
-                (0, logger_1.logEvent)('info', {
-                    event: 'assistant.capture.clarification_cancelled',
-                    requestId: req.correlationId,
-                    clarificationKind,
-                });
-            }
             if (result.response.status === 'error' || result.response.status === 'rejected') {
                 return void res.status(result.httpStatus).json({ success: false, error: { ...result.response, statusCode: result.httpStatus } });
             }

@@ -26,6 +26,7 @@ const config_1 = require("../config");
 const gemini_provider_1 = require("./providers/gemini.provider");
 const provider_audit_service_1 = require("./provider-audit.service");
 const provider_runtime_1 = require("./provider-runtime");
+const capture_events_1 = require("./capture-events");
 const entity_resolution_1 = require("./entity-resolution");
 /** The application-wide tool registry. Populated at startup. */
 exports.toolRegistry = new registry_1.ToolRegistry();
@@ -41,12 +42,14 @@ exports.entityResolverRegistry.register((0, entity_resolution_1.createMerchantRe
 exports.entityResolverRegistry.register((0, entity_resolution_1.createCategoryResolver)(prisma_1.default));
 exports.entityResolverRegistry.finalize();
 exports.assistantConversationService = (0, conversation_service_1.createAssistantConversationService)(prisma_1.default);
+/** The one capture-event emitter (Phase 35.1), shared by every Assistant service below. */
+const captureEvents = (0, capture_events_1.createCaptureEventEmitter)(prisma_1.default);
 exports.assistantContextService = (0, context_service_1.createAssistantContextService)(prisma_1.default);
 // Lazy wiring: `inferCategoryId` lives on the application service, but the draft
 // service needs it for description-change re-inference during confirm. Resolve at
 // runtime to avoid a circular module dependency.
 let inferCategoryIdForDrafts;
-exports.assistantFinancialDraftService = (0, financial_draft_service_1.createAssistantFinancialDraftService)(prisma_1.default, transaction_service_1.transactionService, () => ({ inferCategoryId: inferCategoryIdForDrafts }));
+exports.assistantFinancialDraftService = (0, financial_draft_service_1.createAssistantFinancialDraftService)(prisma_1.default, transaction_service_1.transactionService, () => ({ inferCategoryId: inferCategoryIdForDrafts }), undefined, captureEvents);
 exports.entityResolutionService = (0, entity_resolution_1.createEntityResolutionService)(exports.entityResolverRegistry);
 exports.clarificationService = (0, clarification_service_1.createClarificationService)(prisma_1.default);
 exports.assistantApplicationService = (0, application_service_1.createAssistantApplicationService)({
@@ -58,6 +61,7 @@ exports.assistantApplicationService = (0, application_service_1.createAssistantA
     entityResolution: exports.entityResolutionService,
     clarification: exports.clarificationService,
     categorization: categorization_service_1.categorizationService,
+    captureEvents,
 });
 // Wire the deferred dependency now that application service exists.
 inferCategoryIdForDrafts = exports.assistantApplicationService.inferCategoryId;
@@ -76,6 +80,7 @@ exports.assistantProviderRuntime = config_1.assistantProviderConfig.enabled
         audit: exports.assistantProviderAuditService,
         toolRegistry: exports.toolRegistry,
         timeoutMs: config_1.assistantProviderConfig.timeoutMs,
+        captureEvents,
     })
     : undefined;
 //# sourceMappingURL=bootstrap.js.map
