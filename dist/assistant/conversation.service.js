@@ -7,6 +7,22 @@ const errors_1 = require("./errors");
 const persistence_1 = require("./persistence");
 const financial_draft_1 = require("./financial-draft");
 const prismaErrors_1 = require("../utils/prismaErrors");
+const logger_1 = require("../utils/logger");
+/**
+ * Phase 37.4 — a concurrent `deleteOwnedConversation` cascade-deletes this
+ * conversation's turns/messages/tool-executions mid-flight. Unlike group 1's
+ * CRUD (archive/restore/delete, Phase 37.2, which answers "404 if gone"),
+ * these are internal bookkeeping writes at the end of processing a request
+ * that may already have produced its real result elsewhere — throwing here
+ * would turn an otherwise-successful response into an error over an
+ * unrelated concurrent delete. Decision (docs/assistant-stuck-states.md):
+ * no-op, never throw, structured warn log with ids only, never message
+ * content. `stage` names the call site so these are easy to tell apart in
+ * logs.
+ */
+function logConversationRaceSkip(stage, ids) {
+    (0, logger_1.logEvent)('warn', { event: 'assistant.conversation_race_skip', stage, ...ids });
+}
 /** Fixed, deterministic display order — also dedupes since each channel appears at most once. */
 const CHANNEL_ORDER = ['WEB', 'TELEGRAM'];
 const sourceChannelsOf = (channels) => CHANNEL_ORDER.filter((channel) => channels.includes(channel));
@@ -62,32 +78,61 @@ function createAssistantConversationService(db) {
     }
     async function beginTurn(input) {
         (0, persistence_1.assertAssistantMessageLength)(input.content);
-        return db.$transaction(async (tx) => {
-            let conversationId = input.conversationId;
-            if (conversationId) {
-                const conversation = await tx.assistantConversation.findFirst({ where: { id: conversationId, userId: input.userId } });
-                if (!conversation)
-                    throw errors_1.AssistantError.conversationNotFound();
-                if (conversation.status !== 'ACTIVE')
-                    throw errors_1.AssistantError.conversationNotContinuable();
-            }
-            else {
-                const created = await tx.assistantConversation.create({ data: { userId: input.userId, locale: input.locale } });
-                conversationId = created.id;
-            }
-            const now = new Date();
-            const turn = await tx.assistantTurn.create({ data: {
-                    conversationId, correlationId: input.correlationId, intent: input.intent.slice(0, 255), locale: input.locale,
-                } });
-            await tx.assistantMessage.create({ data: {
-                    conversationId, turnId: turn.id, role: 'USER', source: input.source, content: input.content,
-                } });
-            await tx.assistantConversation.update({ where: { id: conversationId }, data: { lastActivityAt: now, locale: input.locale } });
-            return { conversationId, turnId: turn.id };
-        });
+        try {
+            return await db.$transaction(async (tx) => {
+                let conversationId = input.conversationId;
+                if (conversationId) {
+                    const conversation = await tx.assistantConversation.findFirst({ where: { id: conversationId, userId: input.userId } });
+                    if (!conversation)
+                        throw errors_1.AssistantError.conversationNotFound();
+                    if (conversation.status !== 'ACTIVE')
+                        throw errors_1.AssistantError.conversationNotContinuable();
+                }
+                else {
+                    const created = await tx.assistantConversation.create({ data: { userId: input.userId, locale: input.locale } });
+                    conversationId = created.id;
+                }
+                const now = new Date();
+                // Phase 37.4 — `correlationId` is unique; a retried call with the
+                // SAME correlationId (e.g. an upstream retry) races this create.
+                // Unlike a P2025 (zero rows on an UPDATE, a "soft" Prisma-level
+                // decision), a unique-constraint violation is a genuine Postgres
+                // error that poisons the current transaction — no further query
+                // can run on `tx` until it rolls back. So P2002 here is left to
+                // propagate and abort this $transaction entirely; the
+                // read-and-return-existing recovery (consistent with Phase 27's
+                // idempotency-key replay semantics) happens in the outer catch
+                // below, against the plain `db` connection, after rollback.
+                const turn = await tx.assistantTurn.create({ data: {
+                        conversationId, correlationId: input.correlationId, intent: input.intent.slice(0, 255), locale: input.locale,
+                    } });
+                await tx.assistantMessage.create({ data: {
+                        conversationId, turnId: turn.id, role: 'USER', source: input.source, content: input.content,
+                    } });
+                await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => tx.assistantConversation.update({ where: { id: conversationId }, data: { lastActivityAt: now, locale: input.locale } }), { P2025: () => logConversationRaceSkip('beginTurn', { conversationId, turnId: turn.id }) });
+                return { conversationId, turnId: turn.id };
+            });
+        }
+        catch (err) {
+            if (err.code !== 'P2002')
+                throw err;
+            // The transaction above already rolled back (Postgres aborts on a
+            // real constraint violation) — safe to query fresh now. Only a
+            // replay of the SAME logical request is granted: the existing turn
+            // must belong to the exact conversationId the caller asked for. A
+            // caller that asked for a brand-new conversation (no conversationId)
+            // has nothing to verify ownership against, so that case is always a
+            // genuine conflict, never guessed into a replay.
+            if (!input.conversationId)
+                throw errors_1.AssistantError.idempotencyConflict();
+            const existing = await db.assistantTurn.findUnique({ where: { correlationId: input.correlationId } });
+            if (!existing || existing.conversationId !== input.conversationId)
+                throw errors_1.AssistantError.idempotencyConflict();
+            return { conversationId: existing.conversationId, turnId: existing.id };
+        }
     }
     async function markTurnRunning(turnId) {
-        await db.assistantTurn.update({ where: { id: turnId }, data: { status: 'RUNNING' } });
+        await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => db.assistantTurn.update({ where: { id: turnId }, data: { status: 'RUNNING' } }), { P2025: () => logConversationRaceSkip('markTurnRunning', { turnId }) });
     }
     async function beginToolExecution(input) {
         const row = await db.assistantToolExecution.create({ data: { ...input, status: 'RUNNING' } });
@@ -115,19 +160,36 @@ function createAssistantConversationService(db) {
                 } });
             await tx.assistantConversation.update({ where: { id: input.conversationId }, data: { lastActivityAt: now } });
         };
-        if (options.transaction)
+        // Phase 37.4 — a concurrent deleteOwnedConversation can cascade-delete
+        // the turn/tool-execution/conversation rows this writes to, at any
+        // point during `work`. No-op, never throw (see logConversationRaceSkip
+        // above) — but ONLY when this function opened and controls the
+        // transaction itself: a throw from `db.$transaction(work)`'s own
+        // callback is guaranteed to roll back everything `work` did, so
+        // swallowing the rejection afterward is safe (nothing partial survives).
+        // When the caller supplied its OWN transaction (`options.transaction`),
+        // this function is just one participant in an ambient transaction it
+        // does not control the commit/rollback of — swallowing here would let
+        // this write silently no-op while every other write already made in
+        // that same transaction still commits. No current caller in this
+        // codebase passes `options.transaction` to finalize(), but this must
+        // stay correct if one ever does: let it propagate so the caller's own
+        // transaction aborts instead (security review, Phase 37.4).
+        if (options.transaction) {
             await work(options.transaction);
-        else
-            await db.$transaction(work);
+            return;
+        }
+        await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => db.$transaction(work), { P2025: () => logConversationRaceSkip('finalize', { conversationId: input.conversationId, turnId: input.turnId }) });
     }
     async function finalizeRejected(input) {
         (0, persistence_1.assertAssistantMessageLength)(input.content);
-        await db.$transaction(async (tx) => {
+        // Same race-shape and no-op decision as finalize() above.
+        await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => db.$transaction(async (tx) => {
             const now = new Date();
             await tx.assistantMessage.create({ data: { conversationId: input.conversationId, turnId: input.turnId, role: 'ASSISTANT', source: 'SAFE_ERROR', content: input.content } });
             await tx.assistantTurn.update({ where: { id: input.turnId }, data: { status: 'REJECTED', safeErrorCode: input.safeErrorCode, finishedAt: now } });
             await tx.assistantConversation.update({ where: { id: input.conversationId }, data: { lastActivityAt: now } });
-        });
+        }), { P2025: () => logConversationRaceSkip('finalizeRejected', { conversationId: input.conversationId, turnId: input.turnId }) });
     }
     async function finalizeWithoutTool(input, options = {}) {
         (0, persistence_1.assertAssistantMessageLength)(input.assistantContent);
@@ -147,10 +209,13 @@ function createAssistantConversationService(db) {
                 } });
             await tx.assistantConversation.update({ where: { id: input.conversationId }, data: { lastActivityAt: now } });
         };
-        if (options.transaction)
+        // Same race-shape, and the same options.transaction carve-out, as
+        // finalize() above (security review, Phase 37.4).
+        if (options.transaction) {
             await work(options.transaction);
-        else
-            await db.$transaction(work);
+            return;
+        }
+        await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => db.$transaction(work), { P2025: () => logConversationRaceSkip('finalizeWithoutTool', { conversationId: input.conversationId, turnId: input.turnId }) });
     }
     async function listOwnedConversations(userId, page, limit) {
         const p = pageArgs(page, limit);

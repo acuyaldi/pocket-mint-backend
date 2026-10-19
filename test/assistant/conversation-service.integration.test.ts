@@ -416,4 +416,135 @@ describe.skipIf(!url)('Assistant conversation service (disposable PostgreSQL)', 
       expect(rejected[0].reason).toMatchObject({ code: 'ASSISTANT_CONVERSATION_NOT_FOUND', statusCode: 404, isOperational: true });
     });
   });
+
+  // Phase 37.4 — the "deliberately not touched" sites from Phase 37.2's PR:
+  // a concurrent deleteOwnedConversation races the turn-finalize family's
+  // own bookkeeping writes. Decision: no-op + structured warn log, never
+  // throw (docs/assistant-stuck-states.md).
+  describe('Phase 37.4 — turn-finalize family: conversation-delete races never throw', () => {
+    it('beginTurn: retried with the same correlationId reads back the existing turn instead of erroring, and creates no duplicate message', async () => {
+      const owner = await user('374-begin-turn-replay');
+      const correlationId = `corr-374-replay-${Date.now()}`;
+      const first = await service().beginTurn({ userId: owner, correlationId, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' });
+
+      const results = await Promise.all([
+        service().beginTurn({ userId: owner, conversationId: first.conversationId, correlationId, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' }),
+        service().beginTurn({ userId: owner, conversationId: first.conversationId, correlationId, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' }),
+      ]);
+
+      for (const r of results) {
+        expect(r.turnId).toBe(first.turnId);
+        expect(r.conversationId).toBe(first.conversationId);
+      }
+      expect(await db().assistantTurn.count({ where: { correlationId } })).toBe(1);
+      // No duplicate USER message from the replayed attempts.
+      expect(await db().assistantMessage.count({ where: { turnId: first.turnId, role: 'USER' } })).toBe(1);
+    });
+
+    it('beginTurn: a correlationId collision pointing at a DIFFERENT conversation is a genuine conflict, never silently replayed', async () => {
+      const owner = await user('374-begin-turn-conflict');
+      const correlationId = `corr-374-conflict-${Date.now()}`;
+      const first = await service().beginTurn({ userId: owner, correlationId, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' });
+
+      // No conversationId given — this call would start a brand-new
+      // conversation, so a matching correlationId here is a real collision,
+      // not a replay of the same logical request.
+      await expect(
+        service().beginTurn({ userId: owner, correlationId, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' }),
+      ).rejects.toMatchObject({ code: 'ASSISTANT_IDEMPOTENCY_CONFLICT' });
+      expect(await db().assistantTurn.count({ where: { correlationId } })).toBe(1);
+      void first;
+    });
+
+    it('markTurnRunning: the conversation (and its cascaded turn) already gone never surfaces as a raw error', async () => {
+      const owner = await user('374-mark-turn-running');
+      const turn = await service().beginTurn({ userId: owner, correlationId: `corr-374-mtr-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' });
+
+      const results = await Promise.allSettled([
+        service().deleteOwnedConversation(owner, turn.conversationId),
+        service().markTurnRunning(turn.turnId),
+      ]);
+
+      // Whichever actually won: deleteOwnedConversation never throws an
+      // unexpected shape, and markTurnRunning NEVER throws at all — it is a
+      // pure no-op when the turn is already gone.
+      expect(results[0].status).toBe('fulfilled');
+      expect(results[1].status).toBe('fulfilled');
+      expect(await db().assistantTurn.findUnique({ where: { id: turn.turnId } })).toBeNull();
+    });
+
+    // Deterministic version of the above, forcing the exact regression:
+    // the conversation (and cascaded turn) genuinely still exists when
+    // markTurnRunning is called, but has just been deleted for real
+    // immediately beforehand — the same TOCTOU window a concurrent
+    // deleteOwnedConversation could land in, pinned without depending on
+    // real timing.
+    it('markTurnRunning: a turn deleted immediately beforehand resolves without throwing (no-op)', async () => {
+      const owner = await user('374-mark-turn-running-forced');
+      const turn = await service().beginTurn({ userId: owner, correlationId: `corr-374-mtr-forced-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'SAFE_REQUEST_SUMMARY' });
+      await service().deleteOwnedConversation(owner, turn.conversationId);
+
+      await expect(service().markTurnRunning(turn.turnId)).resolves.toBeUndefined();
+    });
+
+    // finalize()/finalizeRejected()/finalizeWithoutTool() share the exact
+    // same shape (assertAssistantMessageLength → multi-write $transaction →
+    // withPrismaErrorSwallowed around the whole thing) — finalizeWithoutTool
+    // is exercised here as the representative case; the other two reuse the
+    // identical, already-unit-tested `withPrismaErrorSwallowed` helper
+    // around the identical statement sequence.
+    //
+    // Deleting the conversation BEFOREHAND (like markTurnRunning's test
+    // above) does not exercise the right regression here: the FIRST write
+    // in this function is a `assistantMessage.create` referencing the
+    // conversation, which would fail with a FK violation (P2003) if the
+    // conversation were already gone — a different error, already
+    // correctly unhandled-and-propagated, not what this fix targets. The
+    // real regression needs the conversation to still exist through the
+    // message create and turn update, and vanish only before the FINAL
+    // `assistantConversation.update` — so this forces that specific
+    // window: it deletes the conversation for real, from inside this same
+    // transaction, immediately before that last call (same technique as
+    // the wallet-vanishes-on-update test in financial-draft.integration.test.ts).
+    it('finalizeWithoutTool: the conversation vanishing right before the final touch resolves without throwing (no-op)', async () => {
+      const owner = await user('374-finalize-without-tool');
+      const turn = await service().beginTurn({ userId: owner, correlationId: `corr-374-fwt-${Date.now()}`, intent: 'x', locale: 'id-ID', content: 'safe', source: 'USER_PROVIDED' });
+
+      const racyService = createAssistantConversationService({
+        $transaction: (work: (tx: unknown) => Promise<unknown>) =>
+          db().$transaction(async (realTx) => {
+            const racyConversation = new Proxy(realTx.assistantConversation, {
+              get(t, prop) {
+                if (prop === 'update') {
+                  return async (args: { where: { id: string } }) => {
+                    if (args.where.id === turn.conversationId) {
+                      await realTx.assistantConversation.delete({ where: { id: turn.conversationId } });
+                    }
+                    return realTx.assistantConversation.update(args);
+                  };
+                }
+                const value = (t as unknown as Record<string, unknown>)[prop as string];
+                return typeof value === 'function' ? (value as (...a: unknown[]) => unknown).bind(t) : value;
+              },
+            });
+            const wrappedTx = new Proxy(realTx, {
+              get(t, prop) {
+                if (prop === 'assistantConversation') return racyConversation;
+                const value = (t as unknown as Record<string, unknown>)[prop as string];
+                return typeof value === 'function' ? (value as (...a: unknown[]) => unknown).bind(t) : value;
+              },
+            });
+            return work(wrappedTx);
+          }),
+      } as unknown as Parameters<typeof createAssistantConversationService>[0]);
+
+      await expect(racyService.finalizeWithoutTool({ ...turn, turnStatus: 'SUCCEEDED', assistantContent: 'balas', assistantSource: 'DETERMINISTIC_RENDERER' })).resolves.toBeUndefined();
+      // The whole transaction rolled back (the forced delete included) once
+      // the real update hit a genuine P2025 and was swallowed — the
+      // conversation, turn, and message are exactly as they were before
+      // this call, not partially updated.
+      expect(await db().assistantConversation.findUnique({ where: { id: turn.conversationId } })).not.toBeNull();
+      expect((await db().assistantTurn.findUniqueOrThrow({ where: { id: turn.turnId } })).status).not.toBe('SUCCEEDED');
+    });
+  });
 });

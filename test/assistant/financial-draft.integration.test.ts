@@ -599,4 +599,121 @@ describe.skipIf(!url)('Assistant financial drafts (disposable PostgreSQL)', () =
       expect((await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status).toBe('PENDING_CONFIRMATION');
     });
   });
+
+  // ---- Phase 37.4: wallet deleted concurrently during confirm ----------
+
+  describe('Phase 37.4 — a concurrent wallet delete during confirm never produces a FAILED draft or a partial transaction', () => {
+    it('(a) double confirm in parallel still produces exactly one transaction', async () => {
+      const { user, wallet, category } = await fixture('374-double-confirm');
+      const server = app();
+      const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+      const draftId = prepared.body.data.data.draftId;
+
+      const responses = await Promise.all([
+        request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', '374-double-confirm-a'),
+        request(server).post(`/drafts/${draftId}/confirm`).set('x-test-user', user.id).set('Idempotency-Key', '374-double-confirm-b'),
+      ]);
+
+      expect(responses.every((r) => r.status === 200)).toBe(true);
+      expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(1);
+      expect(new Set(responses.map((r) => r.body.data.transactionId)).size).toBe(1);
+    });
+
+    // (b)/(c) force the real TOCTOU deterministically, the same technique
+    // `test/walletAlias/walletAlias.integration.test.ts` uses for the
+    // Phase 37.1 race: a naive `Promise.all`/`Promise.allSettled` against a
+    // real local Postgres does NOT reliably reproduce it.
+    //
+    // The specific statement sequence matters: createTransaction resolves
+    // `client = options.transaction ?? db` and uses `client` for every
+    // query once confirm() calls it with `{ transaction: tx }` — so its own
+    // early `wallet.findFirst` ownership check, the `transaction.create`
+    // (which has a real FK to the wallet — deleting the wallet beforehand
+    // makes THIS fail with P2003, not the P2025 this fix targets), and the
+    // later `applyBalanceDeltas` `wallet.update` are all the SAME statement
+    // sequence inside the SAME transaction. A genuine P2025 on the update
+    // specifically requires the wallet to still exist through
+    // `transaction.create` and vanish only after. `racyDbWalletVanishesOnUpdate`
+    // forces exactly that: it passes every call straight through to the
+    // real transaction client (auto-bound — Prisma delegate methods need
+    // their own `this`, same reason the Phase 37.1 test explicitly
+    // `.bind()`s), except `wallet.update` on the target wallet, which first
+    // deletes that real row (inside this same transaction, right before
+    // the call that's supposed to balance it) and then calls the real
+    // update — which now genuinely matches zero rows and throws real P2025.
+    function racyDbWalletVanishesOnUpdate(walletId: string) {
+      return {
+        $transaction: (work: (tx: unknown) => Promise<unknown>) =>
+          resources!.prisma.$transaction(async (realTx) => {
+            const racyWallet = new Proxy(realTx.wallet, {
+              get(t, prop) {
+                if (prop === 'update') {
+                  return async (args: { where: { id: string } }) => {
+                    if (args.where.id === walletId) {
+                      await realTx.wallet.delete({ where: { id: walletId } });
+                    }
+                    return realTx.wallet.update(args);
+                  };
+                }
+                const value = (t as unknown as Record<string, unknown>)[prop as string];
+                return typeof value === 'function' ? (value as (...a: unknown[]) => unknown).bind(t) : value;
+              },
+            });
+            const wrappedTx = new Proxy(realTx, {
+              get(t, prop) {
+                if (prop === 'wallet') return racyWallet;
+                const value = (t as unknown as Record<string, unknown>)[prop as string];
+                return typeof value === 'function' ? (value as (...a: unknown[]) => unknown).bind(t) : value;
+              },
+            });
+            return work(wrappedTx);
+          }),
+      } as unknown as Parameters<typeof createAssistantFinancialDraftService>[0];
+    }
+
+    it('(b) a wallet deleted concurrently during confirm: 409, draft stays PENDING_CONFIRMATION, no partial transaction', async () => {
+      const { user, wallet, category } = await fixture('374-wallet-deleted');
+      const server = app();
+      const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+      const draftId = prepared.body.data.data.draftId;
+
+      const racyDrafts = createAssistantFinancialDraftService(racyDbWalletVanishesOnUpdate(wallet.id), createTransactionService(resources!.prisma));
+      const err = await racyDrafts.confirm(user.id, draftId, '374-wallet-deleted-key', 'corr-374-b').catch((e) => e);
+
+      expect(err).toMatchObject({ statusCode: 409, code: 'WALLET_CONCURRENTLY_MODIFIED', isOperational: true });
+      expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(0);
+      // The whole confirm transaction rolled back, including the forced
+      // delete — the wallet genuinely still exists afterward.
+      expect(await resources!.prisma.wallet.findUnique({ where: { id: wallet.id } })).not.toBeNull();
+      const draftAfter = await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } });
+      expect(draftAfter.status).toBe('PENDING_CONFIRMATION');
+      expect(draftAfter.transactionId).toBeNull();
+    });
+
+    it('(c) after (b), editing the draft to a different wallet and confirming again succeeds', async () => {
+      const { user, wallet, category } = await fixture('374-wallet-deleted-then-edit');
+      const server = app();
+      const prepared = await request(server).post('/execute').set('x-test-user', user.id).send(draftBody(wallet.id, category.id));
+      const draftId = prepared.body.data.data.draftId;
+
+      const racyDrafts = createAssistantFinancialDraftService(racyDbWalletVanishesOnUpdate(wallet.id), createTransactionService(resources!.prisma));
+      const failed = await racyDrafts.confirm(user.id, draftId, '374-edit-then-confirm-fail', 'corr-374-c-fail').catch((e) => e);
+      expect(failed).toMatchObject({ statusCode: 409, code: 'WALLET_CONCURRENTLY_MODIFIED' });
+      expect((await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } })).status).toBe('PENDING_CONFIRMATION');
+
+      // User edits the draft (Phase 34 override) to point at a new, real
+      // wallet and retries — using the NORMAL (non-racy) service, since
+      // this step isn't exercising a race, just recovery after one.
+      const replacementWallet = await resources!.prisma.wallet.create({ data: { userId: user.id, name: 'Dompet Baru', type: 'CASH', balance: 100000 } });
+      const normalDrafts = createAssistantFinancialDraftService(resources!.prisma, createTransactionService(resources!.prisma));
+      const retried = await normalDrafts.confirm(user.id, draftId, '374-edit-then-confirm-ok', 'corr-374-c-ok', { walletId: replacementWallet.id });
+
+      expect(retried.status).toBe('COMMITTED');
+      expect(await resources!.prisma.transaction.count({ where: { userId: user.id } })).toBe(1);
+      const committedDraft = await resources!.prisma.assistantFinancialDraft.findUniqueOrThrow({ where: { id: draftId } });
+      expect(committedDraft.status).toBe('COMMITTED');
+      const transaction = await resources!.prisma.transaction.findUniqueOrThrow({ where: { id: committedDraft.transactionId! } });
+      expect(transaction.walletId).toBe(replacementWallet.id);
+    });
+  });
 });

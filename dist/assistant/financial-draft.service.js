@@ -7,6 +7,7 @@ const reportingTime_1 = require("../domain/reportingTime");
 const transaction_errors_1 = require("../services/transaction.errors");
 const transaction_service_1 = require("../services/transaction.service");
 const prismaErrors_1 = require("../utils/prismaErrors");
+const logger_1 = require("../utils/logger");
 const errors_1 = require("./errors");
 const financial_draft_1 = require("./financial-draft");
 const CONFIRM_INTENT = 'transaction.create.confirm';
@@ -223,7 +224,14 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                 // No ASSISTANT chat bubble for confirm — the UI shows a toast instead.
                 await tx.assistantToolExecution.update({ where: { id: execution.id }, data: { status: 'SUCCEEDED', completedAt: now, outputSummary: { draftId: draft.id, transactionId: created.id, status: 'COMMITTED' } } });
                 await tx.assistantTurn.update({ where: { id: turn.id }, data: { status: 'SUCCEEDED', finishedAt: now } });
-                await tx.assistantConversation.update({ where: { id: draft.conversationId }, data: { lastActivityAt: now } });
+                // Phase 37.4 — a concurrent deleteOwnedConversation can cascade-delete
+                // the conversation between the draft-claim above and this touch. The
+                // draft is already COMMITTED and the transaction already created in
+                // THIS SAME transaction — losing a real financial commit over this
+                // last bookkeeping write would be far worse than skipping it, so
+                // no-op + log instead of throwing (same decision as the turn-finalize
+                // family in conversation.service.ts).
+                await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => tx.assistantConversation.update({ where: { id: draft.conversationId }, data: { lastActivityAt: now } }), { P2025: () => (0, logger_1.logEvent)('warn', { event: 'assistant.conversation_race_skip', stage: 'financialDraft.confirm.commit', conversationId: draft.conversationId, draftId: draft.id }) });
                 return { draftId: draft.id, status: 'COMMITTED', transactionId: created.id, conversationId: draft.conversationId, turnId: turn.id, idempotencyOutcome: 'new' };
             });
             if ('error' in result)
@@ -237,6 +245,17 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                 const existingKey = await db.assistantIdempotencyRecord.findUnique({ where: { userId_key: { userId, key } }, select: { draftId: true } });
                 if (existingKey && existingKey.draftId !== draftId)
                     throw errors_1.AssistantError.idempotencyConflict();
+            }
+            if (error instanceof transaction_errors_1.TransactionConcurrencyError) {
+                // Phase 37.4 — a transient concurrency race inside createTransaction
+                // (the wallet/category vanished between this confirm's own ownership
+                // checks and the write), NOT a genuine business failure. The whole
+                // confirm $transaction already rolled back, so the draft is
+                // untouched — still PENDING_CONFIRMATION. Deliberately rethrown
+                // as-is, before the TransactionError branch below, so it is never
+                // swept into FAILED: the user can edit the draft (Phase 34) to point
+                // at a different wallet/category and retry confirm.
+                throw error;
             }
             if (error instanceof transaction_errors_1.TransactionError) {
                 // FAILED is a terminal, one-way transition (Phase 37.3): nothing in
@@ -256,7 +275,7 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                     await tx.assistantMessage.create({ data: { conversationId: draft.conversationId, turnId: turn.id, role: 'USER', source: 'CANONICAL_FALLBACK', content: `Konfirmasi draft transaksi ${draft.id}.` } });
                     await tx.assistantToolExecution.create({ data: { conversationId: draft.conversationId, turnId: turn.id, toolId: CONFIRM_INTENT, capability: 'transaction.create', riskLevel: 'HIGH', policyDecision: 'EXPLICITLY_CONFIRMED', status: 'FAILED', correlationId, completedAt: now, safeErrorCode: error.code, idempotencyKey: key, redactedInput: { draftId }, outputSummary: { draftId, status: 'FAILED' } } });
                     await (0, prismaErrors_1.withPrismaErrorTranslation)(() => tx.assistantFinancialDraft.update({ where: { id: draft.id }, data: { status: 'FAILED', failedAt: now } }), { P2025: () => errors_1.AssistantError.draftNotFound() });
-                    await tx.assistantConversation.update({ where: { id: draft.conversationId }, data: { lastActivityAt: now } });
+                    await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => tx.assistantConversation.update({ where: { id: draft.conversationId }, data: { lastActivityAt: now } }), { P2025: () => (0, logger_1.logEvent)('warn', { event: 'assistant.conversation_race_skip', stage: 'financialDraft.confirm.failed', conversationId: draft.conversationId, draftId: draft.id }) });
                 });
                 throw error;
             }
@@ -292,7 +311,8 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
             await tx.assistantMessage.create({ data: { conversationId: draft.conversationId, turnId: turn.id, role: 'USER', source: 'CANONICAL_FALLBACK', content: `Batalkan draft transaksi ${draft.id}.` } });
             await tx.assistantToolExecution.create({ data: { conversationId: draft.conversationId, turnId: turn.id, toolId: CANCEL_INTENT, capability: 'transaction.create', riskLevel: 'HIGH', policyDecision: 'CANCEL', status: 'SUCCEEDED', correlationId, completedAt: now, redactedInput: { draftId: draft.id }, outputSummary: { draftId: draft.id, status: 'CANCELLED' } } });
             draft = await tx.assistantFinancialDraft.update({ where: { id: draft.id }, data: { status: 'CANCELLED', cancelledAt: now } });
-            await tx.assistantConversation.update({ where: { id: draft.conversationId }, data: { lastActivityAt: now } });
+            // Same no-op-and-log decision as confirm()'s conversation touch above.
+            await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => tx.assistantConversation.update({ where: { id: draft.conversationId }, data: { lastActivityAt: now } }), { P2025: () => (0, logger_1.logEvent)('warn', { event: 'assistant.conversation_race_skip', stage: 'financialDraft.cancel', conversationId: draft.conversationId, draftId: draft.id }) });
             return cancelledResult(draft, turn.id);
         });
     }
