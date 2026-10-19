@@ -245,7 +245,8 @@ describe('structured Assistant plan validation', () => {
       'Bulan mana yang ingin diringkas?',
     ],
   ])('turns %s into deterministic clarification instead of invalid response', (_label, output, question) => {
-    expect(validateAssistantPlan(output, registry())).toEqual({
+    // toMatchObject: the plan also carries a bounded capture `field` (Phase 35.1), asserted in capture-events.test.ts.
+    expect(validateAssistantPlan(output, registry())).toMatchObject({
       kind: 'clarification',
       question,
     });

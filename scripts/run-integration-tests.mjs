@@ -66,6 +66,7 @@ const integrationTests = [
   'test/opsRemediation.integration.test.ts',
   'test/channels/telegram-callback.integration.test.ts',
   'test/channels/durableProcessing.integration.test.ts',
+  'test/assistant/capture-events.integration.test.ts',
 ];
 
 async function main() {
