@@ -1,6 +1,7 @@
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import { loopbackServer } from '../helpers/loopbackServer';
 import { createPrismaResources } from '../../src/lib/prismaFactory';
 import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
 import { createAssistantConversationService } from '../../src/assistant/conversation.service';
@@ -10,6 +11,8 @@ import { monthlySpendingSummary } from '../../src/assistant/tools';
 import { createAssistantControllers } from '../../src/controllers/assistant.controller';
 import { correlationMiddleware } from '../../src/http/correlation';
 import { errorHandler } from '../../src/middlewares/error.middleware';
+
+const serve = loopbackServer();
 
 const url = process.env.TEST_DATABASE_URL;
 if (url) assertTestDatabaseUrl(url);
@@ -29,7 +32,7 @@ describe.skipIf(!url)('Assistant conversation HTTP lifecycle (disposable Postgre
     server.use((req, _res, next) => { (req as any).auth = { userId: req.header('x-test-user') }; next(); });
     server.post('/execute', controllers.execute); server.get('/conversations', controllers.list);
     server.get('/conversations/:conversationId', controllers.get); server.post('/conversations/:conversationId/archive', controllers.archive);
-    server.use(errorHandler); return server;
+    server.use(errorHandler); return serve(server);
   }
 
   it('creates, continues, lists, retrieves, archives, and protects ownership', async () => {

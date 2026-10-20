@@ -1,6 +1,7 @@
 import { afterAll, afterEach, describe, expect, it } from 'vitest';
 import express from 'express';
 import request from 'supertest';
+import { loopbackServer } from '../helpers/loopbackServer';
 import { createPrismaResources } from '../../src/lib/prismaFactory';
 import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
 import { createChannelLinkTokenService } from '../../src/channels/linkToken.service';
@@ -9,6 +10,8 @@ import { createChannelLinkControllers } from '../../src/controllers/channelLink.
 import { createTelegramService } from '../../src/telegram/telegram.service';
 import { correlationMiddleware } from '../../src/http/correlation';
 import { errorHandler } from '../../src/middlewares/error.middleware';
+
+const serve = loopbackServer();
 
 const url = process.env.TEST_DATABASE_URL;
 if (url) assertTestDatabaseUrl(url);
@@ -36,7 +39,7 @@ describe.skipIf(!url)('Telegram channel foundation (disposable PostgreSQL)', () 
     server.get('/telegram/connection', controllers.getConnection);
     server.post('/telegram/revoke', controllers.revokeConnection);
     server.use(errorHandler);
-    return { server, linkTokens, connections };
+    return { server: serve(server), linkTokens, connections };
   }
 
   const privateUpdate = (id: number, text: string, senderId: string, chatId = 'chat-1') => ({
