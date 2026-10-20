@@ -91,15 +91,20 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const jitter = (maxMs: number) => sleep(Math.floor(Math.random() * maxMs));
 
 /**
- * One listening server per race: supertest's per-request ephemeral server can
- * hand a request to a reused port under this much parallelism (see
- * test/setup-http-agent.ts) — a stray 401/404 that is not the code under test.
+ * One listening server per race, bound to 127.0.0.1. supertest(app) and a
+ * host-less listen(0) bind `::` (dual-stack), which does not conflict with a
+ * foreign 127.0.0.1:<port> listener in the ephemeral range, while supertest
+ * dials 127.0.0.1:<port> — the foreign listener answers (stray 401/404/hang
+ * up). Binding 127.0.0.1 makes the OS refuse a taken port.
  */
 async function listening<T>(server: express.Express, run: (listener: Server) => Promise<T>): Promise<T> {
-  const listener = server.listen(0);
+  const listener = await new Promise<Server>((resolve, reject) => {
+    const bound = server.listen(0, '127.0.0.1', () => resolve(bound)).once('error', reject);
+  });
   try {
     return await run(listener);
   } finally {
+    listener.closeAllConnections();
     await new Promise((resolve) => listener.close(resolve));
   }
 }
