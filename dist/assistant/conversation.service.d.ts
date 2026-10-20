@@ -1,4 +1,15 @@
-import type { AssistantChannel, ChannelDeliveryStatus, PrismaClient, Prisma } from '../generated/prisma/client';
+import { Prisma, type AssistantChannel, type ChannelDeliveryStatus, type PrismaClient } from '../generated/prisma/client';
+/**
+ * Global lock order (Phase 38.2, docs/assistant-stuck-states.md): a
+ * transaction that writes more than one Assistant row locks the CONVERSATION
+ * row first, before any clarification / draft / turn / execution row.
+ * deleteOwnedConversation locks the conversation (FOR UPDATE) and then
+ * cascades into those children, so the opposite order deadlocks against it.
+ * FOR NO KEY UPDATE blocks a concurrent delete/archive/restore until commit
+ * but not the FK inserts of turns/messages. Returns the status, or undefined
+ * when the conversation is already gone.
+ */
+export declare function lockConversation(tx: Prisma.TransactionClient, conversationId: string): Promise<string | undefined>;
 import type { AssistantDeliveryStatus, BeginTurnInput, BeginTurnResult, ConversationMessageDto, ConversationSummaryDto, FinalizeToolInput, FinalizeWithoutToolInput, Page } from './conversation.types';
 /** Phase 31 — maps the internal delivery lifecycle to the safe, user-facing status. A retry still in backoff reads as still-in-progress, not failed, since it may yet succeed. Exported for direct unit testing of the mapping. */
 export declare const DELIVERY_STATUS_MAP: Record<ChannelDeliveryStatus, AssistantDeliveryStatus>;

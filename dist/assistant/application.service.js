@@ -9,6 +9,7 @@ const persistence_1 = require("./persistence");
 const policy_1 = require("./policy");
 const logger_1 = require("../utils/logger");
 const prismaErrors_1 = require("../utils/prismaErrors");
+const conversation_service_1 = require("./conversation.service");
 const entity_resolution_1 = require("./entity-resolution");
 const clarification_service_1 = require("./clarification.service");
 const capture_events_1 = require("./capture-events");
@@ -562,6 +563,22 @@ function createAssistantApplicationService(deps) {
         }
     }
     // ---- Clarification selection (sequential continuation) --------------------
+    /**
+     * First statement of every clarification continuation transaction: the
+     * conversation lock comes before the clarification claim and any child
+     * clarification / draft / turn write (global lock order, Phase 38.2), and an
+     * archived conversation is rejected with nothing claimed.
+     */
+    async function lockActiveConversation(tx, conversationId) {
+        const status = await (0, conversation_service_1.lockConversation)(tx, conversationId);
+        if (status === undefined)
+            throw errors_1.AssistantError.conversationNotFound();
+        if (status === 'ARCHIVED')
+            throw errors_1.AssistantError.conversationArchived();
+        if (status !== 'ACTIVE')
+            throw errors_1.AssistantError.conversationNotContinuable();
+    }
+    const detailOf = (error) => (error instanceof errors_1.AssistantError && error.detail ? { detail: error.detail } : {});
     async function selectClarification(userId, correlationId, token, conversationId, clarificationId) {
         if (!deps.clarification)
             throw new Error('Clarification service is not configured');
@@ -592,6 +609,7 @@ function createAssistantApplicationService(deps) {
             // clarification PENDING (its token still usable) with no partial
             // child/draft/lifecycle state, so the caller can safely retry.
             return await clarification.runInTransaction(async (tx) => {
+                await lockActiveConversation(tx, conversationId);
                 const result = await clarification.select({
                     userId, conversationId, token, correlationId,
                     ...(clarificationId ? { clarificationId } : {}),
@@ -656,13 +674,13 @@ function createAssistantApplicationService(deps) {
         }
         catch (error) {
             // P2028: the whole continuation rolled back, so the clarification is still PENDING and its token reusable.
-            const operational = error instanceof errors_1.AssistantError ? error : (0, prismaErrors_1.isTransactionTimeout)(error) ? errors_1.AssistantError.transactionTimeout() : { message: 'Clarification selection failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
+            const operational = error instanceof errors_1.AssistantError ? error : (0, prismaErrors_1.isTransactionTimeout)(error, 'clarification.select') ? errors_1.AssistantError.transactionTimeout() : { message: 'Clarification selection failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
             await deps.conversations.finalize({
                 executionId, ...turn, status: 'FAILED', turnStatus: 'FAILED',
                 assistantContent: operational.message, assistantSource: 'SAFE_ERROR',
                 durationMs: Date.now() - startedAt, safeErrorCode: operational.code,
             }).catch(() => undefined);
-            return { httpStatus: operational.statusCode, response: { status: 'error', code: operational.code, message: operational.message, correlationId, ...turn } };
+            return { httpStatus: operational.statusCode, response: { status: 'error', code: operational.code, message: operational.message, ...detailOf(operational), correlationId, ...turn } };
         }
     }
     async function submitGuidedClarification(userId, correlationId, fields, conversationId, clarificationId) {
@@ -693,6 +711,7 @@ function createAssistantApplicationService(deps) {
                 throw errors_1.AssistantError.invalidInput('clarification.guided_submit', 'date must be a valid YYYY-MM-DD day');
             }
             return await clarification.runInTransaction(async (tx) => {
+                await lockActiveConversation(tx, conversationId);
                 const result = await clarification.consumeGuidedFields({
                     userId, conversationId, clarificationId, correlationId,
                 }, { transaction: tx });
@@ -723,13 +742,13 @@ function createAssistantApplicationService(deps) {
             });
         }
         catch (error) {
-            const operational = error instanceof errors_1.AssistantError ? error : (0, prismaErrors_1.isTransactionTimeout)(error) ? errors_1.AssistantError.transactionTimeout() : { message: 'Guided clarification submission failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
+            const operational = error instanceof errors_1.AssistantError ? error : (0, prismaErrors_1.isTransactionTimeout)(error, 'clarification.guided_submit') ? errors_1.AssistantError.transactionTimeout() : { message: 'Guided clarification submission failed', statusCode: 500, code: 'ASSISTANT_CLARIFICATION_FAILED' };
             await deps.conversations.finalize({
                 executionId, ...turn, status: 'FAILED', turnStatus: 'FAILED',
                 assistantContent: operational.message, assistantSource: 'SAFE_ERROR',
                 durationMs: Date.now() - startedAt, safeErrorCode: operational.code,
             }).catch(() => undefined);
-            return { httpStatus: operational.statusCode, response: { status: 'error', code: operational.code, message: operational.message, correlationId, ...turn } };
+            return { httpStatus: operational.statusCode, response: { status: 'error', code: operational.code, message: operational.message, ...detailOf(operational), correlationId, ...turn } };
         }
     }
     // ---- Continue to category after merchant resolution -----------------------

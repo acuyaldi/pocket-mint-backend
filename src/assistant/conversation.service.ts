@@ -1,4 +1,4 @@
-import type { AssistantChannel, ChannelDeliveryStatus, PrismaClient, Prisma } from '../generated/prisma/client';
+import { Prisma, type AssistantChannel, type ChannelDeliveryStatus, type PrismaClient } from '../generated/prisma/client';
 import { AssistantError } from './errors';
 import { assertAssistantMessageLength } from './persistence';
 import { validateIdempotencyKey } from './financial-draft';
@@ -20,6 +20,24 @@ import { logEvent } from '../utils/logger';
 function logConversationRaceSkip(stage: string, ids: { conversationId?: string; turnId?: string }): void {
   logEvent('warn', { event: 'assistant.conversation_race_skip', stage, ...ids });
 }
+
+/**
+ * Global lock order (Phase 38.2, docs/assistant-stuck-states.md): a
+ * transaction that writes more than one Assistant row locks the CONVERSATION
+ * row first, before any clarification / draft / turn / execution row.
+ * deleteOwnedConversation locks the conversation (FOR UPDATE) and then
+ * cascades into those children, so the opposite order deadlocks against it.
+ * FOR NO KEY UPDATE blocks a concurrent delete/archive/restore until commit
+ * but not the FK inserts of turns/messages. Returns the status, or undefined
+ * when the conversation is already gone.
+ */
+export async function lockConversation(tx: Prisma.TransactionClient, conversationId: string): Promise<string | undefined> {
+  const rows = await tx.$queryRaw<{ status: string }[]>(
+    Prisma.sql`SELECT status::text AS "status" FROM assistant_conversations WHERE id = ${conversationId} FOR NO KEY UPDATE`,
+  );
+  return rows[0]?.status;
+}
+
 import type { AssistantDeliveryStatus, BeginTurnInput, BeginTurnResult, ConversationMessageDto, ConversationSummaryDto, FinalizeToolInput, FinalizeWithoutToolInput, Page } from './conversation.types';
 
 /** Fixed, deterministic display order — also dedupes since each channel appears at most once. */
@@ -89,14 +107,34 @@ export function createAssistantConversationService(db: PrismaClient) {
     return created.id;
   }
 
+  /**
+   * Wraps a finalize-family `work` this service runs in its OWN transaction:
+   * conversation lock first (lock order above), and a conversation already
+   * deleted means there is nothing left to finalize — the same no-op as a
+   * swallowed P2025. A caller-supplied transaction is expected to have taken
+   * the lock itself (application.service.ts's clarification continuation).
+   */
+  function lockedOrSkip(stage: string, ids: { conversationId: string; turnId: string }, work: (tx: Prisma.TransactionClient) => Promise<void>) {
+    return async (tx: Prisma.TransactionClient): Promise<void> => {
+      if (await lockConversation(tx, ids.conversationId) === undefined) {
+        logConversationRaceSkip(stage, { conversationId: ids.conversationId, turnId: ids.turnId });
+        return;
+      }
+      await work(tx);
+    };
+  }
+
   async function beginTurn(input: BeginTurnInput): Promise<BeginTurnResult> {
     assertAssistantMessageLength(input.content);
     try {
-      return await db.$transaction(async (tx) => {
+      // P2003: a concurrent deleteOwnedConversation removed the conversation
+      // between the read below and the turn/message insert (Phase 38.2).
+      return await withPrismaErrorTranslation(() => db.$transaction(async (tx) => {
         let conversationId = input.conversationId;
         if (conversationId) {
           const conversation = await tx.assistantConversation.findFirst({ where: { id: conversationId, userId: input.userId } });
           if (!conversation) throw AssistantError.conversationNotFound();
+          if (conversation.status === 'ARCHIVED') throw AssistantError.conversationArchived();
           if (conversation.status !== 'ACTIVE') throw AssistantError.conversationNotContinuable();
         } else {
           const created = await tx.assistantConversation.create({ data: { userId: input.userId, locale: input.locale } });
@@ -124,7 +162,7 @@ export function createAssistantConversationService(db: PrismaClient) {
           { P2025: () => logConversationRaceSkip('beginTurn', { conversationId, turnId: turn.id }) },
         );
         return { conversationId, turnId: turn.id };
-      });
+      }), { P2003: () => AssistantError.conversationNotFound() });
     } catch (err) {
       if ((err as { code?: string }).code !== 'P2002') throw err;
       // The transaction above already rolled back (Postgres aborts on a
@@ -152,7 +190,11 @@ export function createAssistantConversationService(db: PrismaClient) {
     conversationId: string; turnId: string; correlationId: string; toolId: string; capability: string;
     riskLevel: string; policyDecision: string; redactedInput?: Prisma.InputJsonValue;
   }): Promise<string> {
-    const row = await db.assistantToolExecution.create({ data: { ...input, status: 'RUNNING' } });
+    // P2003: the conversation/turn was deleted after beginTurn (Phase 38.2).
+    const row = await withPrismaErrorTranslation(
+      () => db.assistantToolExecution.create({ data: { ...input, status: 'RUNNING' } }),
+      { P2003: () => AssistantError.conversationNotFound() },
+    );
     return row.id;
   }
 
@@ -198,7 +240,7 @@ export function createAssistantConversationService(db: PrismaClient) {
       return;
     }
     await withPrismaErrorSwallowed(
-      () => db.$transaction(work),
+      () => db.$transaction(lockedOrSkip('finalize', input, work)),
       { P2025: () => logConversationRaceSkip('finalize', { conversationId: input.conversationId, turnId: input.turnId }) },
     );
   }
@@ -207,12 +249,12 @@ export function createAssistantConversationService(db: PrismaClient) {
     assertAssistantMessageLength(input.content);
     // Same race-shape and no-op decision as finalize() above.
     await withPrismaErrorSwallowed(
-      () => db.$transaction(async (tx) => {
+      () => db.$transaction(lockedOrSkip('finalizeRejected', input, async (tx) => {
         const now = new Date();
         await tx.assistantMessage.create({ data: { conversationId: input.conversationId, turnId: input.turnId, role: 'ASSISTANT', source: 'SAFE_ERROR', content: input.content } });
         await tx.assistantTurn.update({ where: { id: input.turnId }, data: { status: 'REJECTED', safeErrorCode: input.safeErrorCode, finishedAt: now } });
         await tx.assistantConversation.update({ where: { id: input.conversationId }, data: { lastActivityAt: now } });
-      }),
+      })),
       { P2025: () => logConversationRaceSkip('finalizeRejected', { conversationId: input.conversationId, turnId: input.turnId }) },
     );
   }
@@ -242,7 +284,7 @@ export function createAssistantConversationService(db: PrismaClient) {
       return;
     }
     await withPrismaErrorSwallowed(
-      () => db.$transaction(work),
+      () => db.$transaction(lockedOrSkip('finalizeWithoutTool', input, work)),
       { P2025: () => logConversationRaceSkip('finalizeWithoutTool', { conversationId: input.conversationId, turnId: input.turnId }) },
     );
   }

@@ -4,6 +4,7 @@ import { formatReportingDate, parseBusinessDate } from '../domain/reportingTime'
 import { TransactionConcurrencyError, TransactionError } from '../services/transaction.errors';
 import { TRANSFER_SOURCE_TYPES, type TransactionService } from '../services/transaction.service';
 import { isTransactionTimeout, withPrismaErrorSwallowed, withPrismaErrorTranslation } from '../utils/prismaErrors';
+import { lockConversation } from './conversation.service';
 import { logEvent } from '../utils/logger';
 import { AssistantError } from './errors';
 import { effectiveDraftStatus } from './effective-status';
@@ -90,11 +91,9 @@ function preview(input: DraftReadyTransactionInput & {
  * conversation is restored (until its TTL).
  */
 async function assertConversationActive(tx: Prisma.TransactionClient, conversationId: string): Promise<void> {
-  const rows = await tx.$queryRaw<{ status: string }[]>(
-    Prisma.sql`SELECT status::text AS "status" FROM assistant_conversations WHERE id = ${conversationId} FOR NO KEY UPDATE`,
-  );
-  if (!rows[0]) throw AssistantError.draftNotFound();
-  if (rows[0].status !== 'ACTIVE') throw AssistantError.conversationArchived();
+  const status = await lockConversation(tx, conversationId);
+  if (!status) throw AssistantError.draftNotFound();
+  if (status !== 'ACTIVE') throw AssistantError.conversationArchived();
 }
 
 export function createAssistantFinancialDraftService(
@@ -137,7 +136,9 @@ export function createAssistantFinancialDraftService(
     }
 
     const now = input.now ?? new Date();
-    const row = await client.assistantFinancialDraft.create({ data: {
+    // P2003: the conversation (or its turn/execution) was deleted after the
+    // turn began (Phase 38.2) — a typed 404, not a draft-preparation 500.
+    const row = await withPrismaErrorTranslation(() => client.assistantFinancialDraft.create({ data: {
       userId: input.userId, conversationId: input.conversationId, originatingTurnId: input.turnId,
       originatingExecutionId: input.executionId, operation: 'transaction.create', transactionType: input.type,
       amount: new Prisma.Decimal(input.amount), walletId: input.walletId,
@@ -145,7 +146,7 @@ export function createAssistantFinancialDraftService(
       categoryId: isTransfer ? null : input.categoryId,
       transactionDate: parseBusinessDate(input.date, reportingConfig.timezone), description: input.description ?? null,
       expiresAt: new Date(now.getTime() + ASSISTANT_FINANCIAL_DRAFT_TTL_MS),
-    }});
+    }}), { P2003: () => AssistantError.conversationNotFound() });
     return {
       draftId: row.id,
       status: row.status,
@@ -348,7 +349,7 @@ export function createAssistantFinancialDraftService(
       // Rolled back, draft still PENDING_CONFIRMATION: never FAILED. Retrying
       // with the same Idempotency-Key is safe either way — it commits once or
       // replays the committed result.
-      if (isTransactionTimeout(error)) throw AssistantError.transactionTimeout();
+      if (isTransactionTimeout(error, 'financialDraft.confirm')) throw AssistantError.transactionTimeout();
       if ((error as { code?: string }).code === 'P2002') {
         const existingKey = await db.assistantIdempotencyRecord.findUnique({ where: { userId_key: { userId, key } }, select: { draftId: true } });
         if (existingKey && existingKey.draftId !== draftId) throw AssistantError.idempotencyConflict();
@@ -391,7 +392,7 @@ export function createAssistantFinancialDraftService(
           return true;
         }, CONFIRM_TRANSACTION_OPTIONS).catch((recordError: unknown) => {
           // FAILED was not recorded, so the draft is still PENDING — same retryable answer.
-          throw isTransactionTimeout(recordError) ? AssistantError.transactionTimeout() : recordError;
+          throw isTransactionTimeout(recordError, 'financialDraft.confirm.failed') ? AssistantError.transactionTimeout() : recordError;
         });
         if (failed) await emit({ type: 'DRAFT_FAILED', entityId: draftId });
         throw error;

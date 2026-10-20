@@ -11,6 +11,7 @@ function makeDb() {
   const turnUpdate = vi.fn().mockResolvedValue({});
   const conversationUpdate = vi.fn().mockRejectedValue(p2025());
   const tx = {
+    $queryRaw: vi.fn().mockResolvedValue([{ status: 'ACTIVE' }]),
     assistantToolExecution: { update: toolExecutionUpdate },
     assistantMessage: { create: messageCreate },
     assistantTurn: { update: turnUpdate },
@@ -34,6 +35,34 @@ function makeDb() {
 // way to tell that caller to roll back). No real caller passes
 // options.transaction today, but the behavior must stay correct if one ever
 // does.
+// Phase 38.2: a self-managed finalize locks the conversation row before
+// touching the execution/message/turn rows (lock order), and a conversation
+// already deleted means nothing is written at all.
+describe('conversation.service finalize() — conversation lock first', () => {
+  it('takes the conversation lock before any other write', async () => {
+    const { db, tx } = makeDb();
+    await createAssistantConversationService(db as never).finalize({
+      conversationId: 'c1', turnId: 't1', executionId: 'e1', status: 'SUCCEEDED', turnStatus: 'SUCCEEDED',
+      assistantContent: 'ok', assistantSource: 'DETERMINISTIC_RENDERER', durationMs: 1,
+    });
+    expect(tx.$queryRaw.mock.invocationCallOrder[0]).toBeLessThan(tx.assistantToolExecution.update.mock.invocationCallOrder[0]!);
+  });
+
+  it('writes nothing when the conversation is already gone', async () => {
+    const { db, tx } = makeDb();
+    tx.$queryRaw.mockResolvedValue([]);
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await expect(createAssistantConversationService(db as never).finalize({
+      conversationId: 'c1', turnId: 't1', executionId: 'e1', status: 'SUCCEEDED', turnStatus: 'SUCCEEDED',
+      assistantContent: 'secret content', assistantSource: 'DETERMINISTIC_RENDERER', durationMs: 1,
+    })).resolves.toBeUndefined();
+    expect(tx.assistantToolExecution.update).not.toHaveBeenCalled();
+    expect(tx.assistantMessage.create).not.toHaveBeenCalled();
+    expect(warnSpy.mock.calls[0]![0]).not.toContain('secret content');
+    warnSpy.mockRestore();
+  });
+});
+
 describe('conversation.service finalize()/finalizeWithoutTool() — options.transaction never swallows', () => {
   it('finalize: with no options.transaction (self-managed), a P2025 on the conversation touch is swallowed', async () => {
     const { db } = makeDb();

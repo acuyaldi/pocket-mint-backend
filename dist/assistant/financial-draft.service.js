@@ -8,6 +8,7 @@ const reportingTime_1 = require("../domain/reportingTime");
 const transaction_errors_1 = require("../services/transaction.errors");
 const transaction_service_1 = require("../services/transaction.service");
 const prismaErrors_1 = require("../utils/prismaErrors");
+const conversation_service_1 = require("./conversation.service");
 const logger_1 = require("../utils/logger");
 const errors_1 = require("./errors");
 const effective_status_1 = require("./effective-status");
@@ -57,10 +58,10 @@ function preview(input, categoryName) {
  * conversation is restored (until its TTL).
  */
 async function assertConversationActive(tx, conversationId) {
-    const rows = await tx.$queryRaw(client_1.Prisma.sql `SELECT status::text AS "status" FROM assistant_conversations WHERE id = ${conversationId} FOR NO KEY UPDATE`);
-    if (!rows[0])
+    const status = await (0, conversation_service_1.lockConversation)(tx, conversationId);
+    if (!status)
         throw errors_1.AssistantError.draftNotFound();
-    if (rows[0].status !== 'ACTIVE')
+    if (status !== 'ACTIVE')
         throw errors_1.AssistantError.conversationArchived();
 }
 function createAssistantFinancialDraftService(db, transactions, deps, clock = () => new Date(), captureEvents) {
@@ -98,7 +99,9 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                 throw errors_1.AssistantError.draftNotFound();
         }
         const now = input.now ?? new Date();
-        const row = await client.assistantFinancialDraft.create({ data: {
+        // P2003: the conversation (or its turn/execution) was deleted after the
+        // turn began (Phase 38.2) — a typed 404, not a draft-preparation 500.
+        const row = await (0, prismaErrors_1.withPrismaErrorTranslation)(() => client.assistantFinancialDraft.create({ data: {
                 userId: input.userId, conversationId: input.conversationId, originatingTurnId: input.turnId,
                 originatingExecutionId: input.executionId, operation: 'transaction.create', transactionType: input.type,
                 amount: new client_1.Prisma.Decimal(input.amount), walletId: input.walletId,
@@ -106,7 +109,7 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                 categoryId: isTransfer ? null : input.categoryId,
                 transactionDate: (0, reportingTime_1.parseBusinessDate)(input.date, config_1.reportingConfig.timezone), description: input.description ?? null,
                 expiresAt: new Date(now.getTime() + financial_draft_1.ASSISTANT_FINANCIAL_DRAFT_TTL_MS),
-            } });
+            } }), { P2003: () => errors_1.AssistantError.conversationNotFound() });
         return {
             draftId: row.id,
             status: row.status,
@@ -301,7 +304,7 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
             // Rolled back, draft still PENDING_CONFIRMATION: never FAILED. Retrying
             // with the same Idempotency-Key is safe either way — it commits once or
             // replays the committed result.
-            if ((0, prismaErrors_1.isTransactionTimeout)(error))
+            if ((0, prismaErrors_1.isTransactionTimeout)(error, 'financialDraft.confirm'))
                 throw errors_1.AssistantError.transactionTimeout();
             if (error.code === 'P2002') {
                 const existingKey = await db.assistantIdempotencyRecord.findUnique({ where: { userId_key: { userId, key } }, select: { draftId: true } });
@@ -341,7 +344,7 @@ function createAssistantFinancialDraftService(db, transactions, deps, clock = ()
                     return true;
                 }, exports.CONFIRM_TRANSACTION_OPTIONS).catch((recordError) => {
                     // FAILED was not recorded, so the draft is still PENDING — same retryable answer.
-                    throw (0, prismaErrors_1.isTransactionTimeout)(recordError) ? errors_1.AssistantError.transactionTimeout() : recordError;
+                    throw (0, prismaErrors_1.isTransactionTimeout)(recordError, 'financialDraft.confirm.failed') ? errors_1.AssistantError.transactionTimeout() : recordError;
                 });
                 if (failed)
                     await emit({ type: 'DRAFT_FAILED', entityId: draftId });

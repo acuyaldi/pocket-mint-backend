@@ -90,32 +90,6 @@ export interface ClarificationCreationProjection {
   readonly transfer?: TransferWalletClarification;
 }
 
-export type GuidedClarificationField =
-  | {
-    readonly field: 'date';
-    readonly required: true;
-    readonly input: {
-      readonly type: 'date';
-      readonly min?: string;
-      readonly max?: string;
-    };
-  }
-  | {
-    readonly field: 'category';
-    readonly required: true;
-    readonly input: {
-      readonly type: 'text';
-      readonly placeholder?: string;
-    };
-  };
-
-export interface GuidedClarificationProjection {
-  readonly kind: 'guided';
-  readonly clarificationId: string;
-  readonly fields: readonly GuidedClarificationField[];
-  readonly expiresAt: string;
-}
-
 /** Safe public projection of a clarification request — no tokens. */
 export interface ClarificationProjection {
   readonly clarificationId: string;
@@ -194,18 +168,6 @@ export interface CreateClarificationInput {
     readonly discriminator?: string;
     readonly candidateId: string;
   }[];
-}
-
-export interface CreateGuidedFieldsClarificationInput {
-  readonly userId: string;
-  readonly conversationId: string;
-  readonly turnId: string;
-  readonly executionId: string;
-  readonly entityType: 'transaction_fields';
-  readonly parentClarificationId?: string;
-  readonly trustedContext: CanonicalContext;
-  readonly prompt: string;
-  readonly fields: readonly GuidedClarificationField[];
 }
 
 export interface SelectClarificationInput {

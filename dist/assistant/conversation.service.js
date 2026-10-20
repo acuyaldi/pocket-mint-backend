@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DELIVERY_STATUS_MAP = void 0;
+exports.lockConversation = lockConversation;
 exports.resolveDeliveryStatus = resolveDeliveryStatus;
 exports.createAssistantConversationService = createAssistantConversationService;
+const client_1 = require("../generated/prisma/client");
 const errors_1 = require("./errors");
 const persistence_1 = require("./persistence");
 const financial_draft_1 = require("./financial-draft");
@@ -22,6 +24,20 @@ const logger_1 = require("../utils/logger");
  */
 function logConversationRaceSkip(stage, ids) {
     (0, logger_1.logEvent)('warn', { event: 'assistant.conversation_race_skip', stage, ...ids });
+}
+/**
+ * Global lock order (Phase 38.2, docs/assistant-stuck-states.md): a
+ * transaction that writes more than one Assistant row locks the CONVERSATION
+ * row first, before any clarification / draft / turn / execution row.
+ * deleteOwnedConversation locks the conversation (FOR UPDATE) and then
+ * cascades into those children, so the opposite order deadlocks against it.
+ * FOR NO KEY UPDATE blocks a concurrent delete/archive/restore until commit
+ * but not the FK inserts of turns/messages. Returns the status, or undefined
+ * when the conversation is already gone.
+ */
+async function lockConversation(tx, conversationId) {
+    const rows = await tx.$queryRaw(client_1.Prisma.sql `SELECT status::text AS "status" FROM assistant_conversations WHERE id = ${conversationId} FOR NO KEY UPDATE`);
+    return rows[0]?.status;
 }
 /** Fixed, deterministic display order — also dedupes since each channel appears at most once. */
 const CHANNEL_ORDER = ['WEB', 'TELEGRAM'];
@@ -76,15 +92,35 @@ function createAssistantConversationService(db) {
         const created = await db.assistantConversation.create({ data: { userId, locale } });
         return created.id;
     }
+    /**
+     * Wraps a finalize-family `work` this service runs in its OWN transaction:
+     * conversation lock first (lock order above), and a conversation already
+     * deleted means there is nothing left to finalize — the same no-op as a
+     * swallowed P2025. A caller-supplied transaction is expected to have taken
+     * the lock itself (application.service.ts's clarification continuation).
+     */
+    function lockedOrSkip(stage, ids, work) {
+        return async (tx) => {
+            if (await lockConversation(tx, ids.conversationId) === undefined) {
+                logConversationRaceSkip(stage, { conversationId: ids.conversationId, turnId: ids.turnId });
+                return;
+            }
+            await work(tx);
+        };
+    }
     async function beginTurn(input) {
         (0, persistence_1.assertAssistantMessageLength)(input.content);
         try {
-            return await db.$transaction(async (tx) => {
+            // P2003: a concurrent deleteOwnedConversation removed the conversation
+            // between the read below and the turn/message insert (Phase 38.2).
+            return await (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.$transaction(async (tx) => {
                 let conversationId = input.conversationId;
                 if (conversationId) {
                     const conversation = await tx.assistantConversation.findFirst({ where: { id: conversationId, userId: input.userId } });
                     if (!conversation)
                         throw errors_1.AssistantError.conversationNotFound();
+                    if (conversation.status === 'ARCHIVED')
+                        throw errors_1.AssistantError.conversationArchived();
                     if (conversation.status !== 'ACTIVE')
                         throw errors_1.AssistantError.conversationNotContinuable();
                 }
@@ -111,7 +147,7 @@ function createAssistantConversationService(db) {
                     } });
                 await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => tx.assistantConversation.update({ where: { id: conversationId }, data: { lastActivityAt: now, locale: input.locale } }), { P2025: () => logConversationRaceSkip('beginTurn', { conversationId, turnId: turn.id }) });
                 return { conversationId, turnId: turn.id };
-            });
+            }), { P2003: () => errors_1.AssistantError.conversationNotFound() });
         }
         catch (err) {
             if (err.code !== 'P2002')
@@ -135,7 +171,8 @@ function createAssistantConversationService(db) {
         await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => db.assistantTurn.update({ where: { id: turnId }, data: { status: 'RUNNING' } }), { P2025: () => logConversationRaceSkip('markTurnRunning', { turnId }) });
     }
     async function beginToolExecution(input) {
-        const row = await db.assistantToolExecution.create({ data: { ...input, status: 'RUNNING' } });
+        // P2003: the conversation/turn was deleted after beginTurn (Phase 38.2).
+        const row = await (0, prismaErrors_1.withPrismaErrorTranslation)(() => db.assistantToolExecution.create({ data: { ...input, status: 'RUNNING' } }), { P2003: () => errors_1.AssistantError.conversationNotFound() });
         return row.id;
     }
     async function finalize(input, options = {}) {
@@ -179,17 +216,17 @@ function createAssistantConversationService(db) {
             await work(options.transaction);
             return;
         }
-        await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => db.$transaction(work), { P2025: () => logConversationRaceSkip('finalize', { conversationId: input.conversationId, turnId: input.turnId }) });
+        await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => db.$transaction(lockedOrSkip('finalize', input, work)), { P2025: () => logConversationRaceSkip('finalize', { conversationId: input.conversationId, turnId: input.turnId }) });
     }
     async function finalizeRejected(input) {
         (0, persistence_1.assertAssistantMessageLength)(input.content);
         // Same race-shape and no-op decision as finalize() above.
-        await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => db.$transaction(async (tx) => {
+        await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => db.$transaction(lockedOrSkip('finalizeRejected', input, async (tx) => {
             const now = new Date();
             await tx.assistantMessage.create({ data: { conversationId: input.conversationId, turnId: input.turnId, role: 'ASSISTANT', source: 'SAFE_ERROR', content: input.content } });
             await tx.assistantTurn.update({ where: { id: input.turnId }, data: { status: 'REJECTED', safeErrorCode: input.safeErrorCode, finishedAt: now } });
             await tx.assistantConversation.update({ where: { id: input.conversationId }, data: { lastActivityAt: now } });
-        }), { P2025: () => logConversationRaceSkip('finalizeRejected', { conversationId: input.conversationId, turnId: input.turnId }) });
+        })), { P2025: () => logConversationRaceSkip('finalizeRejected', { conversationId: input.conversationId, turnId: input.turnId }) });
     }
     async function finalizeWithoutTool(input, options = {}) {
         (0, persistence_1.assertAssistantMessageLength)(input.assistantContent);
@@ -215,7 +252,7 @@ function createAssistantConversationService(db) {
             await work(options.transaction);
             return;
         }
-        await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => db.$transaction(work), { P2025: () => logConversationRaceSkip('finalizeWithoutTool', { conversationId: input.conversationId, turnId: input.turnId }) });
+        await (0, prismaErrors_1.withPrismaErrorSwallowed)(() => db.$transaction(lockedOrSkip('finalizeWithoutTool', input, work)), { P2025: () => logConversationRaceSkip('finalizeWithoutTool', { conversationId: input.conversationId, turnId: input.turnId }) });
     }
     async function listOwnedConversations(userId, page, limit) {
         const p = pageArgs(page, limit);

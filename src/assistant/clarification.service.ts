@@ -11,6 +11,7 @@ import { Prisma, type PrismaClient } from '../generated/prisma/client';
 import { reportingConfig } from '../config';
 import { formatReportingDate } from '../domain/reportingTime';
 import { AssistantError } from './errors';
+import { withPrismaErrorTranslation } from '../utils/prismaErrors';
 import type {
   AssistantStateProjection,
   CancelClarificationInput,
@@ -20,9 +21,7 @@ import type {
   ClarificationProjection,
   ConsumeGuidedFieldsInput,
   ConsumeGuidedFieldsResult,
-  CreateGuidedFieldsClarificationInput,
   CreateClarificationInput,
-  GuidedClarificationProjection,
   SafeClarificationOption,
   SelectClarificationInput,
   SelectClarificationResult,
@@ -149,8 +148,20 @@ async function terminalizeOrReportActual(
     data: { status: 'STALE', terminalCode, restartRequired: true },
   });
   if (claimed.count === 1) throw onWin();
-  const current = await client.clarificationRequest.findUniqueOrThrow({ where: { id: requestId } });
-  throw terminalStatusError(current.status, current.terminalCode);
+  throw terminalStatusError(...await currentStatus(client, requestId));
+}
+
+/**
+ * Re-reads the status a lost claim raced against. A concurrent
+ * deleteOwnedConversation can cascade-delete the row in between (P2025) —
+ * that is a typed 404, never a raw 500 (Phase 38.2).
+ */
+async function currentStatus(client: ClarificationRequestClient, requestId: string): Promise<[string, string | null]> {
+  const current = await withPrismaErrorTranslation(
+    () => client.clarificationRequest.findUniqueOrThrow({ where: { id: requestId } }),
+    { P2025: () => AssistantError.clarificationNotFound() },
+  );
+  return [current.status, current.terminalCode];
 }
 
 export function createClarificationService(db: PrismaClient) {
@@ -219,42 +230,6 @@ export function createClarificationService(db: PrismaClient) {
       })),
       expiresAt: row.expiresAt.toISOString(),
       ...withTransfer(input.trustedContext),
-    };
-  }
-
-  async function createGuidedFields(
-    input: CreateGuidedFieldsClarificationInput,
-    options: TransactionOption = {},
-  ): Promise<GuidedClarificationProjection> {
-    if (input.fields.length === 0) {
-      throw AssistantError.invalidInput('clarification.create', 'at least one guided field is required');
-    }
-
-    const work = async (tx: TransactionClient) => {
-      const expiresAt = new Date((await dbNow(tx)).getTime() + CLARIFICATION_TTL_MS);
-      return tx.clarificationRequest.create({
-        data: {
-          userId: input.userId,
-          conversationId: input.conversationId,
-          originatingTurnId: input.turnId,
-          executionId: input.executionId,
-          ...(input.parentClarificationId ? { parentId: input.parentClarificationId } : {}),
-          entityType: input.entityType,
-          status: 'PENDING',
-          trustedContext: input.trustedContext as unknown as Prisma.InputJsonValue,
-          prompt: input.prompt,
-          expiresAt,
-        },
-      });
-    };
-
-    const row = options.transaction ? await work(options.transaction) : await db.$transaction(work);
-
-    return {
-      kind: 'guided',
-      clarificationId: row.id,
-      fields: input.fields,
-      expiresAt: row.expiresAt.toISOString(),
     };
   }
 
@@ -329,8 +304,7 @@ export function createClarificationService(db: PrismaClient) {
       data: { status: 'CONSUMED', consumedAt: now },
     });
     if (claimed.count !== 1) {
-      const current = await client.clarificationRequest.findUniqueOrThrow({ where: { id: request.id } });
-      throw terminalStatusError(current.status, current.terminalCode);
+      throw terminalStatusError(...await currentStatus(client, request.id));
     }
 
     const trustedContext = request.trustedContext as unknown as CanonicalContext;
@@ -380,8 +354,7 @@ export function createClarificationService(db: PrismaClient) {
       data: { status: 'CONSUMED', consumedAt: now },
     });
     if (claimed.count !== 1) {
-      const current = await client.clarificationRequest.findUniqueOrThrow({ where: { id: request.id } });
-      throw terminalStatusError(current.status, current.terminalCode);
+      throw terminalStatusError(...await currentStatus(client, request.id));
     }
 
     return {
@@ -436,9 +409,9 @@ export function createClarificationService(db: PrismaClient) {
       },
     });
     if (claimed.count !== 1) {
-      const current = await client.clarificationRequest.findUniqueOrThrow({ where: { id: request.id } });
-      if (current.status === 'CANCELLED') return { entityType: safeEntityType(current.entityType) };
-      throw terminalStatusError(current.status, current.terminalCode);
+      const [status, terminalCode] = await currentStatus(client, request.id);
+      if (status === 'CANCELLED') return { entityType: safeEntityType(request.entityType) };
+      throw terminalStatusError(status, terminalCode);
     }
     return { entityType: safeEntityType(request.entityType) };
   }
@@ -608,7 +581,6 @@ export function createClarificationService(db: PrismaClient) {
 
   return {
     create,
-    createGuidedFields,
     select,
     consumeGuidedFields,
     cancel,

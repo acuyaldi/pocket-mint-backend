@@ -1,5 +1,5 @@
 import { Prisma, type PrismaClient } from '../generated/prisma/client';
-import type { AssistantStateProjection, CancelClarificationInput, CanonicalContext, ClarificationAdvanceResult, ClarificationCreationProjection, ConsumeGuidedFieldsInput, ConsumeGuidedFieldsResult, CreateGuidedFieldsClarificationInput, CreateClarificationInput, GuidedClarificationProjection, SelectClarificationInput, SelectClarificationResult, TransferWalletClarification } from './clarification.types';
+import type { AssistantStateProjection, CancelClarificationInput, CanonicalContext, ClarificationAdvanceResult, ClarificationCreationProjection, ConsumeGuidedFieldsInput, ConsumeGuidedFieldsResult, CreateClarificationInput, SelectClarificationInput, SelectClarificationResult, TransferWalletClarification } from './clarification.types';
 import type { EntityType } from './entity-resolution';
 export declare const CLARIFICATION_TTL_MS: number;
 export type TransactionClient = Prisma.TransactionClient;
@@ -17,7 +17,6 @@ declare function generateToken(): string;
 export declare function transferWalletClarification(ctx: Partial<CanonicalContext> | null | undefined): TransferWalletClarification | undefined;
 export declare function createClarificationService(db: PrismaClient): {
     create: (input: CreateClarificationInput, options?: TransactionOption) => Promise<ClarificationCreationProjection>;
-    createGuidedFields: (input: CreateGuidedFieldsClarificationInput, options?: TransactionOption) => Promise<GuidedClarificationProjection>;
     select: (input: SelectClarificationInput, options?: TransactionOption) => Promise<SelectClarificationResult>;
     consumeGuidedFields: (input: ConsumeGuidedFieldsInput, options?: TransactionOption) => Promise<ConsumeGuidedFieldsResult>;
     cancel: (input: CancelClarificationInput, options?: TransactionOption) => Promise<{
