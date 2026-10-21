@@ -3,6 +3,7 @@
 Tanggal rehearsal: 2026-10-19 · Disusun dari rehearsal read-only. Tidak ada koneksi ke DB production, tidak ada deploy, merge, atau tag.
 Basis: backend `origin/dev` @ `8611235` (PR #116), frontend `origin/dev` @ `d7edc1b` (PR #93).
 **Update 2026-10-20 (dev stability gate):** basis backend `origin/dev` @ `75b3cc6` (PR #119), frontend `origin/dev` @ `65af7c5` (PR #95). PR #117–#119 dan FE #94–#95 sudah merged ke `dev`. Target deploy production **bukan lagi Railway**: semua langkah yang bergantung pada platform dipindah ke §D "Deployment target: VPS (TBD)" dengan placeholder. Hasil gate: §G.
+**Update 2026-10-21 (gate dev ditutup, kriteria dilonggarkan):** **LULUS** — backend `ad7735f` (PR #123), frontend `9a6f2cb` (FE #97). Dogfood dimulai: §H.
 
 ---
 
@@ -379,6 +380,65 @@ Tidak dipanggil di `src/` maupun `test/` → dead code (O-4).
 
 ### G.6 Env/flag
 Tidak ada env atau flag baru dibanding runbook sebelumnya (§5).
+
+---
+
+## H. Dev gate ditutup — 2026-10-21 (kriteria dilonggarkan)
+
+**Status: LULUS.** Menggantikan status §G. Tanpa production, tanpa merge ke `main`, tanpa tag/deploy.
+
+### H.1 Dogfood start
+
+| | |
+|---|---|
+| Tanggal | 2026-10-21 |
+| Backend `dev` | `ad7735ff7385b764fcbcda6b9d2cf76c4f5d4dd7` (merge PR #123) |
+| Frontend `dev` | `9a6f2cb7e22c71cbfe3060ff37c39c46dc8662b7` (merge FE #97) |
+| Marker event | `CAPTURE_PHASE_MARKER = 'phase-38'` (`src/assistant/capture-events.ts`) — capture event mulai tanggal ini dibandingkan terhadap baseline `phase-35.1` |
+
+### H.2 Kriteria gate yang dipakai
+
+Integration 15× berturut-turut (`npm run test:integration`, runner resmi, PostgreSQL embedded sekali pakai baru tiap run, tanpa instrumentasi, tanpa retry/timeout tambahan). Mesin di AC, seluruh loop di bawah `caffeinate -dimsu`; `pmset -g log` diperiksa — run yang terpotong sleep tidak dihitung. Lulus bila:
+1. stress lock-order (a)–(d) (`conversation-lock-order.integration.test.ts`) hijau di semua run;
+2. tidak ada kegagalan di test jalur uang (confirm, transfer, idempotency, alias, archive/delete);
+3. setiap kegagalan lain termasuk flake terdokumentasi di §H.4 (socket hang up pada stress (a), timeout `recovery-state-http`).
+
+Selain itu: belum lulus.
+
+### H.3 Hasil
+
+| Run | Hasil | Durasi |
+|---|---|---|
+| 1 | ✅ 314/314 | 114 dtk |
+| 2 | ✅ 314/314 | 107 dtk |
+| 3 | ✅ 314/314 | 107 dtk |
+| 4 | ✅ 314/314 | 106 dtk |
+| 5 | ✅ 314/314 | 108 dtk |
+| 6 | ✅ 314/314 | 105 dtk |
+| 7 | ✅ 314/314 | 106 dtk |
+| 8 | ✅ 314/314 | 106 dtk |
+| 9 | ✅ 314/314 | 108 dtk |
+| 10 | ✅ 314/314 | 106 dtk |
+| 11 | ✅ 314/314 | 105 dtk |
+| 12 | ✅ 314/314 | 110 dtk |
+| 13 | ✅ 314/314 | 106 dtk |
+| 14 | ✅ 314/314 | 108 dtk |
+| 15 | ✅ 314/314 | 108 dtk |
+
+26 file / 314 test per run, 0 skipped, 0 gagal (15/15). Loop 11:37:41–12:04:31 WIB; tidak ada Sleep/Wake di `pmset -g log` pada jendela itu, assertion `PreventSystemSleep` caffeinate aktif sepanjang loop.
+
+Pemeriksaan lain pada SHA yang sama: backend `tsc --noEmit` ✅, `prisma validate` ✅, unit 1705/1705 ✅; frontend `tsc` ✅, lint ✅ (0 error, 1 warning: `DraftActionBar` tidak dipakai di `AssistantConversation.tsx`), test 834/834 ✅, build ✅.
+
+### H.4 Known flaky tests
+
+| Flake | Frekuensi | Status |
+|---|---|---|
+| `socket hang up` di stress lock-order (a) | 2/31 run sebelum #123; **0/15** sesudah #123 | ditutup oleh #122 + #123 |
+| Timeout `recovery-state-http` ("returns 200 with an empty projection…", `Test timed out in 5000ms`) | 1 kejadian; **0/15** di gate ini | belum direproduksi |
+
+**Socket hang up — ciri-ciri:** muncul di fase seed stress (a) (100 `POST /execute` berurutan) atau sebagai 404/401 nyasar; request tidak pernah sampai ke controller (tidak ada log request/controller untuk request itu). Penyebab: `supertest(app)` memanggil `listen(0)` tanpa host → bind `::` (dual-stack), yang tidak bentrok dengan listener asing `127.0.0.1:<port>` di rentang ephemeral (`lsof` saat investigasi: helper editor di `127.0.0.1:49xxx`), sementara supertest men-dial `127.0.0.1:<port>` → listener asing yang menjawab. **Bukan bug produk:** request gagal sebelum masuk ke aplikasi; tidak ada 5xx dari app; setelah semua test integration dipindah ke `test/helpers/loopbackServer` (bind `127.0.0.1`, OS menolak port yang terpakai — #122, sisa stress (a)/(b) di #123), 0/15 kejadian.
+
+**Timeout recovery-state-http — ciri-ciri:** satu test `GET /conversations/:id/recovery-state` melewati timeout default vitest 5 dtk; test lain di file yang sama dan run yang sama lulus. Endpoint read-only (proyeksi clarification/draft aktif), tidak menulis data dan tidak menyentuh saldo. **Tidak ada indikasi bug produk:** hanya 1 kejadian, test yang sama lulus di semua run lain termasuk 15/15 di gate ini, dan tidak ada jalur tulis yang bisa meninggalkan state salah. Akar masalah tidak dibuktikan (kandidat: stall I/O mesin/Postgres embedded). Bila muncul lagi saat dogfood: catat run, cek `pmset -g log` dan log Postgres di sekitar timestamp sebelum menaikkan timeout.
 
 ---
 
