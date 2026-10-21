@@ -1,7 +1,6 @@
 import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import type { Server } from 'node:http';
 import type { PoolClient } from 'pg';
 import { createPrismaResources, type PrismaResources } from '../../src/lib/prismaFactory';
 import { assertTestDatabaseUrl } from '../../src/lib/assertTestDatabaseUrl';
@@ -26,6 +25,7 @@ import { handleMonthlySpendingSummary } from '../../src/assistant/handlers/month
 import { createAssistantControllers } from '../../src/controllers/assistant.controller';
 import { correlationMiddleware } from '../../src/http/correlation';
 import { errorHandler } from '../../src/middlewares/error.middleware';
+import { loopbackServer } from '../helpers/loopbackServer';
 
 // Phase 38.2 — global lock order: the conversation row first, then the
 // clarification / draft / turn / execution rows. deleteOwnedConversation takes
@@ -45,6 +45,7 @@ const main = url ? createPrismaResources(url, { max: 4 }) : undefined;
 const ITERATIONS = 100;
 const BATCH = 10;
 const users: string[] = [];
+const serve = loopbackServer();
 afterAll(() => main?.close());
 afterEach(async () => {
   if (main && users.length) await main.prisma.user.deleteMany({ where: { id: { in: users.splice(0) } } });
@@ -89,25 +90,6 @@ async function countingDeadlocks(writeLatencyMs: number, race: (resources: Prism
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const jitter = (maxMs: number) => sleep(Math.floor(Math.random() * maxMs));
-
-/**
- * One listening server per race, bound to 127.0.0.1. supertest(app) and a
- * host-less listen(0) bind `::` (dual-stack), which does not conflict with a
- * foreign 127.0.0.1:<port> listener in the ephemeral range, while supertest
- * dials 127.0.0.1:<port> — the foreign listener answers (stray 401/404/hang
- * up). Binding 127.0.0.1 makes the OS refuse a taken port.
- */
-async function listening<T>(server: express.Express, run: (listener: Server) => Promise<T>): Promise<T> {
-  const listener = await new Promise<Server>((resolve, reject) => {
-    const bound = server.listen(0, '127.0.0.1', () => resolve(bound)).once('error', reject);
-  });
-  try {
-    return await run(listener);
-  } finally {
-    listener.closeAllConnections();
-    await new Promise((resolve) => listener.close(resolve));
-  }
-}
 
 async function inBatches(count: number, run: (i: number) => Promise<void>): Promise<void> {
   for (let start = 0; start < count; start += BATCH) {
@@ -164,7 +146,7 @@ async function fixture(label: string) {
 }
 
 /** A conversation whose only turn left a PENDING wallet clarification. */
-async function pendingClarification(server: express.Express, userId: string, categoryId: string) {
+async function pendingClarification(server: string, userId: string, categoryId: string) {
   const asked = await request(server).post('/execute').set('x-test-user', userId)
     .send({ intent: 'transaction.create', arguments: { type: 'EXPENSE', amount: '50000', walletReference: 'BCA', categoryId, date: '2026-07-24' } });
   expect(asked.body.error.status).toBe('clarification_required');
@@ -188,20 +170,21 @@ describe.skipIf(!url)('Phase 38.2 conversation lock order (disposable PostgreSQL
   for (const latencyMs of [0, 200]) {
     it(`select clarification racing delete conversation: no 500, no deadlock (${latencyMs} ms write latency, ${ITERATIONS}x)`, async () => {
       const { user, category } = await fixture(`select-delete-${latencyMs}`);
-      const seed = app(main!.prisma);
+      const seed = serve(app(main!.prisma).server);
       const targets: Awaited<ReturnType<typeof pendingClarification>>[] = [];
-      for (let i = 0; i < ITERATIONS; i++) targets.push(await pendingClarification(seed.server, user.id, category.id));
+      for (let i = 0; i < ITERATIONS; i++) targets.push(await pendingClarification(seed, user.id, category.id));
 
       const selects: Outcome[] = []; const deletes: Outcome[] = [];
       const deadlockDelta = await countingDeadlocks(latencyMs, async ({ prisma }) => {
-        await listening(app(prisma).server, (server) => inBatches(ITERATIONS, async (i) => {
+        const server = serve(app(prisma).server);
+        await inBatches(ITERATIONS, async (i) => {
           const t = targets[i]!;
           const [sel, del] = await Promise.all([
             request(server).post(`/conversations/${t.conversationId}/clarifications/${t.clarificationId}/select`).set('x-test-user', user.id).send({ optionToken: t.token }),
             jitter(latencyMs === 0 ? 40 : 2500).then(() => request(server).delete(`/conversations/${t.conversationId}`).set('x-test-user', user.id)),
           ]);
           selects.push(outcome(sel)); deletes.push(outcome(del));
-        }));
+        });
       });
       console.info(`[38.2a ${latencyMs}ms] select=${JSON.stringify(tally(selects))} delete=${JSON.stringify(tally(deletes))} deadlocks=${deadlockDelta}`);
       assertTyped(selects, 'select');
@@ -213,7 +196,7 @@ describe.skipIf(!url)('Phase 38.2 conversation lock order (disposable PostgreSQL
   // (b) select on an ARCHIVED conversation
   it('select clarification on an ARCHIVED conversation is rejected 409 CONVERSATION_ARCHIVED and leaves the clarification PENDING', async () => {
     const { user, category } = await fixture('select-archived');
-    const { server } = app(main!.prisma);
+    const server = serve(app(main!.prisma).server);
     const t = await pendingClarification(server, user.id, category.id);
     expect((await request(server).post(`/conversations/${t.conversationId}/archive`).set('x-test-user', user.id)).status).toBe(200);
 
@@ -234,7 +217,8 @@ describe.skipIf(!url)('Phase 38.2 conversation lock order (disposable PostgreSQL
 
       const calls: Outcome[] = []; const deletes: Outcome[] = [];
       const deadlockDelta = await countingDeadlocks(latencyMs, async ({ prisma }) => {
-        await listening(app(prisma).server, (server) => inBatches(ITERATIONS, async (i) => {
+        const server = serve(app(prisma).server);
+        await inBatches(ITERATIONS, async (i) => {
           const conversationId = conversationIds[i]!;
           const call = i % 2 === 0
             ? request(server).post('/messages').set('x-test-user', user.id).send({ message: 'Ringkas Juli', conversationId })
@@ -245,7 +229,7 @@ describe.skipIf(!url)('Phase 38.2 conversation lock order (disposable PostgreSQL
             jitter(latencyMs === 0 ? 40 : 2500).then(() => request(server).delete(`/conversations/${conversationId}`).set('x-test-user', user.id)),
           ]);
           calls.push(outcome(res)); deletes.push(outcome(del));
-        }));
+        });
       });
       console.info(`[38.2c ${latencyMs}ms] calls=${JSON.stringify(tally(calls))} delete=${JSON.stringify(tally(deletes))} deadlocks=${deadlockDelta}`);
       assertTyped(calls, 'messages/execute');
